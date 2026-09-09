@@ -24,7 +24,9 @@ export const foundationOutputsSchema = z
     PreviewZoneName: z.string().min(1),
     PublicSubnetIds: z.string().min(1),
     StateTableName: z.string().min(1),
+    PreviewEditorSecretArn: z.string().min(1),
     TaskExecutionRoleArn: z.string().min(1),
+    TaskRoleArn: z.string().min(1),
     TaskSecurityGroupId: z.string().min(1),
     VpcId: z.string().min(1),
   })

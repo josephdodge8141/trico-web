@@ -8,9 +8,9 @@ Use TypeScript, strict types and the prescribed folders. No explicit any, non-nu
 
 Backend config constructs external connections. Routes register versioned HTTP endpoints; controllers validate transport and call services. Services own business logic and data access. Middleware owns transport and identity concerns. Models re-export shared schemas. Utilities are pure and must qualify for reuse. Acceptance executes the real stack and substitutes only outbound database/provider connections.
 
-Frontend pages own top-level layouts and local behavior. Services perform API transport and schema validation only. Shared components, context and hooks require the exact reuse rule. Auth acceptance uses real local Keycloak and the real backend. Playwright supports development and CI; a separate deployed browser agent independently evaluates canonical features.
+Frontend pages own top-level layouts and local behavior. Services perform API transport and schema validation only. Shared components, context and hooks require the exact reuse rule. Auth acceptance uses the real TriCo auth domain, DynamoDB Local, Mailpit, and the real backend. Playwright supports development and CI; deployed preview verification independently evaluates canonical features.
 
-Compose is the dependency source. CDK owns permanent infrastructure only; ordinary PR previews use dynamic scripts. Production is outside v1. Never commit personal account/domain values or real credentials. `.env.example` uses generic fixtures/placeholders. Owners may change these rules; generated repositories are independent snapshots.
+Compose is the dependency source. CDK owns permanent infrastructure only; ordinary PR previews use dynamic scripts. CDK also owns dedicated dev and production application stacks. Never commit personal account/domain values or real credentials. `.env.example` uses generic fixtures/placeholders. Owners may change these rules; generated repositories are independent snapshots.
 
 Read each area's paired `CLAUDE.md` / `AGENTS.md` before edits and the corresponding `.claude/skills` concept skill when present. Copies in `.agents/skills` are generated mirrors. The root coordinator owns manifest/lockfile and shared configuration changes during initial construction.
 

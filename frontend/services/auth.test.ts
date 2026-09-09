@@ -23,7 +23,7 @@ test('auth service validates session responses and sends same-origin credentials
       );
     },
   });
-  assert.equal(requestedUrl, '/api/v1/auth/session');
+  assert.equal(requestedUrl, '/api/v1/auth/me');
   assert.equal(credentials, 'same-origin');
   assert.equal(session.authenticated, true);
 
@@ -35,17 +35,31 @@ test('auth service validates session responses and sends same-origin credentials
 });
 
 test('logout accepts only the no-content response', async () => {
-  let method: string | undefined;
+  const requests: { url: string; method: string | undefined; csrf: string | null }[] = [];
   await logout({
-    fetchImpl: async (_input, init) => {
-      method = init?.method;
-      return new Response(null, { status: 204 });
+    fetchImpl: async (input, init) => {
+      requests.push({
+        url: String(input),
+        method: init?.method,
+        csrf: new Headers(init?.headers).get('X-CSRF-Token'),
+      });
+      return String(input).endsWith('/csrf')
+        ? new Response(JSON.stringify({ token: 'c'.repeat(32) }), { status: 200 })
+        : new Response(null, { status: 204 });
     },
   });
-  assert.equal(method, 'POST');
+  assert.deepEqual(requests, [
+    { url: '/api/v1/auth/csrf', method: 'GET', csrf: null },
+    { url: '/api/v1/auth/logout', method: 'POST', csrf: 'c'.repeat(32) },
+  ]);
 
   await assert.rejects(
-    logout({ fetchImpl: async () => new Response(null, { status: 200 }) }),
+    logout({
+      fetchImpl: async (input) =>
+        String(input).endsWith('/csrf')
+          ? new Response(JSON.stringify({ token: 'c'.repeat(32) }), { status: 200 })
+          : new Response(null, { status: 200 }),
+    }),
     /Logout request failed \(200\)/,
   );
 });

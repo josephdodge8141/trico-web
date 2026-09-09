@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
-import { errorResponseSchema, type ErrorDetail, type ErrorResponse } from '@app/schemas';
+import { ZodError, errorResponseSchema, type ErrorDetail, type ErrorResponse } from '@app/schemas';
 
 export class HttpError extends Error {
   readonly statusCode: number;
@@ -16,6 +16,24 @@ export class HttpError extends Error {
 }
 
 function safeError(error: unknown): { statusCode: number; body: ErrorResponse } {
+  if (error instanceof ZodError) {
+    return {
+      statusCode: 400,
+      body: {
+        error: {
+          code: 'INVALID_REQUEST',
+          message: 'Request validation failed',
+          details: error.issues.map((issue) => ({
+            path: issue.path.map((part) =>
+              typeof part === 'symbol' ? (part.description ?? '') : part,
+            ),
+            message: issue.message,
+            code: issue.code,
+          })),
+        },
+      },
+    };
+  }
   if (error instanceof HttpError) {
     const body: ErrorResponse = {
       error: {

@@ -1,0 +1,463 @@
+[
+  {
+    "disposition": "placeholder",
+    "originalFilename": "alta-medical.jpg",
+    "assetId": "122efd4b-ff06-492f-96d7-2e8fee74960c",
+    "contentType": "image/jpeg",
+    "originalSize": 912116,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "amber-lamborn.jpeg",
+    "objectKey": "media/seed/amber-lamborn.jpeg",
+    "sha256": "e46a0a117140bf27c99bbdc8da1c57abee362023bf56e027221a5b29e38000cc",
+    "size": 1574884
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "american-fork-industrial.jpg",
+    "assetId": "dfdb8857-8c4f-4bd3-8706-e7b6f3ade3a2",
+    "contentType": "image/jpeg",
+    "originalSize": 394721,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "arbor-plaza.png",
+    "assetId": "e70f0855-d982-4f26-8c7f-8ecd46a75a9e",
+    "contentType": "image/png",
+    "originalSize": 329991,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "ben-beesley.jpg",
+    "objectKey": "media/seed/ben-beesley.jpg",
+    "sha256": "49a22b3251e3d02da244f24414786eb3713ab201c3ace49044382a1552c19438",
+    "size": 1389169
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "bluffdale-industrial.jpg",
+    "assetId": "bcc5aa5e-28fe-4a75-9aeb-eb5b33abe5b8",
+    "contentType": "image/jpeg",
+    "originalSize": 223457,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-entry.jpg",
+    "objectKey": "media/seed/boxwood-109-entry.jpg",
+    "sha256": "162f1e30419977854d3430bc69c49ca9089204b2b45e7cf61b51a13bd54d3ef0",
+    "size": 1826043
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-exterior-1.jpg",
+    "objectKey": "media/seed/boxwood-109-exterior-1.jpg",
+    "sha256": "509c5d5469740612df45db614d24dd18d8823cd2155d3b6ffd5d4189682c4cfb",
+    "size": 933065
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-exterior-2.jpg",
+    "objectKey": "media/seed/boxwood-109-exterior-2.jpg",
+    "sha256": "a4183ba20c5f20a2bcf1a8b07a9c7e2161ae5d611ed1f2fc8b7cfa03643b10e1",
+    "size": 2893386
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-kitchen-1.jpg",
+    "objectKey": "media/seed/boxwood-109-kitchen-1.jpg",
+    "sha256": "02b6c1a647bffc44e274f36df85f710bb14d92331c063c9ab7cff56cbe34b68a",
+    "size": 2089736
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-kitchen-2.jpg",
+    "objectKey": "media/seed/boxwood-109-kitchen-2.jpg",
+    "sha256": "fb5fbd7ee08151f97a5b01b17e81ee955627d7cbddb31b5a53d11307ac64db4d",
+    "size": 2253908
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-kitchen-3.jpg",
+    "objectKey": "media/seed/boxwood-109-kitchen-3.jpg",
+    "sha256": "a5a2a1239868e0f3ea316c01944e046fc9b20d3241f09efd6e458a336993b54a",
+    "size": 1970436
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-living-1.jpg",
+    "objectKey": "media/seed/boxwood-109-living-1.jpg",
+    "sha256": "d8bb2da571d052dfa0a002833ca79f1ad4795c02dc8d5273d64a31f5917d7820",
+    "size": 2241927
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-living-2.jpg",
+    "objectKey": "media/seed/boxwood-109-living-2.jpg",
+    "sha256": "5611425b316e629f5b2fe8c41202f01d93e485ca5ebddc436f9fbfe2d6a13952",
+    "size": 2048991
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-living-3.jpg",
+    "objectKey": "media/seed/boxwood-109-living-3.jpg",
+    "sha256": "da3e55eecdfd8da8747d1a1b025f6ec3fffdbba5711051c9cee0c95173fd0397",
+    "size": 2029509
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-109-living-4.jpg",
+    "objectKey": "media/seed/boxwood-109-living-4.jpg",
+    "sha256": "3fa9f194f8d1ce9c6626135639b5ae6c05f77df191204bb46f508a65a817d1e5",
+    "size": 2511641
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-dr-basement.jpg",
+    "objectKey": "media/seed/boxwood-dr-basement.jpg",
+    "sha256": "b1f1426ddfe5bd60f0d5012021bf1731ddec0ee3dc76b76fb2a3817212e3bb17",
+    "size": 1958695
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-dr-bathroom.jpg",
+    "objectKey": "media/seed/boxwood-dr-bathroom.jpg",
+    "sha256": "b008c31a40231393f132db0bba13ec4c291c6276fb56e1182649ddaabc68ba9e",
+    "size": 1701258
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-dr-exterior.jpg",
+    "objectKey": "media/seed/boxwood-dr-exterior.jpg",
+    "sha256": "2cb5a9fa0ba50471fc5b12f44c8634be7f4a625cb9f779b1da56777a9ac0c469",
+    "size": 2320216
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-dr-kitchen.jpg",
+    "objectKey": "media/seed/boxwood-dr-kitchen.jpg",
+    "sha256": "dec7f963a0c3143dc615ee55e993b8b35f6b13d4d1b92a22ba10f35701f1ca4e",
+    "size": 2083046
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-dr-living.jpg",
+    "objectKey": "media/seed/boxwood-dr-living.jpg",
+    "sha256": "60644e98a2ee23ae6a02697b2abb58a50020b9b2a743c78158d9398a8ad2ebef",
+    "size": 2409121
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "boxwood-dr-theater.jpg",
+    "objectKey": "media/seed/boxwood-dr-theater.jpg",
+    "sha256": "d4adfd008fde99cff512112761c438e187bfce6bbabba26eddd0f534fc5fecd5",
+    "size": 2762593
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "brooke-moore-landing.jpeg",
+    "objectKey": "media/seed/brooke-moore-landing.jpeg",
+    "sha256": "918c6451a29b727f407da02a8d0a14462b4166028241cba59f7d19cb8caf4c41",
+    "size": 242983
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "brooke-moore-pm.jpeg",
+    "objectKey": "media/seed/brooke-moore-pm.jpeg",
+    "sha256": "3dbeb745a5aa20b6cb7d30ea8c77abc730da248b7a6e352ccc99509c8218947b",
+    "size": 322712
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "brooke-moore.jpeg",
+    "objectKey": "media/seed/brooke-moore.jpeg",
+    "sha256": "12835ec1a5086cbc42ef002e462821eafcfb4142ead2c853850d39ebb4029bb3",
+    "size": 264159
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "california-crossing.jpg",
+    "assetId": "79301abc-e0d3-4e46-b427-f7dd2792b2de",
+    "contentType": "image/jpeg",
+    "originalSize": 169224,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "caylie-disney.jpg",
+    "objectKey": "media/seed/caylie-disney.jpg",
+    "sha256": "0e99ee35a0691bc3a29a78c77b0e3ece81676fa171c265e4cdc51036c87250ce",
+    "size": 550862
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "construction-crew-1.jpg",
+    "objectKey": "media/seed/construction-crew-1.jpg",
+    "sha256": "1581ad7af2dc0d878f786eb894c2fb8cfcb6c2e9911d6fdbc04a50bb4b0fbb34",
+    "size": 824037
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "construction-crew-2.jpg",
+    "objectKey": "media/seed/construction-crew-2.jpg",
+    "sha256": "84a7dd893d97dedd8e58b0b01df89eceafea0879963e9d0edd0c27be98954a6e",
+    "size": 2218401
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "country-square.jpg",
+    "assetId": "ab268be1-79ca-4eb9-80cc-2bbcba4775a3",
+    "contentType": "image/jpeg",
+    "originalSize": 1479857,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "deborah-peterson.jpeg",
+    "objectKey": "media/seed/deborah-peterson.jpeg",
+    "sha256": "d9adfd3c6bcce3d0d8012a21a321bded059d63c622e43234f6126444ef777319",
+    "size": 457404
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "draper-office-194.jpg",
+    "assetId": "c4809fed-0812-41e9-b51a-f3769d9be0f5",
+    "contentType": "image/jpeg",
+    "originalSize": 319023,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "draper-office-218.jpg",
+    "assetId": "151024c9-4bd1-448a-8674-adcf45efda1e",
+    "contentType": "image/jpeg",
+    "originalSize": 135484,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "kaitlan-summerhays.jpeg",
+    "objectKey": "media/seed/kaitlan-summerhays.jpeg",
+    "sha256": "82849c6f99fe05fdf3bcfb72a49d27ad39b58700858ca9125e59b1b678ed05a4",
+    "size": 583470
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "katie-thompson.jpg",
+    "objectKey": "media/seed/katie-thompson.jpg",
+    "sha256": "1df6fa8f5206323cd48277877b6e7ea05a94c7c0e103b5b6456797e3422ef877",
+    "size": 555176
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "laurel-square.jpg",
+    "assetId": "1e025c0a-c043-44cc-a568-bb0a82933888",
+    "contentType": "image/jpeg",
+    "originalSize": 335412,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "lora-stewart.jpg",
+    "objectKey": "media/seed/lora-stewart.jpg",
+    "sha256": "db899e349f603721bfec81d3030ae76778172e5414f440e1059ce5bc0e95baf7",
+    "size": 561408
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "lynette-staker.jpg",
+    "objectKey": "media/seed/lynette-staker.jpg",
+    "sha256": "dba2e2f23b3c5a15a462ec5670c4fced8a87aed877179cc6923910d589dbc5e5",
+    "size": 83825
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "marissa-roetker.jpg",
+    "objectKey": "media/seed/marissa-roetker.jpg",
+    "sha256": "b02809178cb27e44f48221b79737fb65355cba9ddc922db7518f252822cd760f",
+    "size": 551221
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "mia-barlow-re.png",
+    "objectKey": "media/seed/mia-barlow-re.png",
+    "sha256": "487e9bd02ca84f5cf9eafb2aed681ea5ccc075687af1e921c9380041331cfbba",
+    "size": 2623847
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "mia-barlow.png",
+    "objectKey": "media/seed/mia-barlow.png",
+    "sha256": "40495e0cd754d1abcc0f8486bcadcc04963bbf7db1487ca3b0dc59621f7fbeb5",
+    "size": 2445612
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "michael-thornton.jpg",
+    "objectKey": "media/seed/michael-thornton.jpg",
+    "sha256": "826f7dd31f46129ce51c83af17e5796f061c1cd6f9ed4966f614b963ce5e57bd",
+    "size": 992403
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "pm-commercial-property.jpeg",
+    "objectKey": "media/seed/pm-commercial-property.jpeg",
+    "sha256": "4b672b1466a28c0c5e9014b0067dadf5f7c014e7a0c6f6322d2abddae6538a87",
+    "size": 2184412
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "randy-rimmer.png",
+    "objectKey": "media/seed/randy-rimmer.png",
+    "sha256": "73c5967abfe4522029530e973393e1948e79d5ef2abb7b3e3d9dae79ca16be84",
+    "size": 1486585
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "real-estate-property-1.jpeg",
+    "objectKey": "media/seed/real-estate-property-1.jpeg",
+    "sha256": "87a8032035a5fa1df14537ac4ac7b1f83997d1e8316f38ec76058f3b17d953ce",
+    "size": 2088170
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "real-estate-property-2.jpeg",
+    "objectKey": "media/seed/real-estate-property-2.jpeg",
+    "sha256": "03a339d408632860a0ed3a5c362826d19e84750cbfb6adae1dba699dabcf31ea",
+    "size": 2368464
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "robert-ayers.png",
+    "assetId": "b68bcf6b-f860-463c-b1e4-69698067bc30",
+    "contentType": "image/png",
+    "originalSize": 2741172,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "shauna-thomas.png",
+    "assetId": "53b95017-091d-494c-9a52-72f835e8a19f",
+    "contentType": "image/png",
+    "originalSize": 2315953,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "slc-commercial-about.jpg",
+    "objectKey": "media/seed/slc-commercial-about.jpg",
+    "sha256": "91f3f5927439d0dd49de415be068a40fdf0c42220ab3b77216fd567d404e842c",
+    "size": 145701
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "slc-commercial-hero.jpg",
+    "objectKey": "media/seed/slc-commercial-hero.jpg",
+    "sha256": "55e73a48f8840125382431c27d81e16b73d08d19a8125cee3f5af779d8126405",
+    "size": 154608
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "stacie-papanikolas.jpg",
+    "assetId": "bf1ec498-6451-42bb-a2af-37e8138149f9",
+    "contentType": "image/jpeg",
+    "originalSize": 444883,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "steve-tripp.png",
+    "objectKey": "media/seed/steve-tripp.png",
+    "sha256": "77ff8b1ceacbb63ab9135cee0b9388fd49cba77e52ba64ab1d9cb6093777ab0e",
+    "size": 2615928
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "storage-hero.png",
+    "objectKey": "media/seed/storage-hero.png",
+    "sha256": "9d1590b73437dbb9a87bbc68995d342dec278718d9e6d25c74dfaf1fbd66e782",
+    "size": 339416
+  },
+  {
+    "disposition": "placeholder",
+    "originalFilename": "town-square.jpg",
+    "assetId": "a50c0f22-baa2-45ff-9541-a65ca09d700f",
+    "contentType": "image/jpeg",
+    "originalSize": 911174,
+    "placeholderKey": "media/seed/placeholder-neutral.svg"
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "trico-construction-logo.ai",
+    "objectKey": "media/seed/trico-construction-logo.ai",
+    "sha256": "c0e0610772eefa081e85976533296f5d7c8cf4dca260a034b1a0cb5fce86b435",
+    "size": 1581068
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "trico-logo.png",
+    "objectKey": "media/seed/trico-logo.png",
+    "sha256": "260acbef35786ec9f0e3c8a66eecaa905bda87a0a106687895d590757dece13b",
+    "size": 74417
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "trico-property-management-logo.ai",
+    "objectKey": "media/seed/trico-property-management-logo.ai",
+    "sha256": "664d5a197bf4ff06e1ac219885d13344b625b044782c59a8b82be66fed1c47b0",
+    "size": 1592777
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "trico-property-management-logo.png",
+    "objectKey": "media/seed/trico-property-management-logo.png",
+    "sha256": "835993fcf9f98ed81e74182a8a02972f996fef528cb7321cd4f2b81e613e93a4",
+    "size": 278047
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "trico-real-estate-logo.ai",
+    "objectKey": "media/seed/trico-real-estate-logo.ai",
+    "sha256": "0678d614d02633fe47b33390d204dbbc58dff5311376e08e54f8490329c752f9",
+    "size": 1586087
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "trico-real-estate-logo.png",
+    "objectKey": "media/seed/trico-real-estate-logo.png",
+    "sha256": "b1788d23b4132be9055f053677c05e18c921f953ee62a6cedbafd74a584e6243",
+    "size": 66142
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "trico-storage-logo.png",
+    "objectKey": "media/seed/trico-storage-logo.png",
+    "sha256": "e74723421268e0f2fb4ab66c4bd5e795f3ae1cc15936b878fde0e3f70139c58d",
+    "size": 48267
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "whisper-hollow-lot-105.jpg",
+    "objectKey": "media/seed/whisper-hollow-lot-105.jpg",
+    "sha256": "651b33a7863eaf6077f28d51d9a1f3109c36d1ad4ac23957954c0fda20ca5063",
+    "size": 388333
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "whisper-hollow-lot-119.jpg",
+    "objectKey": "media/seed/whisper-hollow-lot-119.jpg",
+    "sha256": "a6bdde89cf710bf20737e100ca4440bea20d32e7b8ad0f3dd140bf559987b1de",
+    "size": 383091
+  },
+  {
+    "disposition": "upload",
+    "originalFilename": "whisper-hollow-lot-boxwood.jpg",
+    "objectKey": "media/seed/whisper-hollow-lot-boxwood.jpg",
+    "sha256": "662c358de55d46a0f6326ddfa984d79c6a1f87e82b86db5da9fd4e682f2aa796",
+    "size": 290419
+  }
+]

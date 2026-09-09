@@ -1,19 +1,53 @@
-# fullstack-ts
+# TriCo web
 
-Opinionated public TypeScript factory: React, Node, shared Zod contracts, Cucumber behavior-first development, a bounded preview lifecycle reducer, and a minimal permanent AWS foundation.
+TriCo's public website and authenticated in-page content editor, migrated onto the opinionated `fullstack-ts` foundation.
 
-Wave 2 adds a credential-free local slice: Caddy, Keycloak backed by Postgres, backend OIDC/session handling, and frontend signup, login, and logout. Public Hello World and `/api/v1/health` remain available without a session.
+The repository contains one React application, a runtime-independent backend exposed through Express or Lambda, shared strict Zod contracts, canonical Cucumber behavior, DynamoDB persistence, immutable S3/MinIO content releases, and CDK infrastructure. The canonical registry contains 195 editable entities across six pages; forms remain client-only and outside the CMS.
 
-Run `docker compose up --build`, then open [http://app.localhost:8088](http://app.localhost:8088). The checked-in realm import and `.env.example` use local dummy credentials only. While Compose is running, `npm run test:behaviors:frontend:compose` executes every applicable frontend Cucumber case with exact 1:1 result accounting, and `npm run test:browser:compose -w @app/frontend` runs focused Playwright coverage. `npm run check` includes the corresponding backend Cucumber adapter and the repository gate.
+## Local preview
 
-The imported non-MFA test identity is `test-user@example.test` with password `a-long-cucumber-test-password`.
+Requirements: Node.js 24–26, npm, and Docker.
 
-`npm run synth:foundation` synthesizes the generic permanent CDK foundation without credentials or AWS lookups. It does not deploy. The owned resources and strict boundary for a future dynamic preview adapter are documented in `docs/aws-preview-adapter.md`.
+```sh
+npm ci
+npm run check
+docker compose up --build --wait
+```
 
-Factory commands:
+Open [http://app.localhost:8088](http://app.localhost:8088). The idempotent seed job creates the table and bucket, loads all entities, five external listing mappings, 51 supplied media assets, six initial page publications, the first immutable manifest, and the local reviewer account:
 
-- `npm run package:factory` exports sorted tracked source into `artifacts/factory`.
-- `npm run proof:clean-clone` exports a fresh clone, runs `npm ci`, and runs the root `check`.
-- `npm run proof:docker` runs the clean-clone proof plus Compose, health, frontend behavior, and Playwright checks. Docker is required for this explicit proof.
+- Email: `editor@tricoinc.com`
+- Password: `local-preview-password`
 
-The export excludes Git metadata, dependencies, build output, and local environment files. Packaging also rejects common private-key, AWS access-key, and absolute home-directory signatures; public review remains responsible for other sensitive content. Cloud enrollment, GitHub setup, AWS deployment, browser-agent CI, and production remain outside this version.
+Mailpit is available behind local Caddy basic authentication at [http://app.localhost:8088/__mailpit/](http://app.localhost:8088/__mailpit/). The local credentials are documented in [docs/preview-operations.md](docs/preview-operations.md).
+
+Run the deployed Compose acceptance adapters while the stack is healthy:
+
+```sh
+npm run test:behaviors:frontend:compose
+npm run test:browser:compose -w @app/frontend
+```
+
+Stop the stack with `docker compose down`. Add `--volumes` only when intentionally discarding local preview data.
+
+## Verification
+
+`npm run check` is the required credential-free repository gate. It builds every workspace; checks formatting, lint, TypeScript, instructions, and source boundaries; executes contract, backend, frontend, browser, infrastructure, and exact behavior-accounting tests; and synthesizes CDK.
+
+Additional proofs:
+
+```sh
+npm run proof:clean-clone
+npm run proof:docker
+```
+
+## Architecture and delivery
+
+- [Architecture](docs/architecture.md)
+- [Migration ledger](docs/migration-ledger.md)
+- [Initialization and bootstrap](docs/initialization.md)
+- [Preview operations](docs/preview-operations.md)
+- [AWS preview adapter](docs/aws-preview-adapter.md)
+- [Dev and production delivery](docs/production.md)
+
+The original migration ZIP is intentionally not committed. Normalized seeds, input checksums, exclusions, missing-image metadata, and approved cleanup decisions are checked in under `packages/zod/seeds` and `docs/migration-ledger.md`.

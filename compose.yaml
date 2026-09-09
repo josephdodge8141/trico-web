@@ -1,73 +1,148 @@
-name: fullstack-ts-local
+name: trico-web-local
+
+x-preview:
+  version: 1
+  router: caddy
+  frontend: frontend
+  backend: backend
+  task:
+    cpu: 2048
+    memoryMiB: 4096
 
 services:
   caddy:
     image: caddy:2.10-alpine
     ports:
       - '8088:8088'
+    environment:
+      MAILPIT_USERNAME: local-editor
+      # bcrypt for the local-only password documented in docs/preview-operations.md.
+      MAILPIT_PASSWORD_HASH: '$$2y$$12$$4NtnM0Krnhgglj4XqsvjReKYGo7BEJZQSt8yy1s.DnavvqR0vDnde'
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
-      - backend
-      - frontend
-      - keycloak
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+      mailpit:
+        condition: service_healthy
     networks:
       default:
         aliases:
           - app.localhost
 
-  postgres:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-local-keycloak-database-password}
+  dynamodb:
+    image: amazon/dynamodb-local:2.6.1
+    command: ['-jar', 'DynamoDBLocal.jar', '-sharedDb', '-dbPath', '/data']
+    user: root
+    volumes:
+      - dynamodb-data:/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U keycloak -d keycloak']
+      test: ['CMD-SHELL', 'curl -s http://localhost:8000/ >/dev/null || exit 1']
       interval: 3s
       timeout: 3s
-      retries: 20
-    volumes:
-      - keycloak-postgres:/var/lib/postgresql/data
+      retries: 30
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.2
-    command: start-dev --import-realm --http-port=8080
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: server /data --console-address ':9001'
     environment:
-      KC_DB: postgres
-      KC_DB_URL_HOST: postgres
-      KC_DB_URL_DATABASE: keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-local-keycloak-database-password}
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-local-admin}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-local-admin-password}
-      KC_HOSTNAME: http://app.localhost:8088
-      KC_PROXY_HEADERS: xforwarded
-      KC_HEALTH_ENABLED: 'true'
-    depends_on:
-      postgres:
-        condition: service_healthy
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-local-minio-user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-local-minio-password}
     volumes:
-      - ./keycloak/realm.json:/opt/keycloak/data/import/realm.json:ro
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:v1.27.8
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: '1'
+      MP_SMTP_AUTH_ALLOW_INSECURE: '1'
+      MP_WEBROOT: /__mailpit/
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 3s
+      timeout: 3s
+      retries: 30
 
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    environment:
+    environment: &backend-environment
+      APP_ENV: local
       HOST: 0.0.0.0
       PORT: 3000
       PUBLIC_ORIGIN: http://app.localhost:8088
-      OIDC_ISSUER: http://app.localhost:8088/realms/local
-      OIDC_CLIENT_ID: local-web
-      SESSION_SECRET: ${SESSION_SECRET:-local-development-session-secret-change-before-production}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-local-minio-user}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-local-minio-password}
+      AWS_REGION: us-west-2
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      DYNAMODB_TABLE: trico-web-local
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: trico-web-local
+      S3_FORCE_PATH_STYLE: 'true'
+      MAIL_TRANSPORT: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      EMAIL_FROM: TriCo Website <website@tricoinc.com>
+      SESSION_COOKIE_NAME: trico_local_session
+      COOKIE_SECURE: 'false'
+      BEDROCK_MODE: fixture
+      BEDROCK_MODEL_ID: local-fixture
     depends_on:
-      - keycloak
+      dynamodb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3000/api/v1/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  seed:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ['node', 'backend/dist/seed.js']
+    environment:
+      <<: *backend-environment
+      BOOTSTRAP_MODE: seed-if-empty
+      PREVIEW_EDITOR_EMAIL: ${PREVIEW_EDITOR_EMAIL:-editor@tricoinc.com}
+      PREVIEW_EDITOR_PASSWORD: ${PREVIEW_EDITOR_PASSWORD:-local-preview-password}
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: 'no'
 
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+    environment:
+      SITE_ADDRESS: ':80'
+      MAILPIT_USERNAME: local-editor
+      MAILPIT_PASSWORD_HASH: '$$2y$$12$$4NtnM0Krnhgglj4XqsvjReKYGo7BEJZQSt8yy1s.DnavvqR0vDnde'
+    depends_on:
+      seed:
+        condition: service_completed_successfully
 
 volumes:
-  keycloak-postgres:
+  dynamodb-data:
+  minio-data:

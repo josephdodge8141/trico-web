@@ -1,9 +1,30 @@
 :8088 {
+  encode zstd gzip
+
   @api path /api/*
   reverse_proxy @api backend:3000
 
-  @keycloak path /realms/* /resources/* /js/*
-  reverse_proxy @keycloak keycloak:8080
+  handle /__mailpit/* {
+    basic_auth {
+      {env.MAILPIT_USERNAME} {env.MAILPIT_PASSWORD_HASH}
+    }
+    reverse_proxy mailpit:8025
+  }
 
-  reverse_proxy frontend:4173
+  handle /content/* {
+    uri replace /content/ /trico-web-local/content/
+    reverse_proxy minio:9000
+  }
+
+  handle /media/* {
+    uri replace /media/ /trico-web-local/media/
+    reverse_proxy minio:9000
+  }
+
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+
+  reverse_proxy frontend:80
 }

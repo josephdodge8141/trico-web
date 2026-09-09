@@ -1,13 +1,14 @@
-# Architecture
+# TriCo architecture
 
-`fullstack-ts` is a snapshot factory for small CRUD applications with one React frontend and one Node backend. Every generated repository is independent and its owner may change any rule.
+TriCo is one React application backed by one runtime-neutral TypeScript domain. Express runs the domain locally and in ECS previews; an API Gateway Lambda image runs the same domain in `dev` and `prod`. Shared Zod contracts remain the only structured application contract.
 
-All product and meaningful factory work starts in `packages/cucumber/features`. The same stable scenario cases are accounted for by backend and frontend adapters. Factory mechanics have their own adapter. The deployed browser agent reads those canonical behaviors independently; it does not receive implementation source or Playwright selectors.
+Public content is a versioned manifest plus immutable page JSON in S3-compatible storage. Editors use authenticated `/api/v1` endpoints. DynamoDB stores identity, sessions, entities, pending changes, preferences, external sources, publication snapshots, operations and site state in one environment-specific table with one overloaded GSI.
 
-Structured application data comes from `@app/schemas`. The backend follows routes → controllers → services → config-supplied connections. React pages own most view behavior, while frontend services are restricted to HTTP transport and response validation. Local dependencies and preview containers are declared once in `docker-compose.yaml`.
+`compose.yaml` is the source for local and preview container topology. Local dependencies are DynamoDB Local, MinIO and Mailpit; the one-shot `seed` container runs only after durable dependencies are healthy. Mailpit has no published port and is reachable only through Caddy's basic-authenticated `/__mailpit/` route.
 
-CDK synthesizes permanent shared foundations. Ordinary pull-request deployments will use versioned runtime commands against that foundation. A preview is owned by immutable repository ID, pull-request number and generation. The lifecycle controller is the only permitted writer for preview DNS and uses durable ownership records before mutation.
+CDK has two distinct responsibilities:
 
-The current foundation is synthesis-only and performs no account lookup or deployment. Its resource and future adapter boundary are defined in `aws-preview-adapter.md`; GitHub/AWS enrollment and the dynamic provider implementation remain future work.
+- `FullstackTsPreviewFoundation` synthesizes retained shared network, ECS, ECR, lifecycle-state and DNS references. It contains no per-PR task or record.
+- `TricoWeb-dev` and `TricoWeb-prod` synthesize isolated Lambda/API Gateway, DynamoDB, S3/CloudFront, EventBridge, SES/Bedrock IAM, logs and alarms. Backend images must be supplied by immutable ECR digest.
 
-See `CLAUDE.md` or `AGENTS.md` for contribution rules and the other files in this directory for the supported preview and initialization contracts.
+The pure lifecycle reducer and controller persist generation ownership before effect execution. The checked-in Compose compiler validates normalized Compose and rejects unsupported or dangerous semantics. The AWS effect provider that turns those effects into ECS tasks and owned Route 53 records remains an explicit delivery gap; workflows fail rather than imply a live preview.

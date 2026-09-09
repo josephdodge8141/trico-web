@@ -1,0 +1,60 @@
+name: Preview cleanup
+
+on:
+  pull_request_target:
+    types: [closed]
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+permissions: {}
+concurrency:
+  group: preview-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: preview
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.PREVIEW_DEPLOY_ROLE_ARN }}
+      - name: Remove closed, expired, and failed-startup generations
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FOUNDATION_STACK: ${{ vars.PREVIEW_FOUNDATION_STACK }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY_ID: ${{ github.event.repository.id }}
+        run: |
+          outputs="$(aws cloudformation describe-stacks --stack-name "$FOUNDATION_STACK" --query 'Stacks[0].Outputs' --output json)"
+          output() { jq -r --arg key "$1" '.[] | select(.OutputKey == $key) | .OutputValue' <<<"$outputs"; }
+          cluster="$(output ClusterArn)"; table="$(output StateTableName)"; zone_id="$(output PreviewZoneId)"; now="$(date +%s)"
+          if test "$EVENT_NAME" = pull_request_target; then
+            key="${REPOSITORY_ID}#${PULL_REQUEST_NUMBER}"
+            aws dynamodb get-item --table-name "$table" --key "{\"previewKey\":{\"S\":\"$key\"}}" --consistent-read --query Item --output json > candidates.json
+            jq -s 'map(select(length > 0))' candidates.json > rows.json
+          else
+            aws dynamodb scan --table-name "$table" --filter-expression 'expiresAt <= :now' --expression-attribute-values "{\":now\":{\"N\":\"$now\"}}" --query Items --output json > rows.json
+          fi
+          jq -c '.[]' rows.json | while read -r item; do
+            key="$(jq -r '.previewKey.S' <<<"$item")"; task="$(jq -r '.taskArn.S' <<<"$item")"; definition="$(jq -r '.taskDefinitionArn.S' <<<"$item")"
+            record="$(jq -r '.recordName.S' <<<"$item")"; ip="$(jq -r '.publicIp.S' <<<"$item")"; generation="$(jq -r '.generation.S' <<<"$item")"
+            tags="$(aws ecs list-tags-for-resource --resource-arn "$task" --query tags --output json 2>/dev/null || echo '[]')"
+            test "$(jq -r '.[] | select(.key=="trico:generation") | .value' <<<"$tags")" = "$generation" || continue
+            jq -n --arg name "$record" --arg ip "$ip" '{Comment:"generation cleanup",Changes:[{Action:"DELETE",ResourceRecordSet:{Name:$name,Type:"A",TTL:60,ResourceRecords:[{Value:$ip}]}}]}' > dns-delete.json
+            aws route53 change-resource-record-sets --hosted-zone-id "$zone_id" --change-batch file://dns-delete.json >/dev/null || true
+            aws ecs stop-task --cluster "$cluster" --task "$task" --reason preview-expired >/dev/null || true
+            aws ecs wait tasks-stopped --cluster "$cluster" --tasks "$task" || true
+            aws ecs deregister-task-definition --task-definition "$definition" >/dev/null || true
+            aws dynamodb delete-item --table-name "$table" --key "{\"previewKey\":{\"S\":\"$key\"}}" --condition-expression 'generation = :generation' --expression-attribute-values "{\":generation\":{\"S\":\"$generation\"}}"
+          done

@@ -114,7 +114,9 @@ async function dockerProof(clone: string): Promise<void> {
   let proofFailure: unknown;
   try {
     await run('docker', ['compose', '--project-name', project, 'up', '--build', '-d'], clone);
-    await waitForResponse('http://app.localhost:8088/', (body) => body.includes('Hello World'));
+    await waitForResponse('http://app.localhost:8088/', (body) =>
+      body.includes("<title>TriCo · Building Utah's Future</title>"),
+    );
     await waitForResponse('http://app.localhost:8088/api/v1/health', (body) =>
       body.includes('"status":"ok"'),
     );

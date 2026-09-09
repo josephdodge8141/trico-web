@@ -1,0 +1,67 @@
+name: Pull request candidate
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: candidate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  code:
+    name: factory/code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  candidate-images:
+    name: Build unprivileged candidate images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Build immutable local images without credentials
+        env:
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          docker build --pull --tag "trico-candidate-backend:${CANDIDATE_SHA}" --file backend/Dockerfile .
+          docker build --pull --tag "trico-candidate-frontend:${CANDIDATE_SHA}" --file frontend/Dockerfile .
+          docker save "trico-candidate-backend:${CANDIDATE_SHA}" | gzip > backend-image.tar.gz
+          docker save "trico-candidate-frontend:${CANDIDATE_SHA}" | gzip > frontend-image.tar.gz
+      - name: Record immutable admission identity
+        env:
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+          REPOSITORY_ID: ${{ github.event.repository.id }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          jq -n --arg candidateSha "$CANDIDATE_SHA" --arg repositoryId "$REPOSITORY_ID" --argjson pullRequestNumber "$PULL_REQUEST_NUMBER" --arg workflowRunId "$WORKFLOW_RUN_ID" --argjson workflowRunAttempt "$WORKFLOW_RUN_ATTEMPT" '{candidateSha:$candidateSha,repositoryId:$repositoryId,pullRequestNumber:$pullRequestNumber,workflowRunId:$workflowRunId,workflowRunAttempt:$workflowRunAttempt}' > admission.json
+          sha256sum admission.json backend-image.tar.gz frontend-image.tar.gz > artifact-sha256.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: preview-candidate-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: |
+            admission.json
+            artifact-sha256.txt
+            backend-image.tar.gz
+            frontend-image.tar.gz
+          if-no-files-found: error
+          retention-days: 1

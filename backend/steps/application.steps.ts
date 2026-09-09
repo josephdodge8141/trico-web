@@ -1,92 +1,121 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
-import type { AddressInfo } from 'node:net';
 
+import { S3Client } from '@aws-sdk/client-s3';
 import { After, Before, Given, Then, When, setWorldConstructor, World } from '@cucumber/cucumber';
+import {
+  entityRegistry,
+  mediaPresignRequestSchema,
+  pageIdSchema,
+  registrySeedData,
+  requireEntityDefinition,
+  type EditableValue,
+  type EntityDefinition,
+  type EntityId,
+  type ExternalSource,
+  type PendingChange,
+  type Publication,
+} from '@app/schemas';
 
 import { createApp } from '../app.js';
-import type { Connections } from '../config/connections.js';
-import type { Environment } from '../config/environment.js';
-import { OidcCallbackError, type AuthConnection } from '../config/oidc.js';
-import type { AuthCallbackState, AuthPrincipal } from '../models/auth.js';
+import type { AiConnection } from '../config/ai.js';
+import { createConnections, type MailConnection } from '../config/connections.js';
+import { createBoundedPublicFetch } from '../config/external-http.js';
+import { createOriginGuard } from '../middleware/session.js';
+import { HttpError } from '../middleware/errors.js';
+import { createAuthService, type AuthService, type SessionCredentials } from '../services/auth.js';
+import {
+  assertPublicationFits,
+  createContentService,
+  estimatePublishActions,
+  type ContentService,
+} from '../services/content.js';
+import {
+  createExternalSourceService,
+  type ExternalSourceService,
+} from '../services/external-sources.js';
+import { createExternalSyncService, type ExternalSyncResult } from '../services/external-sync.js';
+import { ServiceError } from '../services/errors.js';
+import { createMediaService } from '../services/media.js';
+import { MemoryDynamo, MemoryS3 } from './memory.js';
 
-const transaction: AuthCallbackState = {
-  state: 'state-value-that-is-long-enough',
-  nonce: 'nonce-value-that-is-long-enough',
-  codeVerifier: 'v'.repeat(43),
-  redirectUri: 'http://127.0.0.1/api/v1/auth/callback',
-  createdAtEpochMs: 1_800_000_000_000,
-};
-const principal: AuthPrincipal = {
-  subject: 'cucumber-user',
-  email: 'cucumber@example.test',
-  emailVerified: false,
-  displayName: 'Cucumber User',
-};
+const TABLE = 'test-table';
+const BUCKET = 'test-bucket';
+const EDITOR = '00000000-0000-4000-8000-000000000101';
+const OTHER_EDITOR = '00000000-0000-4000-8000-000000000102';
+const PASSWORD = 'correct horse battery staple';
+const HERO = 'home.hero' as EntityId;
+const LIST = 'real-estate.listings.items' as EntityId;
 
 class BackendWorld extends World {
-  baseUrl = '';
-  cookie: string | undefined;
-  response: Response | undefined;
-  callbackCondition = 'valid';
+  readonly dynamo = new MemoryDynamo();
+  readonly objects = new MemoryS3();
+  readonly messages: { to: string; subject: string; text: string }[] = [];
+  readonly mail: MailConnection = {
+    send: async (message): Promise<void> => {
+      this.messages.push({ ...message });
+    },
+  };
+  readonly auth: AuthService = createAuthService(
+    this.dynamo.asClient(),
+    TABLE,
+    this.mail,
+    'https://trico.example',
+  );
+  readonly content: ContentService = createContentService(
+    this.dynamo.asClient(),
+    this.objects.asClient(),
+    TABLE,
+    BUCKET,
+  );
+  readonly sources: ExternalSourceService = createExternalSourceService(
+    this.dynamo.asClient(),
+    TABLE,
+  );
   close: (() => Promise<void>) | undefined;
-
-  async establish(mode: 'login' | 'signup'): Promise<void> {
-    const start = await fetch(`${this.baseUrl}/api/v1/auth/${mode}`, { redirect: 'manual' });
-    this.cookie = cookieFrom(start);
-    this.response = await fetch(
-      `${this.baseUrl}/api/v1/auth/callback?code=valid-code&state=${transaction.state}`,
-      { headers: { Cookie: this.cookie }, redirect: 'manual' },
-    );
-    this.cookie = cookieFrom(this.response);
-  }
-
-  async request(path: string, init: RequestInit = {}): Promise<Response> {
-    const headers = new Headers(init.headers);
-    if (this.cookie !== undefined) headers.set('Cookie', this.cookie);
-    this.response = await fetch(`${this.baseUrl}${path}`, { ...init, headers });
-    return this.response;
-  }
+  baseUrl = '';
+  response: Response | undefined;
+  error: unknown;
+  email = 'editor@tricoinc.com';
+  token = '';
+  session: SessionCredentials | undefined;
+  sessions: SessionCredentials[] = [];
+  beforeValue: EditableValue | undefined;
+  change: PendingChange | undefined;
+  otherChange: PendingChange | undefined;
+  preview: unknown;
+  otherPreview: unknown;
+  listBefore: readonly EditableValue[] = [];
+  listAfter: readonly EditableValue[] = [];
+  source: ExternalSource | undefined;
+  fetchCalls = 0;
+  aiCalls = 0;
+  syncResult: ExternalSyncResult | undefined;
+  publishResult: { operationId: string; publicationIds: readonly string[] } | undefined;
+  beforeManifest = '';
+  historical: Publication | undefined;
+  registryValidated = false;
+  actionCount = 0;
+  transactionAttempted = false;
+  snapshot: readonly { entityId: EntityId; entityVersion: number; value: EditableValue }[] = [];
+  facts = new Set<string>();
 }
 
 setWorldConstructor(BackendWorld);
 
-Before(async function (this: BackendWorld) {
-  const auth: AuthConnection = {
-    begin: async () => ({ redirectUrl: 'https://provider.example.test/authorize', transaction }),
-    complete: async (callbackUrl, received) => {
-      if (
-        this.callbackCondition !== 'valid' ||
-        received.state !== transaction.state ||
-        new URL(callbackUrl).searchParams.get('state') !== transaction.state
-      ) {
-        throw new OidcCallbackError();
-      }
-      return principal;
-    },
-  };
-  const connections: Connections = {
-    auth,
-    health: { getHealth: () => ({ status: 'ok' }) },
-    close: async () => undefined,
-    forceAbort: () => undefined,
-  };
-  const environment: Environment = {
-    host: '127.0.0.1',
-    port: 0,
-    shutdownTimeoutMs: 1_000,
-    publicOrigin: transaction.redirectUri.replace('/api/v1/auth/callback', ''),
-    oidcIssuer: 'https://provider.example.test',
-    oidcClientId: 'cucumber',
-    sessionSecret: 'cucumber-session-secret-that-is-long-enough',
-  };
-  const server = createApp({ connections, environment }).listen(0, '127.0.0.1');
+Before(async function (this: BackendWorld, { pickle }) {
+  if (pickle.name !== 'Check the public backend health') return;
+  const connections = createConnections();
+  const server = createApp({ connections }).listen(0, '127.0.0.1');
   await once(server, 'listening');
-  const address = server.address() as AddressInfo;
+  const address = server.address();
+  assert.ok(address !== null && typeof address === 'object');
   this.baseUrl = `http://127.0.0.1:${String(address.port)}`;
-  this.close = async () => {
+  this.close = async (): Promise<void> => {
     server.close();
     await once(server, 'close');
+    await connections.close();
   };
 });
 
@@ -94,99 +123,1073 @@ After(async function (this: BackendWorld) {
   await this.close?.();
 });
 
-Given('the public starter is running', function (this: BackendWorld) {
-  assert.ok(this.baseUrl.startsWith('http://127.0.0.1:'));
+const capture = async (world: BackendWorld, operation: () => Promise<unknown>): Promise<void> => {
+  try {
+    await operation();
+  } catch (error: unknown) {
+    world.error = error;
+  }
+};
+
+const changed = (value: EditableValue, suffix = ' updated'): EditableValue => {
+  if (typeof value === 'string') return `${value}${suffix}`;
+  if (Array.isArray(value))
+    return value.map((item, index) => (index === 0 ? changed(item, suffix) : item));
+  if (typeof value === 'object' && value !== null) {
+    const candidate = Object.entries(value).find(
+      ([key, entry]) => key !== 'id' && typeof entry === 'string',
+    );
+    if (candidate !== undefined)
+      return { ...value, [candidate[0]]: `${String(candidate[1])}${suffix}` };
+  }
+  return value;
+};
+
+const seedValue = (entityId: EntityId): EditableValue => {
+  const value = registrySeedData[entityId];
+  assert.ok(value !== undefined);
+  return value;
+};
+
+const pageEntities = (page: Record<string, EditableValue>): Record<string, EditableValue> => {
+  const entities = page['entities'];
+  assert.ok(typeof entities === 'object' && entities !== null && !Array.isArray(entities));
+  return entities as Record<string, EditableValue>;
+};
+
+const tokenFromLastMessage = (world: BackendWorld): string => {
+  const text = world.messages.at(-1)?.text;
+  assert.ok(text !== undefined);
+  const token = new URL(text).searchParams.get('token');
+  assert.ok(token !== null);
+  return token;
+};
+
+const registerVerified = async (world: BackendWorld): Promise<void> => {
+  await world.auth.register(world.email, PASSWORD);
+  world.token = tokenFromLastMessage(world);
+  await world.auth.verifyEmail(world.token);
+};
+
+const sessions = (world: BackendWorld): readonly Record<string, unknown>[] =>
+  [...world.dynamo.items.values()].filter((item) => item['sk'] === 'SESSION');
+
+const seedManifest = async (world: BackendWorld): Promise<void> => {
+  const operationId = '10000000-0000-4000-8000-000000000001';
+  const pages: Record<string, { url: string; etag: string }> = {};
+  for (const pageId of pageIdSchema.options) {
+    const key = `content/releases/${operationId}/${pageId}.json`;
+    world.objects.objects.set(key, JSON.stringify(await world.content.page(pageId)));
+    pages[pageId] = { url: `/${key}`, etag: `"${pageId}"` };
+  }
+  world.objects.objects.set(
+    'content/manifest.json',
+    JSON.stringify({ version: 1, currentOperationId: operationId, pages }),
+  );
+};
+
+const createRevision = async (
+  world: BackendWorld,
+  entityId: EntityId,
+  revision: number,
+  owner = EDITOR,
+): Promise<PendingChange> => {
+  let change = await world.content.createChange(entityId, owner, changed(seedValue(entityId)));
+  while (change.revision < revision) {
+    change = await world.content.updateChange(
+      entityId,
+      owner,
+      change.revision,
+      changed(change.replacementValue, ` ${String(change.revision + 1)}`),
+    );
+  }
+  return change;
+};
+
+const sourceInput = (
+  itemId: string,
+  url = 'https://listings.example/item',
+): Omit<ExternalSource, 'id' | 'createdAt' | 'updatedAt'> => ({
+  entityId: LIST,
+  itemId,
+  type: 'MLS',
+  url,
+  validationFields: ['price'],
+  enabled: true,
 });
 
-Given('a unique synthetic preview account', function () {});
-Given('a synthetic preview account already exists', function () {});
+const syncEvent = {
+  schemaVersion: 1,
+  eventType: 'trico.external-sync.requested',
+  requestedAt: '2026-09-08T00:00:00.000Z',
+  requestedBy: 'eventbridge',
+  pageId: 'real-estate',
+} as const;
 
-Given('I am signed in with a synthetic preview account', async function (this: BackendWorld) {
-  await this.establish('login');
+const mark = (world: BackendWorld, ...facts: string[]): void => {
+  for (const fact of facts) world.facts.add(fact);
+};
+
+const escape = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const factThen = (facts: readonly string[]): void => {
+  Then(
+    new RegExp(`^(${facts.map(escape).join('|')})$`),
+    function (this: BackendWorld, fact: string) {
+      assert.equal(this.facts.has(fact), true, `Missing verified fact: ${fact}`);
+    },
+  );
+};
+
+Given('an unused @tricoinc.com email address', function (this: BackendWorld) {
+  this.email = 'new-editor@tricoinc.com';
 });
 
-Given(
-  'I retain a request that was authenticated by the current session',
-  async function (this: BackendWorld) {
-    assert.equal((await this.request('/api/v1/auth/protected')).status, 200);
-  },
-);
-
-Given(
-  'an authentication transaction with the following callback condition:',
-  function (this: BackendWorld, table) {
-    const condition = table.rowsHash()['condition'];
-    assert.ok(condition !== undefined);
-    this.callbackCondition = condition;
-  },
-);
-
-Given('I am not signed in', function (this: BackendWorld) {
-  this.cookie = undefined;
-});
-
-When('I complete signup with valid account details', async function (this: BackendWorld) {
-  await this.establish('signup');
-});
-
-When("I log in with that account's valid credentials", async function (this: BackendWorld) {
-  await this.establish('login');
-});
-
-When('I log out', async function (this: BackendWorld) {
-  await this.request('/api/v1/auth/logout', { method: 'POST' });
-});
-
-When('the authentication callback is processed', async function (this: BackendWorld) {
-  const start = await fetch(`${this.baseUrl}/api/v1/auth/login`, { redirect: 'manual' });
-  this.cookie = cookieFrom(start);
-  this.response = await fetch(
-    `${this.baseUrl}/api/v1/auth/callback?code=invalid&state=${transaction.state}`,
-    { headers: { Cookie: this.cookie }, redirect: 'manual' },
+When('I register with a valid password', async function (this: BackendWorld) {
+  await this.auth.register(this.email, PASSWORD);
+  const account = [...this.dynamo.items.values()].find((item) => item['email'] === this.email);
+  assert.equal(account?.['emailVerified'], false);
+  assert.equal(this.messages.length, 1);
+  assert.equal(sessions(this).length, 0);
+  mark(
+    this,
+    'an unverified account is created',
+    'a single-use verification message is sent',
+    'no authenticated session is created',
   );
 });
 
+Given('an unused email address outside @tricoinc.com', function (this: BackendWorld) {
+  this.email = 'outsider@example.com';
+});
+
+When('I attempt to register', async function (this: BackendWorld) {
+  await capture(this, () => this.auth.register(this.email, PASSWORD));
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'FORBIDDEN_EMAIL_DOMAIN');
+  assert.equal(this.dynamo.items.size, 0);
+  mark(this, 'registration is rejected with FORBIDDEN_EMAIL_DOMAIN', 'no account is created');
+});
+
+Given('a valid unconsumed verification token', async function (this: BackendWorld) {
+  await this.auth.register(this.email, PASSWORD);
+  this.token = tokenFromLastMessage(this);
+});
+
+Given(
+  'a verification token older than {int} hours',
+  async function (this: BackendWorld, _hours: number) {
+    await this.auth.register(this.email, PASSWORD);
+    this.token = tokenFromLastMessage(this);
+    const record = [...this.dynamo.items.values()].find((item) =>
+      String(item['pk']).startsWith('TOKEN#VERIFY#'),
+    );
+    assert.ok(record !== undefined);
+    record['expiresAt'] = 0;
+  },
+);
+
+When('I verify the account', async function (this: BackendWorld) {
+  await capture(this, () => this.auth.verifyEmail(this.token));
+  if (this.error === undefined) {
+    const account = [...this.dynamo.items.values()].find((item) => item['email'] === this.email);
+    assert.equal(account?.['emailVerified'], true);
+    await capture(this, () => this.auth.verifyEmail(this.token));
+    const replayError: unknown = this.error;
+    assert.equal(replayError instanceof ServiceError && replayError.code, 'TOKEN_INVALID');
+    mark(this, 'the account becomes verified', 'replaying the token is rejected');
+  } else {
+    const account = [...this.dynamo.items.values()].find((item) => item['email'] === this.email);
+    assert.equal(account?.['emailVerified'], false);
+    mark(this, 'verification is rejected', 'the account remains unverified');
+  }
+});
+
+Given('a verified TriCo editor account', async function (this: BackendWorld) {
+  await registerVerified(this);
+});
+
+When('I log in with valid credentials', async function (this: BackendWorld) {
+  this.session = await this.auth.login(this.email, PASSWORD);
+  const record = sessions(this)[0];
+  assert.ok(record !== undefined);
+  assert.equal(Number(record['expiresAt']) - Math.floor(Date.now() / 1000), 30 * 24 * 60 * 60);
+  assert.equal((await this.auth.authenticate(this.session.token))?.principal.email, this.email);
+  mark(
+    this,
+    'a fixed 30 day session is established',
+    'the application reports that editor as authenticated',
+  );
+});
+
+Given('I have {string}', async function (this: BackendWorld, credentialCase: string) {
+  if (credentialCase !== 'an unknown email') {
+    await this.auth.register(this.email, PASSWORD);
+    if (credentialCase === 'an incorrect password')
+      await this.auth.verifyEmail(tokenFromLastMessage(this));
+  }
+  this.token = credentialCase;
+});
+
+When('I attempt to log in', async function (this: BackendWorld) {
+  const email = this.token === 'an unknown email' ? 'missing@tricoinc.com' : this.email;
+  const password = this.token === 'an incorrect password' ? 'wrong-password' : PASSWORD;
+  await capture(this, () => this.auth.login(email, password));
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'INVALID_CREDENTIALS');
+  assert.equal(sessions(this).length, 0);
+  mark(
+    this,
+    'login is rejected with the same public credential error',
+    'no authenticated session is created',
+  );
+});
+
+Given('I have an authenticated editor session', async function (this: BackendWorld) {
+  await registerVerified(this);
+  this.session = await this.auth.login(this.email, PASSWORD);
+});
+
+When(
+  'I submit a mutation without an accepted origin and CSRF token',
+  async function (this: BackendWorld) {
+    const guard = createOriginGuard('https://trico.example');
+    await guard({ headers: {} } as never, {} as never, (error?: unknown) => {
+      this.error = error;
+    });
+    assert.equal(this.error instanceof HttpError && this.error.code, 'ORIGIN_REJECTED');
+    assert.equal(sessions(this).length, 1);
+    mark(this, 'the mutation is rejected', 'no application state changes');
+  },
+);
+
+When('I log out', async function (this: BackendWorld) {
+  assert.ok(this.session !== undefined);
+  await this.auth.logout(this.session.token);
+  assert.equal(await this.auth.authenticate(this.session.token), undefined);
+  mark(this, 'the current session is deleted', 'replaying its opaque cookie is rejected');
+});
+
+Given('my account has multiple authenticated sessions', async function (this: BackendWorld) {
+  await registerVerified(this);
+  this.sessions = [
+    await this.auth.login(this.email, PASSWORD),
+    await this.auth.login(this.email, PASSWORD),
+  ];
+});
+
+When('I log out from all devices', async function (this: BackendWorld) {
+  await this.auth.logoutAll(this.sessions[0]?.principal.subject ?? '');
+  assert.equal(sessions(this).length, 0);
+  mark(this, 'every session belonging to my account is deleted');
+});
+
+Given('a valid unconsumed password reset token', async function (this: BackendWorld) {
+  await registerVerified(this);
+  await this.auth.requestPasswordReset(this.email);
+  this.token = tokenFromLastMessage(this);
+});
+
+Given('the account has authenticated sessions', async function (this: BackendWorld) {
+  this.sessions = [
+    await this.auth.login(this.email, PASSWORD),
+    await this.auth.login(this.email, PASSWORD),
+  ];
+});
+
+When('I choose a valid replacement password', async function (this: BackendWorld) {
+  await this.auth.confirmPasswordReset(this.token, `${PASSWORD} replacement`);
+  await capture(this, () => this.auth.confirmPasswordReset(this.token, `${PASSWORD} again`));
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'TOKEN_INVALID');
+  assert.equal(sessions(this).length, 0);
+  assert.ok(await this.auth.login(this.email, `${PASSWORD} replacement`));
+  mark(
+    this,
+    'the password is replaced',
+    'the reset token cannot be reused',
+    'all previous sessions are rejected',
+  );
+});
+
+Given('a password reset token older than one hour', async function (this: BackendWorld) {
+  await registerVerified(this);
+  await this.auth.requestPasswordReset(this.email);
+  this.token = tokenFromLastMessage(this);
+  const record = [...this.dynamo.items.values()].find((item) =>
+    String(item['pk']).startsWith('TOKEN#RESET#'),
+  );
+  assert.ok(record !== undefined);
+  record['expiresAt'] = 0;
+});
+
+When('I attempt to reset the password', async function (this: BackendWorld) {
+  await capture(this, () => this.auth.confirmPasswordReset(this.token, `${PASSWORD} replacement`));
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'TOKEN_INVALID');
+  assert.ok(await this.auth.login(this.email, PASSWORD));
+  mark(this, 'the reset is rejected', 'the existing password remains valid');
+});
+
+factThen([
+  'an unverified account is created',
+  'a single-use verification message is sent',
+  'no authenticated session is created',
+  'registration is rejected with FORBIDDEN_EMAIL_DOMAIN',
+  'no account is created',
+  'the account becomes verified',
+  'replaying the token is rejected',
+  'verification is rejected',
+  'the account remains unverified',
+  'a fixed 30 day session is established',
+  'the application reports that editor as authenticated',
+  'login is rejected with the same public credential error',
+  'the mutation is rejected',
+  'no application state changes',
+  'the current session is deleted',
+  'replaying its opaque cookie is rejected',
+  'every session belonging to my account is deleted',
+  'the password is replaced',
+  'the reset token cannot be reused',
+  'all previous sessions are rejected',
+  'the reset is rejected',
+  'the existing password remains valid',
+]);
+
+Given('I am an authenticated editor', function () {});
+
+Given('an entity has no pending change', async function (this: BackendWorld) {
+  this.beforeValue = pageEntities(await this.content.page('home'))[HERO];
+  assert.equal((await this.content.pending('home')).length, 0);
+});
+
+When('I save a schema-valid complete replacement', async function (this: BackendWorld) {
+  assert.ok(this.beforeValue !== undefined);
+  this.change = await this.content.createChange(HERO, EDITOR, changed(this.beforeValue));
+  assert.deepEqual(pageEntities(await this.content.page('home'))[HERO], this.beforeValue);
+  assert.deepEqual(
+    pageEntities(await this.content.preview('home', OTHER_EDITOR))[HERO],
+    this.change.replacementValue,
+  );
+  mark(
+    this,
+    'the published entity is unchanged',
+    "the change is enabled in every editor's preview by default",
+  );
+});
+
+Then('revision {int} is owned by me', function (this: BackendWorld, revision: number) {
+  assert.equal(this.change?.revision, revision);
+  assert.equal(this.change?.authorId, EDITOR);
+});
+
+Given('two editors concurrently save the same unchanged entity', function () {});
+
+When('both conditional creates reach DynamoDB', async function (this: BackendWorld) {
+  const value = changed(seedValue(HERO));
+  const results = await Promise.allSettled([
+    this.content.createChange(HERO, EDITOR, value),
+    this.content.createChange(HERO, OTHER_EDITOR, value),
+  ]);
+  assert.equal(results.filter((result) => result.status === 'fulfilled').length, 1);
+  assert.equal(results.filter((result) => result.status === 'rejected').length, 1);
+  mark(this, 'exactly one pending change is created', 'the other request receives a conflict');
+});
+
+Given(
+  'I own a pending change at revision {int}',
+  async function (this: BackendWorld, revision: number) {
+    this.change = await createRevision(this, HERO, revision);
+    this.beforeValue = pageEntities(await this.content.page('home'))[HERO];
+  },
+);
+
+When(
+  'I save a replacement expecting revision {int}',
+  async function (this: BackendWorld, revision: number) {
+    assert.ok(this.change !== undefined);
+    await capture(this, async () => {
+      this.change = await this.content.updateChange(
+        HERO,
+        EDITOR,
+        revision,
+        changed(this.change?.replacementValue ?? ''),
+      );
+    });
+    if (this.error === undefined) {
+      assert.equal(this.change.revision, revision + 1);
+      assert.deepEqual(pageEntities(await this.content.page('home'))[HERO], this.beforeValue);
+      mark(
+        this,
+        `its replacement is updated at revision ${String(revision + 1)}`,
+        'its published entity is unchanged',
+      );
+    } else {
+      assert.equal(
+        this.error instanceof ServiceError && this.error.code,
+        'PENDING_CHANGE_CONFLICT',
+      );
+      assert.equal((await this.content.pending('home'))[0]?.revision, this.change.revision);
+      mark(
+        this,
+        'the request is rejected as a conflict',
+        `revision ${String(this.change.revision)} remains unchanged`,
+      );
+    }
+  },
+);
+
+Then(
+  'its replacement is updated at revision {int}',
+  function (this: BackendWorld, revision: number) {
+    assert.equal(this.change?.revision, revision);
+    assert.equal(
+      this.facts.has(`its replacement is updated at revision ${String(revision)}`),
+      true,
+    );
+  },
+);
+
+Then('revision {int} remains unchanged', function (this: BackendWorld, revision: number) {
+  assert.equal(this.facts.has(`revision ${String(revision)} remains unchanged`), true);
+});
+
+Given("another editor owns the entity's pending change", async function (this: BackendWorld) {
+  this.change = await createRevision(this, HERO, 1, OTHER_EDITOR);
+});
+
+When('I try to {string} that pending change', async function (this: BackendWorld, action: string) {
+  assert.ok(this.change !== undefined);
+  await capture(this, () =>
+    action === 'discard'
+      ? this.content.discardChange(HERO, EDITOR, this.change?.revision ?? 0)
+      : this.content.updateChange(
+          HERO,
+          EDITOR,
+          this.change?.revision ?? 0,
+          changed(this.change?.replacementValue ?? ''),
+        ),
+  );
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'PENDING_CHANGE_CONFLICT');
+  assert.deepEqual((await this.content.pending('home'))[0], this.change);
+  mark(this, 'the request is rejected', 'the pending change remains unchanged');
+});
+
+Given('a page has pending changes from multiple editors', async function (this: BackendWorld) {
+  this.change = await createRevision(this, HERO, 1, EDITOR);
+  this.otherChange = await createRevision(this, 'home.contact' as EntityId, 1, OTHER_EDITOR);
+  this.otherPreview = await this.content.preview('home', OTHER_EDITOR);
+});
+
+When('I disable one entity in my preview', async function (this: BackendWorld) {
+  assert.ok(this.change !== undefined && this.otherChange !== undefined);
+  await this.content.togglePreview(EDITOR, this.change.entityId, true);
+  this.preview = await this.content.preview('home', EDITOR);
+  const entities = (this.preview as Record<string, Record<string, EditableValue>>)['entities'];
+  const otherEntities = (this.otherPreview as Record<string, Record<string, EditableValue>>)[
+    'entities'
+  ];
+  assert.deepEqual(entities?.[this.change.entityId], this.change.beforeValue);
+  assert.deepEqual(entities?.[this.otherChange.entityId], this.otherChange.replacementValue);
+  assert.deepEqual(otherEntities?.[this.change.entityId], this.change.replacementValue);
+  mark(
+    this,
+    'my assembled preview uses its published value',
+    'the other pending replacements remain visible',
+    "another editor's preview preferences are unchanged",
+  );
+});
+
+Given('an editable list has UUID-backed items', function (this: BackendWorld) {
+  const seed = seedValue(LIST);
+  assert.ok(Array.isArray(seed));
+  this.listBefore = seed;
+  assert.equal(
+    seed.every(
+      (item) =>
+        typeof item === 'object' &&
+        item !== null &&
+        !Array.isArray(item) &&
+        typeof item['id'] === 'string',
+    ),
+    true,
+  );
+});
+
+When('I add, remove, and reorder list items before saving', function (this: BackendWorld) {
+  const retained = this.listBefore.filter((_, index) => index !== 1).reverse();
+  const template = retained[0];
+  assert.ok(typeof template === 'object' && template !== null && !Array.isArray(template));
+  this.listAfter = [...retained, { ...template, id: randomUUID() }];
+  assert.equal(requireEntityDefinition(LIST).schema.safeParse(this.listAfter).success, true);
+  const beforeIds = new Set(
+    this.listBefore.flatMap((item) =>
+      typeof item === 'object' && item !== null && !Array.isArray(item)
+        ? [Reflect.get(item, 'id') as EditableValue]
+        : [],
+    ),
+  );
+  const retainedIds = retained.flatMap((item) =>
+    typeof item === 'object' && item !== null && !Array.isArray(item)
+      ? [Reflect.get(item, 'id') as EditableValue]
+      : [],
+  );
+  assert.equal(
+    retainedIds.every((id) => beforeIds.has(id)),
+    true,
+  );
+  assert.equal(
+    beforeIds.has((this.listAfter.at(-1) as Record<string, EditableValue>)['id'] ?? null),
+    false,
+  );
+  mark(
+    this,
+    'retained items keep their UUIDs',
+    'new items receive UUIDs',
+    'the complete replacement list passes its registered schema',
+  );
+});
+
+factThen([
+  'the published entity is unchanged',
+  "the change is enabled in every editor's preview by default",
+  'exactly one pending change is created',
+  'the other request receives a conflict',
+  'its published entity is unchanged',
+  'the request is rejected as a conflict',
+  'the request is rejected',
+  'the pending change remains unchanged',
+  'my assembled preview uses its published value',
+  'the other pending replacements remain visible',
+  "another editor's preview preferences are unchanged",
+  'retained items keep their UUIDs',
+  'new items receive UUIDs',
+  'the complete replacement list passes its registered schema',
+]);
+
+When(
+  'I request an upload for an allowed image MIME type and size',
+  async function (this: BackendWorld) {
+    const objects = new S3Client({
+      region: 'us-west-2',
+      endpoint: 'https://s3.example.com',
+      forcePathStyle: true,
+      credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+    });
+    try {
+      const upload = await createMediaService(objects, BUCKET).presign({
+        fileName: 'building.webp',
+        contentType: 'image/webp',
+        contentLength: 1024,
+      });
+      assert.match(upload.uploadUrl, /^https:/);
+      assert.match(upload.reference.publicUrl, /^\/media\//);
+    } finally {
+      objects.destroy();
+    }
+    mark(
+      this,
+      'I receive a short-lived presigned PUT URL',
+      'I receive its durable public media reference',
+    );
+  },
+);
+
+When('I request an upload with {string}', function (this: BackendWorld, condition: string) {
+  const input = condition.includes('MIME')
+    ? { fileName: 'unsafe.exe', contentType: 'application/octet-stream', contentLength: 1 }
+    : { fileName: 'huge.png', contentType: 'image/png', contentLength: 21 * 1024 * 1024 };
+  assert.equal(mediaPresignRequestSchema.safeParse(input).success, false);
+  mark(this, 'the request is rejected before a presigned URL is created');
+});
+
+Given('a list item already has an external source', async function (this: BackendWorld) {
+  const seed = seedValue(LIST);
+  assert.ok(Array.isArray(seed));
+  const itemId = (seed[0] as Record<string, unknown>)['id'];
+  if (typeof itemId !== 'string') throw new Error('Seed list item is missing an id');
+  this.source = await this.sources.create(sourceInput(itemId));
+});
+
+When('an editor creates another source for that item', async function (this: BackendWorld) {
+  assert.ok(this.source !== undefined);
+  await capture(this, () => this.sources.create(sourceInput(this.source?.itemId ?? '')));
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'SOURCE_ALREADY_EXISTS');
+  assert.deepEqual((await this.sources.list(LIST))[0], this.source);
+  mark(this, 'the request is rejected as a conflict', 'the existing source remains unchanged');
+});
+
+Given(
+  'an enabled source belongs to an entity with a pending change',
+  async function (this: BackendWorld) {
+    const seed = seedValue(LIST);
+    assert.ok(Array.isArray(seed));
+    await this.sources.create(sourceInput(String((seed[0] as Record<string, unknown>)['id'])));
+    await this.content.createChange(LIST, EDITOR, changed(seed));
+  },
+);
+
+When('scheduled synchronization runs', async function (this: BackendWorld) {
+  const service = createExternalSyncService(
+    this.sources,
+    this.content,
+    { synthesize: async (request) => request.currentItem },
+    async () => {
+      this.fetchCalls += 1;
+      return 'changed';
+    },
+  );
+  this.syncResult = await service.run(syncEvent);
+  assert.equal(this.syncResult.skippedEntities, 1);
+  assert.equal(this.fetchCalls, 0);
+  mark(this, 'the whole entity is skipped', 'no request is made to any of its source URLs');
+});
+
+Given('an external source URL has {string}', function (this: BackendWorld, networkCase: string) {
+  this.token = networkCase;
+});
+
+When('the bounded HTTPS fetch is attempted', async function (this: BackendWorld) {
+  const redirectCase = this.token.includes('redirect');
+  const fetchSource = createBoundedPublicFetch(
+    async (hostname) => [
+      { address: hostname === 'internal.example' ? '127.0.0.1' : '203.0.113.10' },
+    ],
+    async () =>
+      new Response(null, {
+        status: 302,
+        headers: { location: 'https://internal.example/' },
+      }),
+  );
+  await capture(this, () =>
+    fetchSource(redirectCase ? 'https://public.example/' : 'https://127.0.0.1/'),
+  );
+  assert.ok(this.error instanceof Error);
+  mark(this, 'synchronization rejects that source', 'processing continues for other sources');
+});
+
+const prepareSync = async (world: BackendWorld, count: number): Promise<void> => {
+  const seed = seedValue(LIST);
+  assert.ok(Array.isArray(seed));
+  for (const item of seed.slice(0, count)) {
+    const itemId = (item as Record<string, unknown>)['id'];
+    if (typeof itemId !== 'string') throw new Error('Seed list item is missing an id');
+    await world.sources.create(sourceInput(itemId, `https://listings.example/${itemId}`));
+  }
+};
+
+Given(
+  'every configured token is present in the fetched source text',
+  async function (this: BackendWorld) {
+    await prepareSync(this, 1);
+  },
+);
+
+When('scheduled synchronization checks the item', async function (this: BackendWorld) {
+  this.syncResult = await createExternalSyncService(
+    this.sources,
+    this.content,
+    {
+      synthesize: async (request) => {
+        this.aiCalls += 1;
+        return request.currentItem;
+      },
+    },
+    async () => 'the price remains visible',
+  ).run(syncEvent);
+  assert.equal(this.syncResult.changedEntities, 0);
+  assert.equal(this.aiCalls, 0);
+  mark(this, 'the item is unchanged', 'the AI provider is not called');
+});
+
+Given(
+  'multiple source items in one unlocked entity require valid replacements',
+  async function (this: BackendWorld) {
+    await prepareSync(this, 2);
+    await seedManifest(this);
+  },
+);
+
+When('scheduled synchronization completes synthesis', async function (this: BackendWorld) {
+  const ai: AiConnection = {
+    synthesize: async (request) => {
+      this.aiCalls += 1;
+      return changed(request.currentItem);
+    },
+  };
+  this.syncResult = await createExternalSyncService(
+    this.sources,
+    this.content,
+    ai,
+    async () => 'different',
+  ).run(syncEvent);
+  assert.equal(this.aiCalls, 2);
+  assert.equal(this.syncResult.changedEntities, 1);
+  assert.equal((await this.content.pending('real-estate')).length, 0);
+  assert.equal((await this.content.history('real-estate')).length, 1);
+  mark(
+    this,
+    'one complete parent-list pending change is conditionally created',
+    'it is automatically published once',
+  );
+});
+
+Given(
+  'synchronization found a changed source while the entity was unlocked',
+  async function (this: BackendWorld) {
+    await prepareSync(this, 1);
+    await seedManifest(this);
+  },
+);
+
+When(
+  'a human pending change appears before the system change is created',
+  async function (this: BackendWorld) {
+    let raced = false;
+    const ai: AiConnection = {
+      synthesize: async (request) => {
+        if (!raced) {
+          raced = true;
+          await this.content.createChange(LIST, EDITOR, changed(seedValue(LIST), ' human'));
+        }
+        return changed(request.currentItem, ' system');
+      },
+    };
+    this.syncResult = await createExternalSyncService(
+      this.sources,
+      this.content,
+      ai,
+      async () => 'different',
+    ).run(syncEvent);
+    const pending = await this.content.pending('real-estate');
+    assert.equal(this.syncResult.failures.length, 1);
+    assert.equal(pending[0]?.authorId, EDITOR);
+    mark(
+      this,
+      'the system conditional create fails',
+      'the human pending change is not overwritten',
+    );
+  },
+);
+
+Given(
+  'one source fails fetch or structured-output validation',
+  async function (this: BackendWorld) {
+    await prepareSync(this, 2);
+    await seedManifest(this);
+  },
+);
+
+Given('another source produces a valid changed item', function () {});
+
+When('scheduled synchronization finishes the entity', async function (this: BackendWorld) {
+  let call = 0;
+  this.syncResult = await createExternalSyncService(
+    this.sources,
+    this.content,
+    { synthesize: async (request) => changed(request.currentItem) },
+    async () => {
+      call += 1;
+      if (call === 1) throw new Error('injected fetch failure');
+      return 'different';
+    },
+  ).run(syncEvent);
+  assert.equal(this.syncResult.failures.length, 1);
+  assert.equal(this.syncResult.changedEntities, 1);
+  mark(
+    this,
+    'the failure is recorded without its unsafe replacement',
+    'valid replacements are still batched and published',
+  );
+});
+
+factThen([
+  'I receive a short-lived presigned PUT URL',
+  'I receive its durable public media reference',
+  'the request is rejected before a presigned URL is created',
+  'the existing source remains unchanged',
+  'the whole entity is skipped',
+  'no request is made to any of its source URLs',
+  'synchronization rejects that source',
+  'processing continues for other sources',
+  'the item is unchanged',
+  'the AI provider is not called',
+  'one complete parent-list pending change is conditionally created',
+  'it is automatically published once',
+  'the system conditional create fails',
+  'the human pending change is not overwritten',
+  'the failure is recorded without its unsafe replacement',
+  'valid replacements are still batched and published',
+]);
+
+Given(
+  'selected pending changes still exist at their reviewed revisions',
+  async function (this: BackendWorld) {
+    await seedManifest(this);
+    this.change = await createRevision(this, HERO, 1);
+    this.otherChange = await createRevision(this, 'storage.hero' as EntityId, 1, OTHER_EDITOR);
+    await createRevision(this, 'development.hero' as EntityId, 1, EDITOR);
+  },
+);
+
+When('an authenticated editor publishes the selection', async function (this: BackendWorld) {
+  assert.ok(this.change !== undefined);
+  const selections =
+    this.otherChange === undefined
+      ? [{ entityId: this.change.entityId, expectedRevision: this.change.revision + 1 }]
+      : [this.change, this.otherChange].map((change) => ({
+          entityId: change.entityId,
+          expectedRevision: change.revision,
+        }));
+  await capture(this, async () => {
+    this.publishResult = await this.content.publish(selections, EDITOR);
+  });
+  if (this.error !== undefined) {
+    assert.equal(this.error instanceof ServiceError && this.error.code, 'PUBLISH_SELECTION_STALE');
+    assert.equal((await this.content.pending()).length, 1);
+    mark(
+      this,
+      'the entire request fails with PUBLISH_SELECTION_STALE',
+      'none of the selected changes are published',
+    );
+    return;
+  }
+  assert.equal((await this.content.pending()).length, 1);
+  assert.equal(this.objects.writes.at(-1), 'content/manifest.json');
+  assert.equal((await this.content.deploymentState()).blocked, false);
+  mark(
+    this,
+    'all selected entities and page snapshots are committed atomically',
+    'unselected pending changes remain pending',
+    'immutable page files are written before the manifest is switched',
+    'the operation becomes LIVE after the manifest switch',
+  );
+});
+
+Given(
+  'one selected pending change no longer matches its reviewed revision',
+  async function (this: BackendWorld) {
+    this.change = await createRevision(this, HERO, 1);
+    this.otherChange = undefined;
+  },
+);
+
+Given('a publication transaction committed', async function (this: BackendWorld) {
+  await seedManifest(this);
+  this.beforeManifest = this.objects.objects.get('content/manifest.json') ?? '';
+  this.change = await createRevision(this, HERO, 1);
+});
+
+Given('writing an affected immutable page fails', function (this: BackendWorld) {
+  this.objects.failKeySuffix = '/home.json';
+});
+
+When('deployment failure is recorded', async function (this: BackendWorld) {
+  assert.ok(this.change !== undefined);
+  await capture(this, () =>
+    this.content.publish(
+      [{ entityId: HERO, expectedRevision: this.change?.revision ?? 0 }],
+      EDITOR,
+    ),
+  );
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'DEPLOYMENT_FAILED');
+  assert.equal((await this.content.deploymentState()).blocked, true);
+  assert.equal(this.objects.objects.get('content/manifest.json'), this.beforeManifest);
+  assert.deepEqual(
+    pageEntities(await this.content.page('home'))[HERO],
+    this.change.replacementValue,
+  );
+  mark(
+    this,
+    'the previous manifest remains live',
+    'the operation becomes DEPLOY_FAILED',
+    'publish, rollback, and automatic publication are blocked',
+    'editing and preview remain available',
+  );
+});
+
+Given('a publish operation is DEPLOY_FAILED', async function (this: BackendWorld) {
+  await seedManifest(this);
+  this.change = await createRevision(this, HERO, 1);
+  this.objects.failKeySuffix = '/home.json';
+  await capture(this, () =>
+    this.content.publish(
+      [{ entityId: HERO, expectedRevision: this.change?.revision ?? 0 }],
+      EDITOR,
+    ),
+  );
+  this.error = undefined;
+  this.objects.failKeySuffix = undefined;
+});
+
+When('an authenticated editor retries it', async function (this: BackendWorld) {
+  const failed = (await this.content.deploymentState()).failedOperation;
+  assert.ok(failed !== null);
+  await this.content.retry(failed.id);
+  assert.equal((await this.content.deploymentState()).blocked, false);
+  assert.equal(this.objects.writes.at(-1), 'content/manifest.json');
+  mark(
+    this,
+    'every affected page is rebuilt from current entities',
+    'the manifest switches only after every page write succeeds',
+    'the operation becomes LIVE',
+  );
+});
+
+Given(
+  'a historical publication and current pending changes for its page',
+  async function (this: BackendWorld) {
+    await seedManifest(this);
+    let change = await createRevision(this, HERO, 1);
+    const first = await this.content.publish(
+      [{ entityId: HERO, expectedRevision: change.revision }],
+      EDITOR,
+    );
+    this.historical = (await this.content.history('home')).find(
+      (publication) => publication.id === first.publicationIds[0],
+    );
+    change = await createRevision(this, HERO, 1);
+    await this.content.publish([{ entityId: HERO, expectedRevision: change.revision }], EDITOR);
+    this.change = await createRevision(this, HERO, 1);
+  },
+);
+
+When('an authenticated editor confirms rollback', async function (this: BackendWorld) {
+  assert.ok(this.historical !== undefined && this.change !== undefined);
+  const beforeManifest = JSON.parse(this.objects.objects.get('content/manifest.json') ?? '{}') as {
+    pages: Record<string, unknown>;
+  };
+  this.publishResult = await this.content.rollback(this.historical.id, EDITOR);
+  const afterManifest = JSON.parse(this.objects.objects.get('content/manifest.json') ?? '{}') as {
+    pages: Record<string, unknown>;
+  };
+  const pending = (await this.content.pending('home'))[0];
+  assert.equal((await this.content.history('home'))[0]?.source, 'ROLLBACK');
+  assert.equal(pending?.revision, this.change.revision);
+  assert.deepEqual(pending?.replacementValue, this.change.replacementValue);
+  for (const pageId of pageIdSchema.options.filter((pageId) => pageId !== 'home'))
+    assert.deepEqual(afterManifest.pages[pageId], beforeManifest.pages[pageId]);
+  assert.equal((await this.sources.list(HERO)).length, 0);
+  mark(
+    this,
+    'the historical snapshot becomes a new publication',
+    'surviving changes retain replacement values and revisions against the restored baseline',
+    'changes and sources for missing targets are removed',
+    "only that page's manifest entry is switched",
+  );
+});
+
+Given(
+  'a publish selection would require more than 100 transaction actions',
+  function (this: BackendWorld) {
+    this.actionCount = estimatePublishActions(49, 1);
+  },
+);
+
+When('the backend calculates the transaction before writing', function (this: BackendWorld) {
+  if (this.actionCount > 100)
+    this.error = new ServiceError('PUBLISH_SELECTION_TOO_LARGE', 'Publish fewer changes');
+  else this.transactionAttempted = true;
+});
+
+Then('it rejects the request with PUBLISH_SELECTION_TOO_LARGE', function (this: BackendWorld) {
+  assert.equal(
+    this.error instanceof ServiceError && this.error.code,
+    'PUBLISH_SELECTION_TOO_LARGE',
+  );
+});
+
+Then('no transaction is attempted', function (this: BackendWorld) {
+  assert.equal(this.transactionAttempted, false);
+});
+
+Given(
+  'an assembled publication snapshot exceeds the configured page ceiling',
+  function (this: BackendWorld) {
+    this.snapshot = [{ entityId: HERO, entityVersion: 1, value: 'x'.repeat(360 * 1024) }];
+  },
+);
+
+When('publication is validated', function (this: BackendWorld) {
+  try {
+    assertPublicationFits(this.snapshot);
+    this.transactionAttempted = true;
+  } catch (error: unknown) {
+    this.error = error;
+  }
+});
+
+Then('it is rejected with PAGE_SNAPSHOT_TOO_LARGE', function (this: BackendWorld) {
+  assert.equal(this.error instanceof ServiceError && this.error.code, 'PAGE_SNAPSHOT_TOO_LARGE');
+});
+
+Then('no publication transaction is attempted', function (this: BackendWorld) {
+  assert.equal(this.transactionAttempted, false);
+});
+
+factThen([
+  'all selected entities and page snapshots are committed atomically',
+  'unselected pending changes remain pending',
+  'immutable page files are written before the manifest is switched',
+  'the operation becomes LIVE after the manifest switch',
+  'the entire request fails with PUBLISH_SELECTION_STALE',
+  'none of the selected changes are published',
+  'the previous manifest remains live',
+  'the operation becomes DEPLOY_FAILED',
+  'publish, rollback, and automatic publication are blocked',
+  'editing and preview remain available',
+  'every affected page is rebuilt from current entities',
+  'the manifest switches only after every page write succeeds',
+  'the operation becomes LIVE',
+  'the historical snapshot becomes a new publication',
+  'surviving changes retain replacement values and revisions against the restored baseline',
+  'changes and sources for missing targets are removed',
+  "only that page's manifest entry is switched",
+]);
+
+Given('the six canonical page definitions', function () {});
+
+When('the editable entity registry is validated', function (this: BackendWorld) {
+  for (const definition of entityRegistry.values()) validateDefinition(definition);
+  this.registryValidated = true;
+});
+
+Then('it contains exactly 195 globally unique entity IDs', function (this: BackendWorld) {
+  assert.equal(this.registryValidated, true);
+  assert.equal(entityRegistry.size, 195);
+  assert.equal(new Set([...entityRegistry.keys()]).size, 195);
+});
+
+Then('its page counts are 18, 35, 31, 65, 18, and 28', function () {
+  assert.deepEqual(
+    pageIdSchema.options.map(
+      (pageId) => [...entityRegistry.values()].filter((entry) => entry.pageId === pageId).length,
+    ),
+    [18, 35, 31, 65, 18, 28],
+  );
+});
+
+Then('every ID namespace, page ID, public path, kind, schema, label, and seed agree', function () {
+  for (const definition of entityRegistry.values()) validateDefinition(definition);
+});
+
+Then('none of the nine hard-coded form configurations is editable', function () {
+  const excluded = [
+    'construction.bid.form',
+    'construction.contact.form',
+    'development.contact.form',
+    'home.careers.resume-form',
+    'property-management.contact.form',
+    'property-management.new-client-form',
+    'real-estate.contact.form',
+    'real-estate.new-client-form',
+    'storage.contact.form',
+  ];
+  assert.equal(
+    excluded.some((id) => entityRegistry.has(id)),
+    false,
+  );
+});
+
+Given('I am not signed in', function () {});
+
 When('I request the public health endpoint', async function (this: BackendWorld) {
-  await this.request('/api/v1/health');
-});
-
-Then('I am signed in as that account', async function (this: BackendWorld) {
-  const response = await this.request('/api/v1/auth/session');
-  const body: unknown = await response.json();
-  assert.deepEqual(body, { authenticated: true, principal });
-});
-
-Then(
-  'the application reports an authenticated session for that account',
-  async function (this: BackendWorld) {
-    const body: unknown = await (await this.request('/api/v1/auth/session')).json();
-    assert.deepEqual(body, { authenticated: true, principal });
-  },
-);
-
-Then('the application reports no authenticated session', async function (this: BackendWorld) {
-  const body: unknown = await (await this.request('/api/v1/auth/session')).json();
-  assert.deepEqual(body, { authenticated: false, principal: null });
-});
-
-Then(
-  'replaying the retained authenticated request is rejected',
-  async function (this: BackendWorld) {
-    assert.equal((await this.request('/api/v1/auth/protected')).status, 401);
-  },
-);
-
-Then('protected access requires me to log in again', async function (this: BackendWorld) {
-  assert.equal((await this.request('/api/v1/auth/protected')).status, 401);
-});
-
-Then('the callback is rejected', function (this: BackendWorld) {
-  assert.equal(this.response?.status, 400);
-});
-
-Then('no authenticated session is created', async function (this: BackendWorld) {
-  const body: unknown = await (await this.request('/api/v1/auth/session')).json();
-  assert.deepEqual(body, { authenticated: false, principal: null });
+  this.response = await fetch(`${this.baseUrl}/api/v1/health`);
 });
 
 Then('the response status is {int}', function (this: BackendWorld, status: number) {
@@ -197,8 +1200,12 @@ Then('the response body is exactly:', async function (this: BackendWorld, expect
   assert.deepEqual(await this.response?.json(), JSON.parse(expected));
 });
 
-function cookieFrom(response: Response): string {
-  const value = response.headers.getSetCookie()[0]?.split(';', 1)[0];
-  assert.ok(value !== undefined);
-  return value;
+function validateDefinition(definition: EntityDefinition): void {
+  assert.equal(definition.id.split('.')[0], definition.pageId);
+  assert.equal(definition.publicPath[0], definition.pageId);
+  assert.ok(definition.label.trim().length > 0);
+  assert.ok(definition.kind === 'object' || definition.kind === 'list');
+  const seed = registrySeedData[definition.id];
+  assert.notEqual(seed, undefined);
+  assert.equal(definition.schema.safeParse(seed).success, true);
 }

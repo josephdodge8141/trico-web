@@ -1,0 +1,32 @@
+{$SITE_ADDRESS::80} {
+  encode zstd gzip
+
+  @api path /api/*
+  reverse_proxy @api {$BACKEND_UPSTREAM:backend:3000}
+
+  handle /__mailpit/* {
+    basic_auth {
+      {$MAILPIT_USERNAME:local-editor} {$MAILPIT_PASSWORD_HASH}
+    }
+    reverse_proxy {$MAILPIT_UPSTREAM:mailpit:8025}
+  }
+
+  handle /content/* {
+    uri replace /content/ /{$CONTENT_BUCKET:trico-web-local}/content/
+    reverse_proxy {$OBJECT_UPSTREAM:minio:9000}
+  }
+
+  handle /media/* {
+    uri replace /media/ /{$CONTENT_BUCKET:trico-web-local}/media/
+    reverse_proxy {$OBJECT_UPSTREAM:minio:9000}
+  }
+
+  root * /srv
+  try_files {path} /index.html
+  file_server
+
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+}

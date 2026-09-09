@@ -1,22 +1,40 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-test('public landing page exposes Hello World and health status', async ({ page }) => {
-  const healthResponsePromise = page.waitForResponse((response) =>
-    response.url().endsWith('/api/v1/health'),
-  );
-  await page.goto('/');
+const publicPages = [
+  { route: '/', heading: "Building Utah's Future" },
+  { route: '/property-management', heading: 'Property management that performs' },
+  { route: '/real-estate', heading: 'Find the right place for what comes next' },
+  { route: '/construction', heading: 'Construction with purpose' },
+  { route: '/storage', heading: 'Storage made simple' },
+  { route: '/development', heading: 'Development with a long view' },
+] as const;
 
-  const healthResponse = await healthResponsePromise;
-  expect(healthResponse.status()).toBe(200);
-  await expect(healthResponse.json()).resolves.toEqual({ status: 'ok' });
-  await expect(page.getByRole('heading', { name: 'Hello World' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Log in' })).toHaveAttribute(
-    'href',
-    '/api/v1/auth/login',
-  );
-  await expect(page.getByRole('link', { name: 'Create account' })).toHaveAttribute(
-    'href',
-    '/api/v1/auth/signup',
-  );
-  await expect(page.getByRole('status')).toHaveText('API status: ok');
+for (const publicPage of publicPages) {
+  test(`renders ${publicPage.route} with checked-in content when object storage is unavailable`, async ({
+    page,
+  }) => {
+    await page.goto(publicPage.route);
+    await expect(page.getByRole('heading', { name: publicPage.heading })).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('checked-in site content');
+    expect(await page.locator('[data-entity-id]').count()).toBeGreaterThanOrEqual(5);
+  });
+}
+
+test('uses corrected real-estate and storage anchors', async ({ page }) => {
+  await page.goto('/real-estate');
+  await expect(page.getByRole('link', { name: 'Services' })).toHaveAttribute('href', '#services');
+  await page.goto('/storage');
+  await expect(page.getByRole('link', { name: 'Services' })).toHaveAttribute('href', '#features');
+  await expect(page.locator('#features')).toBeVisible();
+});
+
+test('shows an honest empty construction category instead of fabricated project cards', async ({
+  page,
+}) => {
+  await page.goto('/construction/current/multi-family');
+  await expect(
+    page.getByRole('heading', { name: 'No projects are published in this category.' }),
+  ).toBeVisible();
+  await expect(page.getByText('Address coming soon')).toHaveCount(0);
+  await expect(page.getByText('Owner TBD')).toHaveCount(0);
 });

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-
 import {
   After,
   Before,
@@ -14,81 +13,43 @@ import {
 import { chromium, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const baseUrl = process.env.COMPOSE_BASE_URL ?? 'http://app.localhost:8088';
-const password = 'a-long-cucumber-test-password';
-
+const headings: Readonly<Record<string, string>> = {
+  '/': "Building Utah's Future",
+  '/property-management': 'Property management that performs',
+  '/real-estate': 'Find the right place for what comes next',
+  '/construction': 'Construction with purpose',
+  '/storage': 'Storage made simple',
+  '/development': 'Development with a long view',
+};
 setDefaultTimeout(30_000);
 
-BeforeAll(async function () {
+BeforeAll(async () => {
   const deadline = Date.now() + 60_000;
-  const discoveryUrl = `${baseUrl}/realms/local/.well-known/openid-configuration`;
   while (Date.now() < deadline) {
     try {
-      if ((await fetch(discoveryUrl)).ok) return;
+      if ((await fetch(`${baseUrl}/api/v1/health`)).ok) return;
     } catch {
-      // The next bounded attempt handles local container startup.
+      /* bounded startup retry */
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  throw new Error(`Keycloak did not become ready at ${discoveryUrl}.`);
+  throw new Error(`TriCo did not become healthy at ${baseUrl}.`);
 });
 
 class FrontendWorld extends World {
   browser: Browser | undefined;
   context: BrowserContext | undefined;
   page: Page | undefined;
-  email = `cucumber-${Date.now()}-${Math.random().toString(16).slice(2)}@example.test`;
-  invalidCase = '';
+  route = '/';
+  manifest: Record<string, unknown> | undefined;
+  pageDocument: unknown;
   responseStatus: number | undefined;
   responseBody: unknown;
-
   currentPage(): Page {
-    assert.ok(this.page !== undefined);
+    assert.ok(this.page);
     return this.page;
   }
-
-  async resetContext(): Promise<void> {
-    await this.context?.close();
-    assert.ok(this.browser !== undefined);
-    this.context = await this.browser.newContext({ baseURL: baseUrl });
-    this.page = await this.context.newPage();
-  }
-
-  async register(email = this.email, suppliedPassword = password): Promise<void> {
-    const page = this.currentPage();
-    await page.goto('/');
-    await page.getByRole('link', { name: 'Create account' }).click();
-    await expect(page).toHaveURL(/\/realms\/local\//);
-    await page.getByRole('link', { name: 'Register' }).click();
-    await page.getByLabel(/first name/i).fill('Cucumber');
-    await page.getByLabel(/last name/i).fill('User');
-    await page.getByLabel(/email/i).fill(email);
-    await page
-      .getByLabel(/password/i)
-      .first()
-      .fill(suppliedPassword);
-    await page.getByLabel(/confirm password/i).fill(suppliedPassword);
-    await page.getByRole('button', { name: 'Register' }).click();
-  }
-
-  async signOut(): Promise<void> {
-    const page = this.currentPage();
-    await page.getByRole('button', { name: 'Log out' }).click();
-    await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();
-  }
-
-  async login(email: string, suppliedPassword: string): Promise<void> {
-    const page = this.currentPage();
-    await page.goto('/');
-    await page.getByRole('link', { name: 'Log in' }).click();
-    await expect(page).toHaveURL(/\/realms\/local\//);
-    await page.waitForLoadState('domcontentloaded');
-    const emailInput = page.locator('input[name="username"]');
-    if ((await emailInput.count()) > 0) await emailInput.fill(email);
-    await page.getByRole('textbox', { name: 'Password' }).fill(suppliedPassword);
-    await page.getByRole('button', { name: 'Sign in' }).click();
-  }
 }
-
 setWorldConstructor(FrontendWorld);
 
 Before(async function (this: FrontendWorld) {
@@ -96,193 +57,106 @@ Before(async function (this: FrontendWorld) {
   this.context = await this.browser.newContext({ baseURL: baseUrl });
   this.page = await this.context.newPage();
 });
-
 After(async function (this: FrontendWorld) {
   await this.context?.close();
   await this.browser?.close();
 });
 
-Given('the public starter is running', async function (this: FrontendWorld) {
-  assert.equal((await this.currentPage().request.get('/api/v1/health')).status(), 200);
+Given('I have no authenticated editor session', async function (this: FrontendWorld) {
+  await this.context?.clearCookies();
+});
+When('I open the TriCo site', async function (this: FrontendWorld) {
+  await this.currentPage().goto('/');
+});
+Then('I can browse every public division page', async function (this: FrontendWorld) {
+  for (const [route, heading] of Object.entries(headings)) {
+    await this.currentPage().goto(route);
+    await expect(this.currentPage().getByRole('heading', { name: heading })).toBeVisible();
+  }
+});
+Then('editing controls are not shown', async function (this: FrontendWorld) {
+  await expect(
+    this.currentPage().getByRole('complementary', { name: 'Content editor' }),
+  ).toHaveCount(0);
 });
 
-Given('I have no authenticated session', async function (this: FrontendWorld) {
-  await this.context?.clearCookies();
+Given('the current content manifest is available', async function (this: FrontendWorld) {
+  const response = await this.currentPage().request.get('/content/manifest.json');
+  assert.equal(response.status(), 200);
+  this.manifest = (await response.json()) as Record<string, unknown>;
+});
+When('I open {string}', async function (this: FrontendWorld, route: string) {
+  this.route = route;
+  await this.currentPage().goto(route);
+  const manifest = this.manifest as { pages?: Record<string, { url?: string }> } | undefined;
+  const pageId = route === '/' ? 'home' : route.slice(1);
+  const pageUrl = manifest?.pages?.[pageId]?.url;
+  if (pageUrl) {
+    const response = await this.currentPage().request.get(pageUrl);
+    assert.equal(response.status(), 200);
+    this.pageDocument = await response.json();
+  }
+});
+Then(
+  'the {string} published content is rendered',
+  async function (this: FrontendWorld, pageId: string) {
+    const heading = headings[this.route];
+    assert.ok(heading);
+    await expect(this.currentPage().getByRole('heading', { name: heading })).toBeVisible();
+    assert.ok((this.manifest as { pages?: Record<string, unknown> }).pages?.[pageId]);
+  },
+);
+Then('no CMS metadata is present in the page document', function (this: FrontendWorld) {
+  const serialized = JSON.stringify(this.pageDocument);
+  for (const forbidden of ['pendingOwner', 'pendingRevision', 'userId', 'operationStatus'])
+    assert.equal(serialized.includes(forbidden), false);
+});
+
+Given('a visitor loaded the current manifest', async function (this: FrontendWorld) {
+  const response = await this.currentPage().request.get('/content/manifest.json');
+  assert.equal(response.status(), 200);
+  this.manifest = (await response.json()) as Record<string, unknown>;
+});
+When('a replacement release has not completed', function () {
+  /* retain the loaded immutable manifest */
+});
+Then(
+  'every manifest page still resolves to the previous complete release',
+  async function (this: FrontendWorld) {
+    const pages = (this.manifest as { pages: Record<string, { url: string }> }).pages;
+    assert.equal(Object.keys(pages).length, 6);
+    for (const page of Object.values(pages))
+      assert.equal((await this.currentPage().request.get(page.url)).status(), 200);
+  },
+);
+
+Given('a construction project category has no published projects', function () {});
+When('I open that project category', async function (this: FrontendWorld) {
+  await this.currentPage().goto('/construction/current/multi-family');
+});
+Then('I see an empty state', async function (this: FrontendWorld) {
+  await expect(
+    this.currentPage().getByRole('heading', {
+      name: 'No projects are published in this category.',
+    }),
+  ).toBeVisible();
+});
+Then('fabricated project cards are not shown', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByText('Address coming soon')).toHaveCount(0);
+  await expect(this.currentPage().getByText('Owner TBD')).toHaveCount(0);
 });
 
 Given('I am not signed in', async function (this: FrontendWorld) {
   await this.context?.clearCookies();
 });
-
-Given('a unique synthetic preview account', function () {});
-
-Given('a synthetic preview account already exists', async function (this: FrontendWorld) {
-  this.email = 'test-user@example.test';
-});
-
-Given('I am on the signup form', async function (this: FrontendWorld) {
-  const page = this.currentPage();
-  await page.goto('/');
-  await page.getByRole('link', { name: 'Create account' }).click();
-  await page.getByRole('link', { name: 'Register' }).click();
-});
-
-Given('I am signed in with a synthetic preview account', async function (this: FrontendWorld) {
-  await this.register();
-  await expect(this.currentPage()).toHaveURL(/\/$/);
-});
-
-Given(
-  'I retain a request that was authenticated by the current session',
-  async function (this: FrontendWorld) {
-    this.responseStatus = (await this.currentPage().request.get('/api/v1/auth/protected')).status();
-    assert.equal(this.responseStatus, 200);
-  },
-);
-
-When('I open the application', async function (this: FrontendWorld) {
-  await this.currentPage().goto('/');
-});
-
-When('I complete signup with valid account details', async function (this: FrontendWorld) {
-  await this.register();
-});
-
-When('I try to sign up with the same email address', async function (this: FrontendWorld) {
-  await this.context?.clearCookies();
-  await this.register(this.email);
-});
-
-When(
-  'I submit signup with the following invalid value:',
-  async function (this: FrontendWorld, table) {
-    const row = table.hashes()[0];
-    assert.ok(row !== undefined);
-    const page = this.currentPage();
-    this.invalidCase = row['field'] ?? '';
-    await page.getByLabel(/first name/i).fill('Cucumber');
-    await page.getByLabel(/last name/i).fill('User');
-    await page.getByLabel(/email/i).fill(row['field'] === 'email' ? '' : this.email);
-    const invalidPassword = row['field'] === 'password' ? row['value'] : password;
-    assert.ok(invalidPassword !== undefined);
-    await page
-      .getByLabel(/password/i)
-      .first()
-      .fill(invalidPassword);
-    await page.getByLabel(/confirm password/i).fill(invalidPassword);
-    await page.getByRole('button', { name: 'Register' }).click();
-  },
-);
-
-When("I log in with that account's valid credentials", async function (this: FrontendWorld) {
-  await this.login(this.email, password);
-});
-
-When(
-  'I try to log in using {string}',
-  async function (this: FrontendWorld, credentialCase: string) {
-    await this.context?.clearCookies();
-    const email = credentialCase.includes('unknown')
-      ? `unknown-${Date.now()}@example.test`
-      : this.email;
-    const suppliedPassword = credentialCase.includes('wrong') ? 'wrong-password' : password;
-    await this.login(email, suppliedPassword);
-  },
-);
-
-When('I log out', async function (this: FrontendWorld) {
-  await this.signOut();
-});
-
 When('I request the public health endpoint', async function (this: FrontendWorld) {
   const response = await this.currentPage().request.get('/api/v1/health');
   this.responseStatus = response.status();
   this.responseBody = await response.json();
 });
-
-Then('I see {string}', async function (this: FrontendWorld, text: string) {
-  await expect(this.currentPage().getByRole('heading', { name: text })).toBeVisible();
-});
-
-Then('I can choose to sign up or log in', async function (this: FrontendWorld) {
-  const page = this.currentPage();
-  await expect(page.getByRole('link', { name: 'Create account' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();
-});
-
-Then('I am signed in as that account', async function (this: FrontendWorld) {
-  await expect(this.currentPage().getByText(`Signed in as ${this.email}`)).toBeVisible();
-});
-
-Then(
-  'the application reports an authenticated session for that account',
-  async function (this: FrontendWorld) {
-    const body: unknown = await (
-      await this.currentPage().request.get('/api/v1/auth/session')
-    ).json();
-    assert.equal(
-      typeof body === 'object' && body !== null && 'authenticated' in body && body.authenticated,
-      true,
-    );
-  },
-);
-
-Then('signup is rejected as a conflict', async function (this: FrontendWorld) {
-  await expect(this.currentPage().getByText(/already exists/i)).toBeVisible();
-});
-
-Then(
-  'the existing account can still log in with its original credentials',
-  async function (this: FrontendWorld) {
-    await this.resetContext();
-    await this.login(this.email, password);
-    await expect(this.currentPage().getByText(`Signed in as ${this.email}`)).toBeVisible();
-  },
-);
-
-Then(
-  'signup is rejected with the validation problem {string}',
-  async function (this: FrontendWorld, _problem: string) {
-    const expected = this.invalidCase === 'email' ? /email/i : /password.*12|12.*character/i;
-    await expect(this.currentPage().getByText(expected).first()).toBeVisible();
-  },
-);
-
-Then(
-  'login is rejected without revealing whether the account exists',
-  async function (this: FrontendWorld) {
-    await expect(this.currentPage().getByText('Invalid username or password.')).toBeVisible();
-  },
-);
-
-Then('no authenticated session is created', async function (this: FrontendWorld) {
-  await this.currentPage().goto('/');
-  await expect(this.currentPage().getByRole('link', { name: 'Log in' })).toBeVisible();
-});
-
-Then('the application reports no authenticated session', async function (this: FrontendWorld) {
-  const body: unknown = await (await this.currentPage().request.get('/api/v1/auth/session')).json();
-  assert.deepEqual(body, { authenticated: false, principal: null });
-});
-
-Then(
-  'replaying the retained authenticated request is rejected',
-  async function (this: FrontendWorld) {
-    this.responseStatus = (await this.currentPage().request.get('/api/v1/auth/protected')).status();
-    assert.equal(this.responseStatus, 401);
-  },
-);
-
-Then('protected access requires me to log in again', async function (this: FrontendWorld) {
-  await this.currentPage().goto('/api/v1/auth/login');
-  await expect(this.currentPage()).toHaveURL(/\/realms\/local\//);
-  await expect(this.currentPage().getByRole('button', { name: 'Sign in' })).toBeVisible();
-});
-
 Then('the response status is {int}', function (this: FrontendWorld, status: number) {
   assert.equal(this.responseStatus, status);
 });
-
-Then('the response body is exactly:', function (this: FrontendWorld, expected: string) {
-  assert.deepEqual(this.responseBody, JSON.parse(expected));
+Then('the response body is exactly:', function (this: FrontendWorld, body: string) {
+  assert.deepEqual(this.responseBody, JSON.parse(body) as unknown);
 });

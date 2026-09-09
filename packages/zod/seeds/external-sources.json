@@ -1,0 +1,57 @@
+[
+  {
+    "id": "0eb46a2f-fb67-5dd4-a26d-9f524d9fe6b0",
+    "entityId": "real-estate.listings.items",
+    "itemId": "9b0b5bc6-81bf-5119-aaea-274b8be27ce5",
+    "type": "MLS",
+    "url": "https://www.utahrealestate.com/2019235",
+    "validationFields": ["price", "status", "mlsNumber"],
+    "enabled": true,
+    "createdAt": "2026-09-08T00:00:00.000Z",
+    "updatedAt": "2026-09-08T00:00:00.000Z"
+  },
+  {
+    "id": "0db4689c-fc67-5f67-a36d-a0e54e9fe843",
+    "entityId": "real-estate.listings.items",
+    "itemId": "9c0b5d59-80bf-5f86-a9ea-25b88ae27b52",
+    "type": "MLS",
+    "url": "https://www.utahrealestate.com/2019250",
+    "validationFields": ["price", "status", "mlsNumber"],
+    "enabled": true,
+    "createdAt": "2026-09-08T00:00:00.000Z",
+    "updatedAt": "2026-09-08T00:00:00.000Z"
+  },
+  {
+    "id": "10b46d55-fd67-50fa-a06d-9c2c4f9fe9d6",
+    "entityId": "real-estate.listings.items",
+    "itemId": "990b58a0-7fbf-5df3-acea-2a7189e279bf",
+    "type": "MLS",
+    "url": "https://www.utahrealestate.com/2019286",
+    "validationFields": ["price", "status", "mlsNumber"],
+    "enabled": true,
+    "createdAt": "2026-09-08T00:00:00.000Z",
+    "updatedAt": "2026-09-08T00:00:00.000Z"
+  },
+  {
+    "id": "0fb46bc2-fe67-528d-a16d-9dbf509feb69",
+    "entityId": "real-estate.listings.items",
+    "itemId": "9a0b5a33-7ebf-5c60-abea-28de88e2782c",
+    "type": "LOOPNET",
+    "url": "https://www.loopnet.com/Listing/9853-S-700-E-Sandy-UT/37111521/",
+    "validationFields": ["price", "status", "sqft"],
+    "enabled": true,
+    "createdAt": "2026-09-08T00:00:00.000Z",
+    "updatedAt": "2026-09-08T00:00:00.000Z"
+  },
+  {
+    "id": "0ab463e3-f767-5788-ae6d-9906519fecfc",
+    "entityId": "real-estate.listings.items",
+    "itemId": "9f0b6212-85bf-5765-aeea-2d9787e27699",
+    "type": "LOOPNET",
+    "url": "https://www.loopnet.com/Listing/2560-E-3300-S-Salt-Lake-City-UT/39291246/",
+    "validationFields": ["price", "status", "sqft"],
+    "enabled": true,
+    "createdAt": "2026-09-08T00:00:00.000Z",
+    "updatedAt": "2026-09-08T00:00:00.000Z"
+  }
+]

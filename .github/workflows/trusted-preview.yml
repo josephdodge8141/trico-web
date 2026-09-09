@@ -1,0 +1,181 @@
+name: Trusted preview admission
+
+on:
+  workflow_run:
+    workflows: ['Pull request candidate']
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: trusted-preview-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+jobs:
+  admit:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request_target' &&
+      github.event.workflow_run.pull_requests[0].number != null
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: preview
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: write
+      statuses: write
+    steps:
+      - name: Checkout reviewed control source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Download candidate artifacts without executing them
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: preview-candidate-${{ github.event.workflow_run.pull_requests[0].number }}-${{ github.event.workflow_run.head_sha }}
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: candidate
+      - name: Verify run, attempt, repository, PR and candidate identities
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPOSITORY_ID: ${{ github.event.repository.id }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          cd candidate
+          sha256sum --check artifact-sha256.txt
+          test "$(jq -r .candidateSha admission.json)" = "$CANDIDATE_SHA"
+          test "$(jq -r .repositoryId admission.json)" = "$REPOSITORY_ID"
+          test "$(jq -r .pullRequestNumber admission.json)" = "$PULL_REQUEST_NUMBER"
+          test "$(jq -r .workflowRunId admission.json)" = "$WORKFLOW_RUN_ID"
+          test "$(jq -r .workflowRunAttempt admission.json)" = "$WORKFLOW_RUN_ATTEMPT"
+      - name: Require maintainer admission for fork previews
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          if test "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY"; then
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels" --jq '.[].name' | grep -Fx preview-approved
+          fi
+      - name: Configure narrowly scoped preview identity
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.PREVIEW_DEPLOY_ROLE_ARN }}
+      - name: Load and publish candidate images without running them
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd
+        id: ecr
+      - id: publish
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          BACKEND_REPOSITORY: ${{ vars.PREVIEW_BACKEND_REPOSITORY }}
+          FRONTEND_REPOSITORY: ${{ vars.PREVIEW_FRONTEND_REPOSITORY }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          gzip -dc candidate/backend-image.tar.gz | docker load
+          gzip -dc candidate/frontend-image.tar.gz | docker load
+          tag="pr-${PULL_REQUEST_NUMBER}-${CANDIDATE_SHA}-${WORKFLOW_RUN_ID}-${WORKFLOW_RUN_ATTEMPT}"
+          docker tag "trico-candidate-backend:${CANDIDATE_SHA}" "${REGISTRY}/${BACKEND_REPOSITORY}:${tag}"
+          docker tag "trico-candidate-frontend:${CANDIDATE_SHA}" "${REGISTRY}/${FRONTEND_REPOSITORY}:${tag}"
+          docker push "${REGISTRY}/${BACKEND_REPOSITORY}:${tag}"
+          docker push "${REGISTRY}/${FRONTEND_REPOSITORY}:${tag}"
+          backend_digest="$(aws ecr describe-images --repository-name "$BACKEND_REPOSITORY" --image-ids "imageTag=${tag}" --query 'imageDetails[0].imageDigest' --output text)"
+          frontend_digest="$(aws ecr describe-images --repository-name "$FRONTEND_REPOSITORY" --image-ids "imageTag=${tag}" --query 'imageDetails[0].imageDigest' --output text)"
+          echo "backend=${REGISTRY}/${BACKEND_REPOSITORY}@${backend_digest}" >> "$GITHUB_OUTPUT"
+          echo "frontend=${REGISTRY}/${FRONTEND_REPOSITORY}@${frontend_digest}" >> "$GITHUB_OUTPUT"
+      - name: Admit one four-hour Fargate preview
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          BACKEND_IMAGE: ${{ steps.publish.outputs.backend }}
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          FRONTEND_IMAGE: ${{ steps.publish.outputs.frontend }}
+          GH_TOKEN: ${{ github.token }}
+          FOUNDATION_STACK: ${{ vars.PREVIEW_FOUNDATION_STACK }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          REPOSITORY_ID: ${{ github.event.repository.id }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${CANDIDATE_SHA}" -f state=pending -f context=factory/preview -f description='Starting four-hour ECS preview'
+          outputs="$(aws cloudformation describe-stacks --stack-name "$FOUNDATION_STACK" --query 'Stacks[0].Outputs' --output json)"
+          output() { jq -r --arg key "$1" '.[] | select(.OutputKey == $key) | .OutputValue' <<<"$outputs"; }
+          cluster="$(output ClusterArn)"; subnets="$(output PublicSubnetIds)"; security_group="$(output TaskSecurityGroupId)"
+          execution_role="$(output TaskExecutionRoleArn)"; task_role="$(output TaskRoleArn)"; log_group="$(output LogGroupName)"
+          state_table="$(output StateTableName)"; zone_id="$(output PreviewZoneId)"; zone_name="$(output PreviewZoneName)"; editor_secret="$(output PreviewEditorSecretArn)"
+          preview_key="${REPOSITORY_ID}#${PULL_REQUEST_NUMBER}"; generation="${CANDIDATE_SHA}"; control_sha="$(git rev-parse HEAD)"; host="pr-${PULL_REQUEST_NUMBER}.${zone_name}"; family="trico-pr-${PULL_REQUEST_NUMBER}-${CANDIDATE_SHA:0:12}"
+          expires_at="$(( $(date +%s) + 14400 ))"
+          old="$(aws dynamodb get-item --table-name "$state_table" --key "{\"previewKey\":{\"S\":\"$preview_key\"}}" --consistent-read --output json)"
+          old_task="$(jq -r '.Item.taskArn.S // empty' <<<"$old")"; old_definition="$(jq -r '.Item.taskDefinitionArn.S // empty' <<<"$old")"; old_record="$(jq -r '.Item.recordName.S // empty' <<<"$old")"; old_ip="$(jq -r '.Item.publicIp.S // empty' <<<"$old")"
+          if test -n "$old_task"; then aws ecs stop-task --cluster "$cluster" --task "$old_task" --reason replacement >/dev/null || true; fi
+          if test -n "$old_definition"; then aws ecs deregister-task-definition --task-definition "$old_definition" >/dev/null || true; fi
+          if test -n "$old_record" && test -n "$old_ip"; then
+            jq -n --arg name "$old_record" --arg ip "$old_ip" '{Comment:"replace preview",Changes:[{Action:"DELETE",ResourceRecordSet:{Name:$name,Type:"A",TTL:60,ResourceRecords:[{Value:$ip}]}}]}' > old-dns.json
+            aws route53 change-resource-record-sets --hosted-zone-id "$zone_id" --change-batch file://old-dns.json >/dev/null || true
+          fi
+          environment="$(jq -n --arg origin "https://${host}" '[
+            {name:"APP_ENV",value:"preview"},{name:"HOST",value:"0.0.0.0"},{name:"PORT",value:"3000"},{name:"PUBLIC_ORIGIN",value:$origin},
+            {name:"AWS_ACCESS_KEY_ID",value:"local-minio-user"},{name:"AWS_SECRET_ACCESS_KEY",value:"local-minio-password"},{name:"AWS_REGION",value:"us-west-2"},
+            {name:"DYNAMODB_ENDPOINT",value:"http://127.0.0.1:8000"},{name:"DYNAMODB_TABLE",value:"trico-web-preview"},
+            {name:"S3_ENDPOINT",value:"http://127.0.0.1:9000"},{name:"S3_BUCKET",value:"trico-web-preview"},{name:"S3_FORCE_PATH_STYLE",value:"true"},
+            {name:"MAIL_TRANSPORT",value:"smtp"},{name:"SMTP_HOST",value:"127.0.0.1"},{name:"SMTP_PORT",value:"1025"},{name:"EMAIL_FROM",value:"TriCo Preview <preview@tricoinc.com>"},
+            {name:"SESSION_COOKIE_NAME",value:"trico_preview_session"},{name:"COOKIE_SECURE",value:"true"},{name:"BEDROCK_MODE",value:"fixture"}
+          ]')"
+          log="$(jq -n --arg group "$log_group" --arg region "$AWS_REGION" '{logDriver:"awslogs",options:{"awslogs-group":$group,"awslogs-region":$region,"awslogs-stream-prefix":"preview"}}')"
+          containers="$(jq -n --arg backend "$BACKEND_IMAGE" --arg frontend "$FRONTEND_IMAGE" --arg secret "$editor_secret" --arg host "$host" --argjson env "$environment" --argjson log "$log" '[
+            {name:"dynamodb",image:"amazon/dynamodb-local:2.6.1",essential:true,command:["-jar","DynamoDBLocal.jar","-sharedDb","-inMemory"],logConfiguration:$log},
+            {name:"minio",image:"minio/minio:RELEASE.2025-07-23T15-54-02Z",essential:true,command:["server","/data"],environment:[{name:"MINIO_ROOT_USER",value:"local-minio-user"},{name:"MINIO_ROOT_PASSWORD",value:"local-minio-password"}],logConfiguration:$log},
+            {name:"mailpit",image:"axllent/mailpit:v1.27.8",essential:true,environment:[{name:"MP_WEBROOT",value:"/__mailpit/"}],logConfiguration:$log},
+            {name:"backend",image:$backend,essential:true,environment:$env,logConfiguration:$log},
+            {name:"seed",image:$backend,essential:false,command:["sh","-c","for attempt in $(seq 1 20); do node backend/dist/seed.js && exit 0; sleep 3; done; exit 1"],environment:$env,secrets:[{name:"PREVIEW_EDITOR_EMAIL",valueFrom:($secret+":email::")},{name:"PREVIEW_EDITOR_PASSWORD",valueFrom:($secret+":password::")}],logConfiguration:$log},
+            {name:"frontend",image:$frontend,essential:true,portMappings:[{containerPort:80,protocol:"tcp"},{containerPort:443,protocol:"tcp"}],environment:[{name:"SITE_ADDRESS",value:$host},{name:"BACKEND_UPSTREAM",value:"127.0.0.1:3000"},{name:"MAILPIT_UPSTREAM",value:"127.0.0.1:8025"},{name:"OBJECT_UPSTREAM",value:"127.0.0.1:9000"},{name:"CONTENT_BUCKET",value:"trico-web-preview"},{name:"MAILPIT_USERNAME",value:"reviewer"},{name:"MAILPIT_PASSWORD_HASH",value:"$2y$12$4NtnM0Krnhgglj4XqsvjReKYGo7BEJZQSt8yy1s.DnavvqR0vDnde"}],dependsOn:[{containerName:"seed",condition:"SUCCESS"},{containerName:"backend",condition:"START"}],logConfiguration:$log}
+          ]')"
+          jq -n --arg family "$family" --arg execution "$execution_role" --arg task "$task_role" --argjson containers "$containers" '{family:$family,networkMode:"awsvpc",requiresCompatibilities:["FARGATE"],cpu:"2048",memory:"4096",executionRoleArn:$execution,taskRoleArn:$task,containerDefinitions:$containers}' > task.json
+          task_definition="$(aws ecs register-task-definition --cli-input-json file://task.json --query 'taskDefinition.taskDefinitionArn' --output text)"
+          task_arn="$(aws ecs run-task --cluster "$cluster" --task-definition "$task_definition" --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$subnets],securityGroups=[$security_group],assignPublicIp=ENABLED}" --tags "key=trico:repository-id,value=${REPOSITORY_ID}" "key=trico:pull-request,value=${PULL_REQUEST_NUMBER}" "key=trico:generation,value=${generation}" --query 'tasks[0].taskArn' --output text)"
+          aws ecs wait tasks-running --cluster "$cluster" --tasks "$task_arn"
+          eni="$(aws ecs describe-tasks --cluster "$cluster" --tasks "$task_arn" --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value | [0]' --output text)"
+          public_ip="$(aws ec2 describe-network-interfaces --network-interface-ids "$eni" --query 'NetworkInterfaces[0].Association.PublicIp' --output text)"
+          aws dynamodb put-item --table-name "$state_table" --item "{\"previewKey\":{\"S\":\"$preview_key\"},\"generation\":{\"S\":\"$generation\"},\"candidateSha\":{\"S\":\"$CANDIDATE_SHA\"},\"controlSha\":{\"S\":\"$control_sha\"},\"workflowRunId\":{\"S\":\"$WORKFLOW_RUN_ID\"},\"workflowRunAttempt\":{\"N\":\"$WORKFLOW_RUN_ATTEMPT\"},\"taskArn\":{\"S\":\"$task_arn\"},\"taskDefinitionArn\":{\"S\":\"$task_definition\"},\"recordName\":{\"S\":\"$host\"},\"publicIp\":{\"S\":\"$public_ip\"},\"expiresAt\":{\"N\":\"$expires_at\"},\"status\":{\"S\":\"launching\"}}"
+          jq -n --arg name "$host" --arg ip "$public_ip" '{Comment:"generation-owned preview",Changes:[{Action:"UPSERT",ResourceRecordSet:{Name:$name,Type:"A",TTL:60,ResourceRecords:[{Value:$ip}]}}]}' > dns.json
+          aws route53 change-resource-record-sets --hosted-zone-id "$zone_id" --change-batch file://dns.json >/dev/null
+          for attempt in $(seq 1 40); do if curl --fail --silent --show-error "https://${host}/api/v1/health" | jq -e '.status == "ok"' >/dev/null; then break; fi; test "$attempt" -lt 40; sleep 10; done
+          aws dynamodb update-item --table-name "$state_table" --key "{\"previewKey\":{\"S\":\"$preview_key\"}}" --update-expression 'SET #s = :healthy' --condition-expression 'generation = :generation' --expression-attribute-names '{"#s":"status"}' --expression-attribute-values "{\":healthy\":{\"S\":\"healthy\"},\":generation\":{\"S\":\"$generation\"}}"
+          echo "PREVIEW_URL=https://${host}" >> "$GITHUB_ENV"
+          echo "PREVIEW_EDITOR_SECRET_ARN=${editor_secret}" >> "$GITHUB_ENV"
+      - name: Run canonical browser adapters against the deployed candidate
+        env:
+          COMPOSE_BASE_URL: ${{ env.PREVIEW_URL }}
+          MAILPIT_PASSWORD: local-mailpit-password
+          MAILPIT_USERNAME: reviewer
+        run: |
+          reviewer="$(aws secretsmanager get-secret-value --secret-id "$PREVIEW_EDITOR_SECRET_ARN" --query SecretString --output text)"
+          export PREVIEW_EDITOR_EMAIL="$(jq -r .email <<<"$reviewer")"
+          export PREVIEW_EDITOR_PASSWORD="$(jq -r .password <<<"$reviewer")"
+          npm run test:behaviors:frontend:compose
+          npm run test:browser:compose -w @app/frontend
+      - name: Publish verified preview status
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${CANDIDATE_SHA}" -f state=success -f context=factory/preview -f description='ECS preview and canonical browser adapters passed' -f target_url="$PREVIEW_URL"
+      - name: Publish fail-closed preview status
+        if: failure()
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${CANDIDATE_SHA}" -f state=failure -f context=factory/preview -f description='Preview admission or health verification failed'

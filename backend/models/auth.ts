@@ -9,4 +9,10 @@ export {
   type AuthSession,
 } from '@app/schemas';
 
-export { authCallbackStateSchema, type AuthCallbackState } from '@app/schemas/server';
+export interface AuthenticatedRequestState {
+  readonly userId: string;
+  readonly email: string;
+  readonly emailVerified: boolean;
+  readonly sessionHash: string;
+  readonly csrfToken: string;
+}

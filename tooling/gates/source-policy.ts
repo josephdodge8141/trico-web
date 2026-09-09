@@ -26,6 +26,8 @@ const ROOT_SOURCE_FILES = {
     'app.ts',
     'index.test.ts',
     'index.ts',
+    'lambda.ts',
+    'seed.ts',
     'shutdown-abort-failure-child.ts',
     'shutdown-child.ts',
   ],

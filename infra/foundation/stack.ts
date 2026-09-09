@@ -6,6 +6,7 @@ import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import type { Construct } from 'constructs';
 
 import { type FoundationConfig, type FoundationOutputs, parseFoundationConfig } from './config.js';
@@ -68,6 +69,7 @@ export class PreviewFoundationStack extends Stack {
       partitionKey: { name: 'previewKey', type: AttributeType.STRING },
       removalPolicy: RemovalPolicy.RETAIN,
       tableName: `${config.applicationName}-preview-state`,
+      timeToLiveAttribute: 'expiresAt',
     });
 
     const logGroup = new LogGroup(this, 'PreviewLogs', {
@@ -84,6 +86,22 @@ export class PreviewFoundationStack extends Stack {
     taskExecutionRole.addToPolicy(
       new PolicyStatement({ actions: ['ecr:GetAuthorizationToken'], resources: ['*'] }),
     );
+
+    const taskRole = new Role(this, 'TaskRole', {
+      assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
+      description: 'Runtime identity for the disposable preview application task',
+      roleName: `${config.applicationName}-preview-task`,
+    });
+    const previewEditorSecret = new Secret(this, 'PreviewEditorSecret', {
+      description: 'Permanent reviewer identity injected into disposable preview seed jobs',
+      generateSecretString: {
+        excludePunctuation: true,
+        generateStringKey: 'password',
+        passwordLength: 32,
+        secretStringTemplate: JSON.stringify({ email: 'preview-editor@tricoinc.com' }),
+      },
+    });
+    previewEditorSecret.grantRead(taskExecutionRole);
     taskExecutionRole.addToPolicy(
       new PolicyStatement({
         actions: [
@@ -113,9 +131,11 @@ export class PreviewFoundationStack extends Stack {
       LogGroupName: logGroup.logGroupName,
       PreviewZoneId: previewZone.hostedZoneId,
       PreviewZoneName: previewZone.zoneName,
+      PreviewEditorSecretArn: previewEditorSecret.secretArn,
       PublicSubnetIds: vpc.publicSubnets.map((subnet) => subnet.subnetId).join(','),
       StateTableName: stateTable.tableName,
       TaskExecutionRoleArn: taskExecutionRole.roleArn,
+      TaskRoleArn: taskRole.roleArn,
       TaskSecurityGroupId: taskSecurityGroup.attrGroupId,
       VpcId: vpc.vpcId,
     };

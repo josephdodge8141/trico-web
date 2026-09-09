@@ -1,88 +1,106 @@
-Feature: Preview account authentication
-  Visitors can use the public starter before authentication and can create and end a preview-scoped session.
-
-  Background: The public starter is available
-    Given the public starter is running
+Feature: TriCo editor authentication
+  Only verified TriCo employees can establish fixed-duration editor sessions.
 
   @id:auth.public-before-login @backend-noop
-  Scenario: Use the public page before signing in
-    backend-noop: The public landing controls and text are owned and observed by the frontend.
-    Given I have no authenticated session
-    When I open the application
-    Then I see "Hello World"
-    And I can choose to sign up or log in
+  Scenario: Browse the public site without an editor session
+    backend-noop: Public page rendering is observed through the frontend and browser using immutable content artifacts.
+    Given I have no authenticated editor session
+    When I open the TriCo site
+    Then I can browse every public division page
+    And editing controls are not shown
 
-  @id:auth.signup-session
-  Scenario: Create an account and establish a session
-    Given a unique synthetic preview account
-    When I complete signup with valid account details
-    Then I am signed in as that account
-    And the application reports an authenticated session for that account
-
-  @id:auth.signup-duplicate @backend-noop
-  Scenario: Reject a duplicate account signup
-    backend-noop: Duplicate account validation is owned by the configured identity provider UI.
-    Given a synthetic preview account already exists
-    When I try to sign up with the same email address
-    Then signup is rejected as a conflict
-    And the existing account can still log in with its original credentials
-
-  @id:auth.signup-invalid @backend-noop
-  Scenario Outline: Reject invalid signup details
-    backend-noop: Account-field validation is owned by the configured identity provider UI.
-    Given I am on the signup form
-    When I submit signup with the following invalid value:
-      | field   | value   |
-      | <field> | <value> |
-    Then signup is rejected with the validation problem "<problem>"
+  @id:auth.register @frontend-noop
+  Scenario: Register a TriCo editor
+    frontend-noop: The full registration and Mailpit verification journey is exercised by the Compose Playwright suite; token persistence is exercised by the backend adapter.
+    Given an unused @tricoinc.com email address
+    When I register with a valid password
+    Then an unverified account is created
+    And a single-use verification message is sent
     And no authenticated session is created
 
-    Examples: Invalid account details
-      | case_id       | field    | value         | problem                    |
-      | missing-email | email    | [blank]       | A valid email is required  |
-      | weak-password | password | only-seven    | A stronger password is required |
+  @id:auth.register-domain @frontend-noop
+  Scenario: Reject registration outside the TriCo domain
+    frontend-noop: Browser error rendering is covered by the auth-page tests while domain enforcement is exercised by the backend adapter.
+    Given an unused email address outside @tricoinc.com
+    When I attempt to register
+    Then registration is rejected with FORBIDDEN_EMAIL_DOMAIN
+    And no account is created
 
-  @id:auth.login-valid
-  Scenario: Log in with valid credentials
-    Given a synthetic preview account already exists
-    When I log in with that account's valid credentials
-    Then I am signed in as that account
-    And the application reports an authenticated session for that account
+  @id:auth.verify-single-use @frontend-noop
+  Scenario: Verify an account exactly once
+    frontend-noop: The browser verification journey is covered by Compose Playwright and single-use enforcement is exercised by the backend adapter.
+    Given a valid unconsumed verification token
+    When I verify the account
+    Then the account becomes verified
+    And replaying the token is rejected
 
-  @id:auth.login-invalid @backend-noop
-  Scenario Outline: Reject invalid login credentials
-    backend-noop: Credential rejection is owned by the configured identity provider UI.
-    Given a synthetic preview account already exists
-    When I try to log in using "<credential_case>"
-    Then login is rejected without revealing whether the account exists
+  @id:auth.verify-expired @frontend-noop
+  Scenario: Reject an expired verification token
+    frontend-noop: Token expiry is a backend persistence invariant with no distinct browser interaction beyond typed error rendering.
+    Given a verification token older than 24 hours
+    When I verify the account
+    Then verification is rejected
+    And the account remains unverified
+
+  @id:auth.login-valid @frontend-noop
+  Scenario: Log in with a verified TriCo account
+    frontend-noop: Seeded-editor login and authenticated edit-mode entry are exercised by the Compose Playwright suite.
+    Given a verified TriCo editor account
+    When I log in with valid credentials
+    Then a fixed 30 day session is established
+    And the application reports that editor as authenticated
+
+  @id:auth.login-nondisclosing @frontend-noop
+  Scenario Outline: Reject invalid login without account disclosure
+    frontend-noop: The nondisclosing browser message is exercised by Compose Playwright and both credential cases are exercised by the backend adapter.
+    Given I have "<credential_case>"
+    When I attempt to log in
+    Then login is rejected with the same public credential error
     And no authenticated session is created
 
     Examples: Invalid credentials
-      | case_id        | credential_case        |
-      | wrong-password | the wrong password     |
-      | unknown-user   | an unknown email address |
+      | case_id        | credential_case       |
+      | unknown-user   | an unknown email       |
+      | wrong-password | an incorrect password  |
+      | unverified     | an unverified account  |
 
-  @id:auth.logout-session
-  Scenario: End a session and require login again
-    Given I am signed in with a synthetic preview account
-    And I retain a request that was authenticated by the current session
+  @id:auth.csrf @frontend-noop
+  Scenario: Require origin and CSRF validation for editor mutations
+    frontend-noop: Origin and synchronizer-token rejection is a backend security invariant exercised by the backend adapter.
+    Given I have an authenticated editor session
+    When I submit a mutation without an accepted origin and CSRF token
+    Then the mutation is rejected
+    And no application state changes
+
+  @id:auth.logout @frontend-noop
+  Scenario: End the current editor session
+    frontend-noop: The opaque-session logout journey is exercised by the Compose Playwright suite.
+    Given I have an authenticated editor session
     When I log out
-    Then the application reports no authenticated session
-    And replaying the retained authenticated request is rejected
-    And protected access requires me to log in again
+    Then the current session is deleted
+    And replaying its opaque cookie is rejected
 
-  @id:auth.callback-rejection @frontend-noop @browser-noop-eligible
-  Scenario Outline: Reject an invalid authentication callback
-    frontend-noop: Callback protocol invariants are exercised at the backend provider boundary rather than through the hosted provider UI.
-    browser-noop: The malformed provider callback is a server-to-provider protocol case with no permitted browser-only setup channel.
-    Given an authentication transaction with the following callback condition:
-      | condition | <condition> |
-    When the authentication callback is processed
-    Then the callback is rejected
-    And no authenticated session is created
+  @id:auth.logout-all @frontend-noop
+  Scenario: End every editor session
+    frontend-noop: Cross-session revocation is a backend persistence invariant exercised by the backend adapter.
+    Given my account has multiple authenticated sessions
+    When I log out from all devices
+    Then every session belonging to my account is deleted
 
-    Examples: Invalid callback conditions
-      | case_id            | condition                                  |
-      | invalid-state      | the state does not match the transaction   |
-      | replayed-code      | the authorization code was already used    |
-      | mismatched-callback | the callback URI differs from the transaction |
+  @id:auth.reset-single-use @frontend-noop
+  Scenario: Reset a password and revoke existing sessions
+    frontend-noop: The Mailpit reset journey is exercised by Compose Playwright and token/session invariants by the backend adapter.
+    Given a valid unconsumed password reset token
+    And the account has authenticated sessions
+    When I choose a valid replacement password
+    Then the password is replaced
+    And the reset token cannot be reused
+    And all previous sessions are rejected
+
+  @id:auth.reset-expired @frontend-noop
+  Scenario: Reject an expired password reset token
+    frontend-noop: Token expiry and password preservation are backend persistence invariants exercised by the backend adapter.
+    Given a password reset token older than one hour
+    When I attempt to reset the password
+    Then the reset is rejected
+    And the existing password remains valid
