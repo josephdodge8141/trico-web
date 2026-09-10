@@ -1,94 +1,52 @@
-import { useEffect, useState } from 'react';
+import { editableValueSchema, type SemanticEntityDefinition } from '@app/schemas';
 
 import { useEditMode } from '../context/editMode.js';
+import { EditableBoundary, type EditorOwnership } from './EditableBoundary.js';
 
+/** Context-connected bridge retained while page compositions adopt semantic definitions. */
 export function EditableEntity({
   entityId,
+  definition,
   value,
+  ownership,
   children,
 }: {
   readonly entityId: string;
+  readonly definition?: SemanticEntityDefinition;
   readonly value: unknown;
+  readonly ownership?: EditorOwnership;
   readonly children: React.ReactNode;
 }): React.JSX.Element {
   const editing = useEditMode();
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(() => JSON.stringify(value, null, 2));
   const pending = editing.pending.find((change) => change.entityId === entityId);
-  useEffect(
-    () => setDraft(JSON.stringify(pending?.replacementValue ?? value, null, 2)),
-    [pending?.replacementValue, value],
-  );
-
-  const save = (): void => {
-    try {
-      const parsed: unknown = JSON.parse(draft);
-      void editing
-        .save(entityId, parsed)
-        .then(() => setOpen(false))
-        .catch(() => undefined);
-    } catch {
-      setDraft((current) => current);
-    }
-  };
-
-  return (
-    <div className={editing.active ? 'editable-entity' : undefined} data-entity-id={entityId}>
-      {editing.active ? (
-        <div className="entity-controls">
-          <span>{entityId}</span>
-          {pending === undefined ? null : (
-            <span className="status-pill">revision {pending.revision}</span>
-          )}
-          <button
-            type="button"
-            onClick={() => setOpen((current) => !current)}
-            disabled={editing.busy}
-          >
-            {open ? 'Close' : pending === undefined ? 'Edit' : 'Update edit'}
-          </button>
-          {pending === undefined ? null : (
-            <button
-              type="button"
-              onClick={() => void editing.togglePreview(entityId)}
-              disabled={editing.busy}
-            >
-              {editing.disabledEntityIds.has(entityId) ? 'Show in preview' : 'Hide from preview'}
-            </button>
-          )}
-          {pending === undefined ? null : (
-            <button
-              type="button"
-              onClick={() => void editing.discard(entityId)}
-              disabled={editing.busy}
-            >
-              Discard
-            </button>
-          )}
-        </div>
-      ) : null}
-      {open ? (
-        <div className="entity-editor">
-          <label htmlFor={`editor-${entityId}`}>Complete entity JSON</label>
-          <textarea
-            id={`editor-${entityId}`}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            rows={12}
-            spellCheck={false}
-          />
-          <div className="editor-actions">
-            <button className="button primary" type="button" onClick={save} disabled={editing.busy}>
-              Save
-            </button>
-            <button className="button quiet" type="button" onClick={() => setOpen(false)}>
-              Cancel
-            </button>
+  if (definition === undefined) {
+    return (
+      <div
+        className={editing.active ? 'editable-boundary editor-contract-pending' : undefined}
+        data-entity-boundary="true"
+      >
+        {children}
+        {editing.active ? (
+          <div className="editable-boundary-controls">
+            <span className="editor-ownership-label">
+              This section's friendly editing form is being prepared.
+            </span>
           </div>
-        </div>
-      ) : (
-        children
-      )}
-    </div>
+        ) : null}
+      </div>
+    );
+  }
+  const semanticValue = editableValueSchema.parse(value);
+  return (
+    <EditableBoundary
+      active={editing.active}
+      definition={definition}
+      value={semanticValue}
+      ownership={ownership ?? (pending === undefined ? 'available' : 'mine')}
+      busy={editing.busy}
+      onSave={(next) => editing.save(entityId, next)}
+    >
+      {children}
+    </EditableBoundary>
   );
 }

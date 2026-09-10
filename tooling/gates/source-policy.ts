@@ -109,7 +109,10 @@ function knownDirectoryError(file: string): string[] {
   if (parts[0] === 'infra')
     return knownChild(file, parts, ROOT_SOURCE_FILES.infra, ['foundation', 'runtime']);
   if (parts[0] === 'packages' && parts[1] === 'zod')
-    return knownChild(file, parts.slice(1), ROOT_SOURCE_FILES['packages/zod'], ['schemas']);
+    return knownChild(file, parts.slice(1), ROOT_SOURCE_FILES['packages/zod'], [
+      'schemas',
+      'seeds',
+    ]);
   if (parts[0] === 'packages' && parts[1] === 'cucumber')
     return knownChild(file, parts.slice(1), ROOT_SOURCE_FILES['packages/cucumber'], ['catalog']);
   if (parts[0] === 'tooling' && (parts[1] === 'gates' || parts[1] === 'factory')) return [];

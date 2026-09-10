@@ -83,7 +83,7 @@ export function EditModeProvider({
           ...changes.filter((change) => change.entityId !== entityId),
           saved,
         ]);
-        setMessage(`${entityId} saved as a private change.`);
+        setMessage('Your private change was saved.');
       });
     },
     [pending, perform],
@@ -96,7 +96,7 @@ export function EditModeProvider({
       await perform(async (token) => {
         await discardEntityChange(entityId, current.revision, { csrfToken: token });
         setPending((changes) => changes.filter((change) => change.entityId !== entityId));
-        setMessage(`${entityId} discarded.`);
+        setMessage('The private change was discarded.');
       });
     },
     [pending, perform],
@@ -134,6 +134,23 @@ export function EditModeProvider({
     });
   }, [pending, perform]);
 
+  const setViewingPublic = useCallback(
+    async (viewingPublic: boolean): Promise<void> => {
+      await perform(async (token) => {
+        await Promise.all(
+          pending.map((change) =>
+            setPreviewDisabled(change.entityId, viewingPublic, { csrfToken: token }),
+          ),
+        );
+        setDisabledEntityIds(
+          viewingPublic ? new Set(pending.map(({ entityId }) => entityId)) : new Set(),
+        );
+        setMessage(viewingPublic ? 'Showing the public version.' : 'Showing your private changes.');
+      });
+    },
+    [pending, perform],
+  );
+
   const value = useMemo<EditModeValue>(
     () => ({
       active,
@@ -141,12 +158,15 @@ export function EditModeProvider({
       pageId,
       pending,
       disabledEntityIds,
+      viewingPublic:
+        pending.length > 0 && pending.every(({ entityId }) => disabledEntityIds.has(entityId)),
       ...(message === undefined ? {} : { message }),
       enter,
       leave,
       save,
       discard,
       togglePreview,
+      setViewingPublic,
       publishAll,
     }),
     [
@@ -161,6 +181,7 @@ export function EditModeProvider({
       save,
       discard,
       togglePreview,
+      setViewingPublic,
       publishAll,
     ],
   );

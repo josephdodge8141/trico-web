@@ -85,6 +85,7 @@ async function fixture(files: Readonly<Record<string, string>> = {}): Promise<st
     'infra/runtime/protocol.ts': 'export const protocol = 1;\n',
     'packages/zod/index.ts': 'export {};\n',
     'packages/zod/server.ts': 'export {};\n',
+    'packages/zod/seeds/home.ts': 'export const home = {};\n',
     'packages/cucumber/index.ts': 'export {};\n',
     'tooling/gates/example.ts': 'export {};\n',
   };

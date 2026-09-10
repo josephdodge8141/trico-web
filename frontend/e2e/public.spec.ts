@@ -16,7 +16,7 @@ for (const publicPage of publicPages) {
     await page.goto(publicPage.route);
     await expect(page.getByRole('heading', { name: publicPage.heading })).toBeVisible();
     await expect(page.getByRole('status')).toContainText('checked-in site content');
-    expect(await page.locator('[data-entity-id]').count()).toBeGreaterThanOrEqual(5);
+    expect(await page.locator('[data-entity-boundary="true"]').count()).toBeGreaterThanOrEqual(5);
   });
 }
 

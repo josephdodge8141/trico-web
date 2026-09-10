@@ -9,12 +9,14 @@ export interface EditModeValue {
   readonly pageId: PageId;
   readonly pending: readonly PendingChange[];
   readonly disabledEntityIds: ReadonlySet<string>;
+  readonly viewingPublic: boolean;
   readonly message?: string;
   readonly enter: () => Promise<void>;
   readonly leave: () => void;
   readonly save: (entityId: string, value: unknown) => Promise<void>;
   readonly discard: (entityId: string) => Promise<void>;
   readonly togglePreview: (entityId: string) => Promise<void>;
+  readonly setViewingPublic: (viewingPublic: boolean) => Promise<void>;
   readonly publishAll: () => Promise<void>;
 }
 

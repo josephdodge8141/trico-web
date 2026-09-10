@@ -31,7 +31,12 @@ const isContentCard = (value: unknown): value is ContentCard =>
 export const parsePageContent = (pageId: PageId, value: unknown): PageContent => {
   const root = pageContentSchema.parse(value);
   const fallback = defaultPages[pageId];
-  const hero = overlayObject(fallback.hero, root[`${pageId}.hero`]);
+  const heroValue = root[`${pageId}.hero`];
+  const overlaidHero = overlayObject(fallback.hero, heroValue);
+  const hero =
+    pageId === 'home' && isRecord(heroValue) && typeof heroValue['heading'] === 'string'
+      ? { ...overlaidHero, title: heroValue['heading'] }
+      : overlaidHero;
   const contact = overlayObject(
     fallback.contact,
     root[`${pageId}.contact.details`] ?? root[`${pageId}.contact`],

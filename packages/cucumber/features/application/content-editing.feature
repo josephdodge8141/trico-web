@@ -22,6 +22,18 @@ Feature: In-page content editing and preview
     And every migrated entity has exactly one primary visual slot
     And complete validation rejects missing semantic entities and visual slots
 
+  @id:content.home-semantic-migration @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Migrate Home content to novice-safe semantic contracts
+    backend-noop: The pure Home migration planner is exercised in the shared contract package before backend persistence can accept version 2 values.
+    frontend-noop: Home contract and migration validation runs in the shared contract package before the page consumes version 2 values.
+    browser-noop: Deterministic seed conversion and pending-change refusal are build-time migration invariants rather than browser interactions.
+    Given the 18 canonical Home entities and their mounted legacy content
+    When I prepare the version 1 to version 2 Home content migration
+    Then all 18 Home values use strict semantic schemas and explicit editor metadata
+    And each Home entity has one primary visual slot
+    And the migration report is deterministic and dry-runnable
+    And unresolved version 1 pending changes block migration unless disposable local reset is explicit
+
   @id:content.create-change @frontend-noop
   Scenario: Save a complete replacement as a pending change
     frontend-noop: In-page editor entry and mutation transport are exercised by Compose Playwright; replacement persistence is exercised by the backend adapter.
@@ -87,3 +99,15 @@ Feature: In-page content editing and preview
     Then retained items keep their UUIDs
     And new items receive UUIDs
     And the complete replacement list passes its registered schema
+
+  @id:content.novice-inline-editor @backend-noop
+  Scenario: Edit semantic content without exposing technical representations
+    backend-noop: Hover affordances, friendly form controls, and draft handling are browser presentation behavior.
+    Given I am signed in and editing a component with a semantic contract
+    When I open that component's edit control
+    Then a friendly labeled form opens beside the page
+    And no technical content representation is shown
+    When I change a field and cancel
+    Then the saved preview remains unchanged
+    When I change a field and save
+    Then the validated value appears in my private preview

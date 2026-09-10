@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 2,
+  "source": "legacy/src/components/TricoLanding.tsx",
+  "scope": "home",
+  "entityCount": 18,
+  "normalizations": [
+    "Replaced duplicated content/media/externalUrls extraction wrappers with strict semantic objects.",
+    "Preserved the existing deterministic UUID for every mounted list item.",
+    "Replaced division href and styling tokens with a friendly structured page destination; layout color remains code-owned.",
+    "Normalized news month labels to ISO dates for the date editor.",
+    "Added explicit image alt text alongside managed leadership and brand images.",
+    "Renamed career position type to employmentType.",
+    "Kept the resume form client-only and outside the editable entity registry."
+  ],
+  "entities": [
+    "home.anniversary-banner",
+    "home.header.brand",
+    "home.hero",
+    "home.divisions.header",
+    "home.divisions.items",
+    "home.core-values.header",
+    "home.core-values.items",
+    "home.journey.header",
+    "home.journey.timeline",
+    "home.leadership.header",
+    "home.leadership.members",
+    "home.news.header",
+    "home.news.items",
+    "home.careers.header",
+    "home.careers.open-positions",
+    "home.careers.resume-intro",
+    "home.contact",
+    "home.footer"
+  ]
+}

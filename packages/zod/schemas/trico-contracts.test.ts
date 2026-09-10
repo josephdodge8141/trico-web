@@ -11,6 +11,7 @@ import {
   deterministicListItemId,
   editableListItemSchema,
   entityDefinitions,
+  legacyEntityDefinitions,
   externalSourceSchema,
   mediaPresignRequestSchema,
   pageDefinitions,
@@ -161,11 +162,11 @@ test('semantic editor modules are explicit, browser-safe, and incrementally hone
   assert.doesNotThrow(() => JSON.stringify(hero.editor));
   assert.doesNotThrow(() => validateEntityViewCatalog([hero], module.viewCatalog, 'complete'));
 
-  const merged = mergeEntityModules(entityDefinitions, [module]);
+  const merged = mergeEntityModules(legacyEntityDefinitions, [module]);
   assert.equal(merged.length, 195);
   assert.equal(merged.find(({ id }) => id === 'home.hero')?.editor?.version, 2);
 
-  const incrementallyMigratedDefinitions = entityDefinitions.map((definition) =>
+  const incrementallyMigratedDefinitions = legacyEntityDefinitions.map((definition) =>
     definition.id === hero.id ? hero : definition,
   );
   const status = semanticRegistryStatus(incrementallyMigratedDefinitions, module.viewCatalog);

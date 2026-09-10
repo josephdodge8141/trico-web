@@ -47,6 +47,8 @@ class FrontendWorld extends World {
   pageDocument: unknown;
   responseStatus: number | undefined;
   responseBody: unknown;
+  originalHeading = '';
+  editedHeading = '';
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
@@ -165,6 +167,65 @@ Then('I see an empty state', async function (this: FrontendWorld) {
 Then('fabricated project cards are not shown', async function (this: FrontendWorld) {
   await expect(this.currentPage().getByText('Address coming soon')).toHaveCount(0);
   await expect(this.currentPage().getByText('Owner TBD')).toHaveCount(0);
+});
+
+Given(
+  'I am signed in and editing a component with a semantic contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.goto('/login');
+    await page.getByLabel('Email').fill(editorEmail);
+    await page.getByLabel('Password').fill(editorPassword);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    const heading = page.getByRole('heading', { level: 1 });
+    this.originalHeading = await heading.innerText();
+    await heading.hover();
+  },
+);
+When("I open that component's edit control", async function (this: FrontendWorld) {
+  await this.currentPage().getByRole('button', { name: 'Edit Opening message' }).click();
+});
+Then('a friendly labeled form opens beside the page', async function (this: FrontendWorld) {
+  const dialog = this.currentPage().getByRole('dialog', { name: 'Opening message' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel('Main heading')).toBeVisible();
+  await expect(dialog.getByLabel('Introduction')).toBeVisible();
+  const box = await dialog.boundingBox();
+  assert.ok(box);
+  assert.ok(box.x > 0);
+});
+Then('no technical content representation is shown', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await expect(page.getByText('Complete entity JSON')).toHaveCount(0);
+  await expect(page.getByText('home.hero', { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/revision \d+/i)).toHaveCount(0);
+  await expect(page.locator('pre, code')).toHaveCount(0);
+});
+When('I change a field and cancel', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.getByLabel('Main heading').fill('This draft must not appear');
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.getByRole('button', { name: 'Cancel' }).click();
+});
+Then('the saved preview remains unchanged', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByRole('heading', { level: 1 })).toHaveText(
+    this.originalHeading,
+  );
+});
+When('I change a field and save', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.getByRole('heading', { level: 1 }).hover();
+  await page.getByRole('button', { name: 'Edit Opening message' }).click();
+  this.editedHeading = `Friendly editor ${String(Date.now())}`;
+  await page.getByLabel('Main heading').fill(this.editedHeading);
+  await page.getByRole('button', { name: 'Save changes' }).click();
+});
+Then('the validated value appears in my private preview', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByRole('heading', { level: 1 })).toHaveText(
+    this.editedHeading,
+  );
 });
 
 Given('I am not signed in', async function (this: FrontendWorld) {

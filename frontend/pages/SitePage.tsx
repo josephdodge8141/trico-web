@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { entityDefinitions, isSemanticEntityDefinition } from '@app/schemas';
 
 import { EditableEntity } from '../components/EditableEntity.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
@@ -14,6 +15,10 @@ const navItems = [
   { label: 'About', anchors: ['about'] },
   { label: 'Contact', anchors: ['contact'] },
 ] as const;
+
+const semanticHomeHero = entityDefinitions
+  .filter(isSemanticEntityDefinition)
+  .find((definition) => definition.id === 'home.hero');
 
 function PageBody({ pageId }: { readonly pageId: PageId }): React.JSX.Element {
   const editing = useEditMode();
@@ -77,7 +82,18 @@ function PageBody({ pageId }: { readonly pageId: PageId }): React.JSX.Element {
         </div>
       ) : null}
       <main id="main-content">
-        <EditableEntity entityId={content.hero.entityId} value={content.hero}>
+        <EditableEntity
+          entityId={content.hero.entityId}
+          {...(pageId === 'home' && semanticHomeHero !== undefined
+            ? {
+                definition: semanticHomeHero,
+                value: {
+                  heading: content.hero.title,
+                  description: content.hero.description,
+                },
+              }
+            : { value: content.hero })}
+        >
           <section
             className={`site-hero ${content.heroImage === undefined ? '' : 'with-image'}`}
             style={

@@ -182,8 +182,8 @@ test('preview consistently renders saved revisions and honors hide/show preferen
   const userId = '00000000-0000-4000-8000-000000000101';
   const published = registrySeedData[entityId];
   assert.ok(published !== undefined && typeof published === 'object' && !Array.isArray(published));
-  const first = { ...published, regressionMarker: 'first revision' } as EditableValue;
-  const second = { ...published, regressionMarker: 'second revision' } as EditableValue;
+  const first = { ...published, heading: 'First preview revision' } as EditableValue;
+  const second = { ...published, heading: 'Second preview revision' } as EditableValue;
 
   const created = await content.createChange(entityId, userId, first);
   assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), first);

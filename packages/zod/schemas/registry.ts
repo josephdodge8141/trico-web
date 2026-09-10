@@ -12,7 +12,10 @@ import {
   type PageId,
 } from './content.js';
 import legacyVisibleContentSeeds from '../seeds/legacy-visible-content.json' with { type: 'json' };
+import { homeV2SeedData } from '../seeds/home.js';
 import type { EntityEditorDefinition } from './editor-contracts.js';
+import { mergeEntityModules } from './editor-contracts.js';
+import { homeEntityModule } from './home.js';
 
 export const entityKindSchema = z.enum(['object', 'list']);
 
@@ -1733,7 +1736,10 @@ const definitions = [
   },
 ] as const satisfies readonly EntityDefinition[];
 
-export const entityDefinitions: readonly EntityDefinition[] = definitions;
+export const legacyEntityDefinitions: readonly EntityDefinition[] = definitions;
+export const entityDefinitions: readonly EntityDefinition[] = mergeEntityModules(definitions, [
+  homeEntityModule,
+]);
 
 const pageRoutes = {
   home: '/',
@@ -1756,10 +1762,11 @@ export const entityRegistry = new Map(
 );
 
 const uncheckedSeedData: Readonly<Record<string, unknown>> = legacyVisibleContentSeeds;
+const semanticHomeSeeds: Readonly<Record<string, EditableValue>> = homeV2SeedData;
 
 export const registrySeedData: Readonly<Record<EntityId, EditableValue>> = Object.fromEntries(
   entityDefinitions.map((definition) => {
-    const seed = uncheckedSeedData[definition.id];
+    const seed = semanticHomeSeeds[definition.id] ?? uncheckedSeedData[definition.id];
     definition.schema.parse(seed);
     return [definition.id, editableValueSchema.parse(seed)] as const;
   }),
