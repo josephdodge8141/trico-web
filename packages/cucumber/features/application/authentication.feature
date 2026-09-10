@@ -9,6 +9,15 @@ Feature: TriCo editor authentication
     Then I can browse every public division page
     And editing controls are not shown
 
+  @id:auth.edit-mode-login-redirect @backend-noop
+  Scenario: Sign in before entering edit mode
+    backend-noop: Redirecting an unauthenticated edit-mode request and restoring its public route are browser navigation behavior.
+    Given I have no authenticated editor session
+    And I opened the property management page
+    When I enter edit mode
+    Then I am sent to editor sign in
+    And successful sign in returns me to the property management page
+
   @id:auth.register @frontend-noop
   Scenario: Register a TriCo editor
     frontend-noop: The full registration and Mailpit verification journey is exercised by the Compose Playwright suite; token persistence is exercised by the backend adapter.

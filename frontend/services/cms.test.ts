@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { fetchCsrfToken, requestMediaUpload, saveEntityChange } from './cms.js';
+import { CmsRequestError, fetchCsrfToken, requestMediaUpload, saveEntityChange } from './cms.js';
 
 const jsonResponse = (value: unknown): Response =>
   new Response(JSON.stringify(value), {
@@ -14,6 +14,15 @@ test('reads the canonical CSRF token property', async () => {
     fetchImpl: async () => jsonResponse({ token: 'x'.repeat(32) }),
   });
   assert.equal(token, 'x'.repeat(32));
+});
+
+test('preserves an unauthorized response status for authentication routing', async () => {
+  await assert.rejects(
+    fetchCsrfToken({
+      fetchImpl: async () => new Response(null, { status: 401 }),
+    }),
+    (error: unknown) => error instanceof CmsRequestError && error.status === 401,
+  );
 });
 
 test('sends a complete replacement with the expected revision', async () => {

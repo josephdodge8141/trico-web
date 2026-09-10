@@ -18,6 +18,14 @@ export function AuthPage({ mode }: { readonly mode: AuthMode }): React.JSX.Eleme
     () => new URLSearchParams(location.search).get('token') ?? '',
     [location.search],
   );
+  const returnTo = useMemo(() => {
+    const state = location.state;
+    if (typeof state !== 'object' || state === null || !('returnTo' in state)) return '/';
+    const candidate = state.returnTo;
+    return typeof candidate === 'string' && candidate.startsWith('/') && !candidate.startsWith('//')
+      ? candidate
+      : '/';
+  }, [location.state]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -32,7 +40,7 @@ export function AuthPage({ mode }: { readonly mode: AuthMode }): React.JSX.Eleme
         ? register(email, password).then(() => 'Check Mailpit or your inbox to verify your email.')
         : mode === 'login'
           ? login(email, password).then(() => {
-              navigate('/');
+              navigate(returnTo, { replace: true });
               return 'Signed in.';
             })
           : mode === 'request-reset'

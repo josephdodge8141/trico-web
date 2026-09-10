@@ -152,9 +152,7 @@ const seedValue = (entityId: EntityId): EditableValue => {
 };
 
 const pageEntities = (page: Record<string, EditableValue>): Record<string, EditableValue> => {
-  const entities = page['entities'];
-  assert.ok(typeof entities === 'object' && entities !== null && !Array.isArray(entities));
-  return entities as Record<string, EditableValue>;
+  return page;
 };
 
 const tokenFromLastMessage = (world: BackendWorld): string => {
@@ -580,13 +578,11 @@ When('I disable one entity in my preview', async function (this: BackendWorld) {
   assert.ok(this.change !== undefined && this.otherChange !== undefined);
   await this.content.togglePreview(EDITOR, this.change.entityId, true);
   this.preview = await this.content.preview('home', EDITOR);
-  const entities = (this.preview as Record<string, Record<string, EditableValue>>)['entities'];
-  const otherEntities = (this.otherPreview as Record<string, Record<string, EditableValue>>)[
-    'entities'
-  ];
-  assert.deepEqual(entities?.[this.change.entityId], this.change.beforeValue);
-  assert.deepEqual(entities?.[this.otherChange.entityId], this.otherChange.replacementValue);
-  assert.deepEqual(otherEntities?.[this.change.entityId], this.change.replacementValue);
+  const entities = this.preview as Record<string, EditableValue>;
+  const otherEntities = this.otherPreview as Record<string, EditableValue>;
+  assert.deepEqual(entities[this.change.entityId], this.change.beforeValue);
+  assert.deepEqual(entities[this.otherChange.entityId], this.otherChange.replacementValue);
+  assert.deepEqual(otherEntities[this.change.entityId], this.change.replacementValue);
   mark(
     this,
     'my assembled preview uses its published value',

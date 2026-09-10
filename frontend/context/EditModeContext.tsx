@@ -1,8 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { PageId } from '../pages/pageContent.js';
 import {
   discardEntityChange,
+  CmsRequestError,
   fetchCsrfToken,
   fetchPendingChanges,
   publishChanges,
@@ -19,6 +21,8 @@ export function EditModeProvider({
   readonly pageId: PageId;
   readonly children: React.ReactNode;
 }): React.JSX.Element {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [active, setActive] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<readonly PendingChange[]>([]);
@@ -45,13 +49,23 @@ export function EditModeProvider({
   );
 
   const enter = useCallback(async (): Promise<void> => {
-    await perform(async () => {
-      const changes = await fetchPendingChanges(pageId);
-      setPending(changes);
-      setActive(true);
-      setMessage('Edit mode is active. Changes remain private until published.');
-    });
-  }, [pageId, perform]);
+    try {
+      await perform(async () => {
+        const changes = await fetchPendingChanges(pageId);
+        setPending(changes);
+        setActive(true);
+        setMessage('Edit mode is active. Changes remain private until published.');
+      });
+    } catch (error) {
+      if (error instanceof CmsRequestError && error.status === 401) {
+        navigate('/login', {
+          state: { returnTo: `${location.pathname}${location.search}${location.hash}` },
+        });
+        return;
+      }
+      throw error;
+    }
+  }, [location.hash, location.pathname, location.search, navigate, pageId, perform]);
 
   const leave = useCallback((): void => {
     setActive(false);

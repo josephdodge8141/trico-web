@@ -157,6 +157,11 @@ export function createContentService(
   tableName: string,
   bucketName: string,
 ): ContentService {
+  const entityIdsForPage = (pageId: PageId): readonly EntityId[] =>
+    Object.keys(registrySeedData).filter(
+      (id) => requireEntityDefinition(id).pageId === pageId,
+    ) as EntityId[];
+
   const loadEntity = async (entityId: EntityId): Promise<Entity> => {
     const result = await database.send(
       new GetCommand({
@@ -177,9 +182,7 @@ export function createContentService(
   };
 
   const loadEntities = async (pageId: PageId): Promise<readonly Entity[]> => {
-    const ids = [...Object.keys(registrySeedData)].filter(
-      (id) => requireEntityDefinition(id).pageId === pageId,
-    ) as EntityId[];
+    const ids = entityIdsForPage(pageId);
     const response = await database.send(
       new BatchGetCommand({
         RequestItems: {
@@ -208,16 +211,31 @@ export function createContentService(
     );
   };
 
+  const loadPendingChanges = async (pageId: PageId): Promise<readonly PendingChange[]> => {
+    const response = await database.send(
+      new BatchGetCommand({
+        RequestItems: {
+          [tableName]: {
+            Keys: entityIdsForPage(pageId).map((id) => ({
+              pk: `CHANGE#${id}`,
+              sk: 'PENDING',
+            })),
+            ConsistentRead: true,
+          },
+        },
+      }),
+    );
+    return (response.Responses?.[tableName] ?? []).map(asPending);
+  };
+
   const assemble = (
-    pageId: PageId,
+    _pageId: PageId,
     entities: readonly Entity[],
     replacements: ReadonlyMap<EntityId, EditableValue> = new Map(),
-  ): PageContent => ({
-    pageId,
-    entities: Object.fromEntries(
+  ): PageContent =>
+    Object.fromEntries(
       entities.map((entity) => [entity.id, replacements.get(entity.id) ?? entity.value]),
-    ),
-  });
+    );
 
   const currentPending = async (entityId: EntityId): Promise<PendingChange | undefined> => {
     const response = await database.send(
@@ -341,9 +359,13 @@ export function createContentService(
     preview: async (pageId, userId) => {
       const [entities, changes, preference] = await Promise.all([
         loadEntities(pageId),
-        service.pending(pageId),
+        loadPendingChanges(pageId),
         database.send(
-          new GetCommand({ TableName: tableName, Key: { pk: `PREF#${userId}`, sk: 'PREVIEW' } }),
+          new GetCommand({
+            TableName: tableName,
+            Key: { pk: `PREF#${userId}`, sk: 'PREVIEW' },
+            ConsistentRead: true,
+          }),
         ),
       ]);
       const disabled = new Set(

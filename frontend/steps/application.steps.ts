@@ -13,6 +13,8 @@ import {
 import { chromium, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const baseUrl = process.env.COMPOSE_BASE_URL ?? 'http://app.localhost:8088';
+const editorEmail = process.env.PREVIEW_EDITOR_EMAIL ?? 'editor@tricoinc.com';
+const editorPassword = process.env.PREVIEW_EDITOR_PASSWORD ?? 'local-preview-password';
 const headings: Readonly<Record<string, string>> = {
   '/': "Building Utah's Future",
   '/property-management': 'Property management that performs',
@@ -65,6 +67,25 @@ After(async function (this: FrontendWorld) {
 Given('I have no authenticated editor session', async function (this: FrontendWorld) {
   await this.context?.clearCookies();
 });
+Given('I opened the property management page', async function (this: FrontendWorld) {
+  await this.currentPage().goto('/property-management');
+});
+When('I enter edit mode', async function (this: FrontendWorld) {
+  await this.currentPage().getByRole('button', { name: 'Enter edit mode' }).click();
+});
+Then('I am sent to editor sign in', async function (this: FrontendWorld) {
+  await expect(this.currentPage()).toHaveURL(/\/login$/);
+  await expect(this.currentPage().getByRole('heading', { name: 'Editor sign in' })).toBeVisible();
+});
+Then(
+  'successful sign in returns me to the property management page',
+  async function (this: FrontendWorld) {
+    await this.currentPage().getByLabel('Email').fill(editorEmail);
+    await this.currentPage().getByLabel('Password').fill(editorPassword);
+    await this.currentPage().getByRole('button', { name: 'Continue' }).click();
+    await expect(this.currentPage()).toHaveURL(/\/property-management$/);
+  },
+);
 When('I open the TriCo site', async function (this: FrontendWorld) {
   await this.currentPage().goto('/');
 });

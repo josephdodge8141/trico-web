@@ -9,6 +9,21 @@ const mailpitAuthorization = `Basic ${Buffer.from(
   `${process.env.MAILPIT_USERNAME ?? 'local-editor'}:${process.env.MAILPIT_PASSWORD ?? 'local-mailpit-password'}`,
 ).toString('base64')}`;
 
+test('entering edit mode while signed out requires login and restores the page', async ({
+  page,
+}) => {
+  await page.goto('/property-management');
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: 'Editor sign in' })).toBeVisible();
+
+  await page.getByLabel('Email').fill(editorEmail);
+  await page.getByLabel('Password').fill(editorPassword);
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  await expect(page).toHaveURL(/\/property-management$/);
+});
+
 test('the seeded reviewer can authenticate, edit in-page, and end the opaque session', async ({
   page,
 }) => {

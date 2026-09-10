@@ -3,13 +3,24 @@ import { once } from 'node:events';
 import type { AddressInfo } from 'node:net';
 import test from 'node:test';
 
-import { mediaPresignRequestSchema, tricoEmailSchema } from '@app/schemas';
+import {
+  mediaPresignRequestSchema,
+  registrySeedData,
+  tricoEmailSchema,
+  type EditableValue,
+  type EntityId,
+} from '@app/schemas';
 
 import { createApp } from './app.js';
 import { createConnections, type Connections } from './config/connections.js';
 import { sessionCookieOptions } from './middleware/session.js';
-import { assertPublicationFits, estimatePublishActions } from './services/content.js';
+import {
+  assertPublicationFits,
+  createContentService,
+  estimatePublishActions,
+} from './services/content.js';
 import { ServiceError } from './services/errors.js';
+import { MemoryDynamo, MemoryS3 } from './steps/memory.js';
 
 const listenForTest = async (
   connections: Connections = createConnections(),
@@ -142,3 +153,52 @@ test('publication snapshots enforce the conservative DynamoDB item ceiling', () 
     (error: unknown) => error instanceof ServiceError && error.code === 'PAGE_SNAPSHOT_TOO_LARGE',
   );
 });
+
+test('preview consistently renders saved revisions and honors hide/show preferences', async () => {
+  const database = new MemoryDynamo();
+  const objects = new MemoryS3();
+  const databaseClient = {
+    send: async (command: unknown): Promise<unknown> => {
+      const candidate = command as {
+        readonly constructor: { readonly name: string };
+        readonly input: { readonly ExpressionAttributeValues?: Record<string, unknown> };
+      };
+      if (
+        candidate.constructor.name === 'QueryCommand' &&
+        candidate.input.ExpressionAttributeValues?.[':page'] !== undefined
+      ) {
+        return { Items: [] };
+      }
+      return database.send(command);
+    },
+  } as ReturnType<MemoryDynamo['asClient']>;
+  const content = createContentService(
+    databaseClient,
+    objects.asClient(),
+    'preview-test',
+    'preview-test',
+  );
+  const entityId = 'home.hero' as EntityId;
+  const userId = '00000000-0000-4000-8000-000000000101';
+  const published = registrySeedData[entityId];
+  assert.ok(published !== undefined && typeof published === 'object' && !Array.isArray(published));
+  const first = { ...published, regressionMarker: 'first revision' } as EditableValue;
+  const second = { ...published, regressionMarker: 'second revision' } as EditableValue;
+
+  const created = await content.createChange(entityId, userId, first);
+  assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), first);
+
+  const updated = await content.updateChange(entityId, userId, created.revision, second);
+  assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), second);
+
+  await content.togglePreview(userId, entityId, true);
+  assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), published);
+  await content.togglePreview(userId, entityId, false);
+  assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), second);
+  assert.equal(updated.revision, 2);
+});
+
+const pageEntity = (
+  page: Readonly<Record<string, EditableValue>>,
+  entityId: EntityId,
+): EditableValue | undefined => page[entityId];

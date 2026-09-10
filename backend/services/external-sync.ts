@@ -42,9 +42,7 @@ export function createExternalSyncService(
           continue;
         }
         const page = await content.page(definition.pageId);
-        const entities = page['entities'];
-        if (typeof entities !== 'object' || entities === null || Array.isArray(entities)) continue;
-        const current = Reflect.get(entities, definition.id);
+        const current = page[definition.id];
         if (!Array.isArray(current)) continue;
         const replacements = new Map<string, EditableValue>();
         for (const source of mappings) {

@@ -25,6 +25,16 @@ export interface CmsRequestOptions {
   readonly csrfToken?: string;
 }
 
+export class CmsRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'CmsRequestError';
+  }
+}
+
 const request = async (
   url: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
@@ -47,10 +57,11 @@ const request = async (
   if (!response.ok) {
     const problem = (await response.json().catch(() => undefined)) as
       { readonly message?: unknown } | undefined;
-    throw new Error(
+    throw new CmsRequestError(
       typeof problem?.message === 'string'
         ? problem.message
         : `CMS request failed (${response.status})`,
+      response.status,
     );
   }
   return response.status === 204 ? undefined : response.json();

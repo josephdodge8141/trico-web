@@ -38,7 +38,7 @@ function PageBody({ pageId }: { readonly pageId: PageId }): React.JSX.Element {
         }
       });
     return () => controller.abort();
-  }, [editing.active, pageId, editing.pending]);
+  }, [editing.active, editing.disabledEntityIds, editing.pending, pageId]);
 
   const availableAnchors = new Set(content.sections.map((section) => section.anchor));
   return (
