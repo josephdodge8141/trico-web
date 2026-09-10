@@ -33,6 +33,18 @@ Feature: Published TriCo website
     Then I see an empty state
     And fabricated project cards are not shown
 
+  @id:public.visual-baseline @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Compare against an immutable offline visual baseline
+    backend-noop: Frozen screenshot integrity and pixel comparison are repository tooling behaviors, not backend application behavior.
+    frontend-noop: The offline baseline gate evaluates captured artifacts rather than behavior inside the running React application.
+    browser-noop: This deterministic gate uses its own offline browser image decoder and gives deployed browser agents no source or shell access.
+    Given every frozen Lovable capture is recorded exactly once
+    When a local capture set is compared without contacting Lovable
+    Then baseline checksums and image dimensions must agree
+    And desktop geometry differs by no more than 2 pixels
+    And mobile geometry differs by no more than 3 pixels
+    And each unmasked comparison region has structural similarity of at least 0.98
+
   @id:public.health
   Scenario: Check the public backend health
     Given I am not signed in

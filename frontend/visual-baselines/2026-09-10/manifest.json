@@ -1,0 +1,1639 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "projectUrl": "https://lovable.dev/projects/070a6314-6df5-4464-9eb5-be7e80bc91c8",
+    "frozenAt": "2026-09-10"
+  },
+  "policy": {
+    "similarityThreshold": 0.98,
+    "desktopGeometryTolerancePx": 2,
+    "mobileGeometryTolerancePx": 3
+  },
+  "intentionalCorrections": [
+    {
+      "id": "accessible-responsive-repair",
+      "description": "Preserve intended appearance while correcting keyboard, reduced-motion, contrast, naming, and responsive-navigation defects."
+    },
+    {
+      "id": "unavailable-image-placeholders",
+      "description": "Thirteen unavailable Lovable images may use neutral managed placeholders with identical layout geometry."
+    },
+    {
+      "id": "approved-content-exclusions",
+      "description": "Exclude Property 7-10, unmounted Real Estate category/Land Experts content, and fabricated construction project cards."
+    }
+  ],
+  "captures": [
+    {
+      "id": "page.construction.desktop",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 1440,
+        "height": 1100,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 12291,
+        "width": 1425
+      },
+      "file": "pages/construction.desktop.jpg",
+      "sha256": "3e2826f9ce13752472d99ff044d70494983a8d43f2f7e73da55652c5d52faa67",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.desktop",
+          "x": 0,
+          "y": 0,
+          "height": 12291,
+          "width": 1425
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.construction.mobile.part-01",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/construction.mobile.part-01.jpg",
+      "sha256": "ebe0bf1c25ae47cae08d44c12b28cef18e36a4ce382133e9dcd13e2ea33cabc9",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.mobile.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.construction.mobile.part-02",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/construction.mobile.part-02.jpg",
+      "sha256": "9b8810fe096a9f7542ceb595cbaadb9819f0b6f66729b9780079dfbfe9ccdda4",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.mobile.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.construction.mobile.part-03",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/construction.mobile.part-03.jpg",
+      "sha256": "b73f709cb0a3bc41be5358a249ab3d829cf60a5b205520a2abe4b8f8d21867be",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.mobile.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.construction.mobile.part-04",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 18000,
+        "height": 3971,
+        "width": 390
+      },
+      "file": "pages/construction.mobile.part-04.jpg",
+      "sha256": "f2b34eca540cc819d149975cccfe7f7f6d2c397f675f9d0fce9b6df1b177f065",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.mobile.part-04",
+          "x": 0,
+          "y": 0,
+          "height": 3971,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.construction.tablet.part-01",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/construction.tablet.part-01.jpg",
+      "sha256": "580e80a59801d1c4e0d5854e524b59065b858cfd495c6fea064293ccffa8688d",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.tablet.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.construction.tablet.part-02",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/construction.tablet.part-02.jpg",
+      "sha256": "bbeb0479f70af8f217236981e65d7a8f59222b3cf180c372aedbab518eacd0bc",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.tablet.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.construction.tablet.part-03",
+      "route": "/construction",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 1031,
+        "width": 1024
+      },
+      "file": "pages/construction.tablet.part-03.jpg",
+      "sha256": "55b7b7015f9ae93de3fa24f21eb8e36cd52bbf833b9c4dec0243c080a4d22818",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.construction.tablet.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 1031,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.development.desktop",
+      "route": "/development",
+      "state": "page",
+      "viewport": {
+        "width": 1440,
+        "height": 1100,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 8090,
+        "width": 1425
+      },
+      "file": "pages/development.desktop.jpg",
+      "sha256": "32a1a7d84346d04594d21c3d2db185834f8075abc5350f1c6f388cec21f189d2",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.development.desktop",
+          "x": 0,
+          "y": 0,
+          "height": 8090,
+          "width": 1425
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.development.mobile.part-01",
+      "route": "/development",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/development.mobile.part-01.jpg",
+      "sha256": "a54181501e9b8fe5f620141cd87215ff7388ea2f918ff6f93460f893e8df19ae",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.development.mobile.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.development.mobile.part-02",
+      "route": "/development",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/development.mobile.part-02.jpg",
+      "sha256": "04ae6530b4a4fd013cff7145db7adc887b736e4c8db60cb63151aaaa477e6440",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.development.mobile.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.development.mobile.part-03",
+      "route": "/development",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 2604,
+        "width": 390
+      },
+      "file": "pages/development.mobile.part-03.jpg",
+      "sha256": "aab094fd92937b5b035e0b7eb7c1c8ac8a3e3c33dec244b60eda0a3a50f2676f",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.development.mobile.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 2604,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.development.tablet.part-01",
+      "route": "/development",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/development.tablet.part-01.jpg",
+      "sha256": "0391ca9096a9a0e5f5310ec8a51568b07e6aa32bec63b78e40a9c57fc2f6a8cc",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.development.tablet.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.development.tablet.part-02",
+      "route": "/development",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 2368,
+        "width": 1024
+      },
+      "file": "pages/development.tablet.part-02.jpg",
+      "sha256": "e646d65f15221a171a1e1f5658a48d76723d51c9383da585398f1eba12e8b4d9",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.development.tablet.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 2368,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.home.desktop",
+      "route": "/",
+      "state": "page",
+      "viewport": {
+        "width": 1440,
+        "height": 1100,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6267,
+        "width": 1425
+      },
+      "file": "pages/home.desktop.jpg",
+      "sha256": "c967bfd7e8a9b688a1bccd731dcbc7a0aff5306b88d2896c4d5e13fc3388f73c",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.home.desktop",
+          "x": 0,
+          "y": 0,
+          "height": 6267,
+          "width": 1425
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.home.mobile.part-01",
+      "route": "/",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/home.mobile.part-01.jpg",
+      "sha256": "04957bb8a93f8c55827ff72de0e2457d93b229495ae8f51dd17bb716b576db58",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.home.mobile.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.home.mobile.part-02",
+      "route": "/",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 3808,
+        "width": 390
+      },
+      "file": "pages/home.mobile.part-02.jpg",
+      "sha256": "9767fd53683839337def9fd60d91d13784169749328d931961f8b65c0eafb466",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.home.mobile.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 3808,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.home.tablet.part-01",
+      "route": "/",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/home.tablet.part-01.jpg",
+      "sha256": "ce3ccb633ada0ff4e82853de7db30d7216fc8843f36d06b43111492ff8a25dc9",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.home.tablet.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.home.tablet.part-02",
+      "route": "/",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 338,
+        "width": 1024
+      },
+      "file": "pages/home.tablet.part-02.jpg",
+      "sha256": "d4a9a19555ffcbd3c4ed60ed43ad462850c9047aaaf445abe0f2ab3e295e433b",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.home.tablet.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 338,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.property-management.desktop",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1440,
+        "height": 1100,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 15975,
+        "width": 1425
+      },
+      "file": "pages/property-management.desktop.jpg",
+      "sha256": "78b609ad2d2f7b0fd703ba17a83a36de1383c26ff90f36d386a3bc871b2c039e",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.desktop",
+          "x": 0,
+          "y": 0,
+          "height": 15975,
+          "width": 1425
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-01",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-01.jpg",
+      "sha256": "76904dd14372f86ff86c79279170c6a21991f280ddcd09964af9ed1d5feb0845",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-02",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-02.jpg",
+      "sha256": "38a57e3273b4ec03683d947fb1615e0fc32c77aa3a210b8fd812518499f33aca",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-03",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-03.jpg",
+      "sha256": "698f756f01a42f68dda25850c23523b6c88acb8d295c37e156d43dd72320c8fb",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-04",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 18000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-04.jpg",
+      "sha256": "88cf53abda50405eb503b8ffb04b3cca08a45156ca4c54754571b2a91f4e095b",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-04",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-05",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 24000,
+        "height": 4183,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-05.jpg",
+      "sha256": "7ec97b1aa62064fedfa6093a3e2a430b878c9b9a22053c44b11c326180789955",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-05",
+          "x": 0,
+          "y": 0,
+          "height": 4183,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.tablet.part-01",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/property-management.tablet.part-01.jpg",
+      "sha256": "2367ba6a64b7279278bd392fd8823f03655d7bf3430b50dea4bfa07b63bfc44e",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.tablet.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.tablet.part-02",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/property-management.tablet.part-02.jpg",
+      "sha256": "b68945a04196d9b7016625128cc55d466bf3772aacc72c02e9a976c95baccc34",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.tablet.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.tablet.part-03",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 5282,
+        "width": 1024
+      },
+      "file": "pages/property-management.tablet.part-03.jpg",
+      "sha256": "989e700391f65ca8387d39e52ab2deb7ddce31fbbf23442a3904ffefc5421920",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.tablet.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 5282,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.desktop",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 1440,
+        "height": 1100,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 14736,
+        "width": 1425
+      },
+      "file": "pages/real-estate.desktop.jpg",
+      "sha256": "f141bacbab60f0549e8a6fdf09d8f7c578625d1331cf84f78fc45cc3c220aeee",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.desktop",
+          "x": 0,
+          "y": 0,
+          "height": 14736,
+          "width": 1425
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.mobile.part-01",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/real-estate.mobile.part-01.jpg",
+      "sha256": "5d3c483275ef7a3ffa3c0d8fe3390938c32a9bd41f85863ec6ddccf1ea6b0e65",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.mobile.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.mobile.part-02",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/real-estate.mobile.part-02.jpg",
+      "sha256": "831c8fbffc025ed1f897e79292ce443e30280f107ac073b18ad7474d2cb5b892",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.mobile.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.mobile.part-03",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/real-estate.mobile.part-03.jpg",
+      "sha256": "5b5f709cc5574294e66fd3e61309790cc19f7b1aa43f632d98ae9fad8f56b136",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.mobile.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.mobile.part-04",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 18000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/real-estate.mobile.part-04.jpg",
+      "sha256": "78740406aac6f99eeff12c67790a4d0b0d46735bb7956ced52114d5b9b8064c9",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.mobile.part-04",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.mobile.part-05",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 24000,
+        "height": 637,
+        "width": 390
+      },
+      "file": "pages/real-estate.mobile.part-05.jpg",
+      "sha256": "71ceea4aa956a8ab6c8af4edf4b8c50d1670b7b8540decd59833170fc9fa35e3",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.mobile.part-05",
+          "x": 0,
+          "y": 0,
+          "height": 637,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.tablet.part-01",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/real-estate.tablet.part-01.jpg",
+      "sha256": "a51f397adaaa7bdad5d4d855d004e1dc08d80d570cce8ae146f96f57ba8946ad",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.tablet.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.tablet.part-02",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/real-estate.tablet.part-02.jpg",
+      "sha256": "8e44fe70b3609ce67db1dbe056d5aa1df6ecf0f6fbe785214fd73504584ef5fd",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.tablet.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.real-estate.tablet.part-03",
+      "route": "/real-estate",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 3263,
+        "width": 1024
+      },
+      "file": "pages/real-estate.tablet.part-03.jpg",
+      "sha256": "5dbf1aa988be2f9ab6d5316a2b47afe56745cf8435a095f643d07d503e57e03d",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.real-estate.tablet.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 3263,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.storage.desktop",
+      "route": "/storage",
+      "state": "page",
+      "viewport": {
+        "width": 1440,
+        "height": 1100,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6861,
+        "width": 1425
+      },
+      "file": "pages/storage.desktop.jpg",
+      "sha256": "09e765e5a20caff31f4c74aae14c44229893bd024b934c6d3bef25c25bfc6ca2",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.storage.desktop",
+          "x": 0,
+          "y": 0,
+          "height": 6861,
+          "width": 1425
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.storage.mobile.part-01",
+      "route": "/storage",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/storage.mobile.part-01.jpg",
+      "sha256": "4ebe4986b606a7923ffbc6856fc6b76f250a22ce37339f7221a430564b616b44",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.storage.mobile.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.storage.mobile.part-02",
+      "route": "/storage",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/storage.mobile.part-02.jpg",
+      "sha256": "69742ebb1a11b79c692723575e2d0e55dbe859829ae016f8639630aee2c3b37c",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.storage.mobile.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.storage.mobile.part-03",
+      "route": "/storage",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 1763,
+        "width": 390
+      },
+      "file": "pages/storage.mobile.part-03.jpg",
+      "sha256": "08496ccc3df82a5de6d404b863e5e142861302b00ad8e518248dbc49180e550a",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.storage.mobile.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 1763,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.storage.tablet.part-01",
+      "route": "/storage",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/storage.tablet.part-01.jpg",
+      "sha256": "32cad828376b5d2a479fcefe95fce170d5589f103bea1046f03d7acc66a33067",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.storage.tablet.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "page.storage.tablet.part-02",
+      "route": "/storage",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 1765,
+        "width": 1024
+      },
+      "file": "pages/storage.tablet.part-02.jpg",
+      "sha256": "dec240fbd3e2ee3773841e79c78c456ddcec7904cc79629378db7411efd5443a",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.storage.tablet.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 1765,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "state.construction.mobile-menu-open",
+      "route": "/construction",
+      "state": "mobile-menu-open",
+      "viewport": {
+        "width": 375,
+        "height": 812,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 812,
+        "width": 375
+      },
+      "file": "states/construction.mobile-menu-open.jpg",
+      "sha256": "8c5cb1b81db2eba743db97fe9ae5d7c8a2f71299a853b6aa929acc7f8edaec46",
+      "masks": [],
+      "regions": [
+        {
+          "id": "mobile-menu-open",
+          "x": 0,
+          "y": 0,
+          "height": 812,
+          "width": 375
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "state.development.mobile-menu-open",
+      "route": "/development",
+      "state": "mobile-menu-open",
+      "viewport": {
+        "width": 375,
+        "height": 812,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 812,
+        "width": 375
+      },
+      "file": "states/development.mobile-menu-open.jpg",
+      "sha256": "247e31b0583c9feec74ea5388bdb4699629d21d6c566ef78276b77022224a83f",
+      "masks": [],
+      "regions": [
+        {
+          "id": "mobile-menu-open",
+          "x": 0,
+          "y": 0,
+          "height": 812,
+          "width": 375
+        }
+      ],
+      "intentionalCorrectionIds": ["accessible-responsive-repair", "unavailable-image-placeholders"]
+    },
+    {
+      "id": "state.property-management.mobile-menu-open",
+      "route": "/property-management",
+      "state": "mobile-menu-open",
+      "viewport": {
+        "width": 375,
+        "height": 812,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 812,
+        "width": 375
+      },
+      "file": "states/property-management.mobile-menu-open.jpg",
+      "sha256": "75bebd5bd6ebde185c5f509a8dc32d0ae94149b1adea959e46886d90bb18ca36",
+      "masks": [],
+      "regions": [
+        {
+          "id": "mobile-menu-open",
+          "x": 0,
+          "y": 0,
+          "height": 812,
+          "width": 375
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "state.real-estate.faq-closed.desktop",
+      "route": "/real-estate",
+      "state": "faq-closed-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1300,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 1300,
+        "width": 1440
+      },
+      "file": "states/real-estate.faq-closed.desktop.jpg",
+      "sha256": "56b362a00f01df2db64c76d0a536d42824664780f4e4429c5d7b63a88031b57c",
+      "masks": [],
+      "regions": [
+        {
+          "id": "faq-closed-desktop",
+          "x": 0,
+          "y": 0,
+          "height": 1300,
+          "width": 1440
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "state.real-estate.faq-open.desktop",
+      "route": "/real-estate",
+      "state": "faq-open-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1300,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 1300,
+        "width": 1440
+      },
+      "file": "states/real-estate.faq-open.desktop.jpg",
+      "sha256": "e14f69c9f953272236cce87b3fb99b63d925f7de9f6cab6ad4e92747543c4717",
+      "masks": [],
+      "regions": [
+        {
+          "id": "faq-open-desktop",
+          "x": 0,
+          "y": 0,
+          "height": 1300,
+          "width": 1440
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "state.real-estate.listings-active.desktop",
+      "route": "/real-estate",
+      "state": "listings-active-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1500,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 1500,
+        "width": 1440
+      },
+      "file": "states/real-estate.listings-active.desktop.jpg",
+      "sha256": "1dd1ce0d85672a1a3a600ee99f951c337152d75bbca4015a87469c320f8068b3",
+      "masks": [],
+      "regions": [
+        {
+          "id": "listings-active-desktop",
+          "x": 0,
+          "y": 0,
+          "height": 1500,
+          "width": 1440
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "state.real-estate.listings-sold.desktop",
+      "route": "/real-estate",
+      "state": "listings-sold-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1500,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 1500,
+        "width": 1440
+      },
+      "file": "states/real-estate.listings-sold.desktop.jpg",
+      "sha256": "143977ea07184741167596ce27cbc686fcc0ba4f327dba08283e9ab3c0c401a4",
+      "masks": [],
+      "regions": [
+        {
+          "id": "listings-sold-desktop",
+          "x": 0,
+          "y": 0,
+          "height": 1500,
+          "width": 1440
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "state.real-estate.mobile-menu-open",
+      "route": "/real-estate",
+      "state": "mobile-menu-open",
+      "viewport": {
+        "width": 375,
+        "height": 812,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 812,
+        "width": 375
+      },
+      "file": "states/real-estate.mobile-menu-open.jpg",
+      "sha256": "90f58bd48a50c092f464b893cbdc6087c6783ae477526ed495d65981ca840c3c",
+      "masks": [],
+      "regions": [
+        {
+          "id": "mobile-menu-open",
+          "x": 0,
+          "y": 0,
+          "height": 812,
+          "width": 375
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    }
+  ]
+}
