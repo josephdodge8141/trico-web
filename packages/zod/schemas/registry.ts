@@ -12,6 +12,7 @@ import {
   type PageId,
 } from './content.js';
 import legacyVisibleContentSeeds from '../seeds/legacy-visible-content.json' with { type: 'json' };
+import type { EntityEditorDefinition } from './editor-contracts.js';
 
 export const entityKindSchema = z.enum(['object', 'list']);
 
@@ -79,6 +80,8 @@ export interface EntityDefinition {
   readonly publicPath: readonly string[];
   readonly schema: z.ZodType;
   readonly listItemSchema?: z.ZodType;
+  /** Present only after this entity has an explicit version-2 semantic editing contract. */
+  readonly editor?: EntityEditorDefinition;
 }
 
 export interface PageDefinition {

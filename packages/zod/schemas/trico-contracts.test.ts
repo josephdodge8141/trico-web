@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { z } from 'zod';
+
 import externalSourceSeeds from '../seeds/external-sources.json' with { type: 'json' };
 import mediaInventory from '../seeds/media-inventory.json' with { type: 'json' };
 
@@ -22,6 +24,15 @@ import {
   type EntityId,
 } from '../index.js';
 import { iconNameSchema } from './registry.js';
+import {
+  aggregateEntityModules,
+  defineEntityModule,
+  editorControlSchema,
+  mergeEntityModules,
+  semanticRegistryStatus,
+  validateEntityViewCatalog,
+  type SemanticEntityDefinition,
+} from './editor-contracts.js';
 
 const expectedPageCounts = {
   home: 18,
@@ -76,6 +87,158 @@ test('the canonical registry contains exactly the reissued 195-entity inventory'
   }
   assert.equal(
     entityDefinitions.some(({ id }) => id.startsWith('landing.')),
+    false,
+  );
+});
+
+test('semantic editor modules are explicit, browser-safe, and incrementally honest', () => {
+  const heroSchema = z.strictObject({
+    eyebrow: z.string().trim().min(1),
+    title: z.string().trim().min(1),
+  });
+  const hero = {
+    id: 'home.hero',
+    pageId: 'home',
+    kind: 'object',
+    label: 'Hero',
+    publicPath: ['home', 'hero'],
+    schema: heroSchema,
+    editor: {
+      version: 2,
+      kind: 'object',
+      label: 'Hero',
+      helpText: 'Update the introductory message.',
+      groups: [
+        {
+          id: 'copy',
+          label: 'Words',
+          order: 0,
+          fields: [
+            {
+              path: ['eyebrow'],
+              label: 'Introductory label',
+              required: true,
+              order: 0,
+              validationMessages: {
+                required: 'Enter the introductory label.',
+                invalid: 'Use a short introductory label.',
+              },
+              control: { type: 'short-text', maxLength: 80 },
+            },
+            {
+              path: ['title'],
+              label: 'Main heading',
+              required: true,
+              order: 1,
+              validationMessages: {
+                required: 'Enter the main heading.',
+                invalid: 'Use a shorter main heading.',
+              },
+              control: { type: 'multiline-text', rows: 3, maxLength: 160 },
+            },
+          ],
+        },
+      ],
+    },
+  } as const satisfies SemanticEntityDefinition;
+  const module = defineEntityModule({
+    pageId: 'home',
+    entities: [hero],
+    viewCatalog: [
+      {
+        entityId: 'home.hero',
+        pageId: 'home',
+        legacyComponent: 'HomeHero',
+        primary: { slotId: 'home.hero.primary', routes: ['/'] },
+        secondary: [],
+        emptyState: { kind: 'not-applicable' },
+      },
+    ],
+  });
+
+  const partial = aggregateEntityModules([module], { coverage: 'partial' });
+  assert.deepEqual(partial.entities, [hero]);
+  assert.doesNotThrow(() => JSON.stringify(hero.editor));
+  assert.doesNotThrow(() => validateEntityViewCatalog([hero], module.viewCatalog, 'complete'));
+
+  const merged = mergeEntityModules(entityDefinitions, [module]);
+  assert.equal(merged.length, 195);
+  assert.equal(merged.find(({ id }) => id === 'home.hero')?.editor?.version, 2);
+
+  const incrementallyMigratedDefinitions = entityDefinitions.map((definition) =>
+    definition.id === hero.id ? hero : definition,
+  );
+  const status = semanticRegistryStatus(incrementallyMigratedDefinitions, module.viewCatalog);
+  assert.deepEqual(status.migratedEntityIds, ['home.hero']);
+  assert.equal(status.missingEditorEntityIds.length, 194);
+  assert.equal(status.missingViewEntityIds.length, 194);
+  assert.throws(
+    () =>
+      validateEntityViewCatalog(incrementallyMigratedDefinitions, module.viewCatalog, 'complete'),
+    /Semantic registry is incomplete/,
+  );
+});
+
+test('the browser-safe editor union enumerates novice controls and rejects raw JSON controls', () => {
+  const validationMessages = { invalid: 'Check this value and try again.' } as const;
+  const controls = [
+    { type: 'short-text' },
+    { type: 'multiline-text', rows: 4 },
+    { type: 'number', display: 'statistic' },
+    { type: 'boolean', display: 'switch' },
+    { type: 'date' },
+    { type: 'email' },
+    { type: 'phone', country: 'US' },
+    {
+      type: 'enum',
+      display: 'select',
+      choices: [{ value: 'active', label: 'Active' }],
+    },
+    { type: 'icon-picker', choices: [{ value: 'Building', label: 'Building' }] },
+    { type: 'media-picker', mediaKind: 'image', supportsFocalPoint: true },
+    { type: 'link-builder', allowedDestinations: ['page', 'external-site'] },
+    { type: 'system', immutable: true },
+    {
+      type: 'nested-collection',
+      itemLabel: 'Link',
+      addLabel: 'Add link',
+      itemLabelPath: ['label'],
+      reorderable: true,
+      blankItem: { label: '', destination: '' },
+      itemFields: [
+        {
+          path: ['label'],
+          label: 'Link label',
+          required: false,
+          order: 0,
+          validationMessages,
+          control: { type: 'short-text' },
+        },
+      ],
+    },
+  ] as const;
+
+  assert.deepEqual(
+    controls.map((control) => editorControlSchema.parse(control).type),
+    [
+      'short-text',
+      'multiline-text',
+      'number',
+      'boolean',
+      'date',
+      'email',
+      'phone',
+      'enum',
+      'icon-picker',
+      'media-picker',
+      'link-builder',
+      'system',
+      'nested-collection',
+    ],
+  );
+  assert.equal(editorControlSchema.safeParse({ type: 'json' }).success, false);
+  assert.equal(
+    editorControlSchema.safeParse({ type: 'short-text', exposeObjectKeys: true }).success,
     false,
   );
 });

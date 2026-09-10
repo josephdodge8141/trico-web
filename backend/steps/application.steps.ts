@@ -5,13 +5,19 @@ import { once } from 'node:events';
 import { S3Client } from '@aws-sdk/client-s3';
 import { After, Before, Given, Then, When, setWorldConstructor, World } from '@cucumber/cucumber';
 import {
+  aggregateEntityModules,
+  defineEntityModule,
+  entityEditorDefinitionSchema,
+  entityDefinitions,
   entityRegistry,
   mediaPresignRequestSchema,
   pageIdSchema,
   registrySeedData,
   requireEntityDefinition,
+  validateEntityViewCatalog,
   type EditableValue,
   type EntityDefinition,
+  type EntityModule,
   type EntityId,
   type ExternalSource,
   type PendingChange,
@@ -1181,6 +1187,85 @@ Then('none of the nine hard-coded form configurations is editable', function () 
     false,
   );
 });
+
+function illustrativeSemanticModule(): EntityModule {
+  const legacyHero = requireEntityDefinition('home.hero');
+  const hero = {
+    ...legacyHero,
+    editor: entityEditorDefinitionSchema.parse({
+      version: 2,
+      kind: 'object',
+      label: 'Hero',
+      helpText: 'Update the introductory message.',
+      groups: [
+        {
+          id: 'copy',
+          label: 'Words',
+          order: 0,
+          fields: [
+            {
+              path: ['content'],
+              label: 'Hero content',
+              required: true,
+              order: 0,
+              validationMessages: {
+                required: 'Enter the hero content.',
+                invalid: 'Check the hero content and try again.',
+              },
+              control: { type: 'multiline-text', rows: 4 },
+            },
+          ],
+        },
+      ],
+    }),
+  };
+  return defineEntityModule({
+    pageId: 'home',
+    entities: [hero],
+    viewCatalog: [
+      {
+        entityId: 'home.hero',
+        pageId: 'home',
+        legacyComponent: 'HomeHero',
+        primary: { slotId: 'home.hero.primary', routes: ['/'] },
+        secondary: [],
+        emptyState: { kind: 'not-applicable' },
+      },
+    ],
+  });
+}
+
+Given('a page-owned semantic entity module', function (this: BackendWorld) {
+  assert.equal(illustrativeSemanticModule().pageId, 'home');
+});
+
+When(
+  'its editor metadata and visual catalog are validated incrementally',
+  function (this: BackendWorld) {
+    const module = illustrativeSemanticModule();
+    assert.doesNotThrow(() => aggregateEntityModules([module], { coverage: 'partial' }));
+    mark(
+      this,
+      'every field control is explicit and browser-safe',
+      'every migrated entity has exactly one primary visual slot',
+    );
+
+    const definitions = entityDefinitions.map((definition) =>
+      definition.id === module.entities[0]?.id ? module.entities[0] : definition,
+    );
+    assert.throws(
+      () => validateEntityViewCatalog(definitions, module.viewCatalog, 'complete'),
+      /Semantic registry is incomplete/,
+    );
+    mark(this, 'complete validation rejects missing semantic entities and visual slots');
+  },
+);
+
+factThen([
+  'every field control is explicit and browser-safe',
+  'every migrated entity has exactly one primary visual slot',
+  'complete validation rejects missing semantic entities and visual slots',
+]);
 
 Given('I am not signed in', function () {});
 

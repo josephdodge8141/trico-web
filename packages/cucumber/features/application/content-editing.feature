@@ -12,6 +12,16 @@ Feature: In-page content editing and preview
     And every ID namespace, page ID, public path, kind, schema, label, and seed agree
     And none of the nine hard-coded form configurations is editable
 
+  @id:content.semantic-editor-contract @frontend-noop @browser-noop-eligible
+  Scenario: Adopt semantic editor contracts without overstating migration coverage
+    frontend-noop: Shared contract validation is exercised before frontend components consume the metadata.
+    browser-noop: Registry completeness and serializability are build-time invariants rather than browser interactions.
+    Given a page-owned semantic entity module
+    When its editor metadata and visual catalog are validated incrementally
+    Then every field control is explicit and browser-safe
+    And every migrated entity has exactly one primary visual slot
+    And complete validation rejects missing semantic entities and visual slots
+
   @id:content.create-change @frontend-noop
   Scenario: Save a complete replacement as a pending change
     frontend-noop: In-page editor entry and mutation transport are exercised by Compose Playwright; replacement persistence is exercised by the backend adapter.
