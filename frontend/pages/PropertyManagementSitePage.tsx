@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ArrowRight,
+  Award,
   BarChart3,
   Building,
   Building2,
@@ -859,7 +860,7 @@ function PropertyManagementBody(): React.JSX.Element {
                   </div>
                   <div className="pm-contact-detail">
                     <span className="pm-contact-icon pm-contact-license-icon" aria-hidden="true">
-                      LIC
+                      <Award />
                     </span>
                     <div>
                       <h3>Licenses</h3>

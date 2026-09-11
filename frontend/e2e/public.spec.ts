@@ -370,6 +370,10 @@ test('restores labeled Property Management contact rows and clears the sticky he
       'Office Hours',
     ]);
     await expect(detailRows.nth(3).locator('p')).toHaveCount(3);
+    await expect(detailRows.nth(3).getByText('LIC', { exact: true })).toHaveCount(0);
+    await expect(
+      detailRows.nth(3).locator('.pm-contact-license-icon[aria-hidden="true"] svg'),
+    ).toHaveCount(1);
 
     await page.locator('.pm-hero .pm-actions a[href="#contact"]').click();
     await expect(page).toHaveURL(/#contact$/);

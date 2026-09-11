@@ -47,6 +47,7 @@ Feature: Published TriCo website
     And supplied Property Management portfolio images load while unavailable images use the neutral placeholder
     And the Property Management client-only forms validate locally without creating CMS entities
     And the Property Management contact details use labeled icon rows and remain visible after anchor navigation
+    And the Property Management license decoration has no visible or accessible text fallback
 
   @id:public.construction-empty @backend-noop
   Scenario: Show an honest empty construction project state

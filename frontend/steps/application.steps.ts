@@ -597,6 +597,19 @@ Then(
     }
   },
 );
+Then(
+  'the Property Management license decoration has no visible or accessible text fallback',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const licenseRow = page.locator('.pm-contact-detail').filter({
+      has: page.getByRole('heading', { name: 'Licenses', exact: true }),
+    });
+    await expect(licenseRow.getByText('LIC', { exact: true })).toHaveCount(0);
+    await expect(
+      licenseRow.locator('.pm-contact-license-icon[aria-hidden="true"] svg'),
+    ).toHaveCount(1);
+  },
+);
 
 Given('a construction project category has no published projects', function () {});
 When('I open that project category', async function (this: FrontendWorld) {

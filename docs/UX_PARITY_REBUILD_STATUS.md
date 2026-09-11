@@ -81,6 +81,9 @@ Last updated: 2026-09-10
 - The current desktop-chrome checkpoint reduces the active editor toolbar from
   69.25px (about 71px in independent review) to exactly 64px at 1425/1440 while
   preserving the mobile 64px bar, visible status/actions, focus, and 44px targets.
+- The current Property Management license-icon checkpoint replaces the visible
+  `LIC` fallback with an aria-hidden 20px Award icon while retaining the human
+  Licenses heading and existing 48px tile geometry.
 
 Focused verification at this checkpoint:
 
@@ -106,8 +109,8 @@ Focused verification at this checkpoint:
 - Property Management requires a final independent 2px/3px geometry and 0.98
   SSIM comparison before visual-parity acceptance. Its second browser-only pass
   found the two dead primary launchers now covered by the checkpoint above, plus
-  these remaining visual gaps: a literal `LIC` contact fallback and final
-  exclusion-adjusted density/SSIM confirmation. The original isolated mobile
+  the remaining acceptance work is final exclusion-adjusted density/SSIM
+  confirmation. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -124,8 +127,7 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Replace the `LIC` contact fallback, then perform exclusion-adjusted density
-   and independent visual confirmation.
+4. Perform exclusion-adjusted density and independent visual confirmation.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 
