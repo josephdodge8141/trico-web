@@ -71,6 +71,7 @@ class FrontendWorld extends World {
   collectionValue: readonly EditableValue[] = [];
   noviceValue = '';
   otherEditorId = '';
+  touchLayout: { readonly width: number; readonly height: number } | undefined;
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
@@ -78,9 +79,14 @@ class FrontendWorld extends World {
 }
 setWorldConstructor(FrontendWorld);
 
-Before(async function (this: FrontendWorld) {
+Before(async function (this: FrontendWorld, { pickle }) {
   this.browser = await chromium.launch();
-  this.context = await this.browser.newContext({ baseURL: baseUrl });
+  this.context = await this.browser.newContext({
+    baseURL: baseUrl,
+    ...(pickle.tags.some(({ name }) => name === '@touch')
+      ? { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
+      : {}),
+  });
   this.page = await this.context.newPage();
 });
 After(async function (this: FrontendWorld) {
@@ -602,6 +608,7 @@ When('I delete and undo the deletion', async function (this: FrontendWorld) {
   const item = page
     .getByRole('heading', { name: 'Browser-edited value' })
     .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   await item.hover();
   page.once('dialog', async (dialog) => dialog.accept());
   const deletion = page
@@ -817,6 +824,103 @@ Then('it is marked as an unpublished change', async function (this: FrontendWorl
     .locator('xpath=ancestor::div[contains(@class,"editable-boundary")]');
   await expect(boundary.getByText('Unpublished change', { exact: true })).toBeVisible();
 });
+
+Given(
+  'I am signed in and editing Home at a {int} by {int} touch viewport',
+  async function (this: FrontendWorld, width: number, height: number) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width, height });
+    await loginEditor(page);
+    const initial = await page.locator('.home-values').boundingBox();
+    assert.ok(initial);
+    this.touchLayout = { width: initial.width, height: initial.height };
+    const preview = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        response.url().includes('/api/v1/pages/home/preview'),
+    );
+    await page.getByRole('button', { name: 'Enter edit mode' }).focus();
+    await page.keyboard.press('Enter');
+    await preview;
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+  },
+);
+
+Then(
+  'component and collection item actions remain visibly labeled and unclipped',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const item = page.locator('.home-values .editable-item').first();
+    const actions = [
+      page.getByRole('button', { name: 'Edit Opening message' }),
+      item.getByRole('button', { name: /^Edit / }),
+      item.getByRole('button', { name: /^Delete / }),
+      item.getByRole('button', { name: /^Drag .* to reorder$/ }),
+      item.getByRole('button', { name: /^Move .* down$/ }),
+      page.getByRole('button', { name: '+ Add core value' }),
+    ];
+    for (const action of actions) {
+      await expect(action).toBeVisible();
+      const box = await action.boundingBox();
+      assert.ok(box);
+      assert.ok(box.x >= 0 && box.x + box.width <= 390, 'An editing action is clipped.');
+      const text = (await action.innerText()).trim();
+      assert.match(text, /[A-Za-z]{3,}/, 'An editing action uses an unlabeled icon square.');
+      await action.focus();
+      await expect(action).toBeFocused();
+    }
+  },
+);
+
+Then('touch editing actions meet their minimum target size', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const item = page.locator('.home-values .editable-item').first();
+  const actions = [
+    page.getByRole('button', { name: 'Edit Opening message' }),
+    item.getByRole('button', { name: /^Edit / }),
+    item.getByRole('button', { name: /^Delete / }),
+    item.getByRole('button', { name: /^Drag .* to reorder$/ }),
+    item.getByRole('button', { name: /^Move .* down$/ }),
+    page.getByRole('button', { name: '+ Add core value' }),
+  ];
+  for (const action of actions) {
+    const box = await action.boundingBox();
+    assert.ok(box);
+    assert.ok(box.height >= 44, `Touch target height was ${String(box.height)}px.`);
+    assert.ok(box.width >= 44, `Touch target width was ${String(box.width)}px.`);
+  }
+});
+
+When('I operate the visible item controls with the keyboard', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const edit = page
+    .locator('.home-values .editable-item')
+    .first()
+    .getByRole('button', {
+      name: /^Edit /,
+    });
+  await edit.focus();
+  await page.keyboard.press('Enter');
+});
+
+Then(
+  'the friendly item editor opens and the saved page layout remains unchanged',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await expect(page.getByRole('dialog', { name: /^Edit / })).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: 'Exit edit mode' }).click();
+    await expect(page.locator('.editable-boundary-controls')).toHaveCount(0);
+    await expect(page.locator('.editable-item-controls')).toHaveCount(0);
+    const final = await page.locator('.home-values').boundingBox();
+    assert.ok(final);
+    assert.deepEqual(
+      { width: final.width, height: final.height },
+      this.touchLayout,
+      'Edit controls changed the public section dimensions after edit mode was closed.',
+    );
+  },
+);
 
 Given('I am not signed in', async function (this: FrontendWorld) {
   await this.context?.clearCookies();

@@ -159,3 +159,12 @@ Feature: In-page content editing and preview
     Then the saved preview remains unchanged
     When I change a field and save
     Then the validated value appears in my private preview
+
+  @id:content.touch-inline-controls @backend-noop @touch
+  Scenario: Use novice-readable inline controls on a touch screen
+    backend-noop: Persistent touch affordances, touch-target sizing, clipping, keyboard operation, and public layout isolation are browser presentation behavior.
+    Given I am signed in and editing Home at a 390 by 844 touch viewport
+    Then component and collection item actions remain visibly labeled and unclipped
+    And touch editing actions meet their minimum target size
+    When I operate the visible item controls with the keyboard
+    Then the friendly item editor opens and the saved page layout remains unchanged

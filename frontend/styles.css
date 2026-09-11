@@ -475,6 +475,7 @@ h1 {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  max-width: calc(100% - 1rem);
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms ease;
@@ -543,6 +544,9 @@ h1 {
 .editable-item-move-actions {
   display: flex;
   gap: 0.2rem;
+}
+.editor-control-touch-label {
+  display: none;
 }
 .editor-sheet-layer {
   position: fixed;
@@ -1005,6 +1009,31 @@ h1 {
   .editable-item-controls {
     opacity: 1;
     pointer-events: auto;
+  }
+  .editable-boundary-controls {
+    right: 0.5rem;
+    left: 0.5rem;
+    justify-content: flex-end;
+  }
+  .editable-item-controls {
+    right: 0.35rem;
+    left: 0.35rem;
+    justify-content: flex-end;
+  }
+  .editable-boundary-controls button,
+  .editable-item-controls button,
+  .editable-collection-add {
+    min-height: 2.75rem;
+  }
+  .editable-item-controls button {
+    min-width: 2.75rem;
+    padding: 0.55rem 0.7rem;
+  }
+  .editor-control-compact-label {
+    display: none;
+  }
+  .editor-control-touch-label {
+    display: inline;
   }
 }
 @media (prefers-reduced-motion: reduce) {

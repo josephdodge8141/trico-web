@@ -66,9 +66,33 @@ test.describe('touch editor', () => {
     page,
   }) => {
     await login(page);
-    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    const initialLayout = await page.locator('.home-values').boundingBox();
+    expect(initialLayout).not.toBeNull();
+    await page.getByRole('button', { name: 'Enter edit mode' }).focus();
+    await page.keyboard.press('Enter');
     const edit = page.getByRole('button', { name: 'Edit Opening message' });
     await expect(edit).toBeVisible();
+    const item = page.locator('.home-values .editable-item').first();
+    const touchActions = [
+      edit,
+      item.getByRole('button', { name: /^Edit / }),
+      item.getByRole('button', { name: /^Delete / }),
+      item.getByRole('button', { name: /^Drag .* to reorder$/ }),
+      item.getByRole('button', { name: /^Move .* down$/ }),
+      page.getByRole('button', { name: '+ Add core value' }),
+    ];
+    for (const action of touchActions) {
+      await expect(action).toBeVisible();
+      const actionBox = await action.boundingBox();
+      expect(actionBox).not.toBeNull();
+      expect(actionBox?.height).toBeGreaterThanOrEqual(44);
+      expect(actionBox?.width).toBeGreaterThanOrEqual(44);
+      expect(actionBox?.x).toBeGreaterThanOrEqual(0);
+      expect((actionBox?.x ?? 0) + (actionBox?.width ?? 0)).toBeLessThanOrEqual(390);
+      expect((await action.innerText()).trim()).toMatch(/[A-Za-z]{3,}/);
+      await action.focus();
+      await expect(action).toBeFocused();
+    }
     await edit.click();
 
     const dialog = page.getByRole('dialog', { name: 'Opening message' });
@@ -80,6 +104,20 @@ test.describe('touch editor', () => {
     page.once('dialog', (confirmation) => void confirmation.accept());
     await dialog.getByRole('button', { name: 'Cancel' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(originalHeading);
+    const itemEdit = item.getByRole('button', { name: /^Edit / });
+    await itemEdit.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog', { name: /^Edit / })).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: 'Exit edit mode' }).click();
+    await expect(page.locator('.editable-boundary-controls')).toHaveCount(0);
+    await expect(page.locator('.editable-item-controls')).toHaveCount(0);
+    const finalLayout = await page.locator('.home-values').boundingBox();
+    expect(finalLayout).not.toBeNull();
+    expect({ width: finalLayout?.width, height: finalLayout?.height }).toEqual({
+      width: initialLayout?.width,
+      height: initialLayout?.height,
+    });
   });
 });
 

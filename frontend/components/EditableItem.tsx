@@ -46,7 +46,10 @@ export function EditableItem({
               aria-label={`Drag ${label} to reorder`}
               title="Drag to reorder"
             >
-              ⋮⋮
+              <span className="editor-control-compact-label" aria-hidden="true">
+                ⋮⋮
+              </span>
+              <span className="editor-control-touch-label">Reorder</span>
             </button>
           ) : null}
           <button type="button" onClick={onEdit} disabled={disabled} aria-label={`Edit ${label}`}>
@@ -68,7 +71,10 @@ export function EditableItem({
                 disabled={disabled || index === 0}
                 aria-label={`Move ${label} up`}
               >
-                ↑
+                <span className="editor-control-compact-label" aria-hidden="true">
+                  ↑
+                </span>
+                <span className="editor-control-touch-label">Move up</span>
               </button>
               <button
                 type="button"
@@ -76,7 +82,10 @@ export function EditableItem({
                 disabled={disabled || index === lastIndex}
                 aria-label={`Move ${label} down`}
               >
-                ↓
+                <span className="editor-control-compact-label" aria-hidden="true">
+                  ↓
+                </span>
+                <span className="editor-control-touch-label">Move down</span>
               </button>
             </span>
           ) : null}

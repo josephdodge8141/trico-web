@@ -45,6 +45,9 @@ Last updated: 2026-09-10
   source-backed portfolio/association images. Juniper Ridge and Riverwood
   Crossing retain the neutral placeholder because their mounted legacy records
   explicitly declare no photo.
+- The current touch-control checkpoint keeps component/item controls visible in
+  edit mode at 390px, gives them novice-readable labels and 44px targets, keeps
+  them inside their boundaries, and preserves compact desktop hover controls.
 
 Focused verification at this checkpoint:
 
@@ -69,10 +72,9 @@ Focused verification at this checkpoint:
   renderer and legacy contracts (142 entities remain).
 - Property Management requires its independent 2px/3px geometry and 0.98 SSIM
   comparison; its functional composition is not yet visual-parity acceptance.
-  Browser-only review confirmed these remaining gaps in priority order:
-  undiscoverable touch item controls; mobile editor chrome obscuring content;
-  typography/container/hero scale drift; wrong hero CTA hierarchy; and
-  flattened contact details. The original isolated mobile
+  Browser-only review confirmed these remaining gaps in priority order: mobile
+  editor chrome obscuring content; typography/container/hero scale drift; wrong
+  hero CTA hierarchy; and flattened contact details. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -90,8 +92,7 @@ Focused verification at this checkpoint:
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
 4. Close the remaining independent Property Management gaps one at a time:
-   touch controls, mobile toolbar, geometry/type tuning, CTA hierarchy, and
-   contact presentation.
+   mobile toolbar, geometry/type tuning, CTA hierarchy, and contact presentation.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 
