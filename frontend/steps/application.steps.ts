@@ -1247,6 +1247,51 @@ Given(
   },
 );
 
+Given(
+  'I am signed in on Home at a {int} by {int} desktop viewport',
+  async function (this: FrontendWorld, width: number, height: number) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width, height });
+    await loginEditor(page);
+  },
+);
+
+When('I enter edit mode from the desktop launcher', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+});
+
+Then(
+  'the desktop editor toolbar is exactly {int} pixels tall',
+  async function (this: FrontendWorld, expectedHeight: number) {
+    const toolbar = this.currentPage().getByRole('complementary', { name: 'Content editor' });
+    const box = await toolbar.boundingBox();
+    assert.ok(box);
+    assert.equal(box.height, expectedHeight);
+  },
+);
+
+Then(
+  'every desktop editor action remains visible and available actions are keyboard reachable',
+  async function (this: FrontendWorld) {
+    const toolbar = this.currentPage().getByRole('complementary', { name: 'Content editor' });
+    await expect(toolbar.getByText('Edit mode', { exact: true })).toBeVisible();
+    await expect(toolbar.getByText(/unpublished change/)).toBeVisible();
+    for (const actionName of ['View public', 'Review and publish', 'History', 'Exit edit mode']) {
+      const action = toolbar.getByRole('button', { name: actionName });
+      await expect(action).toBeVisible();
+      const box = await action.boundingBox();
+      assert.ok(box);
+      assert.ok(box.height >= 44, `Desktop action ${actionName} was ${String(box.height)}px tall.`);
+      if (await action.isEnabled()) {
+        await action.focus();
+        await expect(action).toBeFocused();
+      }
+    }
+  },
+);
+
 When('I tap the edit mode launcher', async function (this: FrontendWorld) {
   const page = this.currentPage();
   const launcher = page.getByRole('button', { name: 'Enter edit mode' });

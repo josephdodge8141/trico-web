@@ -91,6 +91,31 @@ test('friendly component form saves, previews, updates, and discards without exp
   await expect(heading).toHaveText(publishedHeading);
 });
 
+test('keeps desktop and mobile active editor toolbars at exactly 64px', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await login(page);
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  const toolbar = page.getByRole('complementary', { name: 'Content editor' });
+  await expect(toolbar).toBeVisible();
+  expect((await toolbar.boundingBox())?.height).toBe(64);
+  await expect(toolbar.getByText('Edit mode', { exact: true })).toBeVisible();
+  await expect(toolbar.getByText(/unpublished change/)).toBeVisible();
+  for (const actionName of ['View public', 'Review and publish', 'History', 'Exit edit mode']) {
+    const action = toolbar.getByRole('button', { name: actionName });
+    await expect(action).toBeVisible();
+    const box = await action.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(1100);
+    if (await action.isEnabled()) {
+      await action.focus();
+      await expect(action).toBeFocused();
+    }
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect((await toolbar.boundingBox())?.height).toBe(64);
+});
+
 test.describe('touch editor', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 

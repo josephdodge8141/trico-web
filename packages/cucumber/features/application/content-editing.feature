@@ -202,3 +202,11 @@ Feature: In-page content editing and preview
     When I open a long semantic editor on mobile
     Then I can scroll every field above the Save and Cancel actions
     And keyboard focus stays within the editor until I close it
+
+  @id:content.desktop-editor-chrome @backend-noop
+  Scenario: Keep desktop editor chrome compact and reachable
+    backend-noop: Toolbar geometry and focus behavior are browser presentation concerns.
+    Given I am signed in on Home at a 1425 by 1100 desktop viewport
+    When I enter edit mode from the desktop launcher
+    Then the desktop editor toolbar is exactly 64 pixels tall
+    And every desktop editor action remains visible and available actions are keyboard reachable

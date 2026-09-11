@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+import { homeV2SeedData } from '@app/schemas';
 
 type Rgb = readonly [number, number, number];
 
@@ -31,6 +33,61 @@ const publicPages = [
   { route: '/storage', heading: 'Storage made simple' },
   { route: '/development', heading: 'Development with a long view' },
 ] as const;
+
+async function mockEditorSession(page: Page): Promise<void> {
+  await page.route('**/api/v1/auth/csrf', (route) =>
+    route.fulfill({
+      json: { token: 'local-browser-csrf-token-is-at-least-thirty-two-characters' },
+    }),
+  );
+  await page.route('**/api/v1/auth/me', (route) =>
+    route.fulfill({
+      json: {
+        authenticated: true,
+        principal: {
+          subject: 'local-browser-editor',
+          email: 'editor@tricoinc.com',
+          emailVerified: true,
+        },
+      },
+    }),
+  );
+  await page.route('**/api/v1/changes?pageId=home', (route) =>
+    route.fulfill({ json: { changes: [] } }),
+  );
+  await page.route('**/api/v1/preview/preferences', (route) =>
+    route.fulfill({ json: { disabledEntityIds: [] } }),
+  );
+  await page.route('**/api/v1/pages/home/preview', (route) =>
+    route.fulfill({ json: homeV2SeedData }),
+  );
+  await page.route('**/api/v1/publish-operations/state', (route) =>
+    route.fulfill({ json: { blocked: false, failedOperation: null } }),
+  );
+}
+
+test('keeps the active desktop editor toolbar at the compact 64px target', async ({ page }) => {
+  await page.setViewportSize({ width: 1425, height: 1100 });
+  await mockEditorSession(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  const toolbar = page.getByRole('complementary', { name: 'Content editor' });
+  await expect(toolbar).toBeVisible();
+  await expect.poll(async () => (await toolbar.boundingBox())?.height).toBe(64);
+  await expect(toolbar.getByText('Edit mode', { exact: true })).toBeVisible();
+  await expect(toolbar.getByText('0 unpublished changes', { exact: true })).toBeVisible();
+  for (const actionName of ['View public', 'Review and publish', 'History', 'Exit edit mode']) {
+    const action = toolbar.getByRole('button', { name: actionName });
+    await expect(action).toBeVisible();
+    const box = await action.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(1100);
+    if (await action.isEnabled()) {
+      await action.focus();
+      await expect(action).toBeFocused();
+    }
+  }
+});
 
 for (const publicPage of publicPages) {
   test(`renders ${publicPage.route} with checked-in content when object storage is unavailable`, async ({
