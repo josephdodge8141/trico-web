@@ -32,10 +32,10 @@ const mailpitAuthorization = `Basic ${Buffer.from(
 const headings: Readonly<Record<string, string>> = {
   '/': "Building Utah's Future",
   '/property-management': 'What to Expect with TriCo',
-  '/real-estate': 'Find the right place for what comes next',
-  '/construction': 'Construction with purpose',
-  '/storage': 'Storage made simple',
-  '/development': 'Development with a long view',
+  '/real-estate': 'Commercial Real Estate & Land Experts',
+  '/construction': 'Building The Future',
+  '/storage': 'Maximize Your Storage Facility Profitability',
+  '/development': 'Transforming Vision Into Reality',
 };
 setDefaultTimeout(30_000);
 
@@ -618,6 +618,122 @@ Then(
     await expect(
       licenseRow.locator('.pm-contact-license-icon[aria-hidden="true"] svg'),
     ).toHaveCount(1);
+  },
+);
+
+Then(
+  'Storage presents facility management for owners rather than consumer unit shopping',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await expect(
+      page.getByRole('heading', { name: 'Maximize Your Storage Facility Profitability' }),
+    ).toBeVisible();
+    await expect(page.getByText(/choose your unit|rent a unit/i)).toHaveCount(0);
+  },
+);
+Then(
+  'all 18 Storage entities have an editable visual boundary',
+  async function (this: FrontendWorld) {
+    await expect(this.currentPage().locator('[data-storage-entity-boundary="true"]')).toHaveCount(
+      18,
+    );
+  },
+);
+Then(
+  'the Storage hero, services, team, Our Why, reviews, contact, and footer render in order',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const selectors = [
+      '.storage-hero',
+      '#services',
+      '#team',
+      '#about',
+      '#reviews',
+      '#contact',
+      '.storage-footer',
+    ];
+    const positions: number[] = [];
+    for (const selector of selectors) {
+      await expect(page.locator(selector)).toBeVisible();
+      positions.push(
+        await page
+          .locator(selector)
+          .evaluate((element) => (element instanceof HTMLElement ? element.offsetTop : -1)),
+      );
+    }
+    assert.deepEqual(
+      positions,
+      [...positions].sort((left, right) => left - right),
+    );
+  },
+);
+Then(
+  'the Storage contact form validates locally without creating a CMS entity',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    let mutations = 0;
+    page.on('request', (request) => {
+      if (request.method() !== 'GET' && request.url().includes('/api/v1/entities/')) mutations += 1;
+    });
+    await page.getByRole('button', { name: 'Get Started' }).click();
+    assert.equal(
+      await page
+        .locator('input[name="firstName"]')
+        .evaluate((element) => element instanceof HTMLInputElement && !element.checkValidity()),
+      true,
+    );
+    assert.equal(mutations, 0);
+  },
+);
+Then(
+  'Storage navigation remains usable at desktop and mobile widths',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const menu = page.getByRole('button', { name: 'Open navigation' });
+    await expect(menu).toBeVisible();
+    await menu.click();
+    await expect(page.getByRole('navigation', { name: 'Mobile storage navigation' })).toBeVisible();
+  },
+);
+
+Then(
+  'the dedicated {string} composition renders with {int} editable entity boundaries',
+  async function (this: FrontendWorld, division: string, entityCount: number) {
+    const page = this.currentPage();
+    const expectations: Readonly<
+      Record<
+        string,
+        {
+          readonly selector: string;
+          readonly heading: string;
+          readonly sections: readonly string[];
+        }
+      >
+    > = {
+      'Real Estate': {
+        selector: '[data-real-estate-entity-boundary="true"]',
+        heading: 'Commercial Real Estate & Land Experts',
+        sections: ['#listings', '#services', '#process', '#about', '#team', '#faq', '#contact'],
+      },
+      Construction: {
+        selector: '[data-entity-boundary="true"]',
+        heading: 'Building The Future',
+        sections: ['#services', '#projects', '#plan-room', '#team', '#about', '#bid', '#contact'],
+      },
+      Development: {
+        selector: '[data-development-entity-boundary="true"]',
+        heading: 'Transforming Vision Into Reality',
+        sections: ['#services', '#projects', '#team', '#about', '#reviews', '#contact'],
+      },
+    };
+    const expectation = expectations[division];
+    assert.ok(expectation, `Unexpected dedicated division ${division}`);
+    await expect(
+      page.getByRole('heading', { name: expectation.heading, exact: true }),
+    ).toBeVisible();
+    await expect(page.locator(expectation.selector)).toHaveCount(entityCount);
+    for (const selector of expectation.sections) await expect(page.locator(selector)).toBeVisible();
   },
 );
 

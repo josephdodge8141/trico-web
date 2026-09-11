@@ -988,10 +988,23 @@ h1 {
     grid-column: 1;
   }
   .edit-launcher {
-    top: calc(100dvh - 3.5rem - env(safe-area-inset-bottom));
+    top: max(0.25rem, env(safe-area-inset-top));
     right: auto;
     bottom: auto;
     left: max(0.75rem, env(safe-area-inset-left));
+    padding: 0;
+  }
+  .edit-launcher button {
+    width: 56px;
+    overflow: hidden;
+    padding-inline: 0.4rem;
+    font-size: 0;
+    white-space: nowrap;
+  }
+  .edit-launcher button::after {
+    font-size: 0.875rem;
+    font-weight: 700;
+    content: 'Edit';
   }
   .editor-toolbar {
     position: fixed;

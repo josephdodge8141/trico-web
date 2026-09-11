@@ -180,6 +180,32 @@ Last updated: 2026-09-11
   2026-09-11. The clean version-2 seed completed successfully, removing the
   retained version-1 local-data blocker while leaving reset safety restrictions
   and migration planners intact.
+- The current Real Estate broad-parity checkpoint replaces the generic renderer
+  with the complete dedicated composition, all 31 visual boundaries, responsive
+  navigation, listing tabs/galleries, both client-only forms, and source-backed
+  imagery. Its CTA contrast and mobile presentation have browser regression
+  coverage; its 31 contracts still require semantic version-2 migration.
+- The current Construction broad-parity checkpoint replaces the generic main
+  page and all 16 category routes. The main route renders 49 boundaries across
+  the complete composition; the category routes account for the remaining 16
+  project-list entities with category pills, editable honest empty states, and
+  no fabricated projects. Its 65 contracts still require semantic version-2
+  migration.
+- The current Storage checkpoint adds all 18 strict semantic contracts, seeds,
+  editor descriptors, dedicated visual boundaries, the full owner-focused
+  facility-management composition, and its client-only consultation form. This
+  raises semantic coverage to 71 of 195 entities.
+- The current Development broad-parity checkpoint replaces the generic renderer
+  with the complete dedicated composition, all 28 visual boundaries, its unique
+  anniversary treatment, responsive navigation, and client-only contact form.
+  Its CTA contrast is explicitly covered; its 28 contracts still require
+  semantic version-2 migration.
+- Independent browser-only review covered all four rebuilt divisions at
+  1440x1100 and 390x844 plus all 16 Construction category routes. It confirmed
+  complete hierarchy, nonzero visible images, working mobile navigation, no
+  horizontal overflow, and no exposed technical representation. The resulting
+  CTA contrast, mobile launcher overlap, and Storage review-label defects were
+  fixed with focused browser regression coverage.
 
 Focused verification at this checkpoint:
 
@@ -187,12 +213,15 @@ Focused verification at this checkpoint:
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
-- Root `npm run check` passes after the corrected baseline, broad CSS surface
-  reconciliation, neutral hero treatment, and self-hosted-font integration,
-  validating 113 canonical cases.
-- Frontend unit tests passed: 27/27.
-- Frontend browser tests passed: 21/21, including registered self-hosted fonts.
-- Compose frontend Cucumber passed: 24/24 scenarios and 173/173 steps.
+- Root `npm run check` passes after the four-division broad-parity wave,
+  validating 117 canonical cases. A focused production-build browser check also
+  passes after the final mobile launcher placement adjustment.
+- Frontend unit tests passed after integration: 29/29.
+- Frontend browser tests passed after integration: 27/27, including registered
+  self-hosted fonts, dedicated division compositions, CTA contrast, and launcher
+  clearance.
+- Compose frontend Cucumber passed after integration: 28/28 scenarios and
+  197/197 steps, accounting for 117 canonical cases.
 - Compose Playwright passed: 13/13.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
@@ -202,30 +231,31 @@ Focused verification at this checkpoint:
 
 ## Intentionally incomplete
 
-- The other 142 entities still use legacy contracts and seeds.
+- The other 124 entities still use legacy contracts and seeds.
 - Media and source controls are implemented but not mounted in a page editor.
-- Real Estate, Construction, Storage, and Development still use the generic
-  renderer and legacy contracts (142 entities remain).
+- Real Estate, Construction, and Development now use dedicated compositions but
+  still need strict semantic contracts, seeds, and dynamic novice forms.
 - Property Management requires production changes to reach the retained 0.98
   SSIM and 2px/3px geometry acceptance against its now-approved corrected
   baseline. The reference-policy blocker is resolved; the remaining failures
   are visible implementation differences recorded above.
 - Form-state and edit-mode visual references still need capture.
-- Local content is now freshly seeded at version 2. The previous disposable
-  version-1 DynamoDB and MinIO volumes were intentionally removed.
+- Local content is freshly seeded at version 2 after the final Compose test run.
+  Test-created users, pending changes, and uploaded objects were intentionally
+  removed with the disposable DynamoDB and MinIO volumes.
 
 ## Exact restart sequence
 
 1. Confirm the branch is clean and starts at the latest checkpoint documented by
    `git log`, then run `npm run check`.
-2. Continue section-level Property Management geometry reconciliation after the
-   font-corrected candidate; the strict route comparison remains intentionally
-   failing until every region meets 0.98 SSIM and 2px/3px geometry tolerance.
-3. Mount the media library in Home's logo/leadership image fields; source controls
-   wait for the first Real Estate listing editor.
-4. Capture the missing form and edit-mode visual states against the approved
-   reference policy.
-5. Begin Real Estate only after Property Management visual acceptance is resolved.
+2. Convert Real Estate's 31 legacy entities to strict semantic version-2
+   contracts and mount source controls in its listing editors.
+3. Convert Construction's 65 and Development's 28 legacy entities in bounded
+   page-owned waves; preserve the dedicated compositions and category routing.
+4. Mount the media library in Home's logo/leadership image fields and capture the
+   missing form/edit-mode visual states.
+5. Return to strict section-level visual comparison only after all six dedicated
+   compositions and novice editing contracts are functionally complete.
 
 The local Docker stack may still be running after Compose verification. Inspect
 it with `docker compose ps`; stop it with `docker compose down` before closing a

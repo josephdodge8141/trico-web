@@ -50,6 +50,30 @@ Feature: Published TriCo website
     And the Property Management contact details use labeled icon rows and remain visible after anchor navigation
     And the Property Management license decoration has no visible or accessible text fallback
 
+  @id:public.storage-mounted-composition @backend-noop
+  Scenario: Render the complete mounted Storage Management composition
+    backend-noop: Storage composition, responsive presentation, and its client-only consultation form are browser-owned behavior.
+    Given the current content manifest is available
+    When I open "/storage"
+    Then Storage presents facility management for owners rather than consumer unit shopping
+    And all 18 Storage entities have an editable visual boundary
+    And the Storage hero, services, team, Our Why, reviews, contact, and footer render in order
+    And the Storage contact form validates locally without creating a CMS entity
+    And Storage navigation remains usable at desktop and mobile widths
+
+  @id:public.dedicated-division-composition @backend-noop
+  Scenario Outline: Render a complete dedicated division composition
+    backend-noop: Division composition and responsive presentation are browser-owned behavior.
+    Given the current content manifest is available
+    When I open "<route>"
+    Then the dedicated "<division>" composition renders with <entity_count> editable entity boundaries
+
+    Examples: Dedicated divisions
+      | case_id     | route          | division    | entity_count |
+      | real-estate | /real-estate   | Real Estate | 31           |
+      | construction | /construction | Construction | 49           |
+      | development | /development   | Development | 28           |
+
   @id:public.construction-empty @backend-noop
   Scenario: Show an honest empty construction project state
     backend-noop: Empty-state presentation is owned by the frontend.

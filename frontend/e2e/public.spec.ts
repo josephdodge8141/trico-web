@@ -28,10 +28,10 @@ const contrastRatio = (foreground: Rgb, background: Rgb) => {
 const publicPages = [
   { route: '/', heading: "Building Utah's Future" },
   { route: '/property-management', heading: 'What to Expect with TriCo' },
-  { route: '/real-estate', heading: 'Find the right place for what comes next' },
-  { route: '/construction', heading: 'Construction with purpose' },
-  { route: '/storage', heading: 'Storage made simple' },
-  { route: '/development', heading: 'Development with a long view' },
+  { route: '/real-estate', heading: 'Commercial Real Estate & Land Experts' },
+  { route: '/construction', heading: 'Building The Future' },
+  { route: '/storage', heading: 'Maximize Your Storage Facility Profitability' },
+  { route: '/development', heading: 'Transforming Vision Into Reality' },
 ] as const;
 
 async function mockEditorSession(page: Page): Promise<void> {
@@ -118,11 +118,146 @@ test('self-hosts the intended public-site typefaces', async ({ page }) => {
 
 test('uses corrected real-estate and storage anchors', async ({ page }) => {
   await page.goto('/real-estate');
-  await expect(page.getByRole('link', { name: 'Services' })).toHaveAttribute('href', '#services');
+  await expect(page.getByRole('link', { name: 'Services' }).first()).toHaveAttribute(
+    'href',
+    '#services',
+  );
   await page.goto('/storage');
-  await expect(page.getByRole('link', { name: 'Services' })).toHaveAttribute('href', '#features');
+  await expect(page.getByRole('link', { name: 'Services' }).first()).toHaveAttribute(
+    'href',
+    '#services',
+  );
   await expect(page.locator('#features')).toBeVisible();
 });
+
+test('keeps division calls to action readable and the mobile edit launcher clear of them', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  for (const route of ['/real-estate', '/development'] as const) {
+    await page.goto(route);
+    const callToAction = page.getByRole('link', {
+      name: route === '/real-estate' ? 'Start Your Journey' : 'View Our Projects',
+    });
+    await expect(callToAction).toBeVisible();
+    const colors = await callToAction.evaluate((element) => {
+      const styles = window.getComputedStyle(element);
+      return { foreground: styles.color, background: styles.backgroundColor };
+    });
+    expect(colors.foreground).toBe(
+      route === '/real-estate' ? 'rgb(0, 10, 77)' : 'rgb(255, 255, 255)',
+    );
+    expect(colors.background).toBe(
+      route === '/real-estate' ? 'rgb(255, 255, 255)' : 'rgb(0, 18, 138)',
+    );
+  }
+
+  for (const route of ['/construction', '/storage'] as const) {
+    await page.goto(route);
+    const launcher = page.getByRole('button', { name: 'Enter edit mode' });
+    const protectedControl = page.getByRole(route === '/storage' ? 'link' : 'heading', {
+      name: route === '/storage' ? 'Our Services' : 'Building The Future',
+      exact: true,
+    });
+    const [launcherBox, protectedBox] = await Promise.all([
+      launcher.boundingBox(),
+      protectedControl.boundingBox(),
+    ]);
+    expect(launcherBox).not.toBeNull();
+    expect(protectedBox).not.toBeNull();
+    const overlaps =
+      (launcherBox?.x ?? 0) < (protectedBox?.x ?? 0) + (protectedBox?.width ?? 0) &&
+      (launcherBox?.x ?? 0) + (launcherBox?.width ?? 0) > (protectedBox?.x ?? 0) &&
+      (launcherBox?.y ?? 0) < (protectedBox?.y ?? 0) + (protectedBox?.height ?? 0) &&
+      (launcherBox?.y ?? 0) + (launcherBox?.height ?? 0) > (protectedBox?.y ?? 0);
+    expect(overlaps).toBe(false);
+  }
+});
+
+test('renders the complete owner-focused Storage composition with 18 semantic boundaries', async ({
+  page,
+}) => {
+  await page.goto('/storage');
+  await expect(page.locator('[data-storage-entity-boundary="true"]')).toHaveCount(18);
+  for (const heading of [
+    'Maximize Your Storage Facility Profitability',
+    'Complete Storage Management',
+    'Your Management Team',
+    'Our Why',
+    'Leave Us a Review',
+    "Ready to Maximize Your Facility's Potential?",
+    'Request a Consultation',
+  ]) {
+    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+  }
+  await expect(page.locator('.storage-service-card')).toHaveCount(12);
+  await expect(page.locator('.storage-team-card')).toHaveCount(4);
+  await expect(page.getByText('Storage made simple')).toHaveCount(0);
+  await expect(page.getByText(/choose your unit/i)).toHaveCount(0);
+  for (const image of await page.locator('.storage-page img').all()) {
+    await expect(image).toBeVisible();
+    expect(
+      await image.evaluate((element) =>
+        element instanceof HTMLImageElement ? element.naturalWidth : 0,
+      ),
+    ).toBeGreaterThan(0);
+  }
+});
+
+test('keeps the Storage consultation form client-only and mobile navigation usable', async ({
+  page,
+}) => {
+  let cmsMutations = 0;
+  page.on('request', (request) => {
+    if (request.method() !== 'GET' && request.url().includes('/api/v1/entities/'))
+      cmsMutations += 1;
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/storage');
+  const menu = page.getByRole('button', { name: 'Open navigation' });
+  await expect(menu).toBeVisible();
+  await menu.click();
+  await expect(page.getByRole('navigation', { name: 'Mobile storage navigation' })).toBeVisible();
+  await page.getByRole('button', { name: 'Get Started' }).click();
+  await expect(page.locator('input[name="firstName"]')).toBeFocused();
+  expect(
+    await page
+      .locator('input[name="firstName"]')
+      .evaluate((element) => element instanceof HTMLInputElement && !element.checkValidity()),
+  ).toBe(true);
+  expect(cmsMutations).toBe(0);
+});
+
+for (const division of [
+  {
+    name: 'Real Estate',
+    route: '/real-estate',
+    selector: '[data-real-estate-entity-boundary="true"]',
+    count: 31,
+    sections: ['#listings', '#services', '#process', '#about', '#team', '#faq', '#contact'],
+  },
+  {
+    name: 'Construction',
+    route: '/construction',
+    selector: '[data-entity-boundary="true"]',
+    count: 49,
+    sections: ['#services', '#projects', '#plan-room', '#team', '#about', '#bid', '#contact'],
+  },
+  {
+    name: 'Development',
+    route: '/development',
+    selector: '[data-development-entity-boundary="true"]',
+    count: 28,
+    sections: ['#services', '#projects', '#team', '#about', '#reviews', '#contact'],
+  },
+] as const) {
+  test(`renders the complete dedicated ${division.name} composition`, async ({ page }) => {
+    await page.goto(division.route);
+    await expect(page.locator(division.selector)).toHaveCount(division.count);
+    for (const selector of division.sections) await expect(page.locator(selector)).toBeVisible();
+  });
+}
 
 test('renders the complete Home composition with all semantic visual boundaries', async ({
   page,
@@ -398,6 +533,9 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
   ]) {
     await page.setViewportSize(viewport);
     await page.goto('/property-management');
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
 
     const primaryBox = await primary.boundingBox();
     const secondaryBox = await secondary.boundingBox();

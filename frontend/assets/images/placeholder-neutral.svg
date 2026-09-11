@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title description">
+  <title id="title">Image awaiting replacement</title>
+  <description id="description">Neutral TriCo placeholder for a legacy image whose binary was not supplied.</description>
+  <rect width="1600" height="900" fill="#eef1f4"/>
+  <path d="M0 710 390 360l260 220 225-180 725 500H0Z" fill="#d2d8de"/>
+  <circle cx="1180" cy="245" r="105" fill="#c0c8d0"/>
+  <text x="800" y="790" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" fill="#5b6570">Image awaiting replacement</text>
+</svg>
