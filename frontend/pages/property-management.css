@@ -658,6 +658,7 @@
   color: #fff;
   font-size: 3rem;
   font-weight: 700;
+  line-height: 1;
 }
 .pm-about p {
   color: rgb(255 255 255 / 76%);
@@ -953,6 +954,7 @@
 }
 .pm-contact {
   scroll-margin-top: 148px;
+  line-height: 1.5;
 }
 .pm-contact .pm-section-heading {
   margin-inline: 0;
@@ -1121,6 +1123,10 @@
 }
 
 @media (max-width: 1279px) {
+  .pm-about > .pm-container,
+  .pm-contact > .pm-container {
+    width: 100%;
+  }
   #managed-properties > .pm-container > .pm-entity-slot:nth-of-type(2) .editable-collection-items {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -1267,6 +1273,10 @@
   }
   .pm-about-grid {
     gap: 3.5rem;
+  }
+  .pm-about h2 {
+    font-size: 1.875rem;
+    line-height: 1.2;
   }
   .pm-about-image aside {
     right: 0.7rem;

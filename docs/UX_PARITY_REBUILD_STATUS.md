@@ -132,6 +132,14 @@ Last updated: 2026-09-11
   undersized one. The corrected fail-closed check exposed genuine post-font
   document deltas of +133px desktop, +124px tablet, and -8px mobile rather than
   clipping the extra desktop/tablet content to the reference height.
+- The second production reconciliation restores source heading leading and
+  removes duplicated responsive gutters in About and Contact. About's desktop
+  and mobile excess fell from 25/124px to 11/31px; Contact's desktop/tablet
+  excess fell to 23/22px and its mobile height is within the required 3px.
+  Desktop and tablet route SSIM improved, as did the later mobile tiles. The
+  remaining whole-page deltas are +100px desktop, +32px tablet, and -147px
+  mobile, with tablet About still 38px short and explicitly queued for its
+  vertical-spacing pass.
 
 Focused verification at this checkpoint:
 
