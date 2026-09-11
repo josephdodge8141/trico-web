@@ -423,6 +423,9 @@
   position: relative;
   gap: 0;
 }
+.pm-process > .pm-container {
+  width: calc(100% - 2.5rem);
+}
 .pm-process .editable-collection-items::before {
   position: absolute;
   top: 0;
@@ -1164,6 +1167,9 @@
   #services > .pm-container {
     width: 100%;
   }
+  .pm-process > .pm-container {
+    width: 100%;
+  }
   .pm-about > .pm-container,
   .pm-contact > .pm-container {
     width: 100%;
@@ -1289,6 +1295,10 @@
   #services .pm-section-heading {
     margin-bottom: 4rem;
   }
+  .pm-process .pm-section-heading,
+  .pm-team .pm-section-heading {
+    margin-bottom: 4rem;
+  }
   .pm-section-heading h2 {
     font-size: 1.875rem;
   }
@@ -1316,7 +1326,13 @@
   .pm-process .editable-collection-items > div:nth-child(even) .pm-process-step {
     width: 100%;
     margin-left: 0;
-    padding: 0 0 1rem;
+    padding: 0;
+  }
+  .pm-process .editable-collection-items {
+    gap: 3rem;
+  }
+  .pm-process-step > div {
+    padding: 1.5rem;
   }
   .pm-process-step > div::after {
     display: none;

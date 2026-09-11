@@ -156,6 +156,13 @@ Last updated: 2026-09-11
   to 0.781534 and all tablet tiles improved. Later mobile tile movement is kept
   visible because it follows genuine upstream geometry changes; no masks were
   added.
+- The fifth production reconciliation restores the Process section's source
+  content widths and exact mobile card padding, 48px item rhythm, and 64px
+  heading gap, plus the Team section's exact 64px mobile heading gap. Process
+  mobile height error fell from 39px to 17px and Team from 45px to 21px. The
+  whole mobile page gap fell from 117px short to 37px short, every mobile SSIM
+  tile improved, and desktop/tablet section heights remained stable. The
+  remaining strict parity failures are retained without masking.
 
 Focused verification at this checkpoint:
 
