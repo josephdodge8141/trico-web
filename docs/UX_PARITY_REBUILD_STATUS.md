@@ -84,6 +84,10 @@ Last updated: 2026-09-10
 - The current Property Management license-icon checkpoint replaces the visible
   `LIC` fallback with an aria-hidden 20px Award icon while retaining the human
   Licenses heading and existing 48px tile geometry.
+- The current Property Management responsive-hero checkpoint matches the 1440px
+  logo inset, 1024px logo/title geometry, 60px heading and 28px body leading,
+  390px full-width copy inset, and 52px mobile header offset while preserving the
+  100vh hero and exact 1023/1024 navigation breakpoint.
 
 Focused verification at this checkpoint:
 
@@ -92,11 +96,11 @@ Focused verification at this checkpoint:
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
 - Root `npm run check` passes after integrating Property Management, validating
-  108 canonical cases.
+  113 canonical cases at the last complete root run.
 - Frontend unit tests passed: 25/25.
-- Frontend browser tests passed: 14/14.
-- Compose frontend Cucumber passed: 19/19 scenarios and 125/125 steps.
-- Compose Playwright passed: 11/11, including 7/7 preview/editor cases.
+- Frontend browser tests passed: 20/20 for the responsive-hero slice.
+- Compose frontend Cucumber passed: 24/24 scenarios and 172/172 steps.
+- Compose Playwright passed: 13/13.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
 
@@ -107,17 +111,12 @@ Focused verification at this checkpoint:
 - Real Estate, Construction, Storage, and Development still use the generic
   renderer and legacy contracts (142 entities remain).
 - Property Management requires a final independent 2px/3px geometry and 0.98
-  SSIM comparison before visual-parity acceptance. Its second browser-only pass
-  found the two dead primary launchers now covered by the checkpoint above, plus
-  the remaining acceptance work is final exclusion-adjusted density/SSIM
-  confirmation. The original isolated mobile
-  comparison redirected to Lovable login, so mobile pixel parity remains
-  unmeasured even though local responsive interactions were exercised.
-- A final independent browser pass opened the corrected local page and confirmed
-  a clean branded header/hero, banner, split layout, actions, semantic content,
-  contact anchor, footer, and no `LIC` fallback at 1280x720. The Mac locked when
-  the reviewer opened Lovable, so comparative desktop/mobile acceptance remains
-  blocked until manual unlock; it must not be recorded as passed.
+  SSIM comparison before visual-parity acceptance. The unlocked browser retry
+  confirmed all editor, asset, contact, breakpoint, toolbar, mobile action, and
+  portrait fixes. The responsive-hero checkpoint addresses its remaining logo,
+  inset, wrap, line-height, and header-offset findings. Desktop CTA geometry still
+  differs from the reference; the accessible local secondary styling remains an
+  intentional correction to the original white-on-white defect.
 - Form-state and edit-mode visual references still need capture.
 - Independent browser-only review could not start because the Mac locked; rerun
   it after unlocking rather than accepting the implementation agent's review.
@@ -132,9 +131,9 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Unlock the Mac, then perform exclusion-adjusted density and independent visual
-   confirmation.
-5. Re-run independent desktop/mobile visual comparison and only then begin Real
+4. Reconcile desktop CTA geometry without reintroducing the original contrast
+   defect, then perform exclusion-adjusted independent visual confirmation.
+5. Begin Real Estate only after Property Management acceptance is resolved.
    Estate.
 
 The local Docker stack may still be running after Compose verification. Inspect

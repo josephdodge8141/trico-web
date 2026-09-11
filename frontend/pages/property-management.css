@@ -91,11 +91,13 @@
   backdrop-filter: blur(8px);
 }
 .pm-header-inner {
+  width: min(100%, 1400px);
   height: 96px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1.75rem;
+  padding-inline: 1rem;
 }
 .pm-brand {
   display: flex;
@@ -105,6 +107,7 @@
 }
 .pm-brand img {
   width: auto;
+  max-width: 100%;
   height: 64px;
   object-fit: contain;
 }
@@ -235,15 +238,17 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  padding: 176px 1rem 0;
+  padding: 176px 0 0;
   color: #fff;
   background: linear-gradient(90deg, var(--pm-navy) 0 50%, var(--pm-tint) 50%);
 }
 .pm-hero-grid {
+  width: min(100%, 1400px);
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 3rem;
+  padding-inline: 1rem;
 }
 .pm-hero-grid > div:first-child {
   padding-right: 3rem;
@@ -253,13 +258,14 @@
   color: #fff;
   font-size: 3.75rem;
   font-weight: 700;
-  letter-spacing: normal;
+  letter-spacing: -0.015em;
+  line-height: 1;
 }
 .pm-hero-grid > div:first-child > p {
   margin: 0 0 2rem;
   color: rgb(255 255 255 / 79%);
   font-size: 1.25rem;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 .pm-actions {
   display: flex;
@@ -1150,7 +1156,7 @@
     font-size: 0.78rem;
   }
   .pm-header {
-    top: 44px;
+    top: 52px;
   }
   .pm-fixed-header-entity-slot > .editable-boundary > .editable-boundary-controls {
     top: 52px;
@@ -1179,7 +1185,7 @@
   .pm-hero .pm-actions {
     flex-direction: column;
     gap: 0.75rem;
-    margin-inline: -1rem;
+    margin-inline: 0;
   }
   .pm-hero .pm-actions .pm-button {
     width: 100%;

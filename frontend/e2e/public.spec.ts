@@ -225,6 +225,12 @@ test('uses the Property Management mobile navigation below the desktop breakpoin
   await menu.click();
   await expect(menu).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
+
+  await page.setViewportSize({ width: 1023, height: 1366 });
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Toggle menu' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeHidden();
+  await expect(page.locator('.pm-hero-image')).toBeHidden();
 });
 
 test('preserves the Property Management visual scale and desktop split geometry', async ({
@@ -261,6 +267,71 @@ test('preserves the Property Management visual scale and desktop split geometry'
   expect(fourthManagedCard?.y).toBeGreaterThan(
     (firstManagedCard?.y ?? 0) + (firstManagedCard?.height ?? 0),
   );
+});
+
+test('matches the frozen Property Management header and hero geometry at each breakpoint', async ({
+  page,
+}) => {
+  for (const expectation of [
+    {
+      viewport: { width: 1440, height: 1100 },
+      logoX: [35, 37],
+      headingWidth: [610, 614],
+      copyX: [35, 37],
+      copyWidth: [659, 661],
+    },
+    {
+      viewport: { width: 1024, height: 1366 },
+      logoX: [15, 17],
+      headingWidth: [423, 425],
+      copyX: [15, 17],
+      copyWidth: [471, 473],
+    },
+    {
+      viewport: { width: 390, height: 844 },
+      logoX: [15, 17],
+      headingWidth: [357, 359],
+      copyX: [15, 17],
+      copyWidth: [357, 359],
+    },
+  ] as const) {
+    await page.setViewportSize(expectation.viewport);
+    await page.goto('/property-management');
+
+    const banner = await page.locator('.pm-anniversary').boundingBox();
+    const header = await page.locator('.pm-header').boundingBox();
+    const logo = await page.locator('.pm-brand img').boundingBox();
+    const heading = await page.locator('.pm-hero h1').boundingBox();
+    const copy = await page.locator('.pm-hero-grid > div').first().boundingBox();
+    expect(banner?.y).toBe(0);
+    expect(header?.y).toBe(52);
+    expect(logo?.x).toBeGreaterThanOrEqual(expectation.logoX[0]);
+    expect(logo?.x).toBeLessThanOrEqual(expectation.logoX[1]);
+    expect(heading?.x).toBeGreaterThanOrEqual(expectation.copyX[0]);
+    expect(heading?.x).toBeLessThanOrEqual(expectation.copyX[1]);
+    expect(heading?.width).toBeGreaterThanOrEqual(expectation.headingWidth[0]);
+    expect(heading?.width).toBeLessThanOrEqual(expectation.headingWidth[1]);
+    expect(copy?.x).toBeGreaterThanOrEqual(expectation.copyX[0]);
+    expect(copy?.x).toBeLessThanOrEqual(expectation.copyX[1]);
+    expect(copy?.width).toBeGreaterThanOrEqual(expectation.copyWidth[0]);
+    expect(copy?.width).toBeLessThanOrEqual(expectation.copyWidth[1]);
+
+    if (expectation.viewport.width >= 1024) {
+      await expect(page.locator('.pm-hero h1')).toHaveCSS('line-height', '60px');
+      await expect(page.locator('.pm-hero-grid > div:first-child > p')).toHaveCSS(
+        'line-height',
+        '28px',
+      );
+      expect(heading?.height).toBeGreaterThanOrEqual(119);
+      expect(heading?.height).toBeLessThanOrEqual(121);
+    }
+
+    if (expectation.viewport.width === 1024) {
+      expect(logo?.width).toBeGreaterThanOrEqual(199);
+      expect(logo?.width).toBeLessThanOrEqual(203);
+      expect(logo?.height).toBe(64);
+    }
+  }
 });
 
 test('preserves square Property Management team portraits and mobile content width', async ({
