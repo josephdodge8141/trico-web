@@ -70,3 +70,34 @@ test('Property Management rejects malformed version 2 semantic values', () => {
     ),
   );
 });
+
+test('Property Management maps every supplied portfolio image and keeps only absent HOA photos neutral', () => {
+  const managed = propertyManagementV2SeedData['property-management.portfolio.managed.items'];
+  const coas = propertyManagementV2SeedData['property-management.portfolio.coas.items'];
+  const hoas = propertyManagementV2SeedData['property-management.portfolio.hoas.items'];
+
+  assert.deepEqual(
+    managed.map(({ photo }) => photo.key),
+    [
+      'media/seed/town-square.jpg',
+      'media/seed/country-square.jpg',
+      'media/seed/alta-medical.jpg',
+      'media/seed/american-fork-industrial.jpg',
+      'media/seed/bluffdale-industrial.jpg',
+      'media/seed/draper-office-218.jpg',
+      'media/seed/draper-office-194.jpg',
+    ],
+  );
+  assert.deepEqual(
+    coas.map(({ photo }) => photo.key),
+    ['media/seed/laurel-square.jpg', 'media/seed/california-crossing.jpg'],
+  );
+  assert.deepEqual(
+    hoas.map(({ photo }) => photo.key),
+    [
+      'media/seed/arbor-plaza.png',
+      'media/seed/placeholder-neutral.svg',
+      'media/seed/placeholder-neutral.svg',
+    ],
+  );
+});

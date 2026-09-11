@@ -1,11 +1,11 @@
 [
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "alta-medical.jpg",
-    "assetId": "122efd4b-ff06-492f-96d7-2e8fee74960c",
-    "contentType": "image/jpeg",
-    "originalSize": 912116,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "122efd4b-ff06-492f-96d7-2e8fee74960c",
+    "objectKey": "media/seed/alta-medical.jpg",
+    "sha256": "f54331c0179f32e51a2ab31e8321b5184b13c963c2de89638596ef3faf16e935",
+    "size": 912116
   },
   {
     "disposition": "upload",
@@ -15,20 +15,20 @@
     "size": 1574884
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "american-fork-industrial.jpg",
-    "assetId": "dfdb8857-8c4f-4bd3-8706-e7b6f3ade3a2",
-    "contentType": "image/jpeg",
-    "originalSize": 394721,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "dfdb8857-8c4f-4bd3-8706-e7b6f3ade3a2",
+    "objectKey": "media/seed/american-fork-industrial.jpg",
+    "sha256": "e052c164dc06ab78d4f4e7c6fdcc1c2307cfd35de64575b5f24a5faaf4cdc92d",
+    "size": 394721
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "arbor-plaza.png",
-    "assetId": "e70f0855-d982-4f26-8c7f-8ecd46a75a9e",
-    "contentType": "image/png",
-    "originalSize": 329991,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "e70f0855-d982-4f26-8c7f-8ecd46a75a9e",
+    "objectKey": "media/seed/arbor-plaza.png",
+    "sha256": "fe56ae8dc49c7816aa41c0efa22cd80ae8c29fe5959e0bad2448b41552d63af4",
+    "size": 329991
   },
   {
     "disposition": "upload",
@@ -38,12 +38,12 @@
     "size": 1389169
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "bluffdale-industrial.jpg",
-    "assetId": "bcc5aa5e-28fe-4a75-9aeb-eb5b33abe5b8",
-    "contentType": "image/jpeg",
-    "originalSize": 223457,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "bcc5aa5e-28fe-4a75-9aeb-eb5b33abe5b8",
+    "objectKey": "media/seed/bluffdale-industrial.jpg",
+    "sha256": "3acabd282d9ecd01c6a7016203d8faf79608dffaa552d5430ec0dfa20a1c9a64",
+    "size": 223457
   },
   {
     "disposition": "upload",
@@ -179,12 +179,12 @@
     "size": 264159
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "california-crossing.jpg",
-    "assetId": "79301abc-e0d3-4e46-b427-f7dd2792b2de",
-    "contentType": "image/jpeg",
-    "originalSize": 169224,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "79301abc-e0d3-4e46-b427-f7dd2792b2de",
+    "objectKey": "media/seed/california-crossing.jpg",
+    "sha256": "7d06ec6dc96b0c8922fc14cc7d79d446c24292b4ee129a10295c3270cfd7fcb0",
+    "size": 169224
   },
   {
     "disposition": "upload",
@@ -208,12 +208,12 @@
     "size": 2218401
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "country-square.jpg",
-    "assetId": "ab268be1-79ca-4eb9-80cc-2bbcba4775a3",
-    "contentType": "image/jpeg",
-    "originalSize": 1479857,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "ab268be1-79ca-4eb9-80cc-2bbcba4775a3",
+    "objectKey": "media/seed/country-square.jpg",
+    "sha256": "8d9fe28c1dde91091830a7a583dbb511384f34168d84e7b50357c1073d2f0e52",
+    "size": 1479857
   },
   {
     "disposition": "upload",
@@ -223,20 +223,20 @@
     "size": 457404
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "draper-office-194.jpg",
-    "assetId": "c4809fed-0812-41e9-b51a-f3769d9be0f5",
-    "contentType": "image/jpeg",
-    "originalSize": 319023,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "c4809fed-0812-41e9-b51a-f3769d9be0f5",
+    "objectKey": "media/seed/draper-office-194.jpg",
+    "sha256": "f8d435a04f6f3b14d8e6155c3924b7399023b26f80b52af1b6699a7d1dcf5b5c",
+    "size": 319023
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "draper-office-218.jpg",
-    "assetId": "151024c9-4bd1-448a-8674-adcf45efda1e",
-    "contentType": "image/jpeg",
-    "originalSize": 135484,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "151024c9-4bd1-448a-8674-adcf45efda1e",
+    "objectKey": "media/seed/draper-office-218.jpg",
+    "sha256": "c76f3b0fe49790a82633de04bfbab8cab2bca259bba27ab5e3a261915b154de0",
+    "size": 135484
   },
   {
     "disposition": "upload",
@@ -253,12 +253,12 @@
     "size": 555176
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "laurel-square.jpg",
-    "assetId": "1e025c0a-c043-44cc-a568-bb0a82933888",
-    "contentType": "image/jpeg",
-    "originalSize": 335412,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "1e025c0a-c043-44cc-a568-bb0a82933888",
+    "objectKey": "media/seed/laurel-square.jpg",
+    "sha256": "78b42a6efa777d84f9f563969bc6e6ea6babb03fadb7d7897c34d6e7f3cfb90b",
+    "size": 335412
   },
   {
     "disposition": "upload",
@@ -383,12 +383,12 @@
     "size": 339416
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "town-square.jpg",
-    "assetId": "a50c0f22-baa2-45ff-9541-a65ca09d700f",
-    "contentType": "image/jpeg",
-    "originalSize": 911174,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sourceAssetId": "a50c0f22-baa2-45ff-9541-a65ca09d700f",
+    "objectKey": "media/seed/town-square.jpg",
+    "sha256": "2a79e9583e47397bbcff8886469847d07a341478aeb5f5c6165a8a111385585d",
+    "size": 911174
   },
   {
     "disposition": "upload",

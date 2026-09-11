@@ -71,9 +71,19 @@ import {
 
 import brookePhoto from '../assets/images/brooke-moore-pm.jpeg';
 import miaPhoto from '../assets/images/mia-barlow.png';
+import altaMedicalPhoto from '../assets/images/alta-medical.jpg';
+import americanForkIndustrialPhoto from '../assets/images/american-fork-industrial.jpg';
+import arborPlazaPhoto from '../assets/images/arbor-plaza.png';
 import aboutPhoto from '../assets/images/pm-commercial-property.jpeg';
+import bluffdaleIndustrialPhoto from '../assets/images/bluffdale-industrial.jpg';
+import californiaCrossingPhoto from '../assets/images/california-crossing.jpg';
+import countrySquarePhoto from '../assets/images/country-square.jpg';
+import draperOffice194Photo from '../assets/images/draper-office-194.jpg';
+import draperOffice218Photo from '../assets/images/draper-office-218.jpg';
 import heroPhoto from '../assets/images/slc-commercial-hero.jpg';
+import laurelSquarePhoto from '../assets/images/laurel-square.jpg';
 import propertyLogo from '../assets/images/trico-property-management-logo.png';
+import townSquarePhoto from '../assets/images/town-square.jpg';
 import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
@@ -120,6 +130,16 @@ const imageByKey: Readonly<Record<string, string>> = {
   'media/seed/pm-commercial-property.jpeg': aboutPhoto,
   'media/seed/brooke-moore-pm.jpeg': brookePhoto,
   'media/seed/mia-barlow.png': miaPhoto,
+  'media/seed/town-square.jpg': townSquarePhoto,
+  'media/seed/country-square.jpg': countrySquarePhoto,
+  'media/seed/alta-medical.jpg': altaMedicalPhoto,
+  'media/seed/american-fork-industrial.jpg': americanForkIndustrialPhoto,
+  'media/seed/bluffdale-industrial.jpg': bluffdaleIndustrialPhoto,
+  'media/seed/draper-office-218.jpg': draperOffice218Photo,
+  'media/seed/draper-office-194.jpg': draperOffice194Photo,
+  'media/seed/laurel-square.jpg': laurelSquarePhoto,
+  'media/seed/california-crossing.jpg': californiaCrossingPhoto,
+  'media/seed/arbor-plaza.png': arborPlazaPhoto,
 };
 
 function definition(id: PmEntityId): SemanticEntityDefinition {
@@ -370,10 +390,10 @@ function PropertyManagementBody(): React.JSX.Element {
       <article className="pm-property-card">
         <div className="pm-property-image">
           {source === undefined ? (
-            <>
+            <div className="pm-neutral-placeholder" data-neutral-placeholder="true">
               <ImageIcon aria-hidden="true" />
               <span>Photo coming soon</span>
-            </>
+            </div>
           ) : (
             <img src={source} alt={item.photoAltText} />
           )}

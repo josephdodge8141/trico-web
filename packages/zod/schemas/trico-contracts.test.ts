@@ -297,9 +297,10 @@ test('seed pages fit the conservative publication ceiling and omit migration met
 });
 
 test('media and source seed inventories account for supplied runtime inputs', () => {
-  assert.equal(mediaInventory.filter(({ disposition }) => disposition === 'upload').length, 51);
+  assert.equal(mediaInventory.filter(({ disposition }) => disposition === 'upload').length, 61);
+  assert.equal(mediaInventory.filter((item) => 'sourceAssetId' in item).length, 10);
   const placeholders = mediaInventory.filter(({ disposition }) => disposition === 'placeholder');
-  assert.equal(placeholders.length, 13);
+  assert.equal(placeholders.length, 3);
   assert.equal(
     placeholders.every(
       ({ placeholderKey }) => placeholderKey === 'media/seed/placeholder-neutral.svg',

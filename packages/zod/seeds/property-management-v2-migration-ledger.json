@@ -6,7 +6,8 @@
   "normalizations": [
     "Removed generated content/media/externalUrls extraction wrappers.",
     "Removed fabricated Property 7 through Property 10 portfolio cards.",
-    "Replaced unavailable Lovable property images with the managed neutral placeholder.",
+    "Recovered the ten referenced Lovable property images from their immutable asset URLs and assigned managed media keys.",
+    "Kept neutral placeholders only for Juniper Ridge and Riverwood Crossing, whose mounted source declares no image.",
     "Preserved the four intentional HTTPS testimonial portraits as external image references.",
     "Kept the new-client and property-analysis forms outside CMS content."
   ],

@@ -41,6 +41,10 @@ Last updated: 2026-09-10
   editor boundaries, and both restored client-only forms. Functional acceptance
   is green; exact visual certification remains pending because the 1440px page
   is currently 14,706px tall versus the frozen 15,975px reference.
+- The current Property Management asset checkpoint restores ten exact,
+  source-backed portfolio/association images. Juniper Ridge and Riverwood
+  Crossing retain the neutral placeholder because their mounted legacy records
+  explicitly declare no photo.
 
 Focused verification at this checkpoint:
 
@@ -65,10 +69,10 @@ Focused verification at this checkpoint:
   renderer and legacy contracts (142 entities remain).
 - Property Management requires its independent 2px/3px geometry and 0.98 SSIM
   comparison; its functional composition is not yet visual-parity acceptance.
-  Browser-only review confirmed these gaps in priority order: missing portfolio
-  and association imagery; undiscoverable touch item controls; mobile editor
-  chrome obscuring content; typography/container/hero scale drift; wrong hero
-  CTA hierarchy; and flattened contact details. The original isolated mobile
+  Browser-only review confirmed these remaining gaps in priority order:
+  undiscoverable touch item controls; mobile editor chrome obscuring content;
+  typography/container/hero scale drift; wrong hero CTA hierarchy; and
+  flattened contact details. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -85,9 +89,9 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Close the independent Property Management gaps one at a time, beginning with
-   property/association asset mapping, then touch controls, mobile toolbar,
-   geometry/type tuning, CTA hierarchy, and contact presentation.
+4. Close the remaining independent Property Management gaps one at a time:
+   touch controls, mobile toolbar, geometry/type tuning, CTA hierarchy, and
+   contact presentation.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 

@@ -406,6 +406,30 @@ Then(
   },
 );
 Then(
+  'supplied Property Management portfolio images load while unavailable images use the neutral placeholder',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const images = page.locator('.pm-property-card img');
+    await expect(images).toHaveCount(10);
+    for (const image of await images.all()) {
+      await expect(image).toBeVisible();
+      assert.ok(
+        (await image.evaluate((element) =>
+          element instanceof HTMLImageElement ? element.naturalWidth : 0,
+        )) > 0,
+      );
+      assert.ok(
+        (await image.evaluate((element) =>
+          element instanceof HTMLImageElement ? element.naturalHeight : 0,
+        )) > 0,
+      );
+    }
+    await expect(page.locator('.pm-property-card [data-neutral-placeholder="true"]')).toHaveCount(
+      2,
+    );
+  },
+);
+Then(
   'the Property Management client-only forms validate locally without creating CMS entities',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

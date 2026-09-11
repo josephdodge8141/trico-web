@@ -91,6 +91,22 @@ test('renders the complete Property Management composition with all semantic bou
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
   }
   await expect(page.locator('.pm-property-card')).toHaveCount(12);
+  const portfolioImages = page.locator('.pm-property-card img');
+  await expect(portfolioImages).toHaveCount(10);
+  for (const image of await portfolioImages.all()) {
+    await expect(image).toBeVisible();
+    expect(
+      await image.evaluate((element) =>
+        element instanceof HTMLImageElement ? element.naturalWidth : 0,
+      ),
+    ).toBeGreaterThan(0);
+    expect(
+      await image.evaluate((element) =>
+        element instanceof HTMLImageElement ? element.naturalHeight : 0,
+      ),
+    ).toBeGreaterThan(0);
+  }
+  await expect(page.locator('.pm-property-card [data-neutral-placeholder="true"]')).toHaveCount(2);
   await expect(page.getByText('Property 7')).toHaveCount(0);
 });
 

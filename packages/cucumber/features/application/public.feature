@@ -41,6 +41,7 @@ Feature: Published TriCo website
     When I open "/property-management"
     Then the Property Management page presents every mounted section in its intended order
     And all 35 Property Management entities have an editable visual boundary
+    And supplied Property Management portfolio images load while unavailable images use the neutral placeholder
     And the Property Management client-only forms validate locally without creating CMS entities
 
   @id:public.construction-empty @backend-noop
