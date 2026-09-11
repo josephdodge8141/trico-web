@@ -61,6 +61,9 @@ Last updated: 2026-09-10
 - The current Property Management CTA checkpoint restores the gold `#86622d`
   primary action and subordinate transparent secondary action, with measured
   contrast of 5.53:1 and at least 14.45:1 respectively plus clear hover/focus.
+- The current Property Management contact checkpoint restores five icon-backed,
+  human-labeled rows, original vertical grouping, and responsive anchor clearance
+  so the contact and form headings remain below the sticky header.
 
 Focused verification at this checkpoint:
 
@@ -83,10 +86,9 @@ Focused verification at this checkpoint:
 - Media and source controls are implemented but not mounted in a page editor.
 - Real Estate, Construction, Storage, and Development still use the generic
   renderer and legacy contracts (142 entities remain).
-- Property Management requires its independent 2px/3px geometry and 0.98 SSIM
-  comparison; its functional composition is not yet visual-parity acceptance.
-  Browser-only review confirmed the remaining page-specific gap is flattened
-  contact details. The original isolated mobile
+- Property Management requires a final independent 2px/3px geometry and 0.98
+  SSIM comparison before visual-parity acceptance. All gaps from its first
+  browser-only review have been implemented. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -103,8 +105,7 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Restore the original Property Management contact presentation.
-5. Re-run independent desktop/mobile visual comparison and only then begin Real
+4. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 
 The local Docker stack may still be running after Compose verification. Inspect

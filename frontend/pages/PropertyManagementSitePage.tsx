@@ -6,6 +6,7 @@ import {
   Building2,
   Calculator,
   CheckCircle2,
+  Clock,
   ClipboardCheck,
   CreditCard,
   Facebook,
@@ -16,6 +17,8 @@ import {
   Instagram,
   LineChart,
   Linkedin,
+  Mail,
+  MapPin,
   Menu,
   PenLine,
   Phone,
@@ -807,16 +810,59 @@ function PropertyManagementBody(): React.JSX.Element {
               <ObjectBoundary id="property-management.contact.details" value={contact}>
                 <div className="pm-contact-details">
                   <a className="pm-google" href={contact.reviewUrl}>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.22-1.83 4.23-1.48 1.48-3.78 2.93-6.01 2.93-4.97 0-9-4.03-9-9s4.03-9 9-9c4.17 0 7.38 2.91 8.35 6.65h-2.35c-.8-2.4-2.62-4.05-6-4.05a6.4 6.4 0 1 0 0 12.8c2.54 0 4.22-1.06 5.36-2.36.9-.9 1.5-2.18 1.72-3.73h-7.08Z" />
+                    </svg>
                     {contact.reviewLabel}
                   </a>
-                  <address>{contact.address}</address>
-                  <a href={`tel:${contact.phone.replace(/\D/g, '')}`}>{contact.phone}</a>
-                  <span>Fax: {contact.fax}</span>
-                  <a href={`mailto:${contact.email}`}>{contact.email}</a>
-                  <span>{contact.officeHours}</span>
-                  {contact.licenses.map((license) => (
-                    <span key={license.id}>{license.label}</span>
-                  ))}
+                  <div className="pm-contact-detail">
+                    <span className="pm-contact-icon" aria-hidden="true">
+                      <MapPin />
+                    </span>
+                    <div>
+                      <h3>Office Location</h3>
+                      <address>{contact.address}</address>
+                    </div>
+                  </div>
+                  <div className="pm-contact-detail">
+                    <span className="pm-contact-icon" aria-hidden="true">
+                      <Phone />
+                    </span>
+                    <div>
+                      <h3>Phone</h3>
+                      <a href={`tel:${contact.phone.replace(/\D/g, '')}`}>{contact.phone}</a>
+                      <p>Fax: {contact.fax}</p>
+                    </div>
+                  </div>
+                  <div className="pm-contact-detail">
+                    <span className="pm-contact-icon" aria-hidden="true">
+                      <Mail />
+                    </span>
+                    <div>
+                      <h3>Email</h3>
+                      <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                    </div>
+                  </div>
+                  <div className="pm-contact-detail">
+                    <span className="pm-contact-icon pm-contact-license-icon" aria-hidden="true">
+                      LIC
+                    </span>
+                    <div>
+                      <h3>Licenses</h3>
+                      {contact.licenses.map((license) => (
+                        <p key={license.id}>{license.label}</p>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pm-contact-detail">
+                    <span className="pm-contact-icon" aria-hidden="true">
+                      <Clock />
+                    </span>
+                    <div>
+                      <h3>Office Hours</h3>
+                      <p>{contact.officeHours}</p>
+                    </div>
+                  </div>
                 </div>
               </ObjectBoundary>
             </div>

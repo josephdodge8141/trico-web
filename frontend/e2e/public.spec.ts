@@ -224,6 +224,51 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
   await expect(primary).toHaveCSS('outline-style', 'solid');
 });
 
+test('restores labeled Property Management contact rows and clears the sticky header anchor', async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 1425, height: 1100 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/property-management');
+    const detailRows = page.locator('.pm-contact-detail');
+    await expect(detailRows).toHaveCount(5);
+    await expect(detailRows.locator('.pm-contact-icon')).toHaveCount(5);
+    await expect(detailRows.locator('h3')).toHaveText([
+      'Office Location',
+      'Phone',
+      'Email',
+      'Licenses',
+      'Office Hours',
+    ]);
+    await expect(detailRows.nth(3).locator('p')).toHaveCount(3);
+
+    await page.locator('.pm-hero .pm-actions a[href="#contact"]').click();
+    await expect(page).toHaveURL(/#contact$/);
+    await expect
+      .poll(async () => {
+        const headerBottom = await page
+          .locator('.pm-header')
+          .evaluate((element) => element.getBoundingClientRect().bottom);
+        const titleTop = await page
+          .getByRole('heading', { name: 'Get Your Free Property Analysis', exact: true })
+          .evaluate((element) => element.getBoundingClientRect().top);
+        const formTop = await page
+          .getByRole('heading', { name: 'Request Your Free Analysis', exact: true })
+          .evaluate((element) => element.getBoundingClientRect().top);
+        return (
+          titleTop >= headerBottom + 16 &&
+          formTop >= headerBottom + 16 &&
+          titleTop < viewport.height &&
+          (viewport.width < 768 ? formTop > titleTop : formTop < viewport.height)
+        );
+      })
+      .toBe(true);
+  }
+});
+
 test('preserves the intended Home composition on a narrow mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
