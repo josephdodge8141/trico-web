@@ -100,6 +100,22 @@ for (const publicPage of publicPages) {
   });
 }
 
+test('self-hosts the intended public-site typefaces', async ({ page }) => {
+  await page.goto('/property-management');
+  const registeredFamilies = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return [...document.fonts].map(({ family }) => family.replaceAll('"', ''));
+  });
+
+  expect(registeredFamilies).toContain('Open Sans');
+  expect(registeredFamilies).toContain('Lato');
+  await expect(page.locator('.pm-page')).toHaveCSS('font-family', /Open Sans/);
+  await expect(page.getByRole('heading', { name: 'What to Expect with TriCo' })).toHaveCSS(
+    'font-family',
+    /Lato/,
+  );
+});
+
 test('uses corrected real-estate and storage anchors', async ({ page }) => {
   await page.goto('/real-estate');
   await expect(page.getByRole('link', { name: 'Services' })).toHaveAttribute('href', '#services');

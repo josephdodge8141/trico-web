@@ -8,7 +8,7 @@
   --pm-navy: #000a4d;
   --pm-gold: #86622d;
   --pm-blue: #5e85ba;
-  --pm-muted: #667085;
+  --pm-muted: #6b7280;
   --pm-tint: #f3f4f6;
   --pm-border: #e5e7eb;
 }
@@ -162,7 +162,7 @@
   border: 1px solid transparent;
   border-radius: 8px;
   font: inherit;
-  font-size: 0.88rem;
+  font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -197,7 +197,7 @@
 }
 .pm-hero .pm-button-light {
   color: #fff !important;
-  border-color: var(--pm-gold);
+  border-width: 0;
   background: var(--pm-gold);
 }
 .pm-hero .pm-button-light:hover {
@@ -329,7 +329,12 @@
   padding: 6rem 1rem;
 }
 .pm-tint {
-  background: rgb(243 244 246 / 72%);
+  background: rgb(243 244 246 / 50%);
+}
+#managed-properties,
+.pm-testimonials,
+.pm-new-client {
+  background: rgb(243 244 246 / 30%);
 }
 .pm-section-heading {
   max-width: 780px;
@@ -398,6 +403,9 @@
   margin-bottom: 0.75rem;
   font-size: 1.25rem;
   font-weight: 700;
+}
+#services .pm-card h3 {
+  margin-bottom: 1.5rem;
 }
 .pm-card p {
   margin: 0;
@@ -570,7 +578,12 @@
   font-size: 0.8rem;
 }
 .pm-team {
-  background: linear-gradient(135deg, rgb(0 18 138 / 8%), #f5f6f8, rgb(134 98 45 / 5%));
+  background: linear-gradient(
+    135deg,
+    rgb(0 18 138 / 10%),
+    rgb(243 244 246 / 50%),
+    rgb(94 133 186 / 5%)
+  );
 }
 .pm-team .editable-collection-items {
   max-width: 56rem;
@@ -632,7 +645,7 @@
 }
 .pm-about {
   color: #fff;
-  background: linear-gradient(135deg, var(--pm-navy), #00136c, var(--pm-primary));
+  background: linear-gradient(135deg, var(--pm-navy), var(--pm-primary), var(--pm-primary));
 }
 .pm-about-grid {
   display: grid;
@@ -776,6 +789,9 @@
 .pm-faq .editable-collection-items {
   gap: 1rem;
 }
+.pm-faq {
+  background: rgb(243 244 246 / 50%);
+}
 .pm-faq-item {
   border: 1px solid var(--pm-border);
   border-radius: 8px;
@@ -793,7 +809,7 @@
 }
 .pm-careers {
   padding-block: 5rem;
-  background: #e5d2b8;
+  background: rgb(134 98 45 / 30%);
   text-align: center;
 }
 .pm-careers h2 {
@@ -1098,7 +1114,7 @@
   .pm-hero .pm-actions .pm-button {
     height: 44px;
     min-height: 44px;
-    padding: 0 2.03125rem;
+    padding: 0 2rem;
     border-radius: 6px;
     font-weight: 500;
   }

@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@app/schemas": "0.1.0",
+    "@fontsource/lato": "5.3.0",
+    "@fontsource/open-sans": "5.3.0",
     "@radix-ui/react-accordion": "1.2.12",
     "@radix-ui/react-label": "2.1.8",
     "@radix-ui/react-select": "2.2.6",

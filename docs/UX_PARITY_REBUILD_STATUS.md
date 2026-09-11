@@ -118,6 +118,20 @@ Last updated: 2026-09-11
   0.705822. Desktop capture geometry matches; the tablet and mobile documents
   remain 61px and 192px shorter. These are now genuine production-page
   deviations rather than defects in the reference.
+- The first production reconciliation restores the source-muted color, exact
+  section tint opacities, team/about gradients, careers treatment, and service
+  card separation. Before typography was corrected, desktop SSIM improved from
+  0.772245 to 0.785667, all tablet tiles improved, and the tablet/mobile height
+  gaps fell from 61/192px to 25/96px without changing contracts or editor
+  behavior.
+- Lato 400/700 and Open Sans 300/400/500/600/700 are now self-hosted through the
+  frontend build instead of silently falling back to Arial. Browser acceptance
+  confirms both font families are registered and applied, and source-measured
+  hero action geometry is restored at 201.75x44 and 149.23x44.
+- Candidate capture now preserves an oversized final tile as well as an
+  undersized one. The corrected fail-closed check exposed genuine post-font
+  document deltas of +133px desktop, +124px tablet, and -8px mobile rather than
+  clipping the extra desktop/tablet content to the reference height.
 
 Focused verification at this checkpoint:
 
@@ -125,10 +139,11 @@ Focused verification at this checkpoint:
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
-- Root `npm run check` passes after integrating the deterministic visual audit,
-  validating 113 canonical cases.
+- Root `npm run check` passes after the corrected baseline, first CSS
+  reconciliation, and self-hosted-font integration, validating 113 canonical
+  cases.
 - Frontend unit tests passed: 26/26.
-- Frontend browser tests passed: 20/20 for the responsive-hero slice.
+- Frontend browser tests passed: 21/21, including registered self-hosted fonts.
 - Compose frontend Cucumber passed: 24/24 scenarios and 172/172 steps.
 - Compose Playwright passed: 13/13.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
@@ -156,8 +171,9 @@ Focused verification at this checkpoint:
 
 1. Confirm the branch is clean and starts at the latest checkpoint documented by
    `git log`, then run `npm run check`.
-2. Reconcile the migrated Property Management page with the approved corrected
-   baseline until every region meets 0.98 SSIM and 2px/3px geometry tolerance.
+2. Continue section-level Property Management geometry reconciliation after the
+   font-corrected candidate; the strict route comparison remains intentionally
+   failing until every region meets 0.98 SSIM and 2px/3px geometry tolerance.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
 4. Capture the missing form and edit-mode visual states against the approved

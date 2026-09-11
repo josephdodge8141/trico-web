@@ -100,9 +100,33 @@ test('candidate capture uses manifest viewports and records unpadded document ge
           route: '/',
           state: 'page',
           viewport: { width: 80, height: 50, class: 'desktop' as const },
-          tile: { x: 0, y: 0, width: 80, height: 100 },
+          tile: { x: 0, y: 0, width: 80, height: 50 },
           masks: [],
-          regions: [{ id: 'full', x: 0, y: 0, width: 80, height: 100 }],
+          regions: [{ id: 'full', x: 0, y: 0, width: 80, height: 50 }],
+          intentionalCorrectionIds: [],
+        },
+        {
+          id: 'candidate-page-tail',
+          file: 'pages/candidate-tail.jpg',
+          sha256: '0'.repeat(64),
+          route: '/',
+          state: 'page',
+          viewport: { width: 80, height: 50, class: 'desktop' as const },
+          tile: { x: 0, y: 50, width: 80, height: 10 },
+          masks: [],
+          regions: [{ id: 'full', x: 0, y: 0, width: 80, height: 10 }],
+          intentionalCorrectionIds: [],
+        },
+        {
+          id: 'candidate-short-page',
+          file: 'pages/candidate-short.jpg',
+          sha256: '0'.repeat(64),
+          route: '/',
+          state: 'page',
+          viewport: { width: 81, height: 50, class: 'desktop' as const },
+          tile: { x: 0, y: 0, width: 81, height: 100 },
+          masks: [],
+          regions: [{ id: 'full', x: 0, y: 0, width: 81, height: 100 }],
           intentionalCorrectionIds: [],
         },
       ],
@@ -114,9 +138,19 @@ test('candidate capture uses manifest viewports and records unpadded document ge
       manifest,
     );
     assert.deepEqual(report.captures[0]?.documentDimensions, { width: 80, height: 70 });
-    assert.deepEqual(report.captures[0]?.capturedDimensions, { width: 80, height: 70 });
+    assert.deepEqual(report.captures[0]?.capturedDimensions, { width: 80, height: 50 });
+    assert.deepEqual(report.captures[1]?.capturedDimensions, { width: 80, height: 20 });
+    assert.deepEqual(report.captures[2]?.capturedDimensions, { width: 81, height: 70 });
     assert.deepEqual(jpegDimensions(await readFile(path.join(root, 'pages/candidate.jpg'))), {
       width: 80,
+      height: 50,
+    });
+    assert.deepEqual(jpegDimensions(await readFile(path.join(root, 'pages/candidate-tail.jpg'))), {
+      width: 80,
+      height: 20,
+    });
+    assert.deepEqual(jpegDimensions(await readFile(path.join(root, 'pages/candidate-short.jpg'))), {
+      width: 81,
       height: 70,
     });
     assert.deepEqual(

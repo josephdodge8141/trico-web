@@ -187,14 +187,18 @@ export async function captureVisualCandidates(
         const cropPage = await context.newPage();
         try {
           await cropPage.goto(pathToFileURL(fullPageFile).href);
+          const finalTileY = Math.max(...captures.map(({ tile }) => tile.y));
           for (const capture of captures) {
             const availableWidth = Math.max(
               1,
               Math.min(capture.tile.width, documentDimensions.width - capture.tile.x),
             );
+            const remainingHeight = documentDimensions.height - capture.tile.y;
             const availableHeight = Math.max(
               1,
-              Math.min(capture.tile.height, documentDimensions.height - capture.tile.y),
+              capture.tile.y === finalTileY
+                ? remainingHeight
+                : Math.min(capture.tile.height, remainingHeight),
             );
             const jpeg = await cropPage.evaluate(
               ({ x, y, width, height }) => {
