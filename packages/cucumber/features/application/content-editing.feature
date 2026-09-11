@@ -46,6 +46,23 @@ Feature: In-page content editing and preview
     And the Property Management migration report is deterministic and dry-runnable
     And unresolved Property Management version 1 pending changes block migration unless disposable local reset is explicit
 
+  @id:content.division-semantic-migration @frontend-noop @browser-noop-eligible
+  Scenario Outline: Complete a remaining division's novice-safe semantic migration
+    frontend-noop: Strict schema, seed, editor-descriptor, and migration-plan validation run in the shared contract package before the page consumes version 2 values.
+    browser-noop: Deterministic conversion and pending-change refusal are build-time migration invariants; mounted friendly forms are covered separately in browser scenarios.
+    Given the <entity_count> canonical "<division>" entities and their version 2 module
+    When I prepare the "<division>" version 1 to version 2 migration
+    Then all <entity_count> "<division>" values use strict semantic schemas and explicit editor metadata
+    And each "<division>" entity has one primary visual slot
+    And the "<division>" migration report is deterministic and dry-runnable
+    And unresolved "<division>" version 1 pending changes block migration unless disposable local reset is explicit
+
+    Examples: Remaining divisions
+      | case_id    | division    | entity_count |
+      | real-estate | Real Estate | 31           |
+      | construction | Construction | 65           |
+      | development | Development | 28           |
+
   @id:content.create-change @frontend-noop
   Scenario: Save a complete replacement as a pending change
     frontend-noop: In-page editor entry and mutation transport are exercised by Compose Playwright; replacement persistence is exercised by the backend adapter.
@@ -182,6 +199,21 @@ Feature: In-page content editing and preview
     When I open the Opening section editor
     Then the Opening section friendly form fills the mobile viewport
     And I can cancel the Opening section editor without changing the page
+
+  @id:content.remaining-division-object-launchers @backend-noop
+  Scenario Outline: Open a novice-safe semantic editor on each remaining division
+    backend-noop: Friendly field presentation and mounted page rendering are browser behavior; persistence still uses the existing validated content API.
+    Given I am signed in and editing the "<division>" division
+    When I open the "<editor>" editor from its visible section
+    Then the "<field>" friendly field is shown without technical representations
+    When I save a new value in the "<field>" friendly field
+    Then the saved remaining-division value appears in my private preview
+
+    Examples: Remaining division object editors
+      | case_id      | division    | editor | field   |
+      | real-estate  | Real Estate | Hero   | Heading |
+      | construction | Construction | Hero   | Heading |
+      | development  | Development | Hero   | Heading |
 
   @id:content.touch-inline-controls @backend-noop @touch
   Scenario: Use novice-readable inline controls on a touch screen

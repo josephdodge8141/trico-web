@@ -214,6 +214,21 @@ export {
   type StorageTeamMember,
 } from './schemas/storage.js';
 export { storageV2SeedData } from './seeds/storage.js';
+export * from './schemas/real-estate.js';
+export * from './seeds/real-estate.js';
+export * from './schemas/construction.js';
+export * from './seeds/construction.js';
+export * from './schemas/development.js';
+export * from './seeds/development.js';
+export {
+  entityModuleMigrationEntrySchema,
+  entityModuleMigrationModeSchema,
+  entityModuleMigrationPlanSchema,
+  entityModuleMigrationRequestSchema,
+  planEntityModuleContentMigration,
+  type EntityModuleMigrationPlan,
+  type EntityModuleMigrationRequest,
+} from './schemas/entity-module-migration.js';
 export {
   HOME_CONTENT_SCHEMA_VERSION,
   homeAnniversaryBannerSchema,
@@ -351,6 +366,7 @@ export {
 export {
   deterministicListItemId,
   entityDefinitions,
+  entityViewCatalog,
   entityKindSchema,
   externalImageReferenceSchema,
   iconNameSchema,

@@ -7,17 +7,25 @@ import { After, Before, Given, Then, When, setWorldConstructor, World } from '@c
 import {
   aggregateEntityModules,
   defineEntityModule,
+  constructionEntityModule,
+  constructionV2SeedData,
+  developmentEntityModule,
+  developmentV2SeedData,
   entityEditorDefinitionSchema,
   entityDefinitions,
   entityRegistry,
   mediaPresignRequestSchema,
+  planEntityModuleContentMigration,
   pageIdSchema,
+  realEstateEntityModule,
+  realEstateV2SeedData,
   registrySeedData,
   requireEntityDefinition,
   validateEntityViewCatalog,
   type EditableValue,
   type EntityDefinition,
   type EntityModule,
+  type EntityModuleMigrationPlan,
   type EntityId,
   type ExternalSource,
   type MediaAsset,
@@ -115,6 +123,7 @@ class BackendWorld extends World {
   transactionAttempted = false;
   snapshot: readonly { entityId: EntityId; entityVersion: number; value: EditableValue }[] = [];
   facts = new Set<string>();
+  divisionMigrationPlan: EntityModuleMigrationPlan | undefined;
 }
 
 setWorldConstructor(BackendWorld);
@@ -1448,6 +1457,105 @@ factThen([
   'every migrated entity has exactly one primary visual slot',
   'complete validation rejects missing semantic entities and visual slots',
 ]);
+
+const remainingDivisionModules = {
+  'Real Estate': { module: realEstateEntityModule, seeds: realEstateV2SeedData },
+  Construction: { module: constructionEntityModule, seeds: constructionV2SeedData },
+  Development: { module: developmentEntityModule, seeds: developmentV2SeedData },
+} as const;
+
+function remainingDivision(division: string) {
+  const selected = remainingDivisionModules[division as keyof typeof remainingDivisionModules];
+  assert.ok(selected, `Unexpected remaining division ${division}`);
+  return selected;
+}
+
+Given(
+  'the {int} canonical {string} entities and their version 2 module',
+  function (this: BackendWorld, entityCount: number, division: string) {
+    const selected = remainingDivision(division);
+    assert.equal(selected.module.entities.length, entityCount);
+    assert.equal(selected.module.viewCatalog.length, entityCount);
+  },
+);
+
+When(
+  'I prepare the {string} version 1 to version 2 migration',
+  function (this: BackendWorld, division: string) {
+    const selected = remainingDivision(division);
+    const request = {
+      pageId: selected.module.pageId,
+      schemaVersion: 1 as const,
+      environment: 'local' as const,
+      mode: 'dry-run' as const,
+      currentContent: {},
+      pendingChanges: [],
+    };
+    const first = planEntityModuleContentMigration(selected.module, selected.seeds, request);
+    const second = planEntityModuleContentMigration(selected.module, selected.seeds, request);
+    assert.deepEqual(first, second);
+    this.divisionMigrationPlan = first;
+  },
+);
+
+Then(
+  'all {int} {string} values use strict semantic schemas and explicit editor metadata',
+  function (this: BackendWorld, entityCount: number, division: string) {
+    const selected = remainingDivision(division);
+    assert.equal(this.divisionMigrationPlan?.entries.length, entityCount);
+    for (const definition of selected.module.entities) {
+      assert.ok(definition.editor.groups.length > 0);
+      assert.equal(
+        definition.schema.safeParse(this.divisionMigrationPlan?.nextContent[definition.id]).success,
+        true,
+      );
+    }
+  },
+);
+
+Then(
+  'each {string} entity has one primary visual slot',
+  function (this: BackendWorld, division: string) {
+    const selected = remainingDivision(division);
+    assert.doesNotThrow(() =>
+      validateEntityViewCatalog(selected.module.entities, selected.module.viewCatalog, 'complete'),
+    );
+  },
+);
+
+Then(
+  'the {string} migration report is deterministic and dry-runnable',
+  function (this: BackendWorld, division: string) {
+    assert.equal(this.divisionMigrationPlan?.pageId, remainingDivision(division).module.pageId);
+    assert.equal(this.divisionMigrationPlan?.dryRun, true);
+  },
+);
+
+Then(
+  'unresolved {string} version 1 pending changes block migration unless disposable local reset is explicit',
+  function (this: BackendWorld, division: string) {
+    const selected = remainingDivision(division);
+    const entityId = selected.module.entities[0]?.id;
+    assert.ok(entityId);
+    const request = {
+      pageId: selected.module.pageId,
+      schemaVersion: 1 as const,
+      environment: 'local' as const,
+      mode: 'prepare-apply' as const,
+      currentContent: {},
+      pendingChanges: [{ entityId, schemaVersion: 1 as const }],
+    };
+    assert.throws(
+      () => planEntityModuleContentMigration(selected.module, selected.seeds, request),
+      /unresolved version 1 pending changes/,
+    );
+    const reset = planEntityModuleContentMigration(selected.module, selected.seeds, {
+      ...request,
+      mode: 'reset-disposable-local',
+    });
+    assert.deepEqual(reset.discardedPendingEntityIds, [entityId]);
+  },
+);
 
 Given('I am not signed in', function () {});
 

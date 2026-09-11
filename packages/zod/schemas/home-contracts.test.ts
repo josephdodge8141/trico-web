@@ -36,8 +36,8 @@ test('Home owns 18 strict semantic entity contracts and visual slots', () => {
     validateEntityViewCatalog(homeEntityModule.entities, homeEntityModule.viewCatalog, 'complete'),
   );
   const status = semanticRegistryStatus(entityDefinitions, homeEntityModule.viewCatalog);
-  assert.equal(status.migratedEntityIds.length, 71);
-  assert.equal(status.missingEditorEntityIds.length, 124);
+  assert.equal(status.migratedEntityIds.length, 195);
+  assert.equal(status.missingEditorEntityIds.length, 0);
   assert.equal(status.missingViewEntityIds.length, 177);
   assert.equal(homeMigrationLedger.entityCount, 18);
   assert.deepEqual(

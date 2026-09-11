@@ -36,6 +36,14 @@ Feature: Managed media and external listing synchronization
     When the editor follows the returned media cursor
     Then each image appears exactly once in creation order
 
+  @id:media.editor-select @backend-noop
+  Scenario: Select managed media from a semantic image field
+    backend-noop: Upload persistence and safe asset responses are already exercised by the managed-media backend scenarios; this scenario owns the browser editor integration.
+    Given I am signed in and editing a semantic image field
+    When I upload and select an image from the managed media library
+    Then its friendly name and preview are shown without storage details
+    And saving the form updates the private image and its description
+
   @id:sync.field-override @frontend-noop
   Scenario: Preserve manually overridden listing fields
     frontend-noop: Field-level merge semantics are a scheduled backend invariant; pause and resume request transport is covered by focused frontend transport tests.

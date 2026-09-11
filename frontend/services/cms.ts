@@ -183,8 +183,14 @@ export const uploadMedia = async (
   file: File,
   uploadUrl: string,
   fetchImpl: typeof fetch = globalThis.fetch,
+  browserOrigin: string | undefined = globalThis.location?.origin,
 ): Promise<void> => {
-  const response = await fetchImpl(uploadUrl, {
+  const signedUrl = new URL(uploadUrl);
+  const requestUrl =
+    browserOrigin !== undefined && signedUrl.hostname === 'minio'
+      ? `${browserOrigin}/__objects${signedUrl.pathname}${signedUrl.search}`
+      : uploadUrl;
+  const response = await fetchImpl(requestUrl, {
     method: 'PUT',
     body: file,
     headers: { 'Content-Type': file.type },

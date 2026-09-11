@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import {
-  editableValueSchema,
-  type EditableValue,
-  type EditorField,
-  type EntityEditorDefinition,
-} from '@app/schemas';
+import { editableValueSchema, type EditableValue, type EntityEditorDefinition } from '@app/schemas';
 import type { z } from 'zod';
 
+import { useEditMode } from '../context/editMode.js';
+import type { MediaAsset } from '../services/cms.js';
 import {
   type EditorLinkChoice,
   type EditorMediaChoice,
@@ -25,7 +22,6 @@ export interface EditorSheetProps {
   readonly busy?: boolean;
   readonly mediaChoices?: readonly EditorMediaChoice[];
   readonly linkChoices?: readonly EditorLinkChoice[];
-  readonly onRequestMedia?: (field: EditorField) => void;
   readonly onSave: (value: EditableValue) => Promise<void>;
   readonly onClose: () => void;
   readonly onReloadLatest?: () => Promise<EditableValue>;
@@ -45,12 +41,12 @@ export function EditorSheet({
   busy = false,
   mediaChoices,
   linkChoices,
-  onRequestMedia,
   onSave,
   onClose,
   onReloadLatest,
   isConflict = isConflictByStatus,
 }: EditorSheetProps): React.JSX.Element {
+  const editing = useEditMode();
   const titleId = useId();
   const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -59,7 +55,29 @@ export function EditorSheet({
   const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<readonly EditorMediaChoice[]>([]);
   const dirty = !editorValuesEqual(draft, initialValue);
+  const visibleMediaChoices = [...(mediaChoices ?? []), ...selectedMedia];
+
+  const requestMedia = (onSelect: (choice: EditorMediaChoice) => void): void => {
+    editing.requestMedia((asset: MediaAsset) => {
+      const path = new URL(asset.publicUrl, window.location.origin).pathname;
+      if (!path.startsWith('/media/') || path.includes('..')) {
+        throw new Error('The selected image reference is unavailable.');
+      }
+      const choice: EditorMediaChoice = {
+        label: asset.name,
+        previewUrl: asset.publicUrl,
+        altText: asset.altText,
+        value: { kind: 'managed', key: path.slice(1) },
+      };
+      setSelectedMedia((current) => [
+        choice,
+        ...current.filter(({ previewUrl }) => previewUrl !== choice.previewUrl),
+      ]);
+      onSelect(choice);
+    });
+  };
 
   const requestClose = useCallback((): void => {
     if (dirty && !window.confirm('Discard the changes you have not saved?')) return;
@@ -188,9 +206,9 @@ export function EditorSheet({
               value={draft}
               errors={errors}
               onChange={setDraft}
-              {...(mediaChoices === undefined ? {} : { mediaChoices })}
+              mediaChoices={visibleMediaChoices}
               {...(linkChoices === undefined ? {} : { linkChoices })}
-              {...(onRequestMedia === undefined ? {} : { onRequestMedia })}
+              onRequestMedia={requestMedia}
             />
             {conflict ? (
               <div className="editor-conflict" role="alert">

@@ -43,8 +43,8 @@ test('Property Management owns 35 strict semantic entity contracts and visual sl
     entityDefinitions,
     propertyManagementEntityModule.viewCatalog,
   );
-  assert.equal(status.migratedEntityIds.length, 71);
-  assert.equal(status.missingEditorEntityIds.length, 124);
+  assert.equal(status.migratedEntityIds.length, 195);
+  assert.equal(status.missingEditorEntityIds.length, 0);
   assert.equal(status.missingViewEntityIds.length, 160);
   assert.equal(migrationLedger.entityCount, 35);
   assert.deepEqual(

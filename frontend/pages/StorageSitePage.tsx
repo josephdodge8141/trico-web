@@ -101,6 +101,9 @@ const images: Readonly<Record<string, string>> = {
   'media/seed/lynette-staker.jpg': lynettePhoto,
   'media/seed/deborah-peterson.jpeg': deborahPhoto,
 };
+const managedImage = (key: string, fallback: string): string =>
+  images[key] ??
+  (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : fallback);
 const anchor = (destination: string) => `#${destination}`;
 
 function definition(id: StorageEntityId): SemanticEntityDefinition {
@@ -245,7 +248,7 @@ function StorageBody(): React.JSX.Element {
       <ObjectBoundary id="storage.header" value={header}>
         <header className="storage-header">
           <Link to="/" aria-label="TriCo home">
-            <img src={images[header.logo.key] ?? storageLogo} alt={header.logoAltText} />
+            <img src={managedImage(header.logo.key, storageLogo)} alt={header.logoAltText} />
           </Link>
           <nav aria-label="Storage navigation">
             {header.navLinks.map((item) => (
@@ -316,7 +319,7 @@ function StorageBody(): React.JSX.Element {
               />
             </div>
             <figure>
-              <img src={images[hero.image.key] ?? storageHeroImage} alt={hero.imageAltText} />
+              <img src={managedImage(hero.image.key, storageHeroImage)} alt={hero.imageAltText} />
               <figcaption>{hero.imageCaption}</figcaption>
             </figure>
           </section>
@@ -354,7 +357,10 @@ function StorageBody(): React.JSX.Element {
               const member = storageTeamMemberSchema.parse(item);
               return (
                 <article className="storage-team-card">
-                  <img src={images[member.image.key] ?? storageLogo} alt={member.imageAltText} />
+                  <img
+                    src={managedImage(member.image.key, storageLogo)}
+                    alt={member.imageAltText}
+                  />
                   <div>
                     <h3>{member.name}</h3>
                     <strong>{member.role}</strong>
@@ -474,7 +480,7 @@ function StorageBody(): React.JSX.Element {
           <ObjectBoundary id="storage.footer.brand" value={footerBrand}>
             <div>
               <img
-                src={images[footerBrand.logo.key] ?? storageLogo}
+                src={managedImage(footerBrand.logo.key, storageLogo)}
                 alt={footerBrand.logoAltText}
               />
               <p>{footerBrand.description}</p>

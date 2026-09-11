@@ -11,6 +11,7 @@ import {
   deterministicListItemId,
   editableListItemSchema,
   entityDefinitions,
+  entityViewCatalog,
   legacyEntityDefinitions,
   externalSourceSchema,
   mediaPresignRequestSchema,
@@ -90,6 +91,20 @@ test('the canonical registry contains exactly the reissued 195-entity inventory'
     entityDefinitions.some(({ id }) => id.startsWith('landing.')),
     false,
   );
+});
+
+test('all 195 entities have strict novice editor contracts and primary visual slots', () => {
+  const status = semanticRegistryStatus(entityDefinitions, entityViewCatalog);
+  assert.equal(status.migratedEntityIds.length, 195);
+  assert.deepEqual(status.missingEditorEntityIds, []);
+  assert.deepEqual(status.missingViewEntityIds, []);
+  assert.doesNotThrow(() =>
+    validateEntityViewCatalog(entityDefinitions, entityViewCatalog, 'complete'),
+  );
+  for (const definition of entityDefinitions) {
+    assert.ok(definition.editor);
+    assert.equal(JSON.stringify(definition.editor).includes('json'), false);
+  }
 });
 
 test('semantic editor modules are explicit, browser-safe, and incrementally honest', () => {

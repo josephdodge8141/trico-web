@@ -206,6 +206,22 @@ Last updated: 2026-09-11
   horizontal overflow, and no exposed technical representation. The resulting
   CTA contrast, mobile launcher overlap, and Storage review-label defects were
   fixed with focused browser regression coverage.
+- The semantic version-2 migration is now complete for all 195 entities:
+  Home 18, Property Management 35, Real Estate 31, Construction 65, Storage 18,
+  and Development 28. Every entity has a strict schema, semantic seed, explicit
+  novice editor descriptor, and truthful visual-catalog entry. All object and
+  collection values are mounted through validated page-document values; raw
+  JSON, IDs, UUIDs, revisions, routes, and storage paths remain hidden.
+- Real Estate now includes working MLS/LoopNet destinations, deterministic
+  listing galleries, active/sold editing isolation, complete team/About render
+  coverage, friendly link fields, accessible list semantics, and robust legacy
+  fallback. Construction now data-drives its main and category shells, renders
+  every project/team field, and exposes honest editable empty project lists on
+  all 16 category routes. Development now data-drives its remaining business
+  labels and uses valid accessible collection semantics.
+- Canonical browser behavior now opens and saves real friendly Hero forms on
+  Real Estate, Construction, and Development and exercises shared managed-media
+  selection/upload. Exact behavior accounting is 124 cases.
 
 Focused verification at this checkpoint:
 
@@ -213,15 +229,14 @@ Focused verification at this checkpoint:
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
-- Root `npm run check` passes after the four-division broad-parity wave,
-  validating 117 canonical cases. A focused production-build browser check also
-  passes after the final mobile launcher placement adjustment.
-- Frontend unit tests passed after integration: 29/29.
+- Root `npm run check` passes after the semantic/editor integration wave,
+  validating 124 canonical cases.
+- Frontend unit tests passed after integration: 41/41.
 - Frontend browser tests passed after integration: 27/27, including registered
   self-hosted fonts, dedicated division compositions, CTA contrast, and launcher
   clearance.
-- Compose frontend Cucumber passed after integration: 28/28 scenarios and
-  197/197 steps, accounting for 117 canonical cases.
+- Compose frontend Cucumber passed after integration: 32/32 scenarios and
+  224/224 steps, accounting for 124 canonical cases.
 - Compose Playwright passed: 13/13.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
@@ -231,31 +246,27 @@ Focused verification at this checkpoint:
 
 ## Intentionally incomplete
 
-- The other 124 entities still use legacy contracts and seeds.
-- Media and source controls are implemented but not mounted in a page editor.
-- Real Estate, Construction, and Development now use dedicated compositions but
-  still need strict semantic contracts, seeds, and dynamic novice forms.
 - Property Management requires production changes to reach the retained 0.98
   SSIM and 2px/3px geometry acceptance against its now-approved corrected
   baseline. The reference-policy blocker is resolved; the remaining failures
   are visible implementation differences recorded above.
 - Form-state and edit-mode visual references still need capture.
-- Local content is freshly seeded at version 2 after the final Compose test run.
-  Test-created users, pending changes, and uploaded objects were intentionally
-  removed with the disposable DynamoDB and MinIO volumes.
+- AWS preview/dedicated-environment deployment remains a later phase; this phase
+  intentionally completes local frontend/content/editor behavior first.
+- Local content was reset and freshly seeded during the semantic migration's
+  final Compose verification. Test-created pending changes were cleaned up;
+  uploaded objects and all other local data remain disposable.
 
 ## Exact restart sequence
 
-1. Confirm the branch is clean and starts at the latest checkpoint documented by
-   `git log`, then run `npm run check`.
-2. Convert Real Estate's 31 legacy entities to strict semantic version-2
-   contracts and mount source controls in its listing editors.
-3. Convert Construction's 65 and Development's 28 legacy entities in bounded
-   page-owned waves; preserve the dedicated compositions and category routing.
-4. Mount the media library in Home's logo/leadership image fields and capture the
-   missing form/edit-mode visual states.
-5. Return to strict section-level visual comparison only after all six dedicated
+1. Run the final clean root gate and the disposable Compose volume reset/reseed.
+2. Run Compose Cucumber and Playwright against all six semantic pages, including
+   remaining-division object saves, category empty-list Add, and managed media.
+3. Capture the missing form/edit-mode visual states.
+4. Return to strict section-level visual comparison now that all six dedicated
    compositions and novice editing contracts are functionally complete.
+5. Begin the separate AWS preview/dedicated-environment delivery phase only from
+   this verified semantic checkpoint.
 
 The local Docker stack may still be running after Compose verification. Inspect
 it with `docker compose ps`; stop it with `docker compose down` before closing a

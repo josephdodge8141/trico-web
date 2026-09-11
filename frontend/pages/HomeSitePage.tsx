@@ -93,7 +93,10 @@ function requireHomeDefinition(entityId: HomeEntityId): SemanticEntityDefinition
 }
 
 function managedImage(key: string, fallback: string): string {
-  return imageByKey[key] ?? fallback;
+  return (
+    imageByKey[key] ??
+    (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : fallback)
+  );
 }
 
 function formatNewsDate(date: string): string {

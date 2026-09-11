@@ -13,6 +13,7 @@ import { fieldKey, isEditableRecord, readEditorValue, writeEditorValue } from '.
 export interface EditorMediaChoice {
   readonly label: string;
   readonly previewUrl: string;
+  readonly altText: string;
   readonly value: EditableValue;
 }
 
@@ -29,7 +30,7 @@ export interface SemanticEditorFormProps {
   readonly onChange: (value: EditableValue) => void;
   readonly mediaChoices?: readonly EditorMediaChoice[];
   readonly linkChoices?: readonly EditorLinkChoice[];
-  readonly onRequestMedia?: (field: EditorField) => void;
+  readonly onRequestMedia?: (onSelect: (choice: EditorMediaChoice) => void) => void;
 }
 
 function stringValue(value: EditableValue): string {
@@ -44,6 +45,18 @@ function updateInputValue(field: EditorField | LeafEditorField, input: string): 
   if (field.control.type !== 'number') return input;
   const parsed = Number(input);
   return input === '' || !Number.isFinite(parsed) ? input : parsed;
+}
+
+function writeMediaChoice(
+  root: EditableValue,
+  field: EditorField | LeafEditorField,
+  choice: EditorMediaChoice,
+): EditableValue {
+  let next = writeEditorValue(root, field.path, choice.value);
+  if (field.control.type === 'media-picker' && field.control.altTextPath !== undefined) {
+    next = writeEditorValue(next, field.control.altTextPath, choice.altText);
+  }
+  return next;
 }
 
 function EditorFieldControl({
@@ -61,7 +74,7 @@ function EditorFieldControl({
   readonly onChange: (value: EditableValue) => void;
   readonly mediaChoices: readonly EditorMediaChoice[];
   readonly linkChoices: readonly EditorLinkChoice[];
-  readonly onRequestMedia?: (field: EditorField) => void;
+  readonly onRequestMedia?: () => void;
 }): React.JSX.Element | null {
   const control = field.control;
   if (control.type === 'system') return null;
@@ -208,7 +221,7 @@ function EditorFieldControl({
           </select>
         ) : null}
         {onRequestMedia === undefined ? null : (
-          <button type="button" onClick={() => onRequestMedia(field as EditorField)}>
+          <button type="button" onClick={onRequestMedia}>
             Open media library
           </button>
         )}
@@ -264,11 +277,17 @@ function NestedCollectionField({
   value,
   baseId,
   onChange,
+  mediaChoices,
+  linkChoices,
+  onRequestMedia,
 }: {
   readonly field: EditorField;
   readonly value: EditableValue;
   readonly baseId: string;
   readonly onChange: (value: EditableValue) => void;
+  readonly mediaChoices: readonly EditorMediaChoice[];
+  readonly linkChoices: readonly EditorLinkChoice[];
+  readonly onRequestMedia?: (onSelect: (choice: EditorMediaChoice) => void) => void;
 }): React.JSX.Element {
   if (field.control.type !== 'nested-collection') return <></>;
   const control = field.control;
@@ -300,8 +319,16 @@ function NestedCollectionField({
                       onChange={(next) =>
                         updateItem(index, writeEditorValue(record, itemField.path, next))
                       }
-                      mediaChoices={[]}
-                      linkChoices={[]}
+                      mediaChoices={mediaChoices}
+                      linkChoices={linkChoices}
+                      {...(onRequestMedia === undefined
+                        ? {}
+                        : {
+                            onRequestMedia: (): void =>
+                              onRequestMedia((choice) =>
+                                updateItem(index, writeMediaChoice(record, itemField, choice)),
+                              ),
+                          })}
                     />
                   </div>
                 );
@@ -411,6 +438,9 @@ export function SemanticEditorForm({
                         value={fieldValue}
                         baseId={inputId}
                         onChange={(next) => onChange(writeEditorValue(value, field.path, next))}
+                        mediaChoices={mediaChoices}
+                        linkChoices={linkChoices}
+                        {...(onRequestMedia === undefined ? {} : { onRequestMedia })}
                       />
                     ) : (
                       <EditorFieldControl
@@ -420,7 +450,14 @@ export function SemanticEditorForm({
                         onChange={(next) => onChange(writeEditorValue(value, field.path, next))}
                         mediaChoices={mediaChoices}
                         linkChoices={linkChoices}
-                        {...(onRequestMedia === undefined ? {} : { onRequestMedia })}
+                        {...(onRequestMedia === undefined
+                          ? {}
+                          : {
+                              onRequestMedia: (): void =>
+                                onRequestMedia((choice) =>
+                                  onChange(writeMediaChoice(value, field, choice)),
+                                ),
+                            })}
                       />
                     )}
                     {error === undefined ? null : (

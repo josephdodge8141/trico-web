@@ -3,6 +3,7 @@ import type { EditableValue } from '@app/schemas';
 
 import type { PageId } from '../pages/pageContent.js';
 import type { PendingChange } from '../services/cms.js';
+import type { MediaAsset } from '../services/cms.js';
 
 export interface EditModeValue {
   readonly active: boolean;
@@ -21,6 +22,7 @@ export interface EditModeValue {
   readonly togglePreview: (entityId: string) => Promise<void>;
   readonly setViewingPublic: (viewingPublic: boolean) => Promise<void>;
   readonly publishAll: () => Promise<void>;
+  readonly requestMedia: (onSelect: (asset: MediaAsset) => void) => void;
 }
 
 export const EditModeContext = createContext<EditModeValue | undefined>(undefined);

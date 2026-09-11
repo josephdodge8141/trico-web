@@ -25,7 +25,54 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { registrySeedData } from '@app/schemas';
+import {
+  developmentAboutHighlightSchema,
+  developmentAboutHighlightsSchema,
+  developmentAboutSchema,
+  developmentAboutValueSchema,
+  developmentAboutValuesSchema,
+  developmentAnniversaryBannerSchema,
+  developmentContactDetailsSchema,
+  developmentContactHeaderSchema,
+  developmentEntityDefinitions,
+  developmentFeaturedProjectSchema,
+  developmentFooterBrandSchema,
+  developmentFooterLegalSchema,
+  developmentFooterLinkSchema,
+  developmentFooterLinksSchema,
+  developmentFooterServiceAreasSchema,
+  developmentHeaderSchema,
+  developmentHeroSchema,
+  developmentHeroStatSchema,
+  developmentHeroStatsSchema,
+  developmentLandExpertsHeaderSchema,
+  developmentLandExpertsServicesSchema,
+  developmentLandExpertsStatsSchema,
+  developmentLandServiceSchema,
+  developmentPartnerSchema,
+  developmentPartnersFooterSchema,
+  developmentPartnersHeaderSchema,
+  developmentPartnersItemsSchema,
+  developmentProjectCategorySchema,
+  developmentProjectsCategoriesSchema,
+  developmentProjectsFeaturedSchema,
+  developmentReviewPlatformSchema,
+  developmentReviewsFooterSchema,
+  developmentReviewsHeaderSchema,
+  developmentReviewsPlatformsSchema,
+  developmentServiceSchema,
+  developmentServicesHeaderSchema,
+  developmentServicesItemsSchema,
+  developmentTeamHeaderSchema,
+  developmentTeamMemberSchema,
+  developmentTeamMembersSchema,
+  developmentTrustStatSchema,
+  developmentV2SeedData,
+  editableValueSchema,
+  type EditableValue,
+  type PageContent,
+  type SemanticEntityDefinition,
+} from '@app/schemas';
 
 import brookePhoto from '../assets/images/brooke-moore.jpeg';
 import featuredOne from '../assets/images/real-estate-property-1.jpeg';
@@ -33,172 +80,208 @@ import featuredTwo from '../assets/images/real-estate-property-2.jpeg';
 import randyPhoto from '../assets/images/randy-rimmer.png';
 import stevePhoto from '../assets/images/steve-tripp.png';
 import tricoLogo from '../assets/images/trico-logo.png';
-import { EditableEntity } from '../components/EditableEntity.js';
+import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
+import { EditableCollection } from '../components/EditableCollection.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
 import { DevelopmentContactForm } from './DevelopmentContactForm.js';
+import { parseDevelopmentValue } from './developmentContent.js';
 import './development.css';
 
-const navLinks = [
-  ['Services', '#services'],
-  ['Projects', '#projects'],
-  ['Team', '#team'],
-  ['About', '#about'],
-  ['Reviews', '#reviews'],
-  ['Contact', '#contact'],
-] as const;
-const landServices: readonly { title: string; description: string; icon: LucideIcon }[] = [
-  {
-    title: 'Land Buying',
-    description: 'Identify and acquire prime land opportunities across Utah.',
-    icon: MapPin,
-  },
-  {
-    title: 'Land Listing',
-    description: 'Strategic marketing designed to maximize value and exposure.',
-    icon: FileText,
-  },
-  {
-    title: 'Land Development',
-    description: 'Full-service expertise transforming raw land into thriving communities.',
-    icon: Building2,
-  },
-];
-const developmentServices: readonly { title: string; description: string; icon: LucideIcon }[] = [
-  {
-    title: 'Land Acquisition',
-    description: 'Identify and acquire prime parcels for residential and commercial development.',
-    icon: MapPin,
-  },
-  {
-    title: 'Residential Development',
-    description: 'End-to-end development from site selection through construction oversight.',
-    icon: Home,
-  },
-  {
-    title: 'Commercial Development',
-    description: 'Feasibility, zoning navigation, entitlement, and project management.',
-    icon: Landmark,
-  },
-  {
-    title: 'Land Development',
-    description: 'Grading, utilities, roads, and site preparation for vertical construction.',
-    icon: Mountain,
-  },
-  {
-    title: 'Storage Facility Development',
-    description: 'Purpose-built facilities designed for long-term investment performance.',
-    icon: Building2,
-  },
-];
-const team = [
-  {
-    name: 'Stephen Tripp',
-    role: 'Founder & President',
-    image: stevePhoto,
-    bio: 'More than 40 years of experience building thriving Utah communities.',
-  },
-  {
-    name: 'Randy Rimmer',
-    role: 'Vice President',
-    image: randyPhoto,
-    bio: 'Development and construction expertise guiding project execution and growth.',
-  },
-  {
-    name: 'Brooke Moore',
-    role: 'Director',
-    image: brookePhoto,
-    bio: 'Leads development operations and strategy with a commitment to quality.',
-  },
-] as const;
-const values = [
-  {
-    title: 'Vision-Driven',
-    description: 'We see potential where others see raw land.',
-    icon: Target,
-  },
-  {
-    title: 'Integrity',
-    description: 'Every project is built on honesty and transparency.',
-    icon: Shield,
-  },
-  {
-    title: 'Long-Term Value',
-    description: 'We create lasting value for communities and investors.',
-    icon: TrendingUp,
-  },
-] as const;
-const trustStats: readonly { value: string; label: string; icon: LucideIcon }[] = [
-  { value: '40+', label: 'Years Experience', icon: TrendingUp },
-  { value: '1000+', label: 'Acres Transacted', icon: MapPin },
-  { value: '50+', label: 'Projects Developed', icon: Building2 },
-  { value: '3', label: 'States Served', icon: Compass },
-];
-
-function Boundary({
+type DevelopmentEntityId = (typeof developmentEntityDefinitions)[number]['id'];
+const icons: Readonly<Record<string, LucideIcon>> = {
+  Map,
+  MapPin,
+  FileText,
+  Building2,
+  Home,
+  Landmark,
+  Mountain,
+  TrendingUp,
+  Compass,
+  Target,
+  Shield,
+};
+const images: Readonly<Record<string, string>> = {
+  'media/seed/trico-logo.png': tricoLogo,
+  'media/seed/steve-tripp.png': stevePhoto,
+  'media/seed/randy-rimmer.png': randyPhoto,
+  'media/seed/brooke-moore.jpeg': brookePhoto,
+  'media/seed/real-estate-property-1.jpeg': featuredOne,
+  'media/seed/real-estate-property-2.jpeg': featuredTwo,
+};
+const managedImage = (key: string, fallback: string): string =>
+  images[key] ??
+  (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : fallback);
+const anchor = (destination: string) => `#${destination}`;
+function definition(id: DevelopmentEntityId): SemanticEntityDefinition {
+  const found = developmentEntityDefinitions.find((candidate) => candidate.id === id);
+  if (found === undefined) throw new Error(`Development editor definition missing for ${id}`);
+  return found;
+}
+function ownership(
+  id: DevelopmentEntityId,
+  editing: ReturnType<typeof useEditMode>,
+): EditorOwnership {
+  const pending = editing.pending.find((change) => change.entityId === id);
+  return pending === undefined
+    ? 'available'
+    : pending.authorId === editing.currentUserId
+      ? 'mine'
+      : 'other';
+}
+function ObjectBoundary({
   id,
+  value,
   children,
 }: {
-  readonly id: keyof typeof registrySeedData;
+  readonly id: DevelopmentEntityId;
+  readonly value: unknown;
   readonly children: React.ReactNode;
 }): React.JSX.Element {
+  const editing = useEditMode();
   return (
-    <div className="dev-entity-slot" data-development-entity-boundary="true">
-      <EditableEntity entityId={id} value={registrySeedData[id]}>
+    <div
+      className={`dev-entity-slot${id === 'development.hero' ? ' dev-hero-entity-slot' : ''}`}
+      data-development-entity-boundary="true"
+    >
+      <EditableBoundary
+        active={editing.active}
+        definition={definition(id)}
+        value={editableValueSchema.parse(value)}
+        ownership={ownership(id, editing)}
+        busy={editing.busy}
+        onSave={(next) => editing.save(id, next)}
+        onReloadLatest={() => editing.reload(id)}
+      >
         {children}
-      </EditableEntity>
+      </EditableBoundary>
+    </div>
+  );
+}
+function CollectionBoundary({
+  id,
+  value,
+  renderItem,
+}: {
+  readonly id: DevelopmentEntityId;
+  readonly value: readonly EditableValue[];
+  readonly renderItem: (item: EditableValue, index: number) => React.ReactNode;
+}): React.JSX.Element {
+  const editing = useEditMode();
+  return (
+    <div className="dev-entity-slot dev-collection-slot" data-development-entity-boundary="true">
+      <EditableCollection
+        active={editing.active}
+        definition={definition(id)}
+        value={value}
+        renderItem={renderItem}
+        ownership={ownership(id, editing)}
+        busy={editing.busy}
+        onSave={(next) => editing.save(id, next)}
+        onReloadLatest={() => editing.reload(id)}
+      />
     </div>
   );
 }
 
 function DevelopmentBody(): React.JSX.Element {
   const editing = useEditMode();
+  const [document, setDocument] = useState<PageContent>({});
   const [fallback, setFallback] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const loader = editing.active ? fetchPreviewPageDocument : fetchPublicPageDocument;
     void loader('development', { signal: controller.signal })
-      .then(() => setFallback(false))
-      .catch(() => setFallback(true));
+      .then((next) => {
+        if (!controller.signal.aborted) {
+          setDocument(next);
+          setFallback(false);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setDocument({});
+          setFallback(true);
+        }
+      });
     return () => controller.abort();
   }, [editing.active, editing.disabledEntityIds, editing.pending]);
+  const value = <Output,>(
+    id: keyof typeof developmentV2SeedData,
+    parser: { parse(value: unknown): Output },
+  ): Output => parseDevelopmentValue(document, id, parser);
+  const banner = value('development.anniversary-banner', developmentAnniversaryBannerSchema);
+  const header = value('development.header', developmentHeaderSchema);
+  const hero = value('development.hero', developmentHeroSchema);
+  const heroStats = value('development.hero.stats', developmentHeroStatsSchema);
+  const landHeader = value('development.land-experts.header', developmentLandExpertsHeaderSchema);
+  const landServices = value(
+    'development.land-experts.services',
+    developmentLandExpertsServicesSchema,
+  );
+  const landStats = value('development.land-experts.stats', developmentLandExpertsStatsSchema);
+  const servicesHeader = value('development.services.header', developmentServicesHeaderSchema);
+  const services = value('development.services.items', developmentServicesItemsSchema);
+  const categories = value('development.projects.categories', developmentProjectsCategoriesSchema);
+  const featured = value('development.projects.featured', developmentProjectsFeaturedSchema);
+  const partnersHeader = value('development.partners.header', developmentPartnersHeaderSchema);
+  const partners = value('development.partners.items', developmentPartnersItemsSchema);
+  const partnersFooter = value('development.partners.footer', developmentPartnersFooterSchema);
+  const teamHeader = value('development.team.header', developmentTeamHeaderSchema);
+  const team = value('development.team.members', developmentTeamMembersSchema);
+  const about = value('development.about', developmentAboutSchema);
+  const highlights = value('development.about.highlights', developmentAboutHighlightsSchema);
+  const values = value('development.about.values', developmentAboutValuesSchema);
+  const reviewsHeader = value('development.reviews.header', developmentReviewsHeaderSchema);
+  const reviews = value('development.reviews.platforms', developmentReviewsPlatformsSchema);
+  const reviewsFooter = value('development.reviews.footer', developmentReviewsFooterSchema);
+  const contactHeader = value('development.contact.header', developmentContactHeaderSchema);
+  const contact = value('development.contact.details', developmentContactDetailsSchema);
+  const footerBrand = value('development.footer.brand', developmentFooterBrandSchema);
+  const footerLinks = value('development.footer.links', developmentFooterLinksSchema);
+  const serviceAreas = value(
+    'development.footer.service-areas',
+    developmentFooterServiceAreasSchema,
+  );
+  const footerLegal = value('development.footer.legal', developmentFooterLegalSchema);
   return (
     <div className="dev-page">
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
-      <Boundary id="development.anniversary-banner">
+      <ObjectBoundary id="development.anniversary-banner" value={banner}>
         <div className="dev-anniversary">
           <i />
-          <strong>Celebrating 40 Years of Excellence</strong>
+          <strong>{banner.message}</strong>
           <span>•</span>
-          <small>1984 – 2024</small>
+          <small>{banner.years}</small>
           <i />
         </div>
-      </Boundary>
-      <Boundary id="development.header">
+      </ObjectBoundary>
+      <ObjectBoundary id="development.header" value={header}>
         <header className="dev-header">
           <div className="dev-container dev-header-inner">
             <Link className="dev-brand" to="/">
-              <img src={tricoLogo} alt="TriCo Development" />
-              <strong>Development</strong>
+              <img src={managedImage(header.logo.key, tricoLogo)} alt={header.logoAltText} />
+              <strong>{header.divisionLabel}</strong>
             </Link>
             <nav>
-              {navLinks.map(([label, href]) => (
-                <a href={href} key={href}>
-                  {label}
+              {header.navLinks.map((link) => (
+                <a href={anchor(link.destination)} key={link.id}>
+                  {link.label}
                 </a>
               ))}
             </nav>
             <div className="dev-header-actions">
-              <a href="tel:8015718833">
-                <Phone /> (801) 571-8833
+              <a href={`tel:${header.phone.replace(/\D/g, '')}`}>
+                <Phone /> {header.phone}
               </a>
               <a className="dev-button dev-primary" href="#contact">
-                Get Started
+                {header.actionLabel}
               </a>
             </div>
             <button
@@ -212,370 +295,383 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
           {menuOpen ? (
             <nav className="dev-mobile-menu">
-              {navLinks.map(([label, href]) => (
-                <a href={href} key={href} onClick={() => setMenuOpen(false)}>
-                  {label}
+              {header.navLinks.map((link) => (
+                <a href={anchor(link.destination)} key={link.id} onClick={() => setMenuOpen(false)}>
+                  {link.label}
                 </a>
               ))}
             </nav>
           ) : null}
         </header>
-      </Boundary>
+      </ObjectBoundary>
       {fallback ? (
         <div className="content-notice" role="status">
           Showing the checked-in site content while published content is unavailable.
         </div>
       ) : null}
       <main id="main-content">
-        <Boundary id="development.hero">
+        <ObjectBoundary id="development.hero" value={hero}>
           <section className="dev-hero">
             <div className="dev-container dev-hero-inner">
               <span className="dev-pill">
-                <Mountain /> Utah’s Premier Developer
+                <Mountain /> {hero.eyebrow}
               </span>
               <h1>
-                Transforming Vision Into <em>Reality</em>
+                {hero.heading} <em>{hero.highlightedWord}</em>
               </h1>
-              <p>
-                From raw land acquisition to finished communities, TriCo Development brings over 40
-                years of experience across Utah, Idaho, and Arizona.
-              </p>
+              <p>{hero.description}</p>
               <div className="dev-actions">
                 <a className="dev-button dev-primary" href="#projects">
-                  View Our Projects <ArrowRight />
+                  {hero.primaryActionLabel} <ArrowRight />
                 </a>
                 <a className="dev-button dev-outline" href="#contact">
-                  Start Your Project
+                  {hero.secondaryActionLabel}
                 </a>
               </div>
-              <Boundary id="development.hero.stats">
-                <div className="dev-stats">
-                  <div>
-                    <Map />
-                    <strong>1000+</strong>
-                    <span>Acres Developed</span>
-                  </div>
-                  <div>
-                    <Building2 />
-                    <strong>50+</strong>
-                    <span>Projects Completed</span>
-                  </div>
-                  <div>
-                    <Mountain />
-                    <strong>3</strong>
-                    <span>States Served</span>
-                  </div>
-                </div>
-              </Boundary>
+              <div className="dev-stats">
+                <CollectionBoundary
+                  id="development.hero.stats"
+                  value={heroStats}
+                  renderItem={(item) => {
+                    const stat = developmentHeroStatSchema.parse(item);
+                    const Icon = icons[stat.icon] ?? Map;
+                    return (
+                      <div>
+                        <Icon />
+                        <strong>{stat.value}</strong>
+                        <span>{stat.label}</span>
+                      </div>
+                    );
+                  }}
+                />
+              </div>
             </div>
           </section>
-        </Boundary>
+        </ObjectBoundary>
 
         <section id="services" className="dev-section dev-tint">
           <div className="dev-container">
-            <Boundary id="development.land-experts.header">
+            <ObjectBoundary id="development.land-experts.header" value={landHeader}>
               <header className="dev-heading">
                 <span className="dev-pill">
-                  <Mountain /> Utah Land Specialists
+                  <Mountain /> {landHeader.eyebrow}
                 </span>
-                <h2>Your Land Experts</h2>
-                <p>
-                  Comprehensive expertise in buying, listing, and developing land across the state.
-                </p>
+                <h2>{landHeader.heading}</h2>
+                <p>{landHeader.description}</p>
               </header>
-            </Boundary>
-            <Boundary id="development.land-experts.services">
-              <div className="dev-land-grid">
-                {landServices.map((service) => (
-                  <article className="dev-land-card" key={service.title}>
-                    <service.icon />
-                    <h3>{service.title}</h3>
-                    <p>{service.description}</p>
-                  </article>
-                ))}
-              </div>
-            </Boundary>
-            <Boundary id="development.land-experts.stats">
-              <div className="dev-trust">
-                {trustStats.map((stat) => (
-                  <div key={stat.label}>
-                    <stat.icon />
-                    <strong>{stat.value}</strong>
-                    <span>{stat.label}</span>
-                  </div>
-                ))}
-              </div>
-            </Boundary>
+            </ObjectBoundary>
+            <div className="dev-land-grid">
+              <CollectionBoundary
+                id="development.land-experts.services"
+                value={landServices}
+                renderItem={(item) => {
+                  const service = developmentLandServiceSchema.parse(item);
+                  const Icon = icons[service.icon] ?? MapPin;
+                  return (
+                    <article className="dev-land-card">
+                      <Icon />
+                      <h3>{service.title}</h3>
+                      <p>{service.description}</p>
+                    </article>
+                  );
+                }}
+              />
+            </div>
+            <div className="dev-trust">
+              <CollectionBoundary
+                id="development.land-experts.stats"
+                value={landStats}
+                renderItem={(item) => {
+                  const stat = developmentTrustStatSchema.parse(item);
+                  const Icon = icons[stat.icon] ?? TrendingUp;
+                  return (
+                    <div>
+                      <Icon />
+                      <strong>{stat.value}</strong>
+                      <span>{stat.label}</span>
+                    </div>
+                  );
+                }}
+              />
+            </div>
           </div>
         </section>
 
         <section id="projects" className="dev-section">
           <div className="dev-container">
-            <Boundary id="development.services.header">
+            <ObjectBoundary id="development.services.header" value={servicesHeader}>
               <header className="dev-heading">
-                <span className="dev-pill">Development Services</span>
-                <h2>Building Utah’s Future</h2>
-                <p>
-                  TriCo transforms vision into reality through integrated residential and commercial
-                  development.
-                </p>
+                <span className="dev-pill">{servicesHeader.eyebrow}</span>
+                <h2>{servicesHeader.heading}</h2>
+                <p>{servicesHeader.description}</p>
               </header>
-            </Boundary>
-            <Boundary id="development.services.items">
-              <div className="dev-service-grid">
-                {developmentServices.map((service) => (
-                  <article className="dev-card" key={service.title}>
-                    <service.icon />
-                    <h3>{service.title}</h3>
-                    <p>{service.description}</p>
-                  </article>
-                ))}
-              </div>
-            </Boundary>
-            <h3 className="dev-subheading">Our Projects</h3>
-            <Boundary id="development.projects.categories">
-              <div className="dev-category-grid">
-                {(
-                  [
-                    [
-                      'Current Projects',
-                      '5 Active',
-                      'Explore development projects currently in progress.',
-                    ],
-                    [
-                      'Completed Projects',
-                      '40+ Completed',
-                      'See our successfully completed residential and commercial developments.',
-                    ],
-                  ] as const
-                ).map(([title, count, description]) => (
-                  <article className="dev-category" key={title}>
-                    <Building2 />
-                    <strong>{count}</strong>
-                    <h3>{title}</h3>
-                    <p>{description}</p>
-                    <button className="dev-button dev-outline-gold">
-                      View {title.startsWith('Current') ? 'Current' : 'Completed'}
-                    </button>
-                  </article>
-                ))}
-              </div>
-            </Boundary>
-            <h3 className="dev-subheading">Featured Developments</h3>
-            <Boundary id="development.projects.featured">
-              <div className="dev-featured-grid">
-                <article>
-                  <img src={featuredOne} alt="Modern Farmhouse" />
-                  <div>
-                    <span>Residential Development</span>
-                    <h3>Modern Farmhouse</h3>
-                    <p>Utah</p>
-                  </div>
-                </article>
-                <article>
-                  <img src={featuredTwo} alt="Custom Home Build" />
-                  <div>
-                    <span>Residential Development</span>
-                    <h3>Custom Home Build</h3>
-                    <p>Utah</p>
-                  </div>
-                </article>
-              </div>
-            </Boundary>
+            </ObjectBoundary>
+            <div className="dev-service-grid">
+              <CollectionBoundary
+                id="development.services.items"
+                value={services}
+                renderItem={(item) => {
+                  const service = developmentServiceSchema.parse(item);
+                  const Icon = icons[service.icon] ?? Building2;
+                  return (
+                    <article className="dev-card">
+                      <Icon />
+                      <h3>{service.title}</h3>
+                      <p>{service.description}</p>
+                    </article>
+                  );
+                }}
+              />
+            </div>
+            <h3 className="dev-subheading">{servicesHeader.projectsHeading}</h3>
+            <div className="dev-category-grid">
+              <CollectionBoundary
+                id="development.projects.categories"
+                value={categories}
+                renderItem={(item) => {
+                  const category = developmentProjectCategorySchema.parse(item);
+                  const Icon = icons[category.icon] ?? Building2;
+                  return (
+                    <article className="dev-category">
+                      <Icon />
+                      <strong>{category.count}</strong>
+                      <h3>{category.title}</h3>
+                      <p>{category.description}</p>
+                      <button className="dev-button dev-outline-gold">
+                        {category.buttonLabel}
+                      </button>
+                    </article>
+                  );
+                }}
+              />
+            </div>
+            <h3 className="dev-subheading">{servicesHeader.featuredHeading}</h3>
+            <div className="dev-featured-grid">
+              <CollectionBoundary
+                id="development.projects.featured"
+                value={featured}
+                renderItem={(item) => {
+                  const project = developmentFeaturedProjectSchema.parse(item);
+                  return (
+                    <article>
+                      <img
+                        src={managedImage(project.image.key, featuredOne)}
+                        alt={project.imageAltText}
+                      />
+                      <div>
+                        <span>{project.type}</span>
+                        <h3>{project.title}</h3>
+                        <p>{project.location}</p>
+                      </div>
+                    </article>
+                  );
+                }}
+              />
+            </div>
           </div>
         </section>
 
         <section className="dev-section dev-partners">
           <div className="dev-container">
-            <Boundary id="development.partners.header">
+            <ObjectBoundary id="development.partners.header" value={partnersHeader}>
               <header className="dev-heading">
                 <span className="dev-pill dev-pill-blue">
-                  <Handshake /> Trusted Partnerships
+                  <Handshake /> {partnersHeader.eyebrow}
                 </span>
-                <h2>Builder &amp; Investor Partners</h2>
-                <p>
-                  We collaborate with trusted builders and investors to bring exceptional projects
-                  to life.
-                </p>
+                <h2>{partnersHeader.heading}</h2>
+                <p>{partnersHeader.description}</p>
               </header>
-            </Boundary>
-            <Boundary id="development.partners.items">
-              <div className="dev-partner-grid">
-                {[
-                  'Builder Partner 1',
-                  'Builder Partner 2',
-                  'Investor Partner 1',
-                  'Investor Partner 2',
-                  'Builder Partner 3',
-                  'Investor Partner 3',
-                ].map((name) => (
-                  <div key={name}>{name}</div>
-                ))}
-              </div>
-            </Boundary>
-            <Boundary id="development.partners.footer">
+            </ObjectBoundary>
+            <div className="dev-partner-grid">
+              <CollectionBoundary
+                id="development.partners.items"
+                value={partners}
+                renderItem={(item) => <div>{developmentPartnerSchema.parse(item).name}</div>}
+              />
+            </div>
+            <ObjectBoundary id="development.partners.footer" value={partnersFooter}>
               <p className="dev-partner-footer">
-                Interested in partnering with us? <a href="#contact">Get in touch</a>.
+                {partnersFooter.message} <a href="#contact">{partnersFooter.actionLabel}</a>.
               </p>
-            </Boundary>
+            </ObjectBoundary>
           </div>
         </section>
 
         <section id="team" className="dev-section dev-tint">
           <div className="dev-container">
-            <Boundary id="development.team.header">
+            <ObjectBoundary id="development.team.header" value={teamHeader}>
               <header className="dev-heading">
-                <span className="dev-pill">Our Team</span>
-                <h2>Development Team</h2>
-                <p>Meet the professionals driving TriCo’s development success.</p>
+                <span className="dev-pill">{teamHeader.eyebrow}</span>
+                <h2>{teamHeader.heading}</h2>
+                <p>{teamHeader.description}</p>
               </header>
-            </Boundary>
-            <Boundary id="development.team.members">
-              <div className="dev-team-grid">
-                {team.map((member) => (
-                  <article key={member.name}>
-                    <img src={member.image} alt={member.name} />
-                    <div>
-                      <h3>{member.name}</h3>
-                      <strong>{member.role}</strong>
-                      <p>{member.bio}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </Boundary>
+            </ObjectBoundary>
+            <div className="dev-team-grid">
+              <CollectionBoundary
+                id="development.team.members"
+                value={team}
+                renderItem={(item) => {
+                  const member = developmentTeamMemberSchema.parse(item);
+                  return (
+                    <article>
+                      <img
+                        src={managedImage(member.image.key, tricoLogo)}
+                        alt={member.imageAltText}
+                      />
+                      <div>
+                        <h3>{member.name}</h3>
+                        <strong>{member.role}</strong>
+                        <p>{member.bio}</p>
+                      </div>
+                    </article>
+                  );
+                }}
+              />
+            </div>
           </div>
         </section>
 
         <section id="about" className="dev-section">
           <div className="dev-container dev-about-grid">
             <div>
-              <Boundary id="development.about">
-                <span className="dev-pill">About TriCo Development</span>
-                <h2>Building Communities Since 1984</h2>
-                <p>
-                  For over four decades, TriCo Development has transformed raw land into vibrant
-                  neighborhoods and successful commercial centers.
-                </p>
-                <p>
-                  Deep local knowledge, strong contractor relationships, and a commitment to quality
-                  make us a trusted development partner.
-                </p>
-              </Boundary>
-              <Boundary id="development.about.highlights">
-                <ul className="dev-highlights">
-                  {[
-                    '40+ years of development experience in Utah',
-                    'Comprehensive services from land acquisition to completion',
-                    'Strong relationships with municipalities and contractors',
-                    'Successful residential and commercial projects',
-                    'Serving Utah, Idaho, and Arizona markets',
-                  ].map((item) => (
-                    <li key={item}>
-                      <CheckCircle2 /> {item}
-                    </li>
-                  ))}
-                </ul>
-              </Boundary>
-            </div>
-            <Boundary id="development.about.values">
-              <div className="dev-values">
-                {values.map((value) => (
-                  <article key={value.title}>
-                    <value.icon />
-                    <div>
-                      <h3>{value.title}</h3>
-                      <p>{value.description}</p>
-                    </div>
-                  </article>
-                ))}
+              <ObjectBoundary id="development.about" value={about}>
+                <span className="dev-pill">{about.eyebrow}</span>
+                <h2>{about.heading}</h2>
+                <p>{about.introduction}</p>
+                <p>{about.detail}</p>
+              </ObjectBoundary>
+              <div className="dev-highlights" role="list" aria-label="Development highlights">
+                <CollectionBoundary
+                  id="development.about.highlights"
+                  value={highlights}
+                  renderItem={(item) => {
+                    const highlight = developmentAboutHighlightSchema.parse(item);
+                    return (
+                      <div role="listitem">
+                        <CheckCircle2 /> {highlight.value}
+                      </div>
+                    );
+                  }}
+                />
               </div>
-            </Boundary>
+            </div>
+            <div className="dev-values">
+              <CollectionBoundary
+                id="development.about.values"
+                value={values}
+                renderItem={(item) => {
+                  const companyValue = developmentAboutValueSchema.parse(item);
+                  const Icon = icons[companyValue.icon] ?? Target;
+                  return (
+                    <article>
+                      <Icon />
+                      <div>
+                        <h3>{companyValue.title}</h3>
+                        <p>{companyValue.description}</p>
+                      </div>
+                    </article>
+                  );
+                }}
+              />
+            </div>
           </div>
         </section>
 
         <section id="reviews" className="dev-section dev-reviews">
           <div className="dev-container">
-            <Boundary id="development.reviews.header">
+            <ObjectBoundary id="development.reviews.header" value={reviewsHeader}>
               <header className="dev-heading">
-                <span className="dev-pill">We’d Love Your Feedback</span>
-                <h2>Leave Us a Review</h2>
-                <p>Your feedback helps others discover the TriCo difference.</p>
+                <span className="dev-pill">{reviewsHeader.eyebrow}</span>
+                <h2>{reviewsHeader.heading}</h2>
+                <p>{reviewsHeader.description}</p>
                 <div className="dev-stars">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <Star key={index} />
                   ))}
                 </div>
               </header>
-            </Boundary>
-            <Boundary id="development.reviews.platforms">
-              <div className="dev-review-grid">
-                {['Google', 'Facebook', 'Yelp'].map((name) => (
-                  <article className="dev-card" key={name}>
-                    <PenLine />
-                    <h3>{name}</h3>
-                    <p>Share your experience and help others make an informed decision.</p>
-                    <a className="dev-button dev-outline" href="#contact">
-                      Review on {name} <ExternalLink />
-                    </a>
-                  </article>
-                ))}
-              </div>
-            </Boundary>
-            <Boundary id="development.reviews.footer">
+            </ObjectBoundary>
+            <div className="dev-review-grid">
+              <CollectionBoundary
+                id="development.reviews.platforms"
+                value={reviews}
+                renderItem={(item) => {
+                  const review = developmentReviewPlatformSchema.parse(item);
+                  return (
+                    <article className="dev-card">
+                      <PenLine />
+                      <h3>{review.name}</h3>
+                      <p>{review.description}</p>
+                      {review.externalUrl === '' ? (
+                        <span>{reviewsHeader.unavailableLinkLabel}</span>
+                      ) : (
+                        <a
+                          className="dev-button dev-outline"
+                          href={review.externalUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {reviewsHeader.actionLabel} {review.name} <ExternalLink />
+                        </a>
+                      )}
+                    </article>
+                  );
+                }}
+              />
+            </div>
+            <ObjectBoundary id="development.reviews.footer" value={reviewsFooter}>
               <p className="dev-review-footer">
-                Prefer to share feedback privately? Email{' '}
-                <a href="mailto:Office@tricoinc.com">Office@tricoinc.com</a>.
+                {reviewsFooter.message}{' '}
+                <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a>.
               </p>
-            </Boundary>
+            </ObjectBoundary>
           </div>
         </section>
 
         <section id="contact" className="dev-section dev-contact">
           <div className="dev-container dev-contact-grid">
             <div>
-              <Boundary id="development.contact.header">
-                <span className="dev-pill">Contact Us</span>
-                <h2>Let’s Build Something Great Together</h2>
-                <p>
-                  Have land to develop or need the right development partner? Our team is ready to
-                  bring your vision to life.
-                </p>
-              </Boundary>
-              <Boundary id="development.contact.details">
+              <ObjectBoundary id="development.contact.header" value={contactHeader}>
+                <span className="dev-pill">{contactHeader.eyebrow}</span>
+                <h2>{contactHeader.heading}</h2>
+                <p>{contactHeader.description}</p>
+              </ObjectBoundary>
+              <ObjectBoundary id="development.contact.details" value={contact}>
                 <div className="dev-contact-list">
                   <div>
                     <MapPin />
                     <p>
-                      <strong>Office Location</strong>194 West 12650 South Suite 100
-                      <br />
-                      Draper, UT 84020
+                      <strong>{contact.locationLabel}</strong>
+                      {contact.address}
                     </p>
                   </div>
                   <div>
                     <Phone />
                     <p>
-                      <strong>Phone</strong>(801) 571-8833
+                      <strong>{contact.phoneLabel}</strong>
+                      {contact.phone}
                       <br />
-                      <small>Fax: (801) 571-9888</small>
+                      <small>
+                        {contact.faxLabel}: {contact.fax}
+                      </small>
                     </p>
                   </div>
                   <div>
                     <Mail />
                     <p>
-                      <strong>Email</strong>Office@tricoinc.com
+                      <strong>{contact.emailLabel}</strong>
+                      {contact.email}
                     </p>
                   </div>
                   <div>
                     <Clock />
                     <p>
-                      <strong>Office Hours</strong>Monday – Friday: 8am – 6pm
-                      <br />
-                      Saturday: 9am – 1pm
+                      <strong>{contact.officeHoursLabel}</strong>
+                      {contact.officeHours}
                     </p>
                   </div>
                 </div>
-              </Boundary>
+              </ObjectBoundary>
             </div>
             <DevelopmentContactForm />
           </div>
@@ -583,49 +679,52 @@ function DevelopmentBody(): React.JSX.Element {
       </main>
       <footer className="dev-footer">
         <div className="dev-container dev-footer-grid">
-          <Boundary id="development.footer.brand">
+          <ObjectBoundary id="development.footer.brand" value={footerBrand}>
             <div>
-              <img src={tricoLogo} alt="TriCo Development" />
-              <b>Development</b>
-              <p>
-                Utah’s trusted partner for land acquisition and residential and commercial
-                development for over 40 years.
-              </p>
+              <img
+                src={managedImage(footerBrand.logo.key, tricoLogo)}
+                alt={footerBrand.logoAltText}
+              />
+              <b>{footerBrand.divisionLabel}</b>
+              <p>{footerBrand.description}</p>
               <span>
-                <MapPin /> 194 W 12650 S Suite 100, Draper, UT 84020
+                <MapPin /> {footerBrand.address}
               </span>
               <span>
-                <Phone /> (801) 571-8833
+                <Phone /> {footerBrand.phone}
               </span>
               <span>
-                <Mail /> Office@tricoinc.com
+                <Mail /> {footerBrand.email}
               </span>
             </div>
-          </Boundary>
-          <Boundary id="development.footer.links">
-            <div>
-              <h3>Quick Links</h3>
-              {navLinks.slice(0, 5).map(([label, href]) => (
-                <a href={href} key={href}>
-                  {label}
-                </a>
-              ))}
-            </div>
-          </Boundary>
-          <Boundary id="development.footer.service-areas">
-            <div>
-              <h3>Service Areas</h3>
-              <p>Utah</p>
-              <p>Idaho</p>
-              <p>Arizona</p>
-            </div>
-          </Boundary>
+          </ObjectBoundary>
+          <div>
+            <h3>{footerBrand.linksHeading}</h3>
+            <CollectionBoundary
+              id="development.footer.links"
+              value={footerLinks}
+              renderItem={(item) => {
+                const link = developmentFooterLinkSchema.parse(item);
+                return <a href={anchor(link.destination)}>{link.label}</a>;
+              }}
+            />
+          </div>
+          <div>
+            <h3>{footerBrand.serviceAreasHeading}</h3>
+            <CollectionBoundary
+              id="development.footer.service-areas"
+              value={serviceAreas}
+              renderItem={(item) => (
+                <p>{developmentFooterServiceAreasSchema.element.parse(item).label}</p>
+              )}
+            />
+          </div>
         </div>
-        <Boundary id="development.footer.legal">
+        <ObjectBoundary id="development.footer.legal" value={footerLegal}>
           <p className="dev-copyright">
-            © {new Date().getFullYear()} TriCo Development. All rights reserved.
+            © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>
-        </Boundary>
+        </ObjectBoundary>
       </footer>
       <EditorToolbar />
     </div>

@@ -14,12 +14,18 @@ import {
 import legacyVisibleContentSeeds from '../seeds/legacy-visible-content.json' with { type: 'json' };
 import { homeV2SeedData } from '../seeds/home.js';
 import type { EntityEditorDefinition } from './editor-contracts.js';
-import { mergeEntityModules } from './editor-contracts.js';
+import { aggregateEntityModules, mergeEntityModules } from './editor-contracts.js';
 import { homeEntityModule } from './home.js';
 import { propertyManagementEntityModule } from './property-management.js';
 import { propertyManagementV2SeedData } from '../seeds/property-management.js';
 import { storageEntityModule } from './storage.js';
 import { storageV2SeedData } from '../seeds/storage.js';
+import { realEstateEntityModule } from './real-estate.js';
+import { realEstateV2SeedData } from '../seeds/real-estate.js';
+import { constructionEntityModule } from './construction.js';
+import { constructionV2SeedData } from '../seeds/construction.js';
+import { developmentEntityModule } from './development.js';
+import { developmentV2SeedData } from '../seeds/development.js';
 
 export const entityKindSchema = z.enum(['object', 'list']);
 
@@ -32,6 +38,7 @@ export const iconNameSchema = z.enum([
   'Calculator',
   'ClipboardCheck',
   'Clock',
+  'Compass',
   'CreditCard',
   'DollarSign',
   'Facebook',
@@ -46,6 +53,8 @@ export const iconNameSchema = z.enum([
   'Landmark',
   'LineChart',
   'Linkedin',
+  'Lock',
+  'Map',
   'MapPin',
   'MessageSquare',
   'Monitor',
@@ -1744,8 +1753,23 @@ export const legacyEntityDefinitions: readonly EntityDefinition[] = definitions;
 export const entityDefinitions: readonly EntityDefinition[] = mergeEntityModules(definitions, [
   homeEntityModule,
   propertyManagementEntityModule,
+  realEstateEntityModule,
+  constructionEntityModule,
   storageEntityModule,
+  developmentEntityModule,
 ]);
+
+export const entityViewCatalog = aggregateEntityModules(
+  [
+    homeEntityModule,
+    propertyManagementEntityModule,
+    realEstateEntityModule,
+    constructionEntityModule,
+    storageEntityModule,
+    developmentEntityModule,
+  ],
+  { coverage: 'complete', registry: entityDefinitions },
+).viewCatalog;
 
 const pageRoutes = {
   home: '/',
@@ -1772,13 +1796,19 @@ const semanticHomeSeeds: Readonly<Record<string, EditableValue>> = homeV2SeedDat
 const semanticPropertyManagementSeeds: Readonly<Record<string, EditableValue>> =
   propertyManagementV2SeedData;
 const semanticStorageSeeds: Readonly<Record<string, EditableValue>> = storageV2SeedData;
+const semanticRealEstateSeeds: Readonly<Record<string, EditableValue>> = realEstateV2SeedData;
+const semanticConstructionSeeds: Readonly<Record<string, EditableValue>> = constructionV2SeedData;
+const semanticDevelopmentSeeds: Readonly<Record<string, EditableValue>> = developmentV2SeedData;
 
 export const registrySeedData: Readonly<Record<EntityId, EditableValue>> = Object.fromEntries(
   entityDefinitions.map((definition) => {
     const seed =
       semanticHomeSeeds[definition.id] ??
       semanticPropertyManagementSeeds[definition.id] ??
+      semanticRealEstateSeeds[definition.id] ??
+      semanticConstructionSeeds[definition.id] ??
       semanticStorageSeeds[definition.id] ??
+      semanticDevelopmentSeeds[definition.id] ??
       uncheckedSeedData[definition.id];
     definition.schema.parse(seed);
     return [definition.id, editableValueSchema.parse(seed)] as const;

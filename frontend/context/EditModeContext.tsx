@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { editableValueSchema, type EditableValue } from '@app/schemas';
 
 import type { PageId } from '../pages/pageContent.js';
+import { MediaLibraryDialog } from '../components/MediaLibraryDialog.js';
 import { fetchAuthSession } from '../services/auth.js';
 import {
   discardEntityChange,
@@ -10,10 +11,15 @@ import {
   fetchCsrfToken,
   fetchPendingChanges,
   fetchPreviewDisabled,
+  fetchMediaLibrary,
+  requestMediaUpload,
+  uploadMedia,
+  confirmMediaUpload,
   publishChanges,
   saveEntityChange,
   setPreviewDisabled,
   type PendingChange,
+  type MediaAsset,
 } from '../services/cms.js';
 import { EditModeContext, type EditModeValue } from './editMode.js';
 
@@ -33,14 +39,22 @@ export function EditModeProvider({
   const [csrfToken, setCsrfToken] = useState<string>();
   const [disabledEntityIds, setDisabledEntityIds] = useState<ReadonlySet<string>>(() => new Set());
   const [message, setMessage] = useState<string>();
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const mediaSelection = useRef<((asset: MediaAsset) => void) | undefined>(undefined);
+
+  const getCsrfToken = useCallback(async (): Promise<string> => {
+    if (csrfToken !== undefined) return csrfToken;
+    const token = await fetchCsrfToken();
+    setCsrfToken(token);
+    return token;
+  }, [csrfToken]);
 
   const perform = useCallback(
     async (operation: (token: string) => Promise<void>): Promise<void> => {
       setBusy(true);
       setMessage(undefined);
       try {
-        const token = csrfToken ?? (await fetchCsrfToken());
-        if (csrfToken === undefined) setCsrfToken(token);
+        const token = await getCsrfToken();
         await operation(token);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'The request could not be completed.');
@@ -49,8 +63,18 @@ export function EditModeProvider({
         setBusy(false);
       }
     },
-    [csrfToken],
+    [getCsrfToken],
   );
+
+  const requestMedia = useCallback((onSelect: (asset: MediaAsset) => void): void => {
+    mediaSelection.current = onSelect;
+    setMediaOpen(true);
+  }, []);
+
+  const closeMedia = useCallback((): void => {
+    setMediaOpen(false);
+    mediaSelection.current = undefined;
+  }, []);
 
   const enter = useCallback(async (): Promise<void> => {
     try {
@@ -192,6 +216,7 @@ export function EditModeProvider({
       togglePreview,
       setViewingPublic,
       publishAll,
+      requestMedia,
     }),
     [
       active,
@@ -209,7 +234,30 @@ export function EditModeProvider({
       togglePreview,
       setViewingPublic,
       publishAll,
+      requestMedia,
     ],
   );
-  return <EditModeContext.Provider value={value}>{children}</EditModeContext.Provider>;
+  return (
+    <EditModeContext.Provider value={value}>
+      {children}
+      <MediaLibraryDialog
+        open={mediaOpen}
+        onClose={closeMedia}
+        onSelect={(asset) => {
+          mediaSelection.current?.(asset);
+          closeMedia();
+        }}
+        loadPage={(cursor) => fetchMediaLibrary(cursor)}
+        requestUpload={async (file) =>
+          requestMediaUpload(file, { csrfToken: await getCsrfToken() })
+        }
+        upload={uploadMedia}
+        confirmUpload={async (uploadId, name, altText) =>
+          confirmMediaUpload(uploadId, name, altText, {
+            csrfToken: await getCsrfToken(),
+          })
+        }
+      />
+    </EditModeContext.Provider>
+  );
 }

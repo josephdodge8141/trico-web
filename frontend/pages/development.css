@@ -41,6 +41,16 @@
 .dev-entity-slot > [data-entity-boundary='true']:not(.editable-boundary) {
   display: contents;
 }
+.dev-hero-entity-slot > .editable-boundary > .editable-boundary-controls {
+  z-index: 75;
+  top: 156px;
+}
+.dev-page .dev-collection-slot,
+.dev-page .dev-collection-slot > div,
+.dev-page .dev-collection-slot .editable-collection-items,
+.dev-page .dev-collection-slot .editable-collection-items > div:not(.editable-item) {
+  display: contents !important;
+}
 .dev-anniversary {
   position: fixed;
   z-index: 60;
@@ -526,7 +536,7 @@
   padding: 0;
   list-style: none;
 }
-.dev-highlights li {
+.dev-highlights [role='listitem'] {
   display: flex;
   align-items: center;
   gap: 0.65rem;

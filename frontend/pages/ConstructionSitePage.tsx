@@ -30,6 +30,47 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  constructionAboutFeaturesSchema,
+  constructionAboutSchema,
+  constructionAnniversaryBannerSchema,
+  constructionBidHeaderSchema,
+  constructionCareerBenefitsSchema,
+  constructionCareersHeaderSchema,
+  constructionContactDetailsSchema,
+  constructionContactHeaderSchema,
+  constructionEntityDefinitions,
+  constructionFooterBrandSchema,
+  constructionFooterLegalSchema,
+  constructionFooterLicensesSchema,
+  constructionFooterLinksSchema,
+  constructionHeaderSchema,
+  constructionHeroSchema,
+  constructionHeroStatsSchema,
+  constructionPlanRoomAccessSchema,
+  constructionPlanRoomHeaderSchema,
+  constructionPlanRoomRequestSchema,
+  constructionPlanSetsSchema,
+  constructionPositionsSchema,
+  constructionProjectCategorySchema,
+  constructionProjectsHeaderSchema,
+  constructionProsHeaderSchema,
+  constructionProsItemsSchema,
+  constructionProStatsSchema,
+  constructionReviewPlatformsSchema,
+  constructionReviewsFooterSchema,
+  constructionReviewsHeaderSchema,
+  constructionServicesHeaderSchema,
+  constructionServicesItemsSchema,
+  constructionTeamHeaderSchema,
+  constructionTeamMembersSchema,
+  constructionV2SeedData,
+  constructionWorkersSchema,
+  editableValueSchema,
+  type EditableValue,
+  type PageContent,
+  type SemanticEntityDefinition,
+} from '@app/schemas';
 
 import cayliePhoto from '../assets/images/caylie-disney.jpg';
 import crewOne from '../assets/images/construction-crew-1.jpg';
@@ -37,114 +78,132 @@ import crewTwo from '../assets/images/construction-crew-2.jpg';
 import katiePhoto from '../assets/images/katie-thompson.jpg';
 import randyPhoto from '../assets/images/randy-rimmer.png';
 import tricoLogo from '../assets/images/trico-logo.png';
-import { EditableEntity } from '../components/EditableEntity.js';
+import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
+import { EditableCollection } from '../components/EditableCollection.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
+import { parseConstructionValue } from './constructionContent.js';
 import './construction.css';
 
-const categories = [
-  ['multi-family', 'Multi Family', 'Apartments, townhomes, and condominium communities.'],
-  ['retail', 'Retail', 'Shopping centers, pads, and tenant spaces.'],
-  ['office-ti', 'Office / TI', 'Ground-up offices and tenant improvement build-outs.'],
-  ['medical-dental', 'Medical / Dental', 'Clinics, dental suites, and specialty facilities.'],
-  ['industrial', 'Industrial', 'Warehouse, flex, and manufacturing facilities.'],
-  ['storage', 'Storage', 'Self-storage and RV or boat storage facilities.'],
-  ['subdivisions', 'Subdivisions', 'Residential subdivisions and final lot delivery.'],
-  ['underground', 'Underground', 'Wet and dry utilities, storm drain, sewer, and infrastructure.'],
+type ConstructionEntityId = (typeof constructionEntityDefinitions)[number]['id'];
+const categorySlugs = [
+  'multi-family',
+  'retail',
+  'office-ti',
+  'medical-dental',
+  'industrial',
+  'storage',
+  'subdivisions',
+  'underground',
 ] as const;
+const icons: Readonly<Record<string, LucideIcon>> = {
+  ArrowRight,
+  Award,
+  Boxes,
+  Building,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  FileText,
+  FolderOpen,
+  HardHat,
+  Home,
+  Lock,
+  Shield,
+  Shovel,
+  TrendingUp,
+  Users,
+  Warehouse,
+  Wrench,
+};
+const images: Readonly<Record<string, string>> = {
+  'media/seed/trico-logo.png': tricoLogo,
+  'media/seed/construction-crew-1.jpg': crewOne,
+  'media/seed/construction-crew-2.jpg': crewTwo,
+  'media/seed/randy-rimmer.png': randyPhoto,
+  'media/seed/katie-thompson.jpg': katiePhoto,
+  'media/seed/caylie-disney.jpg': cayliePhoto,
+};
+const constructionImage = (key: string, fallback: string): string =>
+  images[key] ??
+  (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : fallback);
 
-const services: readonly [LucideIcon, string, string][] = [
-  [
-    Boxes,
-    'Concrete',
-    'Expert foundations, flatwork, retaining walls, and decorative concrete for residential and commercial projects.',
-  ],
-  [
-    Building2,
-    'Multi-Housing',
-    'Complete multi-family construction from ground-up builds to major apartment, condo, and townhome renovations.',
-  ],
-  [
-    Shovel,
-    'Underground Utilities',
-    'Professional water, sewer, storm drain, and utility infrastructure installation.',
-  ],
-  [
-    Wrench,
-    'Excavation',
-    'Site preparation, grading, trenching, and earthwork for projects of every size.',
-  ],
-  [
-    Home,
-    'Office Construction & Remodels',
-    'Commercial offices and tenant improvements tailored to business needs.',
-  ],
-  [
-    Warehouse,
-    'Storage Facilities',
-    'Design-build services for climate-controlled and traditional self-storage facilities.',
-  ],
-];
-
-const plans = [
-  ['Draper Mixed-Use Development', 'TCC-2026-014', 'Aug 12, 2026', '42 sheets', 'Rev D'],
-  ['Lehi Multi-Housing Phase II', 'TCC-2026-011', 'Aug 5, 2026', '36 sheets', 'Rev B'],
-  ['Saratoga Springs Storage Facility', 'TCC-2026-009', 'Jul 28, 2026', '24 sheets', 'Rev C'],
-  ['Tucson Commercial Office Build-Out', 'TCC-2026-007', 'Jul 19, 2026', '31 sheets', 'Rev A'],
-] as const;
-
-const pros: readonly [LucideIcon, string, string][] = [
-  [
-    HardHat,
-    'Experienced Crews',
-    'Decades of combined experience ensure quality workmanship from start to finish.',
-  ],
-  [
-    Award,
-    'Licensed & Insured',
-    'Licensed in Utah, Arizona, and Idaho with comprehensive insurance coverage.',
-  ],
-  [Clock, 'On-Time Delivery', 'Disciplined project management keeps construction on schedule.'],
-  [Shield, 'Safety First', 'Zero-compromise safety protocols protect workers and property.'],
-  [
-    Users,
-    'Dedicated Project Managers',
-    'One point of contact keeps communication clear from bid to completion.',
-  ],
-  [
-    Wrench,
-    'Quality Equipment',
-    'Modern, well-maintained equipment supports efficient, high-quality results.',
-  ],
-];
-
-const team = [
-  ['Randy Rimmer', 'Vice President', randyPhoto, 'randy@tricoinc.com'],
-  ['Katie Thompson', 'Project Coordinator', katiePhoto, ''],
-  ['Caylie Disney', 'Equipment Assistant', cayliePhoto, ''],
-] as const;
-
-const benefits: readonly [LucideIcon, string, string][] = [
-  [TrendingUp, 'Career Growth', 'Training and promotion opportunities'],
-  [Users, 'Great Team', 'Experienced professionals in a supportive environment'],
-  [Shield, 'Competitive Benefits', 'Health insurance, 401k, paid time off, and more'],
-];
-
-function Entity({
+function definition(id: ConstructionEntityId): SemanticEntityDefinition {
+  const found = constructionEntityDefinitions.find((candidate) => candidate.id === id);
+  if (found === undefined) throw new Error(`Construction editor definition missing for ${id}`);
+  return found;
+}
+function ownership(
+  id: ConstructionEntityId,
+  editing: ReturnType<typeof useEditMode>,
+): EditorOwnership {
+  const pending = editing.pending.find((change) => change.entityId === id);
+  return pending === undefined
+    ? 'available'
+    : pending.authorId === editing.currentUserId
+      ? 'mine'
+      : 'other';
+}
+function ObjectBoundary({
   id,
   value,
   children,
 }: {
-  readonly id: string;
+  readonly id: ConstructionEntityId;
   readonly value: unknown;
   readonly children: React.ReactNode;
 }): React.JSX.Element {
+  const editing = useEditMode();
   return (
-    <EditableEntity entityId={id} value={value}>
-      {children}
-    </EditableEntity>
+    <div
+      className={`co-entity-slot${id === 'construction.hero' ? ' co-hero-entity-slot' : ''}`}
+      data-construction-entity-boundary="true"
+    >
+      <EditableBoundary
+        active={editing.active}
+        definition={definition(id)}
+        value={editableValueSchema.parse(value)}
+        ownership={ownership(id, editing)}
+        busy={editing.busy}
+        onSave={(next) => editing.save(id, next)}
+        onReloadLatest={() => editing.reload(id)}
+      >
+        {children}
+      </EditableBoundary>
+    </div>
+  );
+}
+
+function CollectionBoundary({
+  id,
+  value,
+  renderItem,
+}: {
+  readonly id: ConstructionEntityId;
+  readonly value: readonly EditableValue[];
+  readonly renderItem: (item: EditableValue, index: number) => React.ReactNode;
+}): React.JSX.Element {
+  const editing = useEditMode();
+  return (
+    <div
+      className="co-entity-slot"
+      data-construction-entity-boundary="true"
+      data-entity-boundary="true"
+    >
+      <EditableCollection
+        active={editing.active}
+        definition={definition(id)}
+        value={value}
+        renderItem={renderItem}
+        ownership={ownership(id, editing)}
+        busy={editing.busy}
+        onSave={(next) => editing.save(id, next)}
+        onReloadLatest={() => editing.reload(id)}
+      />
+    </div>
   );
 }
 
@@ -251,60 +310,106 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
 
 function ConstructionBody(): React.JSX.Element {
   const editing = useEditMode();
+  const [document, setDocument] = useState<PageContent>({});
   const [menuOpen, setMenuOpen] = useState(false);
   const [fallback, setFallback] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const loader = editing.active ? fetchPreviewPageDocument : fetchPublicPageDocument;
     void loader('construction', { signal: controller.signal })
-      .then(() => {
-        if (!controller.signal.aborted) setFallback(false);
+      .then((next) => {
+        if (!controller.signal.aborted) {
+          setDocument(next);
+          setFallback(false);
+        }
       })
       .catch(() => {
-        if (!controller.signal.aborted) setFallback(true);
+        if (!controller.signal.aborted) {
+          setDocument({});
+          setFallback(true);
+        }
       });
     return () => controller.abort();
   }, [editing.active, editing.disabledEntityIds, editing.pending]);
-  const nav = [
-    ['Services', 'services'],
-    ['Projects', 'projects'],
-    ['Plan Room', 'plan-room'],
-    ["Our Pro's", 'pros'],
-    ['Our Team', 'team'],
-    ['Get a Bid', 'bid'],
-    ['Careers', 'careers'],
-    ['Contact', 'contact'],
-  ] as const;
+  const value = <Output,>(
+    id: keyof typeof constructionV2SeedData,
+    parser: { parse(value: unknown): Output },
+  ): Output => parseConstructionValue(document, id, parser);
+  const banner = value('construction.anniversary-banner', constructionAnniversaryBannerSchema);
+  const header = value('construction.header', constructionHeaderSchema);
+  const hero = value('construction.hero', constructionHeroSchema);
+  const heroStats = value('construction.hero.stats', constructionHeroStatsSchema);
+  const servicesHeader = value('construction.services.header', constructionServicesHeaderSchema);
+  const services = value('construction.services.items', constructionServicesItemsSchema);
+  const currentHeader = value(
+    'construction.current-projects.header',
+    constructionProjectsHeaderSchema,
+  );
+  const completedHeader = value(
+    'construction.completed-projects.header',
+    constructionProjectsHeaderSchema,
+  );
+  const planHeader = value('construction.plan-room.header', constructionPlanRoomHeaderSchema);
+  const planAccess = value(
+    'construction.plan-room.access-notice',
+    constructionPlanRoomAccessSchema,
+  );
+  const plans = value('construction.plan-room.plan-sets', constructionPlanSetsSchema);
+  const planRequest = value(
+    'construction.plan-room.request-access',
+    constructionPlanRoomRequestSchema,
+  );
+  const prosHeader = value('construction.pros.header', constructionProsHeaderSchema);
+  const pros = value('construction.pros.items', constructionProsItemsSchema);
+  const proStats = value('construction.pros.stats', constructionProStatsSchema);
+  const teamHeader = value('construction.team.header', constructionTeamHeaderSchema);
+  const team = value('construction.team.members', constructionTeamMembersSchema);
+  const workers = value('construction.workers', constructionWorkersSchema);
+  const about = value('construction.about', constructionAboutSchema);
+  const aboutFeatures = value('construction.about.features', constructionAboutFeaturesSchema);
+  const bidHeader = value('construction.bid.header', constructionBidHeaderSchema);
+  const careersHeader = value('construction.careers.header', constructionCareersHeaderSchema);
+  const benefits = value('construction.careers.benefits', constructionCareerBenefitsSchema);
+  const positions = value('construction.careers.open-positions', constructionPositionsSchema);
+  const reviewsHeader = value('construction.reviews.header', constructionReviewsHeaderSchema);
+  const reviews = value('construction.reviews.platforms', constructionReviewPlatformsSchema);
+  const reviewsFooter = value('construction.reviews.footer', constructionReviewsFooterSchema);
+  const contactHeader = value('construction.contact.header', constructionContactHeaderSchema);
+  const contact = value('construction.contact.details', constructionContactDetailsSchema);
+  const footerBrand = value('construction.footer.brand', constructionFooterBrandSchema);
+  const footerLinks = value('construction.footer.links', constructionFooterLinksSchema);
+  const footerLicenses = value('construction.footer.licenses', constructionFooterLicensesSchema);
+  const footerLegal = value('construction.footer.legal', constructionFooterLegalSchema);
   return (
     <div className="co-page">
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
-      <Entity id="construction.anniversary-banner" value={{ message: '40+ Years of Excellence' }}>
+      <ObjectBoundary id="construction.anniversary-banner" value={banner}>
         <div className="co-anniversary">
-          ✦ <strong>40+ Years of Excellence</strong> ✦
+          ✦ <strong>{banner.message}</strong> ✦
         </div>
-      </Entity>
-      <Entity id="construction.header" value={{ nav }}>
+      </ObjectBoundary>
+      <ObjectBoundary id="construction.header" value={header}>
         <header className="co-header">
           <div className="co-container co-header-inner">
             <Link className="co-brand" to="/">
-              <img src={tricoLogo} alt="TriCo Construction" />
-              <strong>Construction</strong>
+              <img src={constructionImage(header.logo.key, tricoLogo)} alt={header.logoAltText} />
+              <strong>{header.divisionLabel}</strong>
             </Link>
             <nav aria-label="Primary navigation">
-              {nav.map(([label, anchor]) => (
-                <a key={anchor} href={`#${anchor}`}>
-                  {label}
+              {header.navLinks.map((item) => (
+                <a key={item.id} href={`#${item.destination}`}>
+                  {item.label}
                 </a>
               ))}
             </nav>
             <div className="co-header-actions">
-              <a href="tel:8015718833">
-                <Phone /> (801) 571-8833
+              <a href={`tel:${header.phone.replace(/[^\d+]/g, '')}`}>
+                <Phone /> {header.phone}
               </a>
               <a className="co-button co-button-blue" href="#contact">
-                Get Quote
+                {header.actionLabel}
               </a>
             </div>
             <button
@@ -319,103 +424,104 @@ function ConstructionBody(): React.JSX.Element {
           </div>
           {menuOpen ? (
             <nav className="co-mobile-nav" aria-label="Mobile navigation">
-              {nav.map(([label, anchor]) => (
-                <a key={anchor} href={`#${anchor}`} onClick={() => setMenuOpen(false)}>
-                  {label}
+              {header.navLinks.map((item) => (
+                <a key={item.id} href={`#${item.destination}`} onClick={() => setMenuOpen(false)}>
+                  {item.label}
                 </a>
               ))}
-              <a href="tel:8015718833">(801) 571-8833</a>
+              <a href={`tel:${header.phone.replace(/[^\d+]/g, '')}`}>{header.phone}</a>
             </nav>
           ) : null}
         </header>
-      </Entity>
+      </ObjectBoundary>
       {fallback ? (
         <div className="content-notice" role="status">
           Showing the checked-in site content while published content is unavailable.
         </div>
       ) : null}
       <main id="main-content">
-        <Entity id="construction.hero" value={{ heading: 'Building The Future' }}>
+        <ObjectBoundary id="construction.hero" value={hero}>
           <section className="co-hero">
             <div className="co-container co-hero-grid">
               <div>
                 <div className="co-pills">
                   <span>
-                    <HardHat /> Premier Construction Partner
+                    <HardHat /> {hero.primaryBadge}
                   </span>
-                  <span>Servicing Utah, Idaho & Arizona</span>
+                  <span>{hero.serviceAreaBadge}</span>
                 </div>
-                <h1>Building The Future</h1>
-                <h2>in Utah, Idaho & Arizona</h2>
-                <h3>Every Phase. Every Detail. Our Work Matters.</h3>
-                <p>
-                  From concrete foundations to complete commercial builds, TriCo Construction
-                  delivers quality craftsmanship and reliable results on every project.
-                </p>
+                <h1>{hero.heading}</h1>
+                <h2>{hero.locationHeading}</h2>
+                <h3>{hero.promise}</h3>
+                <p>{hero.description}</p>
                 <div className="co-actions">
                   <a className="co-button co-button-gold" href="#contact">
-                    Get a Quote <ArrowRight />
+                    {hero.primaryActionLabel} <ArrowRight />
                   </a>
                   <a className="co-button co-button-outline" href="#services">
-                    Our Services
+                    {hero.secondaryActionLabel}
                   </a>
                 </div>
-                <Entity id="construction.hero.stats" value={['40+', '500+', '3']}>
-                  <div className="co-hero-stats">
-                    {[
-                      [Clock, '40+', 'Years Experience'],
-                      [Building, '500+', 'Projects Completed'],
-                      [HardHat, '3', 'States Served'],
-                    ].map(([Icon, value, label]) => {
-                      const StatIcon = Icon as LucideIcon;
+                <div className="co-hero-stats">
+                  <CollectionBoundary
+                    id="construction.hero.stats"
+                    value={heroStats}
+                    renderItem={(item) => {
+                      const stat = constructionHeroStatsSchema.element.parse(item);
+                      const StatIcon = icons[stat.icon] ?? Building;
                       return (
-                        <div key={String(label)}>
+                        <div>
                           <strong>
                             <StatIcon />
-                            {String(value)}
+                            {stat.value}
                           </strong>
-                          <span>{String(label)}</span>
+                          <span>{stat.label}</span>
                         </div>
                       );
-                    })}
-                  </div>
-                </Entity>
+                    }}
+                  />
+                </div>
               </div>
-              <img src={crewOne} alt="TriCo construction crew standing outdoors" />
+              <img src={constructionImage(hero.image.key, crewOne)} alt={hero.imageAltText} />
             </div>
           </section>
-        </Entity>
+        </ObjectBoundary>
 
         <section className="co-section co-tint" id="services">
           <div className="co-container">
-            <Entity
-              id="construction.services.header"
-              value={{ heading: 'Comprehensive Construction Solutions' }}
-            >
+            <ObjectBoundary id="construction.services.header" value={servicesHeader}>
               <Heading
-                eyebrow="Our Services"
-                title="Comprehensive Construction Solutions"
-                copy="From site preparation to final finishes, TriCo Construction delivers quality craftsmanship across Utah, Arizona, and Idaho."
+                eyebrow={servicesHeader.eyebrow}
+                title={servicesHeader.heading}
+                copy={servicesHeader.description}
               />
-            </Entity>
-            <Entity id="construction.services.items" value={services.map(([, title]) => title)}>
-              <div className="co-card-grid">
-                {services.map(([Icon, title, copy]) => (
-                  <article className="co-card" key={title}>
-                    <i>
-                      <Icon />
-                    </i>
-                    <h3>{title}</h3>
-                    <p>{copy}</p>
-                  </article>
-                ))}
-              </div>
-            </Entity>
+            </ObjectBoundary>
+            <div className="co-card-grid">
+              <CollectionBoundary
+                id="construction.services.items"
+                value={services}
+                renderItem={(item) => {
+                  const service = constructionServicesItemsSchema.element.parse(item);
+                  const Icon = icons[service.icon] ?? Building2;
+                  return (
+                    <article className="co-card">
+                      <i>
+                        <Icon />
+                      </i>
+                      <h3>{service.title}</h3>
+                      <p>{service.description}</p>
+                    </article>
+                  );
+                }}
+              />
+            </div>
           </div>
         </section>
 
         {(['current', 'completed'] as const).map((status) => {
-          const prefix = `construction.${status === 'current' ? 'current-projects' : 'completed-projects'}`;
+          const group = status === 'current' ? 'current-projects' : 'completed-projects';
+          const prefix = `construction.${group}` as const;
+          const sectionHeader = status === 'current' ? currentHeader : completedHeader;
           return (
             <section
               className={`co-section ${status === 'completed' ? 'co-soft' : ''}`}
@@ -423,25 +529,29 @@ function ConstructionBody(): React.JSX.Element {
               key={status}
             >
               <div className="co-container">
-                <Entity id={`${prefix}.header`} value={{ status }}>
+                <ObjectBoundary id={`${prefix}.header`} value={sectionHeader}>
                   <Heading
-                    eyebrow={status === 'current' ? 'Current Projects' : 'Completed Projects'}
-                    title="Built Across Every Sector"
-                    copy={`Select a sector to view our ${status === 'current' ? 'active construction projects' : 'completed work'}.`}
+                    eyebrow={sectionHeader.eyebrow}
+                    title={sectionHeader.heading}
+                    copy={sectionHeader.description}
                   />
-                </Entity>
+                </ObjectBoundary>
                 <div className="co-sector-grid">
-                  {categories.map(([slug, label, blurb]) => (
-                    <Entity key={slug} id={`${prefix}.category.${slug}`} value={{ label, blurb }}>
-                      <Link className="co-sector" to={`/construction/${status}/${slug}`}>
-                        <h3>{label}</h3>
-                        <p>{blurb}</p>
-                        <span>
-                          View projects <ArrowRight />
-                        </span>
-                      </Link>
-                    </Entity>
-                  ))}
+                  {categorySlugs.map((slug) => {
+                    const entityId = `${prefix}.category.${slug}` as ConstructionEntityId;
+                    const category = value(entityId, constructionProjectCategorySchema);
+                    return (
+                      <ObjectBoundary key={slug} id={entityId} value={category}>
+                        <Link className="co-sector" to={`/construction/${status}/${slug}`}>
+                          <h3>{category.label}</h3>
+                          <p>{category.blurb}</p>
+                          <span>
+                            {sectionHeader.cardActionLabel} <ArrowRight />
+                          </span>
+                        </Link>
+                      </ObjectBoundary>
+                    );
+                  })}
                 </div>
               </div>
             </section>
@@ -450,220 +560,225 @@ function ConstructionBody(): React.JSX.Element {
 
         <section className="co-section co-tint" id="plan-room">
           <div className="co-container">
-            <Entity id="construction.plan-room.header" value={{ heading: 'Plan Room' }}>
+            <ObjectBoundary id="construction.plan-room.header" value={planHeader}>
               <Heading
-                eyebrow="Subcontractor Access"
-                title="Plan Room"
-                copy="Current subcontractors can access the latest project plans, drawings, and specifications. Always confirm you are working from the latest set."
+                eyebrow={planHeader.eyebrow}
+                title={planHeader.heading}
+                copy={planHeader.description}
               />
-            </Entity>
-            <Entity id="construction.plan-room.access-notice" value={{ heading: 'Login Required' }}>
+            </ObjectBoundary>
+            <ObjectBoundary id="construction.plan-room.access-notice" value={planAccess}>
               <div className="co-notice">
-                <Lock />
+                {(() => {
+                  const Icon = icons[planAccess.icon] ?? Lock;
+                  return <Icon />;
+                })()}
                 <div>
-                  <h3>Login Required</h3>
-                  <p>
-                    Plan access is restricted to approved subcontractors and vendors. Request
-                    credentials below.
-                  </p>
+                  <h3>{planAccess.heading}</h3>
+                  <p>{planAccess.description}</p>
                 </div>
               </div>
-            </Entity>
+            </ObjectBoundary>
             <h3 className="co-subheading">
-              <FolderOpen /> Current Project Plans
+              <FolderOpen /> {planHeader.planListHeading}
             </h3>
-            <Entity id="construction.plan-room.plan-sets" value={plans.map(([name]) => name)}>
-              <div className="co-plan-grid">
-                {plans.map(([name, number, date, sheets, rev]) => (
-                  <article className="co-plan" key={number}>
-                    <header>
-                      <i>
-                        <FileText />
-                      </i>
+            <div className="co-plan-grid">
+              <CollectionBoundary
+                id="construction.plan-room.plan-sets"
+                value={plans}
+                renderItem={(item) => {
+                  const plan = constructionPlanSetsSchema.element.parse(item);
+                  return (
+                    <article className="co-plan">
+                      <header>
+                        <i>
+                          <FileText />
+                        </i>
+                        <div>
+                          <h3>{plan.name}</h3>
+                          <small>{plan.projectNumber}</small>
+                        </div>
+                        <b>{plan.latestRevision}</b>
+                      </header>
+                      <p>
+                        <Calendar /> {plan.lastUpdated} <FileText /> {plan.sheetCount} sheets
+                      </p>
                       <div>
-                        <h3>{name}</h3>
-                        <small>{number}</small>
+                        <button type="button">{planHeader.viewPlansLabel}</button>
+                        <button type="button">
+                          {planHeader.specificationsLabel} <ExternalLink />
+                        </button>
                       </div>
-                      <b>{rev}</b>
-                    </header>
-                    <p>
-                      <Calendar /> {date} <FileText /> {sheets}
-                    </p>
-                    <div>
-                      <button type="button">View Plans</button>
-                      <button type="button">
-                        Specs <ExternalLink />
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </Entity>
-            <Entity
-              id="construction.plan-room.request-access"
-              value={{ heading: 'Need Plan Room Access?' }}
-            >
+                    </article>
+                  );
+                }}
+              />
+            </div>
+            <ObjectBoundary id="construction.plan-room.request-access" value={planRequest}>
               <div className="co-plan-access">
-                <h3>Need Plan Room Access?</h3>
-                <p>
-                  Subcontractors and vendors can request login credentials to view the latest
-                  drawings.
-                </p>
+                <h3>{planRequest.heading}</h3>
+                <p>{planRequest.description}</p>
                 <a
                   className="co-button co-button-blue"
-                  href="mailto:Office@tricoinc.com?subject=Plan%20Room%20Access%20Request"
+                  href={`mailto:${planRequest.email}?subject=Plan%20Room%20Access%20Request`}
                 >
-                  Request Access <ArrowRight />
+                  {planRequest.actionLabel} <ArrowRight />
                 </a>
               </div>
-            </Entity>
+            </ObjectBoundary>
           </div>
         </section>
 
         <section className="co-section" id="pros">
           <div className="co-container">
-            <Entity id="construction.pros.header" value={{ heading: "Our Pro's" }}>
+            <ObjectBoundary id="construction.pros.header" value={prosHeader}>
               <Heading
-                eyebrow="Why Choose TriCo"
-                title="Our Pro's"
-                copy="With 40+ years building across the Mountain West, this is what sets TriCo Construction apart."
+                eyebrow={prosHeader.eyebrow}
+                title={prosHeader.heading}
+                copy={prosHeader.description}
               />
-            </Entity>
-            <Entity id="construction.pros.items" value={pros.map(([, title]) => title)}>
-              <div className="co-card-grid">
-                {pros.map(([Icon, title, copy]) => (
-                  <article className="co-card" key={title}>
-                    <i className="co-blue-icon">
-                      <Icon />
-                    </i>
-                    <h3>{title}</h3>
-                    <p>{copy}</p>
-                  </article>
-                ))}
-              </div>
-            </Entity>
-            <Entity id="construction.pros.stats" value={['40+', '500+', '3', '100%']}>
-              <div className="co-pro-stats">
-                {[
-                  ['40+', 'Years Experience'],
-                  ['500+', 'Projects Completed'],
-                  ['3', 'States Served'],
-                  ['100%', 'Client Focused'],
-                ].map(([value, label]) => (
-                  <div key={label}>
-                    <strong>{value}</strong>
-                    <span>{label}</span>
-                  </div>
-                ))}
-              </div>
-            </Entity>
+            </ObjectBoundary>
+            <div className="co-card-grid">
+              <CollectionBoundary
+                id="construction.pros.items"
+                value={pros}
+                renderItem={(item) => {
+                  const pro = constructionProsItemsSchema.element.parse(item);
+                  const Icon = icons[pro.icon] ?? Award;
+                  return (
+                    <article className="co-card">
+                      <i className="co-blue-icon">
+                        <Icon />
+                      </i>
+                      <h3>{pro.title}</h3>
+                      <p>{pro.description}</p>
+                    </article>
+                  );
+                }}
+              />
+            </div>
+            <div className="co-pro-stats">
+              <CollectionBoundary
+                id="construction.pros.stats"
+                value={proStats}
+                renderItem={(item) => {
+                  const stat = constructionProStatsSchema.element.parse(item);
+                  return (
+                    <div>
+                      <strong>{stat.value}</strong>
+                      <span>{stat.label}</span>
+                    </div>
+                  );
+                }}
+              />
+            </div>
           </div>
         </section>
 
         <section className="co-section co-soft" id="team">
           <div className="co-container">
-            <Entity id="construction.team.header" value={{ heading: 'Our Construction Experts' }}>
+            <ObjectBoundary id="construction.team.header" value={teamHeader}>
               <Heading
-                eyebrow="Our Team"
-                title="Our Construction Experts"
-                copy="Experienced professionals who lead every project with dedication and a commitment to excellence."
+                eyebrow={teamHeader.eyebrow}
+                title={teamHeader.heading}
+                copy={teamHeader.description}
               />
-            </Entity>
-            <Entity id="construction.team.members" value={team.map(([name]) => name)}>
-              <div className="co-team-grid">
-                {team.map(([name, title, photo, email]) => (
-                  <article className="co-team-card" key={name}>
-                    <img src={photo} alt={name} />
-                    <h3>{name}</h3>
-                    <strong>{title}</strong>
-                    {email === '' ? null : (
-                      <a href={`mailto:${email}`}>
-                        <Mail />
-                        {email}
-                      </a>
-                    )}
-                  </article>
-                ))}
-              </div>
-            </Entity>
+            </ObjectBoundary>
+            <div className="co-team-grid">
+              <CollectionBoundary
+                id="construction.team.members"
+                value={team}
+                renderItem={(item) => {
+                  const member = constructionTeamMembersSchema.element.parse(item);
+                  return (
+                    <article className="co-team-card">
+                      <img
+                        src={constructionImage(member.photo.key, tricoLogo)}
+                        alt={member.photoAltText}
+                      />
+                      <h3>{member.name}</h3>
+                      <strong>{member.title}</strong>
+                      {member.email === '' ? null : (
+                        <a href={`mailto:${member.email}`}>
+                          <Mail />
+                          {member.email}
+                        </a>
+                      )}
+                      {member.phone === '' ? null : (
+                        <a href={`tel:${member.phone.replace(/[^\d+]/g, '')}`}>
+                          <Phone />
+                          {member.phone}
+                        </a>
+                      )}
+                    </article>
+                  );
+                }}
+              />
+            </div>
           </div>
         </section>
 
-        <Entity id="construction.workers" value={{ heading: 'Our Construction Crew' }}>
+        <ObjectBoundary id="construction.workers" value={workers}>
           <section className="co-section co-workers">
             <div className="co-container">
               <Heading
-                eyebrow="In the Field"
-                title="Our Construction Crew"
-                copy="The hardworking professionals who bring every project to life with quality craftsmanship."
+                eyebrow={workers.eyebrow}
+                title={workers.heading}
+                copy={workers.description}
               />
-              <img src={crewTwo} alt="TriCo construction crew posing with heavy equipment" />
+              <img src={constructionImage(workers.image.key, crewTwo)} alt={workers.imageAltText} />
             </div>
           </section>
-        </Entity>
+        </ObjectBoundary>
 
-        <Entity
-          id="construction.about"
-          value={{ heading: 'Building & Developing in Utah Since 1984' }}
-        >
+        <ObjectBoundary id="construction.about" value={about}>
           <section className="co-section co-about" id="about">
             <div className="co-container co-about-grid">
               <div className="co-about-art">
-                <span>TriCo</span>
-                <small>Construction Excellence</small>
+                <span>{about.brandLabel}</span>
+                <small>{about.brandDescription}</small>
                 <aside>
-                  <strong>500+</strong>Projects Completed
+                  <strong>{about.statValue}</strong>
+                  {about.statLabel}
                 </aside>
               </div>
               <div>
-                <span className="co-about-pill">About TriCo Construction</span>
-                <h2>Building & Developing in Utah Since 1984</h2>
-                <p>
-                  For over four decades, TriCo Construction has been building Utah's future. Our
-                  commitment to quality, safety, and customer satisfaction has made us a trusted
-                  partner.
-                </p>
-                <p>
-                  From concrete foundations to complete commercial builds, our experienced team
-                  delivers exceptional results on every project.
-                </p>
-                <Entity
-                  id="construction.about.features"
-                  value={['40+ Years', 'Licensed', 'On-Time', 'Competitive', 'Quality', 'Safety']}
-                >
-                  <div className="co-checks">
-                    {[
-                      '40+ Years of Construction Excellence',
-                      'Licensed in Utah, Arizona & Idaho',
-                      'On-Time Project Delivery',
-                      'Competitive Pricing',
-                      'Quality Craftsmanship',
-                      'Safety First Culture',
-                    ].map((item) => (
-                      <span key={item}>
-                        <CheckCircle2 />
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </Entity>
+                <span className="co-about-pill">{about.eyebrow}</span>
+                <h2>{about.heading}</h2>
+                <p>{about.introduction}</p>
+                <p>{about.detail}</p>
+                <div className="co-checks">
+                  <CollectionBoundary
+                    id="construction.about.features"
+                    value={aboutFeatures}
+                    renderItem={(item) => {
+                      const feature = constructionAboutFeaturesSchema.element.parse(item);
+                      return (
+                        <span>
+                          <CheckCircle2 />
+                          {feature.label}
+                        </span>
+                      );
+                    }}
+                  />
+                </div>
                 <a className="co-button co-button-gold" href="#contact">
-                  Start Your Project
+                  {about.actionLabel}
                 </a>
               </div>
             </div>
           </section>
-        </Entity>
+        </ObjectBoundary>
 
         <section className="co-section co-bid" id="bid">
           <div className="co-container co-narrow">
-            <Entity id="construction.bid.header" value={{ heading: 'Get a Bid on Your Project' }}>
+            <ObjectBoundary id="construction.bid.header" value={bidHeader}>
               <Heading
-                eyebrow="Free Project Estimate"
-                title="Get a Bid on Your Project"
-                copy="Tell us about your project and receive a detailed, competitive bid from our experienced team. No obligation, no pressure."
+                eyebrow={bidHeader.eyebrow}
+                title={bidHeader.heading}
+                copy={bidHeader.description}
               />
-            </Entity>
+            </ObjectBoundary>
             <ClientForm variant="bid" />
           </div>
         </section>
@@ -671,129 +786,125 @@ function ConstructionBody(): React.JSX.Element {
         <section className="co-section co-careers" id="careers">
           <div className="co-container co-career-grid">
             <div>
-              <Entity
-                id="construction.careers.header"
-                value={{ heading: 'Build Your Career with TriCo Construction' }}
-              >
+              <ObjectBoundary id="construction.careers.header" value={careersHeader}>
                 <Heading
-                  eyebrow="Join Our Team"
-                  title="Build Your Career with TriCo Construction"
-                  copy="We are always looking for skilled professionals across Utah, Idaho, and Arizona."
+                  eyebrow={careersHeader.eyebrow}
+                  title={careersHeader.heading}
+                  copy={careersHeader.description}
                 />
-              </Entity>
-              <Entity id="construction.careers.benefits" value={benefits.map(([, title]) => title)}>
-                <div className="co-benefits">
-                  {benefits.map(([Icon, title, copy]) => (
-                    <div key={title}>
-                      <i>
-                        <Icon />
-                      </i>
-                      <span>
-                        <strong>{title}</strong>
-                        <small>{copy}</small>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Entity>
-              <a className="co-button co-button-blue" href="mailto:apply@tricoinc.com">
-                Apply Now <ArrowRight />
+              </ObjectBoundary>
+              <div className="co-benefits">
+                <CollectionBoundary
+                  id="construction.careers.benefits"
+                  value={benefits}
+                  renderItem={(item) => {
+                    const benefit = constructionCareerBenefitsSchema.element.parse(item);
+                    const Icon = icons[benefit.icon] ?? TrendingUp;
+                    return (
+                      <div>
+                        <i>
+                          <Icon />
+                        </i>
+                        <span>
+                          <strong>{benefit.title}</strong>
+                          <small>{benefit.description}</small>
+                        </span>
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+              <a className="co-button co-button-blue" href={`mailto:${careersHeader.email}`}>
+                {careersHeader.actionLabel} <ArrowRight />
               </a>
             </div>
-            <Entity
-              id="construction.careers.open-positions"
-              value={[
-                'Concrete Finisher',
-                'Equipment Operator',
-                'Project Manager',
-                'Laborer',
-                'Estimator',
-              ]}
-            >
-              <aside className="co-positions">
-                <h3>Open Positions</h3>
-                {[
-                  'Concrete Finisher',
-                  'Equipment Operator',
-                  'Project Manager',
-                  'Laborer',
-                  'Estimator',
-                ].map((position) => (
-                  <div key={position}>
-                    <strong>{position}</strong>
-                    <span>Multiple Locations</span>
-                  </div>
-                ))}
-              </aside>
-            </Entity>
+            <aside className="co-positions">
+              <h3>{careersHeader.positionsHeading}</h3>
+              <CollectionBoundary
+                id="construction.careers.open-positions"
+                value={positions}
+                renderItem={(item) => {
+                  const position = constructionPositionsSchema.element.parse(item);
+                  return (
+                    <div>
+                      <strong>{position.title}</strong>
+                      <span>{position.location}</span>
+                    </div>
+                  );
+                }}
+              />
+            </aside>
           </div>
         </section>
 
         <section className="co-section co-reviews" id="reviews">
           <div className="co-container">
-            <Entity id="construction.reviews.header" value={{ heading: 'Leave Us a Review' }}>
+            <ObjectBoundary id="construction.reviews.header" value={reviewsHeader}>
               <Heading
-                eyebrow="We'd Love Your Feedback"
-                title="Leave Us a Review"
-                copy="Your feedback helps others discover the TriCo difference. Pick your favorite platform below."
+                eyebrow={reviewsHeader.eyebrow}
+                title={reviewsHeader.heading}
+                copy={reviewsHeader.description}
               />
-            </Entity>
+            </ObjectBoundary>
             <div className="co-stars" aria-label="5 out of 5 stars">
               {Array.from({ length: 5 }, (_, index) => (
                 <Star key={index} />
               ))}
             </div>
-            <Entity id="construction.reviews.platforms" value={['Google', 'Facebook', 'Yelp']}>
-              <div className="co-review-grid">
-                {['Google', 'Facebook', 'Yelp'].map((name) => (
-                  <article key={name}>
-                    <i>
-                      <PenLine />
-                    </i>
-                    <h3>{name}</h3>
-                    <p>Share your experience and help others make an informed decision.</p>
-                    <a href="#reviews">
-                      Review on {name} <ExternalLink />
-                    </a>
-                  </article>
-                ))}
-              </div>
-            </Entity>
-            <Entity id="construction.reviews.footer" value={{ email: 'Office@tricoinc.com' }}>
+            <div className="co-review-grid">
+              <CollectionBoundary
+                id="construction.reviews.platforms"
+                value={reviews}
+                renderItem={(item) => {
+                  const review = constructionReviewPlatformsSchema.element.parse(item);
+                  return (
+                    <article>
+                      <i>
+                        <PenLine />
+                      </i>
+                      <h3>{review.name}</h3>
+                      <p>{review.description}</p>
+                      <a href={review.externalUrl === '' ? '#reviews' : review.externalUrl}>
+                        Review on {review.name} <ExternalLink />
+                      </a>
+                    </article>
+                  );
+                }}
+              />
+            </div>
+            <ObjectBoundary id="construction.reviews.footer" value={reviewsFooter}>
               <p className="co-review-footer">
-                Prefer to share feedback privately? Email{' '}
-                <a href="mailto:Office@tricoinc.com">Office@tricoinc.com</a>.
+                {reviewsFooter.message}{' '}
+                <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a>.
               </p>
-            </Entity>
+            </ObjectBoundary>
           </div>
         </section>
 
         <section className="co-section co-contact" id="contact">
           <div className="co-container co-contact-grid">
             <div>
-              <Entity
-                id="construction.contact.header"
-                value={{ heading: 'Ready to Start Your Project?' }}
-              >
+              <ObjectBoundary id="construction.contact.header" value={contactHeader}>
                 <Heading
-                  eyebrow="Contact Us"
-                  title="Ready to Start Your Project?"
-                  copy="Contact our team for a free project consultation and quote."
+                  eyebrow={contactHeader.eyebrow}
+                  title={contactHeader.heading}
+                  copy={contactHeader.description}
                 />
-              </Entity>
-              <Entity
-                id="construction.contact.details"
-                value={{ phone: '(801) 571-8833', email: 'Office@tricoinc.com' }}
-              >
+              </ObjectBoundary>
+              <ObjectBoundary id="construction.contact.details" value={contact}>
                 <div className="co-contact-list">
                   <p>
                     <i>
                       <MapPin />
                     </i>
                     <span>
-                      <strong>Office Location</strong>194 West 12650 South Suite 100
-                      <br />
-                      Draper, UT 84020
+                      <strong>{contact.addressLabel}</strong>
+                      {contact.address.split('\n').map((line) => (
+                        <span key={line}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
                     </span>
                   </p>
                   <p>
@@ -801,9 +912,11 @@ function ConstructionBody(): React.JSX.Element {
                       <Phone />
                     </i>
                     <span>
-                      <strong>Phone</strong>
-                      <a href="tel:8015718833">(801) 571-8833</a>
-                      <small>Fax: (801) 571-9888</small>
+                      <strong>{contact.phoneLabel}</strong>
+                      <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`}>{contact.phone}</a>
+                      <small>
+                        {contact.faxLabel}: {contact.fax}
+                      </small>
                     </span>
                   </p>
                   <p>
@@ -811,8 +924,8 @@ function ConstructionBody(): React.JSX.Element {
                       <Mail />
                     </i>
                     <span>
-                      <strong>Email</strong>
-                      <a href="mailto:Office@tricoinc.com">Office@tricoinc.com</a>
+                      <strong>{contact.emailLabel}</strong>
+                      <a href={`mailto:${contact.email}`}>{contact.email}</a>
                     </span>
                   </p>
                   <p>
@@ -820,11 +933,12 @@ function ConstructionBody(): React.JSX.Element {
                       <Clock />
                     </i>
                     <span>
-                      <strong>Office Hours</strong>Monday - Friday: 7am - 5pm
+                      <strong>{contact.officeHoursLabel}</strong>
+                      {contact.officeHours}
                     </span>
                   </p>
                 </div>
-              </Entity>
+              </ObjectBoundary>
             </div>
             <div className="co-contact-form">
               <h3>Request a Quote</h3>
@@ -835,66 +949,47 @@ function ConstructionBody(): React.JSX.Element {
       </main>
       <footer className="co-footer">
         <div className="co-container co-footer-grid">
-          <Entity
-            id="construction.footer.brand"
-            value={{ description: "Utah's trusted construction partner" }}
-          >
+          <ObjectBoundary id="construction.footer.brand" value={footerBrand}>
             <div>
-              <img src={tricoLogo} alt="TriCo Construction" />
-              <p>
-                Utah's trusted construction partner for over 40 years. Quality craftsmanship on
-                every project.
-              </p>
+              <img
+                src={constructionImage(footerBrand.logo.key, tricoLogo)}
+                alt={footerBrand.logoAltText}
+              />
+              <p>{footerBrand.description}</p>
               <address>
-                194 W 12650 S Suite 100, Draper, UT 84020
+                {footerBrand.address}
                 <br />
-                <a href="tel:8015718833">(801) 571-8833</a>
+                <a href={`tel:${footerBrand.phone.replace(/[^\d+]/g, '')}`}>{footerBrand.phone}</a>
                 <br />
-                <a href="mailto:Office@tricoinc.com">Office@tricoinc.com</a>
+                <a href={`mailto:${footerBrand.email}`}>{footerBrand.email}</a>
               </address>
             </div>
-          </Entity>
-          <Entity id="construction.footer.links" value={services.map(([, title]) => title)}>
-            <nav aria-label="Quick links">
-              <h3>Quick Links</h3>
-              {[
-                'Concrete',
-                'Multi-Housing',
-                'Underground Utilities',
-                'Excavation',
-                'Office Construction',
-                'Projects',
-                'Contact',
-              ].map((link) => (
-                <a
-                  href={
-                    link === 'Contact'
-                      ? '#contact'
-                      : link === 'Projects'
-                        ? '#projects'
-                        : '#services'
-                  }
-                  key={link}
-                >
-                  {link}
-                </a>
-              ))}
-            </nav>
-          </Entity>
-          <Entity id="construction.footer.licenses" value={{ licenses: ['UT', 'AZ', 'ID'] }}>
+          </ObjectBoundary>
+          <nav aria-label="Quick links">
+            <h3>Quick Links</h3>
+            <CollectionBoundary
+              id="construction.footer.links"
+              value={footerLinks}
+              renderItem={(item) => {
+                const link = constructionFooterLinksSchema.element.parse(item);
+                return <a href={`#${link.destination}`}>{link.label}</a>;
+              }}
+            />
+          </nav>
+          <ObjectBoundary id="construction.footer.licenses" value={footerLicenses}>
             <div>
-              <h3>Licenses</h3>
-              <p>UT GC LIC# 252522-5501</p>
-              <p>AZ LIC ROC# 337048</p>
-              <p>ID LIC RCE# 54338</p>
+              <h3>{footerLicenses.heading}</h3>
+              {footerLicenses.licenses.map((license) => (
+                <p key={license.id}>{license.label}</p>
+              ))}
             </div>
-          </Entity>
+          </ObjectBoundary>
         </div>
-        <Entity id="construction.footer.legal" value={{ copyright: 'TriCo Construction' }}>
+        <ObjectBoundary id="construction.footer.legal" value={footerLegal}>
           <p className="co-legal">
-            © {new Date().getFullYear()} TriCo Construction. All rights reserved.
+            © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>
-        </Entity>
+        </ObjectBoundary>
       </footer>
       <EditorToolbar />
     </div>

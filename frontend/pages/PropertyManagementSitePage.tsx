@@ -152,7 +152,10 @@ function definition(id: PmEntityId): SemanticEntityDefinition {
   return match;
 }
 function asset(key: string): string | undefined {
-  return imageByKey[key];
+  return (
+    imageByKey[key] ??
+    (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : undefined)
+  );
 }
 function headerAsset(key: string): string {
   return key === 'media/seed/trico-property-management-logo.png'

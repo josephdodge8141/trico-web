@@ -42,6 +42,69 @@
 .re-entity-slot > [data-entity-boundary='true']:not(.editable-boundary) {
   display: contents;
 }
+.re-hero-entity-slot > .editable-boundary > .editable-boundary-controls {
+  z-index: 75;
+  top: 156px;
+}
+.re-collection-slot {
+  display: block;
+}
+.re-collection-slot .editable-collection-items {
+  display: grid;
+}
+.re-collection-slot .editable-collection-items > div:not(.editable-item) {
+  display: contents;
+}
+.re-empty-state {
+  max-width: 36rem;
+  margin: 1rem auto;
+  padding: 1.25rem;
+  border: 1px dashed var(--re-border);
+  border-radius: 8px;
+  text-align: center;
+}
+.re-empty-state p {
+  margin: 0.4rem 0 0;
+  color: var(--re-muted);
+}
+.re-hero-stats .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.re-listing-grid .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.re-listing-grid .editable-collection-items > div:empty {
+  display: none;
+}
+.re-service-grid .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.re-process .editable-collection-items {
+  position: relative;
+  display: grid;
+}
+.re-check-grid .editable-collection-items {
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.re-person-grid .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+.re-testimonial-grid .editable-collection-items,
+.re-review-grid .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.re-faqs .editable-collection-items {
+  gap: 1rem;
+}
+.re-footer-links .editable-collection-items {
+  display: block;
+}
 .re-anniversary {
   position: fixed;
   z-index: 60;
@@ -406,6 +469,18 @@
   font-weight: 700;
   text-decoration: none;
 }
+.re-listing-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+}
+.re-listing-gallery img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  object-fit: cover;
+}
 .re-service-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -563,7 +638,7 @@
   padding: 0;
   list-style: none;
 }
-.re-check-grid li {
+.re-check-grid [role='listitem'] {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -612,6 +687,15 @@
   color: var(--re-primary);
   font-size: 0.86rem;
   font-weight: 600;
+}
+.re-person .re-person-bio {
+  min-height: 4.1em;
+  color: var(--re-muted);
+  font-weight: 400;
+  line-height: 1.45;
+}
+.re-person a + a {
+  margin-left: 0.8rem;
 }
 .re-person a {
   display: inline-flex;
@@ -981,6 +1065,12 @@
   .re-review-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .re-listing-grid .editable-collection-items,
+  .re-service-grid .editable-collection-items,
+  .re-testimonial-grid .editable-collection-items,
+  .re-review-grid .editable-collection-items {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .re-about-grid,
   .re-contact-grid {
     gap: 3rem;
@@ -1043,6 +1133,14 @@
   .re-careers-grid,
   .re-contact-grid,
   .re-field-grid {
+    grid-template-columns: 1fr;
+  }
+  .re-listing-grid .editable-collection-items,
+  .re-service-grid .editable-collection-items,
+  .re-testimonial-grid .editable-collection-items,
+  .re-review-grid .editable-collection-items,
+  .re-person-grid .editable-collection-items,
+  .re-check-grid .editable-collection-items {
     grid-template-columns: 1fr;
   }
   .re-service-grid .re-card {

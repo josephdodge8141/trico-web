@@ -11,6 +11,12 @@
     reverse_proxy mailpit:8025
   }
 
+  handle_path /__objects/* {
+    reverse_proxy minio:9000 {
+      header_up Host minio:9000
+    }
+  }
+
   handle /content/* {
     uri replace /content/ /trico-web-local/content/
     reverse_proxy minio:9000

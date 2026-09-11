@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
 import {
   After,
   Before,
@@ -76,6 +77,12 @@ class FrontendWorld extends World {
   propertyHeroHeading = '';
   propertyEditedHeaderLabel = '';
   propertyEditedHeroHeading = '';
+  remainingDivisionEntityId = '';
+  remainingDivisionPageId = '';
+  remainingDivisionEditor = '';
+  remainingDivisionValue = '';
+  mediaFriendlyName = '';
+  mediaAltText = '';
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
@@ -920,6 +927,94 @@ Then(
   },
 );
 
+const remainingDivisionTargets: Readonly<
+  Record<string, { readonly route: string; readonly pageId: string; readonly entityId: string }>
+> = {
+  'Real Estate': {
+    route: '/real-estate',
+    pageId: 'real-estate',
+    entityId: 'real-estate.hero',
+  },
+  Construction: {
+    route: '/construction',
+    pageId: 'construction',
+    entityId: 'construction.hero',
+  },
+  Development: {
+    route: '/development',
+    pageId: 'development',
+    entityId: 'development.hero',
+  },
+};
+
+Given(
+  'I am signed in and editing the {string} division',
+  async function (this: FrontendWorld, division: string) {
+    const target = remainingDivisionTargets[division];
+    assert.ok(target, `Unknown remaining division: ${division}`);
+    const page = this.currentPage();
+    await loginEditor(page);
+    await discardPendingOwnedByCurrentUser(page, target.entityId, target.pageId);
+    await page.goto(target.route);
+    const preview = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        response.url().includes(`/api/v1/pages/${target.pageId}/preview`),
+    );
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await preview;
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    this.remainingDivisionEntityId = target.entityId;
+    this.remainingDivisionPageId = target.pageId;
+    this.cleanup.push({ page, entityId: target.entityId, pageId: target.pageId });
+  },
+);
+
+When(
+  'I open the {string} editor from its visible section',
+  async function (this: FrontendWorld, editor: string) {
+    const page = this.currentPage();
+    await page.getByRole('heading', { level: 1 }).hover();
+    await page.getByRole('button', { name: `Edit ${editor}`, exact: true }).click();
+    await expect(page.getByRole('dialog', { name: editor })).toBeVisible();
+    this.remainingDivisionEditor = editor;
+  },
+);
+
+Then(
+  'the {string} friendly field is shown without technical representations',
+  async function (this: FrontendWorld, field: string) {
+    const page = this.currentPage();
+    const dialog = page.getByRole('dialog', { name: this.remainingDivisionEditor });
+    await expect(dialog.getByRole('textbox', { name: field, exact: true })).toBeVisible();
+    await expect(page.locator('pre, code')).toHaveCount(0);
+    await expect(page.getByText(this.remainingDivisionEntityId, { exact: true })).toHaveCount(0);
+    await expect(dialog.getByText(/revision\s+\d+/i)).toHaveCount(0);
+  },
+);
+
+When(
+  'I save a new value in the {string} friendly field',
+  async function (this: FrontendWorld, field: string) {
+    const page = this.currentPage();
+    this.remainingDivisionValue = `Friendly ${this.remainingDivisionPageId} ${String(Date.now())}`;
+    const dialog = page.getByRole('dialog', { name: this.remainingDivisionEditor });
+    await dialog
+      .getByRole('textbox', { name: field, exact: true })
+      .fill(this.remainingDivisionValue);
+    await dialog.getByRole('button', { name: 'Save changes' }).click();
+  },
+);
+
+Then(
+  'the saved remaining-division value appears in my private preview',
+  async function (this: FrontendWorld) {
+    await expect(this.currentPage().getByRole('heading', { level: 1 })).toContainText(
+      this.remainingDivisionValue,
+    );
+  },
+);
+
 Then(
   'I can cancel the Page header editor without changing the page',
   async function (this: FrontendWorld) {
@@ -1201,6 +1296,68 @@ Then('no owner identifier is shown to me', async function (this: FrontendWorld) 
     false,
   );
 });
+
+Given('I am signed in and editing a semantic image field', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await loginEditor(page);
+  await discardPendingOwnedByCurrentUser(page, 'home.header.brand');
+  this.cleanup.push({ page, entityId: 'home.header.brand' });
+  await enterHomeEditMode(page);
+  const boundary = page.locator('.home-header-shell [data-entity-boundary="true"]');
+  await boundary.hover();
+  await boundary.getByRole('button', { name: 'Edit Header logo' }).click();
+  await expect(page.getByRole('dialog', { name: 'Header logo' })).toBeVisible();
+});
+
+When(
+  'I upload and select an image from the managed media library',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    this.mediaFriendlyName = `Browser managed image ${String(Date.now())}`;
+    this.mediaAltText = 'A friendly browser-uploaded TriCo logo';
+    await page.getByRole('button', { name: 'Open media library' }).click();
+    const library = page.getByRole('dialog', { name: 'Media library' });
+    await expect(library).toBeVisible();
+    await library
+      .getByLabel('Image file')
+      .setInputFiles(fileURLToPath(new URL('../assets/images/trico-logo.png', import.meta.url)));
+    await library.getByLabel('Image name').fill(this.mediaFriendlyName);
+    await library.getByLabel('Image description').fill(this.mediaAltText);
+    await library.getByRole('button', { name: 'Upload image' }).click();
+    await expect(library).toBeHidden();
+  },
+);
+
+Then(
+  'its friendly name and preview are shown without storage details',
+  async function (this: FrontendWorld) {
+    const sheet = this.currentPage().getByRole('dialog', { name: 'Header logo' });
+    await expect(sheet.locator('figcaption', { hasText: this.mediaFriendlyName })).toBeVisible();
+    await expect(sheet.locator('.editor-media-picker img')).toBeVisible();
+    await expect(sheet.getByLabel('Logo description')).toHaveValue(this.mediaAltText);
+    const visibleText = await sheet.innerText();
+    assert.equal(visibleText.includes('media/'), false);
+    assert.equal(visibleText.includes('object key'), false);
+    assert.equal(visibleText.includes('bucket'), false);
+  },
+);
+
+Then(
+  'saving the form updates the private image and its description',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const saved = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        response.url().includes('/api/v1/entities/home.header.brand/changes'),
+    );
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    assert.equal((await saved).status(), 201);
+    const logo = page.locator('.home-header img');
+    await expect(logo).toHaveAttribute('alt', this.mediaAltText);
+    await expect(logo).toHaveAttribute('src', /^\/media\//);
+  },
+);
 
 Given('I am editing one of my pending Home collection items', async function (this: FrontendWorld) {
   const page = this.currentPage();

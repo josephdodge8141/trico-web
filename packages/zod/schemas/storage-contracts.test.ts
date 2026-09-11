@@ -29,8 +29,8 @@ test('Storage owns 18 strict semantic entities with novice editor and visual con
     ),
   );
   const status = semanticRegistryStatus(entityDefinitions, storageEntityModule.viewCatalog);
-  assert.equal(status.migratedEntityIds.length, 71);
-  assert.equal(status.missingEditorEntityIds.length, 124);
+  assert.equal(status.migratedEntityIds.length, 195);
+  assert.equal(status.missingEditorEntityIds.length, 0);
   assert.equal(status.missingViewEntityIds.length, 177);
 });
 

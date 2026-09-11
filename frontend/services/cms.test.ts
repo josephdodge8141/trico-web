@@ -9,6 +9,7 @@ import {
   fetchPreviewDisabled,
   requestMediaUpload,
   saveEntityChange,
+  uploadMedia,
   updateExternalSource,
 } from './cms.js';
 
@@ -86,6 +87,24 @@ test('uses contentLength and receives an opaque media upload reservation', async
   assert.equal(JSON.parse(requestBody).contentLength, 5);
   assert.equal(result.publicUrl, 'https://cdn.example.test/photo.png');
   assert.equal(JSON.stringify(result).includes('key'), false);
+});
+
+test('routes a local MinIO upload through the same-origin object proxy', async () => {
+  let requestedUrl = '';
+  await uploadMedia(
+    new File(['image'], 'photo.png', { type: 'image/png' }),
+    'http://minio:9000/trico-web-local/media/photo.png?X-Amz-Signature=signed',
+    async (input, init) => {
+      requestedUrl = String(input);
+      assert.equal(init?.method, 'PUT');
+      return new Response(null, { status: 200 });
+    },
+    'http://app.localhost:8088',
+  );
+  assert.equal(
+    requestedUrl,
+    'http://app.localhost:8088/__objects/trico-web-local/media/photo.png?X-Amz-Signature=signed',
+  );
 });
 
 test('confirms uploads and validates paged library responses without storage details', async () => {

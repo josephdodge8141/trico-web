@@ -24,6 +24,132 @@
   font-family: Lato, Arial, sans-serif;
   line-height: 1.12;
 }
+.co-entity-slot {
+  display: contents;
+}
+.co-entity-slot > div:not([data-editor-state]),
+.co-category [data-entity-boundary]:not([data-editor-state]),
+.co-page .editable-collection-items > div:not(.editable-item) {
+  display: contents;
+}
+.co-hero-entity-slot > .editable-boundary > .editable-boundary-controls {
+  z-index: 75;
+  top: 156px;
+}
+.co-card-grid,
+.co-plan-grid,
+.co-team-grid,
+.co-review-grid,
+.co-hero-stats,
+.co-pro-stats,
+.co-checks,
+.co-benefits {
+  display: block;
+}
+.co-card-grid .editable-collection-items,
+.co-plan-grid .editable-collection-items,
+.co-team-grid .editable-collection-items,
+.co-review-grid .editable-collection-items,
+.co-hero-stats .editable-collection-items,
+.co-pro-stats .editable-collection-items,
+.co-checks .editable-collection-items,
+.co-benefits .editable-collection-items {
+  display: grid;
+  gap: inherit;
+  grid-template-columns: inherit;
+}
+.co-card-grid .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.co-plan-grid .editable-collection-items {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+.co-team-grid .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+.co-review-grid .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.co-hero-stats .editable-collection-items {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.co-pro-stats .editable-collection-items {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.co-checks .editable-collection-items {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+.co-benefits .editable-collection-items {
+  gap: 1rem;
+}
+.co-benefits .editable-collection-items > div > div {
+  display: flex;
+  gap: 1rem;
+}
+.co-positions .editable-collection-items > div > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--co-border);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 70%);
+}
+.co-project-grid .editable-collection-items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+.co-project-card {
+  overflow: hidden;
+  border: 1px solid var(--co-border);
+  border-radius: 12px;
+  background: #fff;
+}
+.co-project-card > div:last-child {
+  padding: 1.5rem;
+}
+.co-project-photo {
+  width: 100%;
+  height: 220px;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  object-fit: cover;
+  color: var(--co-muted);
+  background: var(--co-tint);
+}
+.co-project-photo svg {
+  width: 48px;
+  height: 48px;
+}
+.co-project-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 1rem 0 0;
+}
+.co-project-details dt {
+  color: var(--co-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.co-project-details dd {
+  margin: 0.15rem 0 0;
+  color: #0f1729;
+  font-size: 0.9rem;
+}
 .co-page a {
   color: inherit;
 }
@@ -887,6 +1013,11 @@
   flex-direction: column;
   gap: 0.55rem;
 }
+.co-footer nav .editable-collection-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
 .co-footer h3 {
   color: #fff;
 }
@@ -984,6 +1115,9 @@
   .co-card-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .co-card-grid .editable-collection-items {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .co-about-grid,
   .co-career-grid,
   .co-contact-grid {
@@ -1030,6 +1164,13 @@
   .co-review-grid {
     grid-template-columns: 1fr;
   }
+  .co-card-grid .editable-collection-items,
+  .co-plan-grid .editable-collection-items,
+  .co-team-grid .editable-collection-items,
+  .co-review-grid .editable-collection-items,
+  .co-project-grid .editable-collection-items {
+    grid-template-columns: 1fr;
+  }
   .co-sector-grid {
     grid-template-columns: 1fr;
   }
@@ -1042,8 +1183,14 @@
   .co-pro-stats {
     grid-template-columns: repeat(2, 1fr);
   }
+  .co-pro-stats .editable-collection-items {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .co-form-row,
   .co-checks {
+    grid-template-columns: 1fr;
+  }
+  .co-checks .editable-collection-items {
     grid-template-columns: 1fr;
   }
   .co-about-art aside {
