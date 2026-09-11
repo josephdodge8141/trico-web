@@ -160,6 +160,29 @@ Feature: In-page content editing and preview
     When I change a field and save
     Then the validated value appears in my private preview
 
+  @id:content.property-management-object-launchers @backend-noop
+  Scenario: Open Property Management object editors from fixed and hero sections
+    backend-noop: Object editor launchers, friendly forms, and draft cancellation are browser presentation behavior.
+    Given I am signed in and editing Property Management on desktop
+    When I open the Page header editor
+    Then the Page header friendly form opens without technical representations
+    And I can cancel the Page header editor without changing the page
+    When I reopen and save a friendly Page header change
+    Then the saved Page header value appears in my private preview
+    When I open the Opening section editor
+    Then the Opening section friendly form opens without technical representations
+    And I can cancel the Opening section editor without changing the page
+    When I reopen and save a friendly Opening section change
+    Then the saved Opening section value appears in my private preview
+
+  @id:content.property-management-mobile-opening-launcher @backend-noop @touch
+  Scenario: Open the Property Management opening editor on mobile
+    backend-noop: Touch launcher reachability and full-screen editor presentation are browser presentation behavior.
+    Given I am signed in and editing Property Management on mobile
+    When I open the Opening section editor
+    Then the Opening section friendly form fills the mobile viewport
+    And I can cancel the Opening section editor without changing the page
+
   @id:content.touch-inline-controls @backend-noop @touch
   Scenario: Use novice-readable inline controls on a touch screen
     backend-noop: Persistent touch affordances, touch-target sizing, clipping, keyboard operation, and public layout isolation are browser presentation behavior.

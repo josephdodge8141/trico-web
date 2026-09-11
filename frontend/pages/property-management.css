@@ -40,6 +40,18 @@
 .pm-entity-slot {
   display: contents;
 }
+.pm-fixed-header-entity-slot > .editable-boundary > .editable-boundary-controls {
+  position: fixed;
+  z-index: 75;
+  top: 60px;
+}
+.pm-fixed-header-entity-slot > .editable-boundary[data-editor-state] {
+  z-index: 76;
+}
+.pm-hero-entity-slot > .editable-boundary > .editable-boundary-controls {
+  z-index: 45;
+  top: 156px;
+}
 .pm-anniversary {
   position: fixed;
   z-index: 60;
@@ -1141,6 +1153,12 @@
   }
   .pm-header {
     top: 44px;
+  }
+  .pm-fixed-header-entity-slot > .editable-boundary > .editable-boundary-controls {
+    top: 52px;
+  }
+  .pm-hero-entity-slot > .editable-boundary > .editable-boundary-controls {
+    top: 148px;
   }
   .pm-header-inner {
     height: 96px;

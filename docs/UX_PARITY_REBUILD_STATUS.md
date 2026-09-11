@@ -64,6 +64,10 @@ Last updated: 2026-09-10
 - The current Property Management contact checkpoint restores five icon-backed,
   human-labeled rows, original vertical grouping, and responsive anchor clearance
   so the contact and form headings remain below the sticky header.
+- The current Property Management launcher checkpoint places the Page header and
+  Opening section editor controls above their fixed banner/header interception
+  layers. Real desktop/mobile cases now open friendly forms and verify Save and
+  Cancel without exposing technical representations.
 
 Focused verification at this checkpoint:
 
@@ -87,8 +91,12 @@ Focused verification at this checkpoint:
 - Real Estate, Construction, Storage, and Development still use the generic
   renderer and legacy contracts (142 entities remain).
 - Property Management requires a final independent 2px/3px geometry and 0.98
-  SSIM comparison before visual-parity acceptance. All gaps from its first
-  browser-only review have been implemented. The original isolated mobile
+  SSIM comparison before visual-parity acceptance. Its second browser-only pass
+  found the two dead primary launchers now covered by the checkpoint above, plus
+  these remaining visual gaps: a logo about 24% too narrow; mobile CTAs arranged
+  side-by-side instead of stacked full-width; Mia's portrait and mobile cards
+  using incorrect aspect/width; residual managed-property density; a 71px
+  desktop editor toolbar; and a literal `LIC` contact fallback. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -105,7 +113,9 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Re-run independent desktop/mobile visual comparison and only then begin Real
+4. Close the second-pass Property Management visual gaps one at a time, beginning
+   with logo geometry, mobile CTA layout, and portrait/card geometry.
+5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 
 The local Docker stack may still be running after Compose verification. Inspect

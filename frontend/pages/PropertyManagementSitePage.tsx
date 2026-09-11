@@ -177,8 +177,17 @@ function ObjectBoundary({
   readonly children: React.ReactNode;
 }): React.JSX.Element {
   const editing = useEditMode();
+  const placementClass =
+    id === 'property-management.header'
+      ? ' pm-fixed-header-entity-slot'
+      : id === 'property-management.hero'
+        ? ' pm-hero-entity-slot'
+        : '';
   return (
-    <div className="pm-entity-slot" data-property-management-entity-boundary="true">
+    <div
+      className={`pm-entity-slot${placementClass}`}
+      data-property-management-entity-boundary="true"
+    >
       <EditableBoundary
         active={editing.active}
         definition={definition(id)}

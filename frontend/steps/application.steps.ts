@@ -63,7 +63,7 @@ class FrontendWorld extends World {
   responseBody: unknown;
   originalHeading = '';
   editedHeading = '';
-  cleanup: { readonly page: Page; readonly entityId: string }[] = [];
+  cleanup: { readonly page: Page; readonly entityId: string; readonly pageId?: string }[] = [];
   secondaryContext: BrowserContext | undefined;
   originalItemIds: readonly string[] = [];
   finalItemIds: readonly string[] = [];
@@ -72,6 +72,10 @@ class FrontendWorld extends World {
   noviceValue = '';
   otherEditorId = '';
   touchLayout: { readonly width: number; readonly height: number } | undefined;
+  propertyHeaderLabel = '';
+  propertyHeroHeading = '';
+  propertyEditedHeaderLabel = '';
+  propertyEditedHeroHeading = '';
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
@@ -91,7 +95,11 @@ Before(async function (this: FrontendWorld, { pickle }) {
 });
 After(async function (this: FrontendWorld) {
   for (const target of this.cleanup.toReversed()) {
-    await discardPendingOwnedByCurrentUser(target.page, target.entityId).catch(() => undefined);
+    await discardPendingOwnedByCurrentUser(
+      target.page,
+      target.entityId,
+      target.pageId ?? 'home',
+    ).catch(() => undefined);
   }
   await this.secondaryContext?.close();
   await this.context?.close();
@@ -118,8 +126,12 @@ async function csrfHeaders(page: Page): Promise<Readonly<Record<string, string>>
   return { Origin: applicationOrigin, 'X-CSRF-Token': String(body.token) };
 }
 
-async function pendingFor(page: Page, entityId: string): Promise<PendingChange | undefined> {
-  const response = await page.request.get('/api/v1/changes?pageId=home');
+async function pendingFor(
+  page: Page,
+  entityId: string,
+  pageId = 'home',
+): Promise<PendingChange | undefined> {
+  const response = await page.request.get(`/api/v1/changes?pageId=${encodeURIComponent(pageId)}`);
   assert.equal(response.status(), 200);
   return pendingChangesResponseSchema
     .parse(await response.json())
@@ -148,7 +160,11 @@ async function saveReplacement(
   return (await response.json()) as PendingChange;
 }
 
-async function discardPendingOwnedByCurrentUser(page: Page, entityId: string): Promise<void> {
+async function discardPendingOwnedByCurrentUser(
+  page: Page,
+  entityId: string,
+  pageId = 'home',
+): Promise<void> {
   const sessionResponse = await page.request.get('/api/v1/auth/me');
   if (!sessionResponse.ok()) return;
   const session = (await sessionResponse.json()) as {
@@ -156,7 +172,7 @@ async function discardPendingOwnedByCurrentUser(page: Page, entityId: string): P
     readonly principal?: { readonly subject?: unknown } | null;
   };
   if (session.authenticated !== true || typeof session.principal?.subject !== 'string') return;
-  const pending = await pendingFor(page, entityId);
+  const pending = await pendingFor(page, entityId, pageId);
   if (pending === undefined || pending.authorId !== session.principal.subject) return;
   const response = await page.request.delete(
     `/api/v1/entities/${encodeURIComponent(entityId)}/changes`,
@@ -606,6 +622,180 @@ Then('the validated value appears in my private preview', async function (this: 
     this.editedHeading,
   );
 });
+
+async function enterPropertyManagementEditMode(page: Page): Promise<void> {
+  await loginEditor(page);
+  await page.goto('/property-management');
+  const preview = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'GET' &&
+      response.url().includes('/api/v1/pages/property-management/preview'),
+  );
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  await preview;
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+}
+
+Given(
+  'I am signed in and editing Property Management on desktop',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await enterPropertyManagementEditMode(page);
+    await discardPendingOwnedByCurrentUser(
+      page,
+      'property-management.header',
+      'property-management',
+    );
+    await discardPendingOwnedByCurrentUser(page, 'property-management.hero', 'property-management');
+    this.cleanup.push(
+      { page, entityId: 'property-management.header', pageId: 'property-management' },
+      { page, entityId: 'property-management.hero', pageId: 'property-management' },
+    );
+    this.propertyHeaderLabel = (await page.locator('.pm-brand strong').textContent()) ?? '';
+    this.propertyHeroHeading = await page.getByRole('heading', { level: 1 }).innerText();
+  },
+);
+
+Given(
+  'I am signed in and editing Property Management on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await enterPropertyManagementEditMode(page);
+    await discardPendingOwnedByCurrentUser(page, 'property-management.hero', 'property-management');
+    this.cleanup.push({
+      page,
+      entityId: 'property-management.hero',
+      pageId: 'property-management',
+    });
+    this.propertyHeaderLabel = (await page.locator('.pm-brand strong').textContent()) ?? '';
+    this.propertyHeroHeading = await page.getByRole('heading', { level: 1 }).innerText();
+  },
+);
+
+When('I open the Page header editor', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.locator('.pm-header').hover();
+  await page.getByRole('button', { name: 'Edit Page header' }).click();
+});
+
+When('I open the Opening section editor', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  if ((page.viewportSize()?.width ?? 0) > 800) await page.locator('.pm-hero').hover();
+  await page.getByRole('button', { name: 'Edit Opening section' }).click();
+});
+
+Then(
+  'the Page header friendly form opens without technical representations',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const dialog = page.getByRole('dialog', { name: 'Page header' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Division label')).toBeVisible();
+    await expect(dialog.getByLabel('Phone')).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Add navigation link' })).toBeVisible();
+    await expect(page.locator('pre, code')).toHaveCount(0);
+    await expect(page.getByText('property-management.header', { exact: true })).toHaveCount(0);
+  },
+);
+
+Then(
+  'the Opening section friendly form opens without technical representations',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const dialog = page.getByRole('dialog', { name: 'Opening section' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Main heading')).toBeVisible();
+    await expect(dialog.getByLabel('Introduction')).toBeVisible();
+    await expect(page.locator('pre, code')).toHaveCount(0);
+    await expect(page.getByText('property-management.hero', { exact: true })).toHaveCount(0);
+  },
+);
+
+Then(
+  'the Opening section friendly form fills the mobile viewport',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const dialog = page.getByRole('dialog', { name: 'Opening section' });
+    await expect(dialog).toBeVisible();
+    const box = await dialog.boundingBox();
+    assert.ok(box);
+    assert.equal(box.x, 0);
+    assert.equal(box.width, 390);
+    await expect(dialog.getByLabel('Main heading')).toBeVisible();
+  },
+);
+
+Then(
+  'I can cancel the Page header editor without changing the page',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page
+      .getByRole('dialog', { name: 'Page header' })
+      .getByLabel('Division label')
+      .fill('Unsaved division label');
+    page.once('dialog', (confirmation) => void confirmation.accept());
+    await page
+      .getByRole('dialog', { name: 'Page header' })
+      .getByRole('button', { name: 'Cancel' })
+      .click();
+    await expect(page.locator('.pm-brand strong')).toHaveText(this.propertyHeaderLabel);
+  },
+);
+
+Then(
+  'I can cancel the Opening section editor without changing the page',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page
+      .getByRole('dialog', { name: 'Opening section' })
+      .getByLabel('Main heading')
+      .fill('Unsaved opening heading');
+    page.once('dialog', (confirmation) => void confirmation.accept());
+    await page
+      .getByRole('dialog', { name: 'Opening section' })
+      .getByRole('button', { name: 'Cancel' })
+      .click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(this.propertyHeroHeading);
+  },
+);
+
+When('I reopen and save a friendly Page header change', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.locator('.pm-header').hover();
+  await page.getByRole('button', { name: 'Edit Page header' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Page header' });
+  this.propertyEditedHeaderLabel = `Property Management ${String(Date.now())}`;
+  await dialog.getByLabel('Division label').fill(this.propertyEditedHeaderLabel);
+  await dialog.getByRole('button', { name: 'Save changes' }).click();
+});
+
+Then(
+  'the saved Page header value appears in my private preview',
+  async function (this: FrontendWorld) {
+    await expect(this.currentPage().locator('.pm-brand strong')).toHaveText(
+      this.propertyEditedHeaderLabel,
+    );
+  },
+);
+
+When('I reopen and save a friendly Opening section change', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.locator('.pm-hero').hover();
+  await page.getByRole('button', { name: 'Edit Opening section' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Opening section' });
+  this.propertyEditedHeroHeading = `Friendly opening ${String(Date.now())}`;
+  await dialog.getByLabel('Main heading').fill(this.propertyEditedHeroHeading);
+  await dialog.getByRole('button', { name: 'Save changes' }).click();
+});
+
+Then(
+  'the saved Opening section value appears in my private preview',
+  async function (this: FrontendWorld) {
+    await expect(this.currentPage().getByRole('heading', { level: 1 })).toHaveText(
+      this.propertyEditedHeroHeading,
+    );
+  },
+);
 
 Given(
   'I am signed in and editing a Home collection with UUID-backed items',
