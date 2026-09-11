@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "projectUrl": "https://lovable.dev/projects/070a6314-6df5-4464-9eb5-be7e80bc91c8",
+    "frozenAt": "2026-09-11"
+  },
+  "policy": {
+    "similarityThreshold": 0.98,
+    "desktopGeometryTolerancePx": 2,
+    "mobileGeometryTolerancePx": 3
+  },
+  "intentionalCorrections": [
+    {
+      "id": "accessible-responsive-repair",
+      "description": "Preserve intended appearance while correcting keyboard, reduced-motion, contrast, naming, and responsive-navigation defects."
+    },
+    {
+      "id": "unavailable-image-placeholders",
+      "description": "Thirteen unavailable Lovable images may use neutral managed placeholders with identical layout geometry."
+    },
+    {
+      "id": "approved-content-exclusions",
+      "description": "Exclude Property 7-10, unmounted Real Estate category/Land Experts content, and fabricated construction project cards."
+    }
+  ],
+  "captures": [
+    {
+      "id": "page.property-management.desktop",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1440,
+        "height": 1100,
+        "class": "desktop"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 15668,
+        "width": 1425
+      },
+      "file": "pages/property-management.desktop.jpg",
+      "sha256": "d9b2a5e64ac0a1dced1a274c1ea187c85541c361eacf5ffcef94955ef04f3264",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.desktop",
+          "x": 0,
+          "y": 0,
+          "height": 15668,
+          "width": 1425
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-01",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-01.jpg",
+      "sha256": "28e869176611af769bda6d4426cf0fd328d442a0f9200cfad17ae2635d8930a0",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-02",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-02.jpg",
+      "sha256": "c7fe8683cbe4cd34d85f03371868f5380f19c5fd96d6496f968a9eeae76f58e5",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-03",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-03.jpg",
+      "sha256": "55bc394dd7fbe9084317c5c4938f4ad6e113d4115980ff032f5a7acca429fe85",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-04",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 18000,
+        "height": 6000,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-04.jpg",
+      "sha256": "fc319664fa5186531ab41a1eec8b756d5d824dc3a7aede6fda617214d22e6109",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-04",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.mobile.part-05",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 24000,
+        "height": 2497,
+        "width": 390
+      },
+      "file": "pages/property-management.mobile.part-05.jpg",
+      "sha256": "02756ad18f9b97a84244b61228913ed6eb39165f7ccad39613e7c840d0620241",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.mobile.part-05",
+          "x": 0,
+          "y": 0,
+          "height": 2497,
+          "width": 390
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.tablet.part-01",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/property-management.tablet.part-01.jpg",
+      "sha256": "01b5384db866faa24bd4ad841c2b1fb9d669b7c39c2b3c4b1f8439d674b4ea15",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.tablet.part-01",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.tablet.part-02",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 6000,
+        "height": 6000,
+        "width": 1024
+      },
+      "file": "pages/property-management.tablet.part-02.jpg",
+      "sha256": "65302058ea487504528cff3c2a4d716102d5143b1c9c49bb23d108e64a9ff988",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.tablet.part-02",
+          "x": 0,
+          "y": 0,
+          "height": 6000,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "page.property-management.tablet.part-03",
+      "route": "/property-management",
+      "state": "page",
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "class": "tablet"
+      },
+      "tile": {
+        "x": 0,
+        "y": 12000,
+        "height": 4924,
+        "width": 1024
+      },
+      "file": "pages/property-management.tablet.part-03.jpg",
+      "sha256": "1cb0d5a586a480cc8f61a38a0be2fb1944076842824af1e912d526d8a530b213",
+      "masks": [],
+      "regions": [
+        {
+          "id": "page.property-management.tablet.part-03",
+          "x": 0,
+          "y": 0,
+          "height": 4924,
+          "width": 1024
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    },
+    {
+      "id": "state.property-management.mobile-menu-open",
+      "route": "/property-management",
+      "state": "mobile-menu-open",
+      "viewport": {
+        "width": 375,
+        "height": 812,
+        "class": "mobile"
+      },
+      "tile": {
+        "x": 0,
+        "y": 0,
+        "height": 812,
+        "width": 375
+      },
+      "file": "states/property-management.mobile-menu-open.jpg",
+      "sha256": "352ef44409a96e7ec97c87c29f8c5a02e898a9c62f3e5583b855240e0a17b373",
+      "masks": [],
+      "regions": [
+        {
+          "id": "mobile-menu-open",
+          "x": 0,
+          "y": 0,
+          "height": 812,
+          "width": 375
+        }
+      ],
+      "intentionalCorrectionIds": [
+        "accessible-responsive-repair",
+        "unavailable-image-placeholders",
+        "approved-content-exclusions"
+      ]
+    }
+  ]
+}

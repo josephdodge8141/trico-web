@@ -104,6 +104,20 @@ Last updated: 2026-09-11
   unloaded hero/portfolio imagery. Even geometry-aligned desktop hero, tenant,
   and team sections score 0.673, 0.864, and 0.825, so reaching 0.98 would require
   broad prohibited masks or reintroducing explicitly excluded/broken content.
+- The approved corrected Property Management baseline now lives in the dated
+  `2026-09-11-property-management` directory and supersedes only that route's
+  defective 2026-09-10 captures. It was rendered independently from a fresh,
+  checksum-recorded extraction of the supplied original ZIP, with capture-only
+  removal of Property 7-10, exact restoration of the ten source portfolio
+  images, mobile overflow clipping, lazy-image activation, and stabilized
+  animation. The historical 51 files remain unchanged. No masks were added and
+  the 0.98 SSIM plus 2px/3px geometry policies remain intact.
+- The first migrated comparison against the corrected reference is a valid
+  failure: desktop SSIM is 0.772245; tablet tiles are 0.723072, 0.670944, and
+  0.754084; mobile tiles are 0.607856, 0.451529, 0.519009, 0.657285, and
+  0.705822. Desktop capture geometry matches; the tablet and mobile documents
+  remain 61px and 192px shorter. These are now genuine production-page
+  deviations rather than defects in the reference.
 
 Focused verification at this checkpoint:
 
@@ -129,15 +143,10 @@ Focused verification at this checkpoint:
 - Media and source controls are implemented but not mounted in a page editor.
 - Real Estate, Construction, Storage, and Development still use the generic
   renderer and legacy contracts (142 entities remain).
-- Property Management requires a final independent 2px/3px geometry and 0.98
-  SSIM acceptance against a technically comparable approved baseline. The
-  deterministic comparison now proves the dated frozen capture cannot serve as
-  that baseline without violating the agreed accessibility, asset, and content
-  corrections. The unlocked browser review confirmed the editor, asset, contact,
-  breakpoint, toolbar, mobile-action, and portrait fixes; true Playwright runs
-  also confirmed the 1024px header/hero/CTA geometry that the browser-control
-  viewport override had reported incorrectly. A corrected frozen baseline or an
-  explicitly revised comparison policy requires user approval.
+- Property Management requires production changes to reach the retained 0.98
+  SSIM and 2px/3px geometry acceptance against its now-approved corrected
+  baseline. The reference-policy blocker is resolved; the remaining failures
+  are visible implementation differences recorded above.
 - Form-state and edit-mode visual references still need capture.
 - The existing local DynamoDB volume contains version-1 Home data. The idempotent
   seed correctly refuses it; run the explicit disposable-local v2 reset only when
@@ -147,8 +156,8 @@ Focused verification at this checkpoint:
 
 1. Confirm the branch is clean and starts at the latest checkpoint documented by
    `git log`, then run `npm run check`.
-2. Resolve the Property Management baseline decision: approve a corrected,
-   deterministic reference capture or explicitly revise the comparison policy.
+2. Reconcile the migrated Property Management page with the approved corrected
+   baseline until every region meets 0.98 SSIM and 2px/3px geometry tolerance.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
 4. Capture the missing form and edit-mode visual states against the approved

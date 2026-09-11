@@ -14,11 +14,16 @@ import {
   jpegDimensions,
   selectVisualBaselineCaptures,
   verifyVisualBaseline,
+  visualBaselineRootForRoute,
   type PixelDecoder,
 } from './visual-baselines.js';
 
 const repositoryRoot = path.resolve('.');
 const baselineRoot = path.join(repositoryRoot, 'frontend/visual-baselines/2026-09-10');
+const propertyManagementBaselineRoot = path.join(
+  repositoryRoot,
+  'frontend/visual-baselines/2026-09-11-property-management',
+);
 
 test('the frozen manifest records every immutable JPEG exactly once', async () => {
   const manifest = await loadVisualBaselineManifest(baselineRoot);
@@ -27,6 +32,22 @@ test('the frozen manifest records every immutable JPEG exactly once', async () =
   assert.equal(manifest.captures.length, 51);
   assert.deepEqual(report.errors, []);
   assert.equal(report.verifiedCaptures, 51);
+});
+
+test('the corrected Property Management baseline is complete and keeps strict policy', async () => {
+  const manifest = await loadVisualBaselineManifest(propertyManagementBaselineRoot);
+  const report = await verifyVisualBaseline(propertyManagementBaselineRoot, manifest);
+
+  assert.equal(manifest.source.frozenAt, '2026-09-11');
+  assert.equal(manifest.policy.similarityThreshold, 0.98);
+  assert.equal(manifest.policy.desktopGeometryTolerancePx, 2);
+  assert.equal(manifest.policy.mobileGeometryTolerancePx, 3);
+  assert.equal(manifest.captures.length, 10);
+  assert.equal(
+    manifest.captures.every(({ route }) => route === '/property-management'),
+    true,
+  );
+  assert.deepEqual(report.errors, []);
 });
 
 test('a route-specific candidate run selects only that route without weakening its policy', async () => {
@@ -40,6 +61,14 @@ test('a route-specific candidate run selects only that route without weakening i
   );
   assert.deepEqual(selected.policy, manifest.policy);
   assert.deepEqual(selected.intentionalCorrections, manifest.intentionalCorrections);
+});
+
+test('Property Management resolves to its independently corrected dated baseline', () => {
+  assert.equal(
+    visualBaselineRootForRoute(repositoryRoot, '/property-management'),
+    propertyManagementBaselineRoot,
+  );
+  assert.equal(visualBaselineRootForRoute(repositoryRoot, '/real-estate'), baselineRoot);
 });
 
 test('candidate capture uses manifest viewports and records unpadded document geometry', async () => {
@@ -224,4 +253,15 @@ test('manifest is deterministic JSON with no live-source dependency', async () =
   const generated = await buildFrozenManifest(baselineRoot);
   assert.deepEqual(JSON.parse(first) as unknown, generated);
   assert.equal(first.includes('app.localhost'), false);
+});
+
+test('a dated route baseline derives its freeze date from the directory name', async () => {
+  const generated = await buildFrozenManifest(propertyManagementBaselineRoot);
+  const frozen: unknown = JSON.parse(
+    await readFile(path.join(propertyManagementBaselineRoot, 'manifest.json'), 'utf8'),
+  );
+
+  assert.equal(generated.source.frozenAt, '2026-09-11');
+  assert.equal(generated.captures.length, 10);
+  assert.deepEqual(frozen, generated);
 });

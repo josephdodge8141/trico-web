@@ -114,6 +114,12 @@ export function selectVisualBaselineCaptures(
   return { ...manifest, captures };
 }
 
+export function visualBaselineRootForRoute(repositoryRoot: string, route: string): string {
+  const directory =
+    route === '/property-management' ? '2026-09-11-property-management' : '2026-09-10';
+  return path.join(repositoryRoot, 'frontend/visual-baselines', directory);
+}
+
 function selectVisualBaselinePageCaptures(
   manifest: VisualBaselineManifest,
   route: string,
@@ -152,6 +158,13 @@ export async function captureVisualCandidates(
         await page.goto(new URL(first.route, normalizedBaseUrl).href, { waitUntil: 'networkidle' });
         await page.evaluate(async () => {
           await document.fonts.ready;
+          const step = Math.max(window.innerHeight, 1);
+          for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+            window.scrollTo(0, y);
+            await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+          }
+          window.scrollTo(0, 0);
+          await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
           await Promise.all(
             [...document.images].map(async (image) => {
               if (image.complete) return;
@@ -548,7 +561,7 @@ export async function buildFrozenManifest(baselineRoot: string): Promise<VisualB
     schemaVersion: 1,
     source: {
       projectUrl: 'https://lovable.dev/projects/070a6314-6df5-4464-9eb5-be7e80bc91c8',
-      frozenAt: '2026-09-10',
+      frozenAt: freezeDateFromRoot(baselineRoot),
     },
     policy: {
       similarityThreshold: 0.98,
@@ -558,6 +571,14 @@ export async function buildFrozenManifest(baselineRoot: string): Promise<VisualB
     intentionalCorrections: corrections,
     captures,
   };
+}
+
+function freezeDateFromRoot(baselineRoot: string): string {
+  const match = /^(\d{4}-\d{2}-\d{2})(?:$|-)/.exec(path.basename(path.resolve(baselineRoot)));
+  if (match?.[1] === undefined) {
+    throw new Error('Visual baseline directory must begin with an ISO freeze date');
+  }
+  return match[1];
 }
 
 export function jpegDimensions(bytes: Uint8Array): Readonly<{ width: number; height: number }> {
@@ -815,7 +836,18 @@ function errorMessage(error: unknown): string {
 
 async function runCli(): Promise<void> {
   const command = process.argv[2] ?? 'verify';
-  const defaultRoot = path.resolve('frontend/visual-baselines/2026-09-10');
+  const repositoryRoot = path.resolve('.');
+  const defaultRoot = visualBaselineRootForRoute(repositoryRoot, '');
+  if (command === 'freeze') {
+    const baselineRoot = path.resolve(process.argv[3] ?? defaultRoot);
+    const manifest = await buildFrozenManifest(baselineRoot);
+    await writeFile(
+      path.join(baselineRoot, 'manifest.json'),
+      `${JSON.stringify(manifest, null, 2)}\n`,
+    );
+    process.stdout.write(`${String(manifest.captures.length)} captures frozen\n`);
+    return;
+  }
   if (command === 'generate') {
     process.stdout.write(
       `${JSON.stringify(await buildFrozenManifest(process.argv[3] ?? defaultRoot), null, 2)}\n`,
@@ -830,7 +862,10 @@ async function runCli(): Promise<void> {
         : command === 'capture'
           ? process.argv[6]
           : process.argv[3];
-  const baselineRoot = path.resolve(baselineArgument ?? defaultRoot);
+  const route = command === 'compare-route' ? process.argv[4] : process.argv[5];
+  const routeDefaultRoot =
+    route === undefined ? defaultRoot : visualBaselineRootForRoute(repositoryRoot, route);
+  const baselineRoot = path.resolve(baselineArgument ?? routeDefaultRoot);
   const manifest = await loadVisualBaselineManifest(baselineRoot);
   if (command === 'verify') {
     const report = await verifyVisualBaseline(baselineRoot, manifest);
@@ -873,7 +908,7 @@ async function runCli(): Promise<void> {
     if (!report.passed) process.exitCode = 1;
     return;
   }
-  throw new Error('Usage: visual-baselines <generate|verify|compare|capture|compare-route>');
+  throw new Error('Usage: visual-baselines <freeze|generate|verify|compare|capture|compare-route>');
 }
 
 const executable = process.argv[1];
