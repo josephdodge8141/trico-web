@@ -68,6 +68,9 @@ Last updated: 2026-09-10
   Opening section editor controls above their fixed banner/header interception
   layers. Real desktop/mobile cases now open friendly forms and verify Save and
   Cancel without exposing technical representations.
+- The current Property Management logo checkpoint uses the legacy corporate
+  header mark plus separate division label, restoring measured display size from
+  204x64 to 267x64 desktop and 178x56 to 233x56 mobile without distortion.
 
 Focused verification at this checkpoint:
 
@@ -93,8 +96,8 @@ Focused verification at this checkpoint:
 - Property Management requires a final independent 2px/3px geometry and 0.98
   SSIM comparison before visual-parity acceptance. Its second browser-only pass
   found the two dead primary launchers now covered by the checkpoint above, plus
-  these remaining visual gaps: a logo about 24% too narrow; mobile CTAs arranged
-  side-by-side instead of stacked full-width; Mia's portrait and mobile cards
+  these remaining visual gaps: mobile CTAs arranged side-by-side instead of
+  stacked full-width; Mia's portrait and mobile cards
   using incorrect aspect/width; residual managed-property density; a 71px
   desktop editor toolbar; and a literal `LIC` contact fallback. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
@@ -114,7 +117,7 @@ Focused verification at this checkpoint:
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
 4. Close the second-pass Property Management visual gaps one at a time, beginning
-   with logo geometry, mobile CTA layout, and portrait/card geometry.
+   with mobile CTA layout, then portrait/card geometry.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 

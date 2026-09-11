@@ -155,6 +155,11 @@ function definition(id: PmEntityId): SemanticEntityDefinition {
 function asset(key: string): string | undefined {
   return imageByKey[key];
 }
+function headerAsset(key: string): string {
+  return key === 'media/seed/trico-property-management-logo.png'
+    ? tricoLogo
+    : (asset(key) ?? tricoLogo);
+}
 function icon(name: string): LucideIcon {
   return icons[name] ?? Building2;
 }
@@ -433,7 +438,7 @@ function PropertyManagementBody(): React.JSX.Element {
         <header className="pm-header">
           <div className="pm-container pm-header-inner">
             <Link className="pm-brand" to="/">
-              <img src={asset(header.logo.key) ?? propertyLogo} alt={header.logoAltText} />
+              <img src={headerAsset(header.logo.key)} alt={header.logoAltText} />
               <strong>{header.divisionLabel}</strong>
             </Link>
             <nav aria-label="Primary navigation">

@@ -158,6 +158,10 @@ test('uses the Property Management mobile navigation below the desktop breakpoin
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/property-management');
+  const logo = await page.locator('.pm-brand img').boundingBox();
+  expect(logo?.width).toBeGreaterThanOrEqual(230);
+  expect(logo?.width).toBeLessThanOrEqual(236);
+  expect(logo?.height).toBe(56);
   const menu = page.getByRole('button', { name: 'Toggle menu' });
   await expect(menu).toBeVisible();
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
@@ -177,6 +181,10 @@ test('preserves the Property Management visual scale and desktop split geometry'
   expect(heroCopy?.x).toBeGreaterThanOrEqual(28);
   expect(heroCopy?.x).toBeLessThanOrEqual(36);
   await expect(page.locator('.pm-brand img')).toHaveCSS('height', '64px');
+  const logo = await page.locator('.pm-brand img').boundingBox();
+  expect(logo?.width).toBeGreaterThanOrEqual(265);
+  expect(logo?.width).toBeLessThanOrEqual(269);
+  expect(logo?.height).toBe(64);
   await expect(page.locator('.pm-hero h1')).toHaveCSS('font-size', '60px');
   await expect(page.locator('#services .pm-section-heading h2')).toHaveCSS('font-size', '48px');
   await expect(page.locator('#services .pm-card p').first()).toHaveCSS('font-size', '16px');
