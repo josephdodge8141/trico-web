@@ -65,6 +65,12 @@ Focused verification at this checkpoint:
   renderer and legacy contracts (142 entities remain).
 - Property Management requires its independent 2px/3px geometry and 0.98 SSIM
   comparison; its functional composition is not yet visual-parity acceptance.
+  Browser-only review confirmed these gaps in priority order: missing portfolio
+  and association imagery; undiscoverable touch item controls; mobile editor
+  chrome obscuring content; typography/container/hero scale drift; wrong hero
+  CTA hierarchy; and flattened contact details. The original isolated mobile
+  comparison redirected to Lovable login, so mobile pixel parity remains
+  unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
 - Independent browser-only review could not start because the Mac locked; rerun
   it after unlocking rather than accepting the implementation agent's review.
@@ -79,8 +85,11 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Run independent Property Management visual comparison and close the measured
-   height/section-geometry gap, then begin Real Estate.
+4. Close the independent Property Management gaps one at a time, beginning with
+   property/association asset mapping, then touch controls, mobile toolbar,
+   geometry/type tuning, CTA hierarchy, and contact presentation.
+5. Re-run independent desktop/mobile visual comparison and only then begin Real
+   Estate.
 
 The local Docker stack may still be running after Compose verification. Inspect
 it with `docker compose ps`; stop it with `docker compose down` before closing a
