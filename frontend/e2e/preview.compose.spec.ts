@@ -17,6 +17,38 @@ const mailpitAuthorization = `Basic ${Buffer.from(
   `${process.env.MAILPIT_USERNAME ?? 'local-editor'}:${process.env.MAILPIT_PASSWORD ?? 'local-mailpit-password'}`,
 ).toString('base64')}`;
 
+test('Property Management cards and team portraits retain responsive geometry', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1425, height: 1100 });
+  await page.goto('/property-management');
+  const desktopPortraits = page.locator('.pm-team-photo img');
+  await expect(desktopPortraits).toHaveCount(2);
+  for (const portrait of await desktopPortraits.all()) {
+    const box = await portrait.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(429);
+    expect(box?.width).toBeLessThanOrEqual(431);
+    expect(box?.height).toBe(box?.width);
+    await expect(portrait).toHaveCSS('object-fit', 'cover');
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  const mobileServiceCardContentWidth = await page
+    .locator('#services .pm-card')
+    .first()
+    .evaluate((element) => element.clientWidth);
+  expect(mobileServiceCardContentWidth).toBeGreaterThanOrEqual(355);
+  expect(mobileServiceCardContentWidth).toBeLessThanOrEqual(357);
+  const mobilePortraits = page.locator('.pm-team-photo img');
+  for (const portrait of await mobilePortraits.all()) {
+    const box = await portrait.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(355);
+    expect(box?.width).toBeLessThanOrEqual(357);
+    expect(box?.height).toBe(box?.width);
+  }
+});
+
 test('friendly component form saves, previews, updates, and discards without exposing JSON', async ({
   page,
 }) => {

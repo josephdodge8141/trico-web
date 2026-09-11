@@ -74,6 +74,10 @@ Last updated: 2026-09-10
 - The current Property Management mobile-CTA checkpoint stacks both actions at
   358x44 with a 12px gap at 390px, while preserving the 100vh hero, accessible
   color hierarchy, focus states, destinations, and desktop side-by-side layout.
+- The current Property Management card-geometry checkpoint makes both team
+  portraits square and cover-cropped (Mia 430x645 to 430x430 desktop and 324x486
+  to 356x356 mobile) and removes the duplicate mobile gutter so representative
+  cards use the original 356px content width.
 
 Focused verification at this checkpoint:
 
@@ -99,9 +103,8 @@ Focused verification at this checkpoint:
 - Property Management requires a final independent 2px/3px geometry and 0.98
   SSIM comparison before visual-parity acceptance. Its second browser-only pass
   found the two dead primary launchers now covered by the checkpoint above, plus
-  these remaining visual gaps: Mia's portrait and mobile cards using incorrect
-  aspect/width; residual managed-property density; a 71px
-  desktop editor toolbar; and a literal `LIC` contact fallback. The original isolated mobile
+  these remaining visual gaps: residual managed-property/mobile section density;
+  a 71px desktop editor toolbar; and a literal `LIC` contact fallback. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -119,7 +122,7 @@ Focused verification at this checkpoint:
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
 4. Close the second-pass Property Management visual gaps one at a time, beginning
-   with portrait/card geometry.
+   with residual section density, then desktop toolbar height and the `LIC` icon.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 

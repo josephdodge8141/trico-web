@@ -206,6 +206,38 @@ test('preserves the Property Management visual scale and desktop split geometry'
   );
 });
 
+test('preserves square Property Management team portraits and mobile content width', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1425, height: 1100 });
+  await page.goto('/property-management');
+  const desktopPortraits = page.locator('.pm-team-photo img');
+  await expect(desktopPortraits).toHaveCount(2);
+  for (const portrait of await desktopPortraits.all()) {
+    const box = await portrait.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(429);
+    expect(box?.width).toBeLessThanOrEqual(431);
+    expect(box?.height).toBe(box?.width);
+    await expect(portrait).toHaveCSS('object-fit', 'cover');
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  const mobileServiceCardContentWidth = await page
+    .locator('#services .pm-card')
+    .first()
+    .evaluate((element) => element.clientWidth);
+  expect(mobileServiceCardContentWidth).toBeGreaterThanOrEqual(355);
+  expect(mobileServiceCardContentWidth).toBeLessThanOrEqual(357);
+  const mobilePortraits = page.locator('.pm-team-photo img');
+  for (const portrait of await mobilePortraits.all()) {
+    const box = await portrait.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(355);
+    expect(box?.width).toBeLessThanOrEqual(357);
+    expect(box?.height).toBe(box?.width);
+  }
+});
+
 test('gives the Property Management hero actions an accessible visual hierarchy', async ({
   page,
 }) => {

@@ -475,6 +475,38 @@ Then(
   },
 );
 Then(
+  'Property Management cards and team portraits retain the intended responsive geometry',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.goto('/property-management');
+    const desktopPortraits = page.locator('.pm-team-photo img');
+    await expect(desktopPortraits).toHaveCount(2);
+    for (const portrait of await desktopPortraits.all()) {
+      const box = await portrait.boundingBox();
+      assert.ok(box);
+      assert.ok(box.width >= 429 && box.width <= 431);
+      assert.equal(box.height, box.width);
+      await expect(portrait).toHaveCSS('object-fit', 'cover');
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    const mobileServiceCardContentWidth = await page
+      .locator('#services .pm-card')
+      .first()
+      .evaluate((element) => element.clientWidth);
+    assert.ok(mobileServiceCardContentWidth >= 355 && mobileServiceCardContentWidth <= 357);
+    const mobilePortraits = page.locator('.pm-team-photo img');
+    for (const portrait of await mobilePortraits.all()) {
+      const box = await portrait.boundingBox();
+      assert.ok(box);
+      assert.ok(box.width >= 355 && box.width <= 357);
+      assert.equal(box.height, box.width);
+    }
+  },
+);
+Then(
   'supplied Property Management portfolio images load while unavailable images use the neutral placeholder',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
