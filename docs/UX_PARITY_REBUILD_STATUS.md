@@ -33,6 +33,9 @@ Last updated: 2026-09-10
   and persisted-preview behavior through Compose Cucumber and Playwright. It
   also makes sequential collection saves operate on the last saved local value
   and keeps conflict drafts recoverable through Reload latest.
+- The current publication-order checkpoint reads the latest page publication
+  consistently and assigns publish/rollback timestamps monotonically, removing
+  the confirmed same-millisecond history race.
 
 Focused verification at this checkpoint:
 
@@ -40,10 +43,8 @@ Focused verification at this checkpoint:
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
-- The Home matrix passes its focused build, type, lint, unit, catalog, Compose
-  Cucumber, and Compose Playwright gates. A repeated root `npm run check`
-  reproduced the separately tracked publication-history ordering defect below;
-  the Home/frontend stages completed before that unrelated backend failure.
+- Root `npm run check` passes after integrating the Home matrix and deterministic
+  publication ordering, validating 106 canonical cases.
 - Frontend unit tests passed: 21/21.
 - Frontend browser tests passed: 11/11.
 - Compose frontend Cucumber passed: 18/18 scenarios and 118/118 steps.
@@ -60,9 +61,6 @@ Focused verification at this checkpoint:
 - Form-state and edit-mode visual references still need capture.
 - Independent browser-only review could not start because the Mac locked; rerun
   it after unlocking rather than accepting the implementation agent's review.
-- A same-millisecond publication-history ordering race is confirmed by the
-  rollback behavior: equally timestamped publications can select MANUAL instead
-  of ROLLBACK. The root gate remains red until ordering is deterministic.
 - The existing local DynamoDB volume contains version-1 Home data. The idempotent
   seed correctly refuses it; run the explicit disposable-local v2 reset only when
   preserving that local content is no longer required.
@@ -74,8 +72,8 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Fix deterministic publication-history ordering, then begin the other five
-   page-owned contract/composition waves.
+4. Begin the other five page-owned contract/composition waves, starting with
+   Property Management.
 
 The local Docker stack may still be running after Compose verification. Inspect
 it with `docker compose ps`; stop it with `docker compose down` before closing a

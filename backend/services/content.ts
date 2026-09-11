@@ -75,6 +75,16 @@ export interface ContentService {
 }
 
 const isoNow = (): string => new Date().toISOString();
+
+export function nextPublicationTimestamp(
+  previousPublishedAt: string | undefined,
+  currentTime: string,
+): string {
+  if (previousPublishedAt === undefined) return currentTime;
+  const nextEpoch = Math.max(Date.parse(currentTime), Date.parse(previousPublishedAt) + 1);
+  return new Date(nextEpoch).toISOString();
+}
+
 const projectFields = (value: unknown, fields: readonly string[]): Record<string, unknown> => {
   if (typeof value !== 'object' || value === null) return {};
   const record = value as Record<string, unknown>;
@@ -227,6 +237,33 @@ export function createContentService(
       }),
     );
     return (response.Responses?.[tableName] ?? []).map(asPending);
+  };
+
+  const nextTimestampForPages = async (pageIds: readonly PageId[]): Promise<string> => {
+    const results = await Promise.all(
+      pageIds.map((pageId) =>
+        database.send(
+          new QueryCommand({
+            TableName: tableName,
+            KeyConditionExpression: 'pk = :pk AND begins_with(sk, :prefix)',
+            ExpressionAttributeValues: {
+              ':pk': `PUBLICATION#${pageId}`,
+              ':prefix': 'PUB#',
+            },
+            ScanIndexForward: false,
+            ConsistentRead: true,
+            Limit: 1,
+          }),
+        ),
+      ),
+    );
+    const previousPublishedAt = results.reduce<string | undefined>((latest, result) => {
+      const item = result.Items?.[0];
+      if (item === undefined) return latest;
+      const publishedAt = asPublication(item).publishedAt;
+      return latest === undefined || publishedAt > latest ? publishedAt : latest;
+    }, undefined);
+    return nextPublicationTimestamp(previousPublishedAt, isoNow());
   };
 
   const assemble = (
@@ -562,7 +599,7 @@ export function createContentService(
         );
       const publicationIds = pageIds.map(() => randomUUID());
       const operationId = randomUUID();
-      const createdAt = isoNow();
+      const createdAt = await nextTimestampForPages(pageIds);
       const publications = await Promise.all(
         pageIds.map(async (pageId, index) => {
           const current = await loadEntities(pageId);
@@ -732,7 +769,7 @@ export function createContentService(
       const byId = new Map(historical.snapshot.map((entry) => [entry.entityId, entry]));
       const operationId = randomUUID();
       const nextPublicationId = randomUUID();
-      const createdAt = isoNow();
+      const createdAt = await nextTimestampForPages([historical.pageId]);
       const snapshot = current.map((entity) => ({
         entityId: entity.id,
         entityVersion: entity.version + 1,

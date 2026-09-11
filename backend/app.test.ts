@@ -18,6 +18,7 @@ import {
   assertPublicationFits,
   createContentService,
   estimatePublishActions,
+  nextPublicationTimestamp,
 } from './services/content.js';
 import { ServiceError } from './services/errors.js';
 import { createMediaService } from './services/media.js';
@@ -190,6 +191,54 @@ test('publication snapshots enforce the conservative DynamoDB item ceiling', () 
       ]),
     (error: unknown) => error instanceof ServiceError && error.code === 'PAGE_SNAPSHOT_TOO_LARGE',
   );
+});
+
+test('publication timestamps advance when the clock has not moved', () => {
+  const current = '2026-09-10T12:00:00.000Z';
+  assert.equal(nextPublicationTimestamp(undefined, current), current);
+  assert.equal(nextPublicationTimestamp(current, current), '2026-09-10T12:00:00.001Z');
+  assert.equal(
+    nextPublicationTimestamp('2026-09-10T12:00:00.005Z', current),
+    '2026-09-10T12:00:00.006Z',
+  );
+});
+
+test('a rollback sorts ahead of its source publication when the wall clock has not advanced', async () => {
+  const database = new MemoryDynamo();
+  const objects = new MemoryS3();
+  const tableName = 'publication-order-test';
+  const userId = '00000000-0000-4000-8000-000000000101';
+  const historicalId = '50000000-0000-4000-8000-000000000001';
+  const historicalTime = '2099-01-01T00:00:00.000Z';
+  const entityId = 'home.hero' as EntityId;
+  const initialValue = registrySeedData[entityId];
+  assert.ok(initialValue !== undefined);
+  database.items.set(`PUBLICATION#home|PUB#${historicalTime}#${historicalId}`, {
+    pk: 'PUBLICATION#home',
+    sk: `PUB#${historicalTime}#${historicalId}`,
+    id: historicalId,
+    pageId: 'home',
+    authors: [userId],
+    publishedBy: userId,
+    publishedAt: historicalTime,
+    source: 'MANUAL',
+    snapshot: [{ entityId, entityVersion: 1, value: initialValue }],
+    gsi1pk: `PUBLICATION#${historicalId}`,
+    gsi1sk: 'META',
+  });
+  const content = createContentService(
+    database.asClient(),
+    objects.asClient(),
+    tableName,
+    'publication-order-test',
+  );
+  const result = await content.rollback(historicalId, userId);
+  const history = await content.history('home');
+
+  assert.equal(history[0]?.id, result.publicationIds[0]);
+  assert.equal(history[0]?.publishedAt, '2099-01-01T00:00:00.001Z');
+  assert.equal(history[0]?.source, 'ROLLBACK');
+  assert.equal(history[1]?.id, historicalId);
 });
 
 test('preview consistently renders saved revisions and honors hide/show preferences', async () => {
