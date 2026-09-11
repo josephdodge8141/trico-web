@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { readdir, readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -78,6 +79,17 @@ export type VisualComparisonReport = Readonly<{
   captures: readonly CaptureComparison[];
 }>;
 
+export type CandidateCaptureReport = Readonly<{
+  baseUrl: string;
+  outputRoot: string;
+  captures: readonly Readonly<{
+    id: string;
+    file: string;
+    documentDimensions: Readonly<{ width: number; height: number }>;
+    capturedDimensions: Readonly<{ width: number; height: number }>;
+  }>[];
+}>;
+
 const JPEG_START = 0xffd8;
 const JPEG_END = 0xffd9;
 const START_OF_FRAME_MARKERS = new Set([
@@ -91,6 +103,139 @@ export async function loadVisualBaselineManifest(
     await readFile(path.join(baselineRoot, 'manifest.json'), 'utf8'),
   );
   return parseManifest(parsed);
+}
+
+export function selectVisualBaselineCaptures(
+  manifest: VisualBaselineManifest,
+  route: string,
+): VisualBaselineManifest {
+  const captures = manifest.captures.filter((capture) => capture.route === route);
+  if (captures.length === 0) throw new Error(`No frozen captures exist for route ${route}`);
+  return { ...manifest, captures };
+}
+
+function selectVisualBaselinePageCaptures(
+  manifest: VisualBaselineManifest,
+  route: string,
+): VisualBaselineManifest {
+  const selected = selectVisualBaselineCaptures(manifest, route);
+  return { ...selected, captures: selected.captures.filter(({ state }) => state === 'page') };
+}
+
+export async function captureVisualCandidates(
+  baseUrl: string,
+  outputRoot: string,
+  manifest: VisualBaselineManifest,
+): Promise<CandidateCaptureReport> {
+  const normalizedBaseUrl = new URL(baseUrl);
+  const browser = await chromium.launch({ headless: true });
+  const temporaryRoot = await mkdtemp(path.join(tmpdir(), 'trico-visual-candidate-'));
+  const results: CandidateCaptureReport['captures'][number][] = [];
+  try {
+    const pageCaptures = manifest.captures.filter(({ state }) => state === 'page');
+    const groups = new Map<string, VisualCapture[]>();
+    for (const capture of pageCaptures) {
+      const key = `${capture.route}:${String(capture.viewport.width)}:${String(capture.viewport.height)}`;
+      const group = groups.get(key) ?? [];
+      group.push(capture);
+      groups.set(key, group);
+    }
+    for (const captures of groups.values()) {
+      const first = captures[0];
+      if (first === undefined) continue;
+      const context = await browser.newContext({
+        viewport: { width: first.viewport.width, height: first.viewport.height },
+        reducedMotion: 'reduce',
+      });
+      const page = await context.newPage();
+      try {
+        await page.goto(new URL(first.route, normalizedBaseUrl).href, { waitUntil: 'networkidle' });
+        await page.evaluate(async () => {
+          await document.fonts.ready;
+          await Promise.all(
+            [...document.images].map(async (image) => {
+              if (image.complete) return;
+              await new Promise<void>((resolve) => {
+                image.addEventListener('load', () => resolve(), { once: true });
+                image.addEventListener('error', () => resolve(), { once: true });
+              });
+            }),
+          );
+        });
+        const documentDimensions = await page.evaluate(() => ({
+          width: document.documentElement.scrollWidth,
+          height: document.documentElement.scrollHeight,
+        }));
+        const fullPageFile = path.join(
+          temporaryRoot,
+          `${createHash('sha256').update(first.id).digest('hex')}.png`,
+        );
+        await page.screenshot({ path: fullPageFile, fullPage: true, animations: 'disabled' });
+        const cropPage = await context.newPage();
+        try {
+          await cropPage.goto(pathToFileURL(fullPageFile).href);
+          for (const capture of captures) {
+            const availableWidth = Math.max(
+              1,
+              Math.min(capture.tile.width, documentDimensions.width - capture.tile.x),
+            );
+            const availableHeight = Math.max(
+              1,
+              Math.min(capture.tile.height, documentDimensions.height - capture.tile.y),
+            );
+            const jpeg = await cropPage.evaluate(
+              ({ x, y, width, height }) => {
+                const source = document.querySelector('img');
+                if (!(source instanceof HTMLImageElement))
+                  throw new Error('Candidate image is unavailable');
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext('2d');
+                if (context === null) throw new Error('Canvas 2D context is unavailable');
+                context.drawImage(source, x, y, width, height, 0, 0, width, height);
+                return canvas.toDataURL('image/jpeg', 0.92).split(',')[1] ?? '';
+              },
+              {
+                x: capture.tile.x,
+                y: capture.tile.y,
+                width: availableWidth,
+                height: availableHeight,
+              },
+            );
+            if (jpeg.length === 0) throw new Error(`Candidate encoding failed for ${capture.id}`);
+            const outputFile = path.join(outputRoot, capture.file);
+            await mkdir(path.dirname(outputFile), { recursive: true });
+            await writeFile(outputFile, Buffer.from(jpeg, 'base64'));
+            results.push({
+              id: capture.id,
+              file: capture.file,
+              documentDimensions,
+              capturedDimensions: { width: availableWidth, height: availableHeight },
+            });
+          }
+        } finally {
+          await cropPage.close();
+        }
+      } finally {
+        await context.close();
+      }
+    }
+  } finally {
+    await browser.close();
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+  const report = {
+    baseUrl: normalizedBaseUrl.href,
+    outputRoot: path.resolve(outputRoot),
+    captures: results,
+  };
+  await mkdir(outputRoot, { recursive: true });
+  await writeFile(
+    path.join(outputRoot, 'candidate-report.json'),
+    `${JSON.stringify(report, null, 2)}\n`,
+  );
+  return report;
 }
 
 export async function verifyVisualBaseline(
@@ -677,7 +822,15 @@ async function runCli(): Promise<void> {
     );
     return;
   }
-  const baselineRoot = path.resolve(process.argv[command === 'compare' ? 4 : 3] ?? defaultRoot);
+  const baselineArgument =
+    command === 'compare'
+      ? process.argv[4]
+      : command === 'compare-route'
+        ? process.argv[5]
+        : command === 'capture'
+          ? process.argv[6]
+          : process.argv[3];
+  const baselineRoot = path.resolve(baselineArgument ?? defaultRoot);
   const manifest = await loadVisualBaselineManifest(baselineRoot);
   if (command === 'verify') {
     const report = await verifyVisualBaseline(baselineRoot, manifest);
@@ -694,7 +847,33 @@ async function runCli(): Promise<void> {
     if (!report.passed) process.exitCode = 1;
     return;
   }
-  throw new Error('Usage: visual-baselines <generate|verify|compare>');
+  if (command === 'capture') {
+    const baseUrl = process.argv[3];
+    const outputRoot = process.argv[4];
+    const route = process.argv[5];
+    if (baseUrl === undefined || outputRoot === undefined || route === undefined) {
+      throw new Error('Usage: visual-baselines capture <base-url> <output-root> <route>');
+    }
+    const selected = selectVisualBaselinePageCaptures(manifest, route);
+    const report = await captureVisualCandidates(baseUrl, path.resolve(outputRoot), selected);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    return;
+  }
+  if (command === 'compare-route') {
+    const actualRoot = process.argv[3];
+    const route = process.argv[4];
+    if (actualRoot === undefined || route === undefined) {
+      throw new Error(
+        'Usage: visual-baselines compare-route <actual-root> <route> [baseline-root]',
+      );
+    }
+    const selected = selectVisualBaselinePageCaptures(manifest, route);
+    const report = await compareCaptureSets(baselineRoot, path.resolve(actualRoot), selected);
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (!report.passed) process.exitCode = 1;
+    return;
+  }
+  throw new Error('Usage: visual-baselines <generate|verify|compare|capture|compare-route>');
 }
 
 const executable = process.argv[1];

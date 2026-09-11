@@ -3,12 +3,16 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { createServer } from 'node:http';
 
 import {
   buildFrozenManifest,
+  captureVisualCandidates,
   compareCaptureSets,
   createChromiumPixelDecoder,
   loadVisualBaselineManifest,
+  jpegDimensions,
+  selectVisualBaselineCaptures,
   verifyVisualBaseline,
   type PixelDecoder,
 } from './visual-baselines.js';
@@ -23,6 +27,79 @@ test('the frozen manifest records every immutable JPEG exactly once', async () =
   assert.equal(manifest.captures.length, 51);
   assert.deepEqual(report.errors, []);
   assert.equal(report.verifiedCaptures, 51);
+});
+
+test('a route-specific candidate run selects only that route without weakening its policy', async () => {
+  const manifest = await loadVisualBaselineManifest(baselineRoot);
+  const selected = selectVisualBaselineCaptures(manifest, '/property-management');
+
+  assert.equal(selected.captures.length, 10);
+  assert.equal(
+    selected.captures.every(({ route }) => route === '/property-management'),
+    true,
+  );
+  assert.deepEqual(selected.policy, manifest.policy);
+  assert.deepEqual(selected.intentionalCorrections, manifest.intentionalCorrections);
+});
+
+test('candidate capture uses manifest viewports and records unpadded document geometry', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'trico-visual-candidate-output-'));
+  const server = createServer((_request, response) => {
+    response.setHeader('content-type', 'text/html');
+    response.end(
+      '<style>html,body{margin:0}main{width:80px;height:70px;background:#00128a}</style><main></main>',
+    );
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const address = server.address();
+    if (address === null || typeof address === 'string') throw new Error('Test server has no port');
+    const manifest = {
+      schemaVersion: 1 as const,
+      source: { projectUrl: 'https://example.test', frozenAt: '2026-09-10' },
+      policy: {
+        similarityThreshold: 0.98,
+        desktopGeometryTolerancePx: 2,
+        mobileGeometryTolerancePx: 3,
+      },
+      intentionalCorrections: [],
+      captures: [
+        {
+          id: 'candidate-page',
+          file: 'pages/candidate.jpg',
+          sha256: '0'.repeat(64),
+          route: '/',
+          state: 'page',
+          viewport: { width: 80, height: 50, class: 'desktop' as const },
+          tile: { x: 0, y: 0, width: 80, height: 100 },
+          masks: [],
+          regions: [{ id: 'full', x: 0, y: 0, width: 80, height: 100 }],
+          intentionalCorrectionIds: [],
+        },
+      ],
+    };
+
+    const report = await captureVisualCandidates(
+      `http://127.0.0.1:${String(address.port)}`,
+      root,
+      manifest,
+    );
+    assert.deepEqual(report.captures[0]?.documentDimensions, { width: 80, height: 70 });
+    assert.deepEqual(report.captures[0]?.capturedDimensions, { width: 80, height: 70 });
+    assert.deepEqual(jpegDimensions(await readFile(path.join(root, 'pages/candidate.jpg'))), {
+      width: 80,
+      height: 70,
+    });
+    assert.deepEqual(
+      JSON.parse(await readFile(path.join(root, 'candidate-report.json'), 'utf8')),
+      report,
+    );
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error === undefined ? resolve() : reject(error))),
+    );
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test('verification fails closed for changed, missing, duplicate, and unrecorded captures', async () => {

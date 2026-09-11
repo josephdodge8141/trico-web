@@ -1,6 +1,6 @@
 # UX parity rebuild status
 
-Last updated: 2026-09-10
+Last updated: 2026-09-11
 
 ## Completed checkpoints
 
@@ -92,6 +92,18 @@ Last updated: 2026-09-10
   desktop/tablet geometry at 202x44 and 148x44 with 6px radii and medium weight,
   while retaining accessible colors/focus states and the approved mobile 358x44
   stacked treatment.
+- The current visual-regression checkpoint adds deterministic, route-scoped
+  Playwright capture and comparison commands. Candidate capture uses the exact
+  manifest viewports, waits for fonts and images, disables animation, records
+  real document geometry, and leaves a short final tile unpadded so geometry
+  differences fail closed. It does not add masks or change production styling.
+- The Property Management comparison currently fails rather than claiming false
+  parity. Frozen/candidate geometry is 1425x15,975 versus 1425x15,676 desktop,
+  1024x17,282 versus 1024x16,863 tablet, and 390x28,183 versus 390x26,305 mobile.
+  The frozen reference includes Property 7-10, incomplete animation states, and
+  unloaded hero/portfolio imagery. Even geometry-aligned desktop hero, tenant,
+  and team sections score 0.673, 0.864, and 0.825, so reaching 0.98 would require
+  broad prohibited masks or reintroducing explicitly excluded/broken content.
 
 Focused verification at this checkpoint:
 
@@ -99,14 +111,17 @@ Focused verification at this checkpoint:
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
-- Root `npm run check` passes after integrating Property Management, validating
-  113 canonical cases at the last complete root run.
-- Frontend unit tests passed: 25/25.
+- Root `npm run check` passes after integrating the deterministic visual audit,
+  validating 113 canonical cases.
+- Frontend unit tests passed: 26/26.
 - Frontend browser tests passed: 20/20 for the responsive-hero slice.
 - Compose frontend Cucumber passed: 24/24 scenarios and 172/172 steps.
 - Compose Playwright passed: 13/13.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
+- The route-scoped visual capture/comparison harness passed 7/7 tests; its
+  Property Management comparison result remains intentionally failing for the
+  baseline incompatibilities recorded above.
 
 ## Intentionally incomplete
 
@@ -115,14 +130,15 @@ Focused verification at this checkpoint:
 - Real Estate, Construction, Storage, and Development still use the generic
   renderer and legacy contracts (142 entities remain).
 - Property Management requires a final independent 2px/3px geometry and 0.98
-  SSIM comparison before visual-parity acceptance. The unlocked browser retry
-  confirmed all editor, asset, contact, breakpoint, toolbar, mobile action, and
-  portrait fixes. The responsive-hero and desktop-CTA checkpoints address its
-  remaining measured geometry findings; the accessible local secondary styling
-  remains an intentional correction to the original white-on-white defect.
+  SSIM acceptance against a technically comparable approved baseline. The
+  deterministic comparison now proves the dated frozen capture cannot serve as
+  that baseline without violating the agreed accessibility, asset, and content
+  corrections. The unlocked browser review confirmed the editor, asset, contact,
+  breakpoint, toolbar, mobile-action, and portrait fixes; true Playwright runs
+  also confirmed the 1024px header/hero/CTA geometry that the browser-control
+  viewport override had reported incorrectly. A corrected frozen baseline or an
+  explicitly revised comparison policy requires user approval.
 - Form-state and edit-mode visual references still need capture.
-- Independent browser-only review could not start because the Mac locked; rerun
-  it after unlocking rather than accepting the implementation agent's review.
 - The existing local DynamoDB volume contains version-1 Home data. The idempotent
   seed correctly refuses it; run the explicit disposable-local v2 reset only when
   preserving that local content is no longer required.
@@ -131,11 +147,13 @@ Focused verification at this checkpoint:
 
 1. Confirm the branch is clean and starts at the latest checkpoint documented by
    `git log`, then run `npm run check`.
-2. Unlock the Mac and rerun the independent browser-only Home review.
+2. Resolve the Property Management baseline decision: approve a corrected,
+   deterministic reference capture or explicitly revise the comparison policy.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Perform exclusion-adjusted independent visual confirmation.
-5. Begin Real Estate only after Property Management acceptance is resolved.
+4. Capture the missing form and edit-mode visual states against the approved
+   reference policy.
+5. Begin Real Estate only after Property Management visual acceptance is resolved.
 
 The local Docker stack may still be running after Compose verification. Inspect
 it with `docker compose ps`; stop it with `docker compose down` before closing a

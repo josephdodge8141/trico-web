@@ -37,6 +37,22 @@ Compare a local capture tree that mirrors the manifest's `pages/` and `states/` 
 node --import tsx tooling/gates/visual-baselines.ts compare /absolute/path/to/local-captures
 ```
 
+Capture and compare one public route from a running local stack at the manifest's real Playwright
+viewports (including the documented 1,425-pixel desktop content crop):
+
+```bash
+node --import tsx tooling/gates/visual-baselines.ts capture \
+  http://localhost:8088 /absolute/path/to/local-captures /property-management
+node --import tsx tooling/gates/visual-baselines.ts compare-route \
+  /absolute/path/to/local-captures /property-management
+```
+
+The capture command waits for fonts and images, disables animation, records full document geometry
+in `candidate-report.json`, and writes only public page-state images. A final tile is deliberately
+short when the candidate document is shorter than the reference so the geometry gate fails instead
+of padding or concealing the difference. Route comparison does not contact Lovable or silently add
+masks.
+
 The comparison fails closed when files are missing or undecodable, when desktop/tablet geometry
 differs by more than 2 pixels, when mobile geometry differs by more than 3 pixels, or when any
 unmasked region's 8×8 luminance SSIM is below 0.98. Its JSON report includes each region's score,
