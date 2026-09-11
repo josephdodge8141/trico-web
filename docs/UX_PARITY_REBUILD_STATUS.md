@@ -52,6 +52,12 @@ Last updated: 2026-09-10
   reduces the active toolbar to a 64px status/action bar, keeps all approved
   actions in an accessible disclosure, reserves page space for the bar, and
   separates sheet-body scrolling from the Save/Cancel footer.
+- The current Property Management geometry checkpoint restores the 100vh split
+  hero, 60px desktop heading, 64px logo, 16px card copy, below-1024 mobile-nav
+  breakpoint, alternating process layout, original association widths, and
+  section density. At 1425x1100 the corrected page is 15,562px versus a 15,975px
+  frozen capture that includes one intentionally excluded Property 7-10 row;
+  section boundaries now converge closely without claiming SSIM acceptance.
 
 Focused verification at this checkpoint:
 
@@ -76,9 +82,8 @@ Focused verification at this checkpoint:
   renderer and legacy contracts (142 entities remain).
 - Property Management requires its independent 2px/3px geometry and 0.98 SSIM
   comparison; its functional composition is not yet visual-parity acceptance.
-  Browser-only review confirmed these remaining gaps in priority order:
-  typography/container/hero scale drift; wrong hero CTA hierarchy; and flattened
-  contact details. The original isolated mobile
+  Browser-only review confirmed these remaining gaps in priority order: wrong
+  hero CTA hierarchy and flattened contact details. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -95,8 +100,8 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Close the remaining independent Property Management gaps one at a time:
-   geometry/type tuning, CTA hierarchy, and contact presentation.
+4. Close the remaining independent Property Management gaps one at a time: hero
+   CTA hierarchy, then contact presentation.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 

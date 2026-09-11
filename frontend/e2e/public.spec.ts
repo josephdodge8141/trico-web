@@ -143,6 +143,38 @@ test('uses the Property Management mobile navigation below the desktop breakpoin
   await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
 });
 
+test('preserves the Property Management visual scale and desktop split geometry', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1425, height: 1100 });
+  await page.goto('/property-management');
+  const hero = await page.locator('.pm-hero').boundingBox();
+  const heroCopy = await page.locator('.pm-hero-grid > div').first().boundingBox();
+  expect(hero?.height).toBeGreaterThanOrEqual(1100);
+  expect(heroCopy?.x).toBeGreaterThanOrEqual(28);
+  expect(heroCopy?.x).toBeLessThanOrEqual(36);
+  await expect(page.locator('.pm-brand img')).toHaveCSS('height', '64px');
+  await expect(page.locator('.pm-hero h1')).toHaveCSS('font-size', '60px');
+  await expect(page.locator('#services .pm-section-heading h2')).toHaveCSS('font-size', '48px');
+  await expect(page.locator('#services .pm-card p').first()).toHaveCSS('font-size', '16px');
+
+  await page.setViewportSize({ width: 1024, height: 1366 });
+  await page.reload();
+  await expect(page.locator('.pm-hero-image')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Toggle menu' })).toBeHidden();
+  const managedCards = page.locator(
+    '#managed-properties > .pm-container > .pm-entity-slot:nth-of-type(2) .pm-property-card',
+  );
+  const firstManagedCard = await managedCards.nth(0).boundingBox();
+  const thirdManagedCard = await managedCards.nth(2).boundingBox();
+  const fourthManagedCard = await managedCards.nth(3).boundingBox();
+  expect(thirdManagedCard?.y).toBe(firstManagedCard?.y);
+  expect(fourthManagedCard?.y).toBeGreaterThan(
+    (firstManagedCard?.y ?? 0) + (firstManagedCard?.height ?? 0),
+  );
+});
+
 test('preserves the intended Home composition on a narrow mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
