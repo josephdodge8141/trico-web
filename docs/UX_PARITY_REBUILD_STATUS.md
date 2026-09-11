@@ -140,6 +140,13 @@ Last updated: 2026-09-11
   remaining whole-page deltas are +100px desktop, +32px tablet, and -147px
   mobile, with tablet About still 38px short and explicitly queued for its
   vertical-spacing pass.
+- The third production reconciliation restores the source footer padding,
+  grid/link/legal rhythm, responsive gutter, and mobile link-group breaks, plus
+  source mobile testimonial padding. Footer error fell from 61/81/176px to
+  11/38/13px across desktop/tablet/mobile, and the mobile testimonial error fell
+  from +101px to -15px. Fixed page tiles can temporarily score lower when these
+  corrected section boundaries move downstream content; the section geometry
+  is retained as the more specific evidence and no difference is masked.
 
 Focused verification at this checkpoint:
 

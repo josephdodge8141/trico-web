@@ -1030,14 +1030,14 @@
   font-size: 1.5rem;
 }
 .pm-footer {
-  padding: 4rem 1rem 1.5rem;
+  padding: 4rem 1rem;
   color: #fff;
   background: #0f1729;
 }
 .pm-footer-grid {
   display: grid;
   grid-template-columns: 2fr 3fr;
-  gap: 4rem;
+  gap: 3rem;
 }
 .pm-footer-brand img {
   width: auto;
@@ -1076,7 +1076,7 @@
   flex-direction: column;
   gap: 0.35rem;
   break-inside: avoid;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.75rem;
 }
 .pm-footer-link strong {
   color: #fff;
@@ -1092,7 +1092,7 @@
   justify-content: space-between;
   gap: 2rem;
   margin-top: 3rem;
-  padding-top: 1.4rem;
+  padding-top: 2rem;
   border-top: 1px solid rgb(255 255 255 / 10%);
   color: rgb(255 255 255 / 55%);
   font-size: 0.78rem;
@@ -1125,6 +1125,12 @@
 @media (max-width: 1279px) {
   .pm-about > .pm-container,
   .pm-contact > .pm-container {
+    width: 100%;
+  }
+  .pm-footer > .pm-container {
+    width: 100%;
+  }
+  .pm-footer-legal {
     width: 100%;
   }
   #managed-properties > .pm-container > .pm-entity-slot:nth-of-type(2) .editable-collection-items {
@@ -1273,6 +1279,13 @@
   }
   .pm-about-grid {
     gap: 3.5rem;
+  }
+  .pm-quote-card {
+    padding: 1.5rem;
+  }
+  .pm-footer-grid > .pm-entity-slot:last-child .editable-collection-items > div:nth-child(5),
+  .pm-footer-grid > .pm-entity-slot:last-child .editable-collection-items > div:nth-child(9) {
+    margin-top: 3rem;
   }
   .pm-about h2 {
     font-size: 1.875rem;
