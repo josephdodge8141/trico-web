@@ -113,6 +113,11 @@ Focused verification at this checkpoint:
   confirmation. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
+- A final independent browser pass opened the corrected local page and confirmed
+  a clean branded header/hero, banner, split layout, actions, semantic content,
+  contact anchor, footer, and no `LIC` fallback at 1280x720. The Mac locked when
+  the reviewer opened Lovable, so comparative desktop/mobile acceptance remains
+  blocked until manual unlock; it must not be recorded as passed.
 - Form-state and edit-mode visual references still need capture.
 - Independent browser-only review could not start because the Mac locked; rerun
   it after unlocking rather than accepting the implementation agent's review.
@@ -127,7 +132,8 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Perform exclusion-adjusted density and independent visual confirmation.
+4. Unlock the Mac, then perform exclusion-adjusted density and independent visual
+   confirmation.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 
