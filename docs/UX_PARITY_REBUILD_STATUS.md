@@ -147,6 +147,15 @@ Last updated: 2026-09-11
   from +101px to -15px. Fixed page tiles can temporarily score lower when these
   corrected section boundaries move downstream content; the section geometry
   is retained as the more specific evidence and no difference is masked.
+- The fourth production reconciliation restores the source Services container
+  widths and mobile heading gap plus the Tenant Portal's 1024px content width,
+  768px heading cap, bare 40px icons, card typography, and 60px action. Services
+  tablet height error fell from 25px to under 1px and its mobile error from 62px
+  to 38px. Tenant Portal desktop/tablet error fell from 38px to 7px; its mobile
+  result is 24px short and remains queued. Desktop SSIM improved from 0.772217
+  to 0.781534 and all tablet tiles improved. Later mobile tile movement is kept
+  visible because it follows genuine upstream geometry changes; no masks were
+  added.
 
 Focused verification at this checkpoint:
 
