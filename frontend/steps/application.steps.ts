@@ -153,6 +153,60 @@ Then(
   },
 );
 
+Then(
+  'the Home page presents every mounted section in its intended order',
+  async function (this: FrontendWorld) {
+    const expectedHeadings = [
+      "Building Utah's Future",
+      'Our Divisions',
+      'Our Core Values',
+      'Our Journey',
+      'Leadership Team',
+      'News & Updates',
+      'Join Our Team',
+      'Submit Your Resume',
+      'Get In Touch',
+    ];
+    const positions: number[] = [];
+    for (const heading of expectedHeadings) {
+      const locator = this.currentPage().getByRole('heading', { name: heading, exact: true });
+      await expect(locator).toBeVisible();
+      const box = await locator.boundingBox();
+      assert.ok(box);
+      positions.push(box.y + (await this.currentPage().evaluate(() => window.scrollY)));
+    }
+    assert.deepEqual(
+      positions,
+      [...positions].sort((left, right) => left - right),
+    );
+  },
+);
+Then(
+  'all {int} Home entities have an editable visual boundary',
+  async function (this: FrontendWorld, count: number) {
+    await expect(this.currentPage().locator('[data-home-entity-boundary="true"]')).toHaveCount(
+      count,
+    );
+  },
+);
+Then(
+  'the Home resume form validates locally without creating a CMS entity',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    let entityMutationCount = 0;
+    page.on('request', (request) => {
+      if (request.method() !== 'GET' && request.url().includes('/api/v1/entities/'))
+        entityMutationCount += 1;
+    });
+    await page.getByRole('button', { name: 'Submit Resume' }).click();
+    await expect(page.getByText('Please enter your name.')).toBeVisible();
+    await expect(page.getByText('Please enter your email.')).toBeVisible();
+    await expect(page.getByText('Please select a division.')).toBeVisible();
+    await expect(page.getByText('Please attach your resume.')).toBeVisible();
+    assert.equal(entityMutationCount, 0);
+  },
+);
+
 Given('a construction project category has no published projects', function () {});
 When('I open that project category', async function (this: FrontendWorld) {
   await this.currentPage().goto('/construction/current/multi-family');
@@ -178,7 +232,13 @@ Given(
     await page.getByLabel('Password').fill(editorPassword);
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page).toHaveURL(/\/$/);
+    const previewResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        response.url().includes('/api/v1/pages/home/preview'),
+    );
     await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await previewResponse;
     const heading = page.getByRole('heading', { level: 1 });
     this.originalHeading = await heading.innerText();
     await heading.hover();

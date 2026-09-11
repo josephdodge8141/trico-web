@@ -1,4 +1,8 @@
-import { contentManifestSchema, pageContentSchema } from '@app/schemas';
+import {
+  contentManifestSchema,
+  pageContentSchema,
+  type PageContent as PageDocument,
+} from '@app/schemas';
 
 import {
   defaultPages,
@@ -74,9 +78,28 @@ export async function fetchPublicPage(
   return parsePageContent(pageId, await requestJson(page.url, options));
 }
 
+export async function fetchPublicPageDocument(
+  pageId: PageId,
+  options: ContentRequestOptions = {},
+): Promise<PageDocument> {
+  const manifest = parseContentManifest(
+    await requestJson(options.manifestEndpoint ?? '/content/manifest.json', options),
+  );
+  const page = manifest.pages[pageId];
+  if (page === undefined) throw new Error(`Content manifest does not include ${pageId}`);
+  return pageContentSchema.parse(await requestJson(page.url, options));
+}
+
 export async function fetchPreviewPage(
   pageId: PageId,
   options: ContentRequestOptions = {},
 ): Promise<PageContent> {
   return parsePageContent(pageId, await requestJson(`/api/v1/pages/${pageId}/preview`, options));
+}
+
+export async function fetchPreviewPageDocument(
+  pageId: PageId,
+  options: ContentRequestOptions = {},
+): Promise<PageDocument> {
+  return pageContentSchema.parse(await requestJson(`/api/v1/pages/${pageId}/preview`, options));
 }

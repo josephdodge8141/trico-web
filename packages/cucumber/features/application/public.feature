@@ -25,6 +25,15 @@ Feature: Published TriCo website
     When a replacement release has not completed
     Then every manifest page still resolves to the previous complete release
 
+  @id:public.home-mounted-composition @backend-noop
+  Scenario: Render the complete mounted Home composition
+    backend-noop: Home composition, responsive presentation, and the client-only resume form are browser-owned behavior.
+    Given the current content manifest is available
+    When I open "/"
+    Then the Home page presents every mounted section in its intended order
+    And all 18 Home entities have an editable visual boundary
+    And the Home resume form validates locally without creating a CMS entity
+
   @id:public.construction-empty @backend-noop
   Scenario: Show an honest empty construction project state
     backend-noop: Empty-state presentation is owned by the frontend.

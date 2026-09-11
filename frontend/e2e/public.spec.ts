@@ -28,6 +28,57 @@ test('uses corrected real-estate and storage anchors', async ({ page }) => {
   await expect(page.locator('#features')).toBeVisible();
 });
 
+test('renders the complete Home composition with all semantic visual boundaries', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.locator('[data-home-entity-boundary="true"]')).toHaveCount(18);
+  const headings = [
+    "Building Utah's Future",
+    'Our Divisions',
+    'Our Core Values',
+    'Our Journey',
+    'Leadership Team',
+    'News & Updates',
+    'Join Our Team',
+    'Submit Your Resume',
+    'Get In Touch',
+  ];
+  for (const heading of headings)
+    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+  await expect(page.locator('.home-division-card')).toHaveCount(5);
+  await expect(page.locator('.home-timeline-card')).toHaveCount(8);
+  await expect(page.locator('.home-leader-card img')).toHaveCount(4);
+});
+
+test('keeps the Home resume form client-only and exposes friendly validation', async ({ page }) => {
+  let cmsMutations = 0;
+  page.on('request', (request) => {
+    if (request.method() !== 'GET' && request.url().includes('/api/v1/entities/'))
+      cmsMutations += 1;
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Submit Resume' }).click();
+  await expect(page.getByText('Please enter your name.')).toBeVisible();
+  await expect(page.getByText('Please enter your email.')).toBeVisible();
+  await expect(page.getByText('Please select a division.')).toBeVisible();
+  await expect(page.getByText('Please attach your resume.')).toBeVisible();
+  expect(cmsMutations).toBe(0);
+});
+
+test('preserves the intended Home composition on a narrow mobile viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const divisionCards = page.locator('.home-division-card');
+  const firstDivision = await divisionCards.nth(0).boundingBox();
+  const secondDivision = await divisionCards.nth(1).boundingBox();
+  expect(firstDivision).not.toBeNull();
+  expect(secondDivision).not.toBeNull();
+  expect(secondDivision?.y).toBeGreaterThan((firstDivision?.y ?? 0) + (firstDivision?.height ?? 0));
+  await expect(page.locator('.home-header img')).toHaveCSS('height', '48px');
+  await expect(page.getByRole('button', { name: 'Submit Resume' })).toBeVisible();
+});
+
 test('shows an honest empty construction category instead of fabricated project cards', async ({
   page,
 }) => {

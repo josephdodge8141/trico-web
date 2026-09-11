@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { ConstructionCategoryPage } from './pages/ConstructionCategoryPage.js';
+import { HomeSitePage } from './pages/HomeSitePage.js';
 import { SitePage } from './pages/SitePage.js';
 import { AuthPage } from './pages/AuthPage.js';
 
@@ -8,7 +9,7 @@ export function App(): React.JSX.Element {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SitePage pageId="home" />} />
+        <Route path="/" element={<HomeSitePage />} />
         <Route path="/property-management" element={<SitePage pageId="property-management" />} />
         <Route path="/real-estate" element={<SitePage pageId="real-estate" />} />
         <Route path="/construction" element={<SitePage pageId="construction" />} />
