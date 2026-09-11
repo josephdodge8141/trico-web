@@ -209,6 +209,7 @@ test('preserves the Property Management visual scale and desktop split geometry'
 test('gives the Property Management hero actions an accessible visual hierarchy', async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 1425, height: 1100 });
   await page.goto('/property-management');
   const primary = page.locator('.pm-hero .pm-actions a').nth(0);
   const secondary = page.locator('.pm-hero .pm-actions a').nth(1);
@@ -223,6 +224,13 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
   expect(contrastRatio([255, 255, 255], [134, 98, 45])).toBeGreaterThanOrEqual(4.5);
   expect(contrastRatio([255, 255, 255], [0, 18, 138])).toBeGreaterThanOrEqual(4.5);
 
+  const desktopPrimaryBox = await primary.boundingBox();
+  const desktopSecondaryBox = await secondary.boundingBox();
+  expect(desktopSecondaryBox?.x).toBeGreaterThan(
+    (desktopPrimaryBox?.x ?? 0) + (desktopPrimaryBox?.width ?? 0),
+  );
+  expect(desktopSecondaryBox?.y).toBe(desktopPrimaryBox?.y);
+
   await primary.hover();
   await expect(primary).toHaveCSS('background-color', 'rgb(111, 81, 37)');
   await secondary.hover();
@@ -230,6 +238,27 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
   await primary.focus();
   await expect(primary).toHaveCSS('outline-color', 'rgb(255, 255, 255)');
   await expect(primary).toHaveCSS('outline-style', 'solid');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  const mobileHeroBox = await page.locator('.pm-hero').boundingBox();
+  const mobilePrimaryBox = await primary.boundingBox();
+  const mobileSecondaryBox = await secondary.boundingBox();
+  expect(mobileHeroBox?.height).toBe(844);
+  expect(mobilePrimaryBox?.x).toBe(16);
+  expect(mobileSecondaryBox?.x).toBe(16);
+  expect(mobilePrimaryBox?.width).toBe(358);
+  expect(mobileSecondaryBox?.width).toBe(358);
+  expect(mobilePrimaryBox?.height).toBeGreaterThanOrEqual(43);
+  expect(mobilePrimaryBox?.height).toBeLessThanOrEqual(45);
+  expect(mobileSecondaryBox?.height).toBeGreaterThanOrEqual(43);
+  expect(mobileSecondaryBox?.height).toBeLessThanOrEqual(45);
+  expect(mobileSecondaryBox?.y).toBeGreaterThanOrEqual(
+    (mobilePrimaryBox?.y ?? 0) + (mobilePrimaryBox?.height ?? 0) + 11,
+  );
+  expect(mobileSecondaryBox?.y).toBeLessThanOrEqual(
+    (mobilePrimaryBox?.y ?? 0) + (mobilePrimaryBox?.height ?? 0) + 13,
+  );
 });
 
 test('restores labeled Property Management contact rows and clears the sticky header anchor', async ({

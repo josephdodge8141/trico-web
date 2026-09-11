@@ -451,6 +451,30 @@ Then(
   },
 );
 Then(
+  'the Property Management hero actions stack at full content width on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/property-management');
+    const actions = page.locator('.pm-hero .pm-actions a');
+    const heroBox = await page.locator('.pm-hero').boundingBox();
+    const primaryBox = await actions.nth(0).boundingBox();
+    const secondaryBox = await actions.nth(1).boundingBox();
+    assert.ok(heroBox);
+    assert.ok(primaryBox);
+    assert.ok(secondaryBox);
+    assert.equal(heroBox.height, 844);
+    assert.equal(primaryBox.x, 16);
+    assert.equal(secondaryBox.x, 16);
+    assert.equal(primaryBox.width, 358);
+    assert.equal(secondaryBox.width, 358);
+    assert.ok(primaryBox.height >= 43 && primaryBox.height <= 45);
+    assert.ok(secondaryBox.height >= 43 && secondaryBox.height <= 45);
+    assert.ok(secondaryBox.y >= primaryBox.y + primaryBox.height + 11);
+    assert.ok(secondaryBox.y <= primaryBox.y + primaryBox.height + 13);
+  },
+);
+Then(
   'supplied Property Management portfolio images load while unavailable images use the neutral placeholder',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
