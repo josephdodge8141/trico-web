@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { ConstructionCategoryPage } from './pages/ConstructionCategoryPage.js';
 import { HomeSitePage } from './pages/HomeSitePage.js';
+import { PropertyManagementSitePage } from './pages/PropertyManagementSitePage.js';
 import { SitePage } from './pages/SitePage.js';
 import { AuthPage } from './pages/AuthPage.js';
 
@@ -10,7 +11,7 @@ export function App(): React.JSX.Element {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomeSitePage />} />
-        <Route path="/property-management" element={<SitePage pageId="property-management" />} />
+        <Route path="/property-management" element={<PropertyManagementSitePage />} />
         <Route path="/real-estate" element={<SitePage pageId="real-estate" />} />
         <Route path="/construction" element={<SitePage pageId="construction" />} />
         <Route

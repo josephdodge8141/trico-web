@@ -34,6 +34,18 @@ Feature: In-page content editing and preview
     And the migration report is deterministic and dry-runnable
     And unresolved version 1 pending changes block migration unless disposable local reset is explicit
 
+  @id:content.property-management-semantic-migration @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Migrate Property Management content to novice-safe semantic contracts
+    backend-noop: The pure Property Management migration planner is exercised in the shared contract package before backend persistence can accept version 2 values.
+    frontend-noop: Property Management contract and migration validation runs in the shared contract package before the page consumes version 2 values.
+    browser-noop: Deterministic seed conversion and pending-change refusal are build-time migration invariants rather than browser interactions.
+    Given the 35 canonical Property Management entities and their mounted legacy content
+    When I prepare the version 1 to version 2 Property Management content migration
+    Then all 35 Property Management values use strict semantic schemas and explicit editor metadata
+    And each Property Management entity has one primary visual slot
+    And the Property Management migration report is deterministic and dry-runnable
+    And unresolved Property Management version 1 pending changes block migration unless disposable local reset is explicit
+
   @id:content.create-change @frontend-noop
   Scenario: Save a complete replacement as a pending change
     frontend-noop: In-page editor entry and mutation transport are exercised by Compose Playwright; replacement persistence is exercised by the backend adapter.

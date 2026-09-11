@@ -62,6 +62,7 @@ test('canonical feature files are the catalog source rather than copied text', a
       'public.pages::development',
       'public.manifest-switch',
       'public.home-mounted-composition',
+      'public.property-management-mounted-composition',
       'public.construction-empty',
       'public.visual-baseline',
       'public.health',

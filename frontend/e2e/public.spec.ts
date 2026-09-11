@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 const publicPages = [
   { route: '/', heading: "Building Utah's Future" },
-  { route: '/property-management', heading: 'Property management that performs' },
+  { route: '/property-management', heading: 'What to Expect with TriCo' },
   { route: '/real-estate', heading: 'Find the right place for what comes next' },
   { route: '/construction', heading: 'Construction with purpose' },
   { route: '/storage', heading: 'Storage made simple' },
@@ -64,6 +64,67 @@ test('keeps the Home resume form client-only and exposes friendly validation', a
   await expect(page.getByText('Please select a division.')).toBeVisible();
   await expect(page.getByText('Please attach your resume.')).toBeVisible();
   expect(cmsMutations).toBe(0);
+});
+
+test('renders the complete Property Management composition with all semantic boundaries', async ({
+  page,
+}) => {
+  await page.goto('/property-management');
+  await expect(page.locator('[data-property-management-entity-boundary="true"]')).toHaveCount(35);
+  for (const heading of [
+    'What to Expect with TriCo',
+    'The TriCo Experience',
+    'Take a Look at Our Process',
+    'Properties We Currently Manage',
+    'Commercial Owners Associations',
+    'Homeowners Associations',
+    'Tenant Portal',
+    'Meet Our Property Management Experts',
+    'Property Management Done Right',
+    'What Our Clients Say',
+    'Frequently Asked Questions',
+    'Join Our Team',
+    'New Client Inquiry',
+    'Leave Us a Review',
+    'Get Your Free Property Analysis',
+  ]) {
+    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+  }
+  await expect(page.locator('.pm-property-card')).toHaveCount(12);
+  await expect(page.getByText('Property 7')).toHaveCount(0);
+});
+
+test('keeps both Property Management forms client-only with friendly validation', async ({
+  page,
+}) => {
+  let cmsMutations = 0;
+  page.on('request', (request) => {
+    if (request.method() !== 'GET' && request.url().includes('/api/v1/entities/')) {
+      cmsMutations += 1;
+    }
+  });
+  await page.goto('/property-management');
+  await page.getByRole('button', { name: 'Submit Inquiry', exact: true }).click();
+  await expect(page.getByText('Enter full name.')).toBeVisible();
+  await expect(page.getByText('Enter area of interest.')).toBeVisible();
+  await page.getByRole('button', { name: 'Get Free Analysis', exact: true }).last().click();
+  await expect(page.getByText('Enter first name.')).toBeVisible();
+  await expect(page.getByText('Enter last name.')).toBeVisible();
+  await expect(page.getByText('Enter phone.')).toBeVisible();
+  expect(cmsMutations).toBe(0);
+});
+
+test('uses the Property Management mobile navigation below the desktop breakpoint', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/property-management');
+  const menu = page.getByRole('button', { name: 'Toggle menu' });
+  await expect(menu).toBeVisible();
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
 });
 
 test('preserves the intended Home composition on a narrow mobile viewport', async ({ page }) => {

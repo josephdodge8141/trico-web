@@ -34,6 +34,15 @@ Feature: Published TriCo website
     And all 18 Home entities have an editable visual boundary
     And the Home resume form validates locally without creating a CMS entity
 
+  @id:public.property-management-mounted-composition @backend-noop
+  Scenario: Render the complete mounted Property Management composition
+    backend-noop: Property Management composition, responsive presentation, and its two client-only forms are browser-owned behavior.
+    Given the current content manifest is available
+    When I open "/property-management"
+    Then the Property Management page presents every mounted section in its intended order
+    And all 35 Property Management entities have an editable visual boundary
+    And the Property Management client-only forms validate locally without creating CMS entities
+
   @id:public.construction-empty @backend-noop
   Scenario: Show an honest empty construction project state
     backend-noop: Empty-state presentation is owned by the frontend.

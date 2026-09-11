@@ -31,7 +31,7 @@ const mailpitAuthorization = `Basic ${Buffer.from(
 ).toString('base64')}`;
 const headings: Readonly<Record<string, string>> = {
   '/': "Building Utah's Future",
-  '/property-management': 'Property management that performs',
+  '/property-management': 'What to Expect with TriCo',
   '/real-estate': 'Find the right place for what comes next',
   '/construction': 'Construction with purpose',
   '/storage': 'Storage made simple',
@@ -359,6 +359,70 @@ Then(
     await expect(page.getByText('Please enter your email.')).toBeVisible();
     await expect(page.getByText('Please select a division.')).toBeVisible();
     await expect(page.getByText('Please attach your resume.')).toBeVisible();
+    assert.equal(entityMutationCount, 0);
+  },
+);
+
+Then(
+  'the Property Management page presents every mounted section in its intended order',
+  async function (this: FrontendWorld) {
+    const expectedHeadings = [
+      'What to Expect with TriCo',
+      'The TriCo Experience',
+      'Take a Look at Our Process',
+      'Properties We Currently Manage',
+      'Commercial Owners Associations',
+      'Homeowners Associations',
+      'Tenant Portal',
+      'Meet Our Property Management Experts',
+      'Property Management Done Right',
+      'What Our Clients Say',
+      'Frequently Asked Questions',
+      'Join Our Team',
+      'New Client Inquiry',
+      'Leave Us a Review',
+      'Get Your Free Property Analysis',
+    ];
+    const positions: number[] = [];
+    for (const heading of expectedHeadings) {
+      const locator = this.currentPage().getByRole('heading', { name: heading, exact: true });
+      await expect(locator).toBeVisible();
+      const box = await locator.boundingBox();
+      assert.ok(box);
+      positions.push(box.y + (await this.currentPage().evaluate(() => window.scrollY)));
+    }
+    assert.deepEqual(
+      positions,
+      [...positions].sort((left, right) => left - right),
+    );
+  },
+);
+Then(
+  'all {int} Property Management entities have an editable visual boundary',
+  async function (this: FrontendWorld, count: number) {
+    await expect(
+      this.currentPage().locator('[data-property-management-entity-boundary="true"]'),
+    ).toHaveCount(count);
+  },
+);
+Then(
+  'the Property Management client-only forms validate locally without creating CMS entities',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    let entityMutationCount = 0;
+    page.on('request', (request) => {
+      if (request.method() !== 'GET' && request.url().includes('/api/v1/entities/')) {
+        entityMutationCount += 1;
+      }
+    });
+    await page.getByRole('button', { name: 'Submit Inquiry', exact: true }).click();
+    await expect(page.getByText('Enter full name.')).toBeVisible();
+    await expect(page.getByText('Enter email.').first()).toBeVisible();
+    await expect(page.getByText('Enter area of interest.')).toBeVisible();
+    await page.getByRole('button', { name: 'Get Free Analysis', exact: true }).last().click();
+    await expect(page.getByText('Enter first name.')).toBeVisible();
+    await expect(page.getByText('Enter last name.')).toBeVisible();
+    await expect(page.getByText('Enter phone.')).toBeVisible();
     assert.equal(entityMutationCount, 0);
   },
 );

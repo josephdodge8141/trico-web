@@ -16,6 +16,8 @@ import { homeV2SeedData } from '../seeds/home.js';
 import type { EntityEditorDefinition } from './editor-contracts.js';
 import { mergeEntityModules } from './editor-contracts.js';
 import { homeEntityModule } from './home.js';
+import { propertyManagementEntityModule } from './property-management.js';
+import { propertyManagementV2SeedData } from '../seeds/property-management.js';
 
 export const entityKindSchema = z.enum(['object', 'list']);
 
@@ -1739,6 +1741,7 @@ const definitions = [
 export const legacyEntityDefinitions: readonly EntityDefinition[] = definitions;
 export const entityDefinitions: readonly EntityDefinition[] = mergeEntityModules(definitions, [
   homeEntityModule,
+  propertyManagementEntityModule,
 ]);
 
 const pageRoutes = {
@@ -1763,10 +1766,15 @@ export const entityRegistry = new Map(
 
 const uncheckedSeedData: Readonly<Record<string, unknown>> = legacyVisibleContentSeeds;
 const semanticHomeSeeds: Readonly<Record<string, EditableValue>> = homeV2SeedData;
+const semanticPropertyManagementSeeds: Readonly<Record<string, EditableValue>> =
+  propertyManagementV2SeedData;
 
 export const registrySeedData: Readonly<Record<EntityId, EditableValue>> = Object.fromEntries(
   entityDefinitions.map((definition) => {
-    const seed = semanticHomeSeeds[definition.id] ?? uncheckedSeedData[definition.id];
+    const seed =
+      semanticHomeSeeds[definition.id] ??
+      semanticPropertyManagementSeeds[definition.id] ??
+      uncheckedSeedData[definition.id];
     definition.schema.parse(seed);
     return [definition.id, editableValueSchema.parse(seed)] as const;
   }),

@@ -36,6 +36,11 @@ Last updated: 2026-09-10
 - The current publication-order checkpoint reads the latest page publication
   consistently and assigns publish/rollback timestamps monotonically, removing
   the confirmed same-millisecond history race.
+- The current Property Management checkpoint adds all 35 strict semantic
+  contracts/seeds and visual slots, a dedicated responsive composition, all 35
+  editor boundaries, and both restored client-only forms. Functional acceptance
+  is green; exact visual certification remains pending because the 1440px page
+  is currently 14,706px tall versus the frozen 15,975px reference.
 
 Focused verification at this checkpoint:
 
@@ -43,21 +48,23 @@ Focused verification at this checkpoint:
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
-- Root `npm run check` passes after integrating the Home matrix and deterministic
-  publication ordering, validating 106 canonical cases.
-- Frontend unit tests passed: 21/21.
-- Frontend browser tests passed: 11/11.
-- Compose frontend Cucumber passed: 18/18 scenarios and 118/118 steps.
+- Root `npm run check` passes after integrating Property Management, validating
+  108 canonical cases.
+- Frontend unit tests passed: 25/25.
+- Frontend browser tests passed: 14/14.
+- Compose frontend Cucumber passed: 19/19 scenarios and 125/125 steps.
 - Compose Playwright passed: 11/11, including 7/7 preview/editor cases.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
 
 ## Intentionally incomplete
 
-- The other 177 entities still use legacy contracts and seeds.
+- The other 142 entities still use legacy contracts and seeds.
 - Media and source controls are implemented but not mounted in a page editor.
-- Property Management, Real Estate, Construction, Storage, and Development still
-  use the generic renderer and legacy contracts (177 entities remain).
+- Real Estate, Construction, Storage, and Development still use the generic
+  renderer and legacy contracts (142 entities remain).
+- Property Management requires its independent 2px/3px geometry and 0.98 SSIM
+  comparison; its functional composition is not yet visual-parity acceptance.
 - Form-state and edit-mode visual references still need capture.
 - Independent browser-only review could not start because the Mac locked; rerun
   it after unlocking rather than accepting the implementation agent's review.
@@ -72,8 +79,8 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Begin the other five page-owned contract/composition waves, starting with
-   Property Management.
+4. Run independent Property Management visual comparison and close the measured
+   height/section-geometry gap, then begin Real Estate.
 
 The local Docker stack may still be running after Compose verification. Inspect
 it with `docker compose ps`; stop it with `docker compose down` before closing a
