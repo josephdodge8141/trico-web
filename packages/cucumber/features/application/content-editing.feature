@@ -168,3 +168,14 @@ Feature: In-page content editing and preview
     And touch editing actions meet their minimum target size
     When I operate the visible item controls with the keyboard
     Then the friendly item editor opens and the saved page layout remains unchanged
+
+  @id:content.mobile-editor-chrome @backend-noop @touch
+  Scenario: Keep mobile editor chrome compact and reachable
+    backend-noop: Launcher, toolbar, sheet scrolling, and focus behavior are browser presentation concerns.
+    Given I am signed in on Home at a 390 by 844 touch viewport
+    When I tap the edit mode launcher
+    Then the compact editor status does not cover the page content
+    And every approved editor action is reachable from the compact toolbar
+    When I open a long semantic editor on mobile
+    Then I can scroll every field above the Save and Cancel actions
+    And keyboard focus stays within the editor until I close it

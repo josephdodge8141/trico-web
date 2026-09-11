@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import { entityDefinitions } from '@app/schemas';
 
@@ -23,6 +23,8 @@ export function EditorToolbar(): React.JSX.Element {
   const [history, setHistory] = useState<readonly Publication[]>([]);
   const [panel, setPanel] = useState<ToolbarPanel>('none');
   const [failedOperationId, setFailedOperationId] = useState<string>();
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const actionsId = useId();
 
   useEffect(() => {
     if (!editing.active) return;
@@ -32,6 +34,7 @@ export function EditorToolbar(): React.JSX.Element {
   }, [editing.active]);
 
   const openHistory = (): void => {
+    setMobileActionsOpen(false);
     void fetchPublications(editing.pageId)
       .then((items) => {
         setHistory(items);
@@ -73,19 +76,36 @@ export function EditorToolbar(): React.JSX.Element {
             : `${String(editing.pending.length)} unpublished changes`}
         </span>
       </div>
-      <div className="toolbar-actions">
+      <button
+        type="button"
+        className="toolbar-menu-toggle"
+        aria-expanded={mobileActionsOpen}
+        aria-controls={actionsId}
+        onClick={() => setMobileActionsOpen((open) => !open)}
+      >
+        Editor actions
+      </button>
+      <div
+        className="toolbar-actions"
+        id={actionsId}
+        data-mobile-open={mobileActionsOpen ? 'true' : 'false'}
+      >
         <button
           type="button"
-          onClick={() =>
-            void editing.setViewingPublic(!editing.viewingPublic).catch(() => undefined)
-          }
+          onClick={() => {
+            setMobileActionsOpen(false);
+            void editing.setViewingPublic(!editing.viewingPublic).catch(() => undefined);
+          }}
           disabled={editing.busy || editing.pending.length === 0}
         >
           {editing.viewingPublic ? 'View my changes' : 'View public'}
         </button>
         <button
           type="button"
-          onClick={() => setPanel('review')}
+          onClick={() => {
+            setMobileActionsOpen(false);
+            setPanel('review');
+          }}
           disabled={editing.busy || editing.pending.length === 0}
         >
           Review and publish
@@ -98,7 +118,13 @@ export function EditorToolbar(): React.JSX.Element {
             Retry failed update
           </button>
         )}
-        <button type="button" onClick={editing.leave}>
+        <button
+          type="button"
+          onClick={() => {
+            setMobileActionsOpen(false);
+            editing.leave();
+          }}
+        >
           Exit edit mode
         </button>
       </div>

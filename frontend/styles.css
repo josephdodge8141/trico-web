@@ -372,7 +372,7 @@ h1 {
   position: fixed;
   right: 1rem;
   bottom: 1rem;
-  z-index: 40;
+  z-index: 900;
   padding: 0.45rem;
   border: 0;
   border-radius: 999px;
@@ -381,11 +381,14 @@ h1 {
   box-shadow: 0 0.5rem 1.8rem rgba(0, 0, 0, 0.18);
 }
 .edit-launcher button {
+  min-width: 44px;
+  min-height: 44px;
   padding: 0.35rem 0.6rem;
   border: 0;
   color: inherit;
   background: transparent;
   cursor: pointer;
+  touch-action: manipulation;
 }
 .edit-launcher span {
   display: block;
@@ -417,6 +420,9 @@ h1 {
 .toolbar-actions {
   display: flex;
   gap: 0.5rem;
+}
+.toolbar-menu-toggle {
+  display: none;
 }
 .editor-toolbar button,
 .entity-controls button {
@@ -569,7 +575,7 @@ h1 {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
   color: #0f1729;
   background: white;
   box-shadow: -1rem 0 3rem rgb(15 23 41 / 22%);
@@ -614,9 +620,17 @@ h1 {
   font-size: 1.5rem;
 }
 .editor-sheet form {
+  min-height: 0;
   display: flex;
   flex: 1;
   flex-direction: column;
+  overflow: hidden;
+}
+.editor-sheet-form-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .semantic-editor-form {
   display: grid;
@@ -733,8 +747,7 @@ h1 {
   border-radius: 0.55rem;
 }
 .editor-sheet form > footer {
-  position: sticky;
-  bottom: 0;
+  flex: none;
   display: flex;
   gap: 0.75rem;
   margin-top: auto;
@@ -968,14 +981,91 @@ h1 {
   .site-footer nav {
     grid-column: 1;
   }
+  .edit-launcher {
+    top: calc(100dvh - 3.5rem - env(safe-area-inset-bottom));
+    right: auto;
+    bottom: auto;
+    left: max(0.75rem, env(safe-area-inset-left));
+  }
   .editor-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.6rem;
+    position: fixed;
+    top: calc(100dvh - 64px - env(safe-area-inset-bottom));
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: 100dvw;
+    box-sizing: border-box;
+    min-height: 64px;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem max(0.75rem, env(safe-area-inset-right))
+      calc(0.55rem + env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+  }
+  body:has(.editor-toolbar) {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+  .editor-toolbar > div:first-child {
+    min-width: 0;
+    line-height: 1.15;
+  }
+  .editor-toolbar > div:first-child span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .toolbar-menu-toggle {
+    min-width: 8.2rem;
+    min-height: 44px;
+    display: block;
+    margin-left: auto;
+    white-space: nowrap;
   }
   .toolbar-actions {
-    width: 100%;
-    overflow: auto;
+    position: absolute;
+    right: 0.75rem;
+    bottom: calc(100% + 0.5rem);
+    left: 0.75rem;
+    display: none;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    padding: 0.65rem;
+    color: #0f1729;
+    border: 1px solid #d9dee8;
+    border-radius: 0.55rem;
+    background: white;
+    box-shadow: 0 0.5rem 2rem rgb(15 23 41 / 24%);
+  }
+  .toolbar-actions[data-mobile-open='true'] {
+    display: grid;
+  }
+  .toolbar-actions button {
+    min-height: 44px;
+    color: #0f1729;
+    border-color: #bbc2d0;
+    text-align: left;
+  }
+  .editor-toolbar > p[role='status'] {
+    position: absolute;
+    right: 0.75rem;
+    bottom: calc(100% + 0.5rem);
+    left: 0.75rem;
+    margin: 0;
+    padding: 0.65rem;
+    color: #0f1729;
+    border: 1px solid #d9dee8;
+    border-radius: 0.45rem;
+    background: white;
+    box-shadow: 0 0.5rem 2rem rgb(15 23 41 / 18%);
+    pointer-events: none;
+  }
+  .editor-toolbar:has(.toolbar-actions[data-mobile-open='true']) > p[role='status'] {
+    display: none;
+  }
+  .toolbar-panel {
+    right: 0.75rem;
+    bottom: calc(100% + 0.5rem);
+    left: 0.75rem;
+    width: auto;
   }
   .editor-sheet {
     width: 100vw;

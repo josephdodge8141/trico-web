@@ -182,31 +182,33 @@ export function EditorSheet({
           </button>
         </header>
         <form onSubmit={(event) => void submit(event)} noValidate>
-          <SemanticEditorForm
-            definition={definition}
-            value={draft}
-            errors={errors}
-            onChange={setDraft}
-            {...(mediaChoices === undefined ? {} : { mediaChoices })}
-            {...(linkChoices === undefined ? {} : { linkChoices })}
-            {...(onRequestMedia === undefined ? {} : { onRequestMedia })}
-          />
-          {conflict ? (
-            <div className="editor-conflict" role="alert">
-              <strong>This section changed while you were editing.</strong>
-              <p>Your work is still here. Reload the latest saved version before trying again.</p>
-              {onReloadLatest === undefined ? null : (
-                <button type="button" onClick={() => void reload()}>
-                  Reload latest
-                </button>
-              )}
-            </div>
-          ) : null}
-          {saveError ? (
-            <p className="editor-error" role="alert">
-              We could not save this change. Please try again.
-            </p>
-          ) : null}
+          <div className="editor-sheet-form-body">
+            <SemanticEditorForm
+              definition={definition}
+              value={draft}
+              errors={errors}
+              onChange={setDraft}
+              {...(mediaChoices === undefined ? {} : { mediaChoices })}
+              {...(linkChoices === undefined ? {} : { linkChoices })}
+              {...(onRequestMedia === undefined ? {} : { onRequestMedia })}
+            />
+            {conflict ? (
+              <div className="editor-conflict" role="alert">
+                <strong>This section changed while you were editing.</strong>
+                <p>Your work is still here. Reload the latest saved version before trying again.</p>
+                {onReloadLatest === undefined ? null : (
+                  <button type="button" onClick={() => void reload()}>
+                    Reload latest
+                  </button>
+                )}
+              </div>
+            ) : null}
+            {saveError ? (
+              <p className="editor-error" role="alert">
+                We could not save this change. Please try again.
+              </p>
+            ) : null}
+          </div>
           <footer>
             <button className="editor-save" type="submit" disabled={busy || saving}>
               {saving ? 'Saving…' : 'Save changes'}

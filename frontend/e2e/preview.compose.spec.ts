@@ -68,8 +68,23 @@ test.describe('touch editor', () => {
     await login(page);
     const initialLayout = await page.locator('.home-values').boundingBox();
     expect(initialLayout).not.toBeNull();
-    await page.getByRole('button', { name: 'Enter edit mode' }).focus();
-    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    const toolbar = page.getByRole('complementary', { name: 'Content editor' });
+    const toolbarBox = await toolbar.boundingBox();
+    expect(toolbarBox?.height).toBeLessThanOrEqual(72);
+    expect(toolbarBox?.width).toBe(390);
+    const actionMenu = toolbar.getByRole('button', { name: 'Editor actions' });
+    await actionMenu.click();
+    await expect(actionMenu).toHaveAttribute('aria-expanded', 'true');
+    for (const actionName of [
+      /View (public|my changes)/,
+      'Review and publish',
+      'History',
+      'Exit edit mode',
+    ]) {
+      await expect(toolbar.getByRole('button', { name: actionName })).toBeVisible();
+    }
+    await actionMenu.click();
     const edit = page.getByRole('button', { name: 'Edit Opening message' });
     await expect(edit).toBeVisible();
     const item = page.locator('.home-values .editable-item').first();
@@ -109,7 +124,27 @@ test.describe('touch editor', () => {
     await page.keyboard.press('Enter');
     await expect(page.getByRole('dialog', { name: /^Edit / })).toBeVisible();
     await page.getByRole('button', { name: 'Cancel' }).click();
-    await page.getByRole('button', { name: 'Exit edit mode' }).click();
+    const contactEdit = page.getByRole('button', { name: 'Edit Corporate contact' });
+    await contactEdit.scrollIntoViewIfNeeded();
+    await contactEdit.click();
+    const contact = page.getByRole('dialog', { name: 'Corporate contact' });
+    const lastField = contact.getByRole('button', { name: 'Add license' });
+    await lastField.scrollIntoViewIfNeeded();
+    const lastFieldBox = await lastField.boundingBox();
+    const saveBox = await contact.getByRole('button', { name: 'Save changes' }).boundingBox();
+    expect((lastFieldBox?.y ?? 0) + (lastFieldBox?.height ?? 0)).toBeLessThanOrEqual(
+      saveBox?.y ?? 0,
+    );
+    const cancel = contact.getByRole('button', { name: 'Cancel' });
+    await cancel.focus();
+    await page.keyboard.press('Tab');
+    expect(await contact.evaluate((element) => element.contains(document.activeElement))).toBe(
+      true,
+    );
+    await page.keyboard.press('Escape');
+    await expect(contact).toHaveCount(0);
+    await actionMenu.click();
+    await toolbar.getByRole('button', { name: 'Exit edit mode' }).click();
     await expect(page.locator('.editable-boundary-controls')).toHaveCount(0);
     await expect(page.locator('.editable-item-controls')).toHaveCount(0);
     const finalLayout = await page.locator('.home-values').boundingBox();

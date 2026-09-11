@@ -909,6 +909,7 @@ Then(
     const page = this.currentPage();
     await expect(page.getByRole('dialog', { name: /^Edit / })).toBeVisible();
     await page.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: 'Editor actions' }).click();
     await page.getByRole('button', { name: 'Exit edit mode' }).click();
     await expect(page.locator('.editable-boundary-controls')).toHaveCount(0);
     await expect(page.locator('.editable-item-controls')).toHaveCount(0);
@@ -919,6 +920,101 @@ Then(
       this.touchLayout,
       'Edit controls changed the public section dimensions after edit mode was closed.',
     );
+  },
+);
+
+Given(
+  'I am signed in on Home at a {int} by {int} touch viewport',
+  async function (this: FrontendWorld, width: number, height: number) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width, height });
+    await loginEditor(page);
+  },
+);
+
+When('I tap the edit mode launcher', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const launcher = page.getByRole('button', { name: 'Enter edit mode' });
+  await expect(launcher).toBeVisible();
+  await launcher.click();
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+});
+
+Then(
+  'the compact editor status does not cover the page content',
+  async function (this: FrontendWorld) {
+    const toolbar = this.currentPage().getByRole('complementary', { name: 'Content editor' });
+    const box = await toolbar.boundingBox();
+    assert.ok(box);
+    assert.ok(box.height <= 72, `The compact mobile toolbar was ${String(box.height)}px tall.`);
+    assert.ok(box.y + box.height <= 844, 'The compact mobile toolbar extended below the viewport.');
+  },
+);
+
+Then(
+  'every approved editor action is reachable from the compact toolbar',
+  async function (this: FrontendWorld) {
+    const toolbar = this.currentPage().getByRole('complementary', { name: 'Content editor' });
+    const menu = toolbar.getByRole('button', { name: 'Editor actions' });
+    await menu.click();
+    await expect(menu).toHaveAttribute('aria-expanded', 'true');
+    for (const actionName of [
+      /View (public|my changes)/,
+      'Review and publish',
+      'History',
+      'Exit edit mode',
+    ]) {
+      const action = toolbar.getByRole('button', { name: actionName });
+      await expect(action).toBeVisible();
+      const box = await action.boundingBox();
+      assert.ok(box);
+      assert.ok(box.x >= 0 && box.x + box.width <= 390, `${String(actionName)} was clipped.`);
+      assert.ok(box.y >= 0 && box.y + box.height <= 844, `${String(actionName)} was unreachable.`);
+    }
+  },
+);
+
+When('I open a long semantic editor on mobile', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.getByRole('button', { name: 'Editor actions' }).click();
+  const edit = page.getByRole('button', { name: 'Edit Corporate contact' });
+  await edit.scrollIntoViewIfNeeded();
+  await edit.click();
+  await expect(page.getByRole('dialog', { name: 'Corporate contact' })).toBeVisible();
+});
+
+Then(
+  'I can scroll every field above the Save and Cancel actions',
+  async function (this: FrontendWorld) {
+    const dialog = this.currentPage().getByRole('dialog', { name: 'Corporate contact' });
+    const lastField = dialog.getByRole('button', { name: 'Add license' });
+    await lastField.scrollIntoViewIfNeeded();
+    await expect(lastField).toBeVisible();
+    const fieldBox = await lastField.boundingBox();
+    const saveBox = await dialog.getByRole('button', { name: 'Save changes' }).boundingBox();
+    assert.ok(fieldBox);
+    assert.ok(saveBox);
+    assert.ok(
+      fieldBox.y + fieldBox.height <= saveBox.y,
+      'The Save and Cancel region covered the final field.',
+    );
+  },
+);
+
+Then(
+  'keyboard focus stays within the editor until I close it',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const dialog = page.getByRole('dialog', { name: 'Corporate contact' });
+    const cancel = dialog.getByRole('button', { name: 'Cancel' });
+    await cancel.focus();
+    await page.keyboard.press('Tab');
+    const focusRemainsInside = await dialog.evaluate((element) =>
+      element.contains(document.activeElement),
+    );
+    assert.equal(focusRemainsInside, true);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
   },
 );
 
