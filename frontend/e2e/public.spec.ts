@@ -203,6 +203,10 @@ test('renders the complete Property Management composition with all semantic bou
     ).toBeGreaterThan(0);
   }
   await expect(page.locator('.pm-property-card [data-neutral-placeholder="true"]')).toHaveCount(2);
+  const heroMedia = page.locator('.pm-hero-image');
+  await expect(heroMedia.locator('[data-neutral-placeholder="true"]')).toBeVisible();
+  await expect(heroMedia.locator('img')).toHaveCount(0);
+  await expect(heroMedia).not.toContainText('media/seed/');
   await expect(page.getByText('Property 7')).toHaveCount(0);
 });
 

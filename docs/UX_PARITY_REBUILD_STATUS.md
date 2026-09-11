@@ -163,6 +163,23 @@ Last updated: 2026-09-11
   whole mobile page gap fell from 117px short to 37px short, every mobile SSIM
   tile improved, and desktop/tablet section heights remained stable. The
   remaining strict parity failures are retained without masking.
+- A section-aligned heatmap pass identified repeated shell/type tokens, media
+  identity, and generic surface primitives as the highest-impact residuals.
+  The resulting broad reconciliation restores the source container/gutter,
+  typography, pills, card shadows/radii, form controls, and editor-wrapper-safe
+  widths. Aligned SSIM improved for Managed Properties from .741/.630/.437 to
+  .833/.788/.638, Team desktop/tablet from .803/.725 to .933/.905, and Contact
+  mobile from .633 to .749. Whole-route desktop SSIM improved from .781834 to
+  .819559; fixed route tiles remain secondary diagnostics because corrected
+  section boundaries can shift later content.
+- Property Management's unavailable hero media now uses the approved neutral
+  managed placeholder instead of an unrelated high-rise photo. Canonical
+  behavior, unit, and browser coverage require the neutral treatment without
+  exposing its storage key.
+- The disposable local DynamoDB and MinIO volumes were explicitly reset on
+  2026-09-11. The clean version-2 seed completed successfully, removing the
+  retained version-1 local-data blocker while leaving reset safety restrictions
+  and migration planners intact.
 
 Focused verification at this checkpoint:
 
@@ -170,12 +187,12 @@ Focused verification at this checkpoint:
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
 - Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
-- Root `npm run check` passes after the corrected baseline, first CSS
-  reconciliation, and self-hosted-font integration, validating 113 canonical
-  cases.
-- Frontend unit tests passed: 26/26.
+- Root `npm run check` passes after the corrected baseline, broad CSS surface
+  reconciliation, neutral hero treatment, and self-hosted-font integration,
+  validating 113 canonical cases.
+- Frontend unit tests passed: 27/27.
 - Frontend browser tests passed: 21/21, including registered self-hosted fonts.
-- Compose frontend Cucumber passed: 24/24 scenarios and 172/172 steps.
+- Compose frontend Cucumber passed: 24/24 scenarios and 173/173 steps.
 - Compose Playwright passed: 13/13.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
@@ -194,9 +211,8 @@ Focused verification at this checkpoint:
   baseline. The reference-policy blocker is resolved; the remaining failures
   are visible implementation differences recorded above.
 - Form-state and edit-mode visual references still need capture.
-- The existing local DynamoDB volume contains version-1 Home data. The idempotent
-  seed correctly refuses it; run the explicit disposable-local v2 reset only when
-  preserving that local content is no longer required.
+- Local content is now freshly seeded at version 2. The previous disposable
+  version-1 DynamoDB and MinIO volumes were intentionally removed.
 
 ## Exact restart sequence
 

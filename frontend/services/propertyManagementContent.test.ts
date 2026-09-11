@@ -18,6 +18,17 @@ test('Property Management semantic values use the checked-in seed when absent', 
   assert.deepEqual(hero, propertyManagementV2SeedData['property-management.hero']);
 });
 
+test('Property Management uses the approved neutral managed media for its unavailable hero photo', () => {
+  assert.deepEqual(propertyManagementV2SeedData['property-management.hero'].image, {
+    kind: 'managed',
+    key: 'media/seed/placeholder-neutral.svg',
+  });
+  assert.equal(
+    propertyManagementV2SeedData['property-management.hero'].imageAltText,
+    'Property Management hero photo coming soon',
+  );
+});
+
 test('Property Management preserves a strict version 2 preview replacement', () => {
   const hero = parsePropertyManagementValue(
     {

@@ -68,9 +68,8 @@ export const propertyManagementV2SeedData = {
       'Partnering with TriCo means high occupancy rates, strategic leasing, and expert financial management for your investment properties.',
     primaryActionLabel: 'Get Free Analysis',
     secondaryActionLabel: 'Our Services',
-    image: { kind: 'managed', key: 'media/seed/slc-commercial-hero.jpg' },
-    imageAltText:
-      'Commercial office building in Salt Lake City managed by TriCo Property Management',
+    image: placeholder,
+    imageAltText: 'Property Management hero photo coming soon',
   },
   'property-management.hero.stats': [
     { id: id(9), value: '95%', label: 'Occupancy Rate', icon: 'BarChart3' },

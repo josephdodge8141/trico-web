@@ -85,7 +85,6 @@ import californiaCrossingPhoto from '../assets/images/california-crossing.jpg';
 import countrySquarePhoto from '../assets/images/country-square.jpg';
 import draperOffice194Photo from '../assets/images/draper-office-194.jpg';
 import draperOffice218Photo from '../assets/images/draper-office-218.jpg';
-import heroPhoto from '../assets/images/slc-commercial-hero.jpg';
 import laurelSquarePhoto from '../assets/images/laurel-square.jpg';
 import propertyLogo from '../assets/images/trico-property-management-logo.png';
 import townSquarePhoto from '../assets/images/town-square.jpg';
@@ -131,7 +130,6 @@ const socialIcons: Readonly<Record<string, LucideIcon>> = {
 const imageByKey: Readonly<Record<string, string>> = {
   'media/seed/trico-property-management-logo.png': propertyLogo,
   'media/seed/trico-logo.png': tricoLogo,
-  'media/seed/slc-commercial-hero.jpg': heroPhoto,
   'media/seed/pm-commercial-property.jpeg': aboutPhoto,
   'media/seed/brooke-moore-pm.jpeg': brookePhoto,
   'media/seed/mia-barlow.png': miaPhoto,
@@ -526,7 +524,19 @@ function PropertyManagementBody(): React.JSX.Element {
                 />
               </div>
               <div className="pm-hero-image">
-                <img src={asset(hero.image.key) ?? heroPhoto} alt={hero.imageAltText} />
+                {asset(hero.image.key) === undefined ? (
+                  <div
+                    className="pm-neutral-placeholder"
+                    data-neutral-placeholder="true"
+                    role="img"
+                    aria-label={hero.imageAltText}
+                  >
+                    <ImageIcon aria-hidden="true" />
+                    <span>Photo coming soon</span>
+                  </div>
+                ) : (
+                  <img src={asset(hero.image.key)} alt={hero.imageAltText} />
+                )}
               </div>
             </div>
           </section>

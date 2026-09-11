@@ -507,6 +507,16 @@ Then(
   },
 );
 Then(
+  'the Property Management hero uses the approved neutral unavailable-image treatment',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const heroMedia = page.locator('.pm-hero-image');
+    await expect(heroMedia.locator('[data-neutral-placeholder="true"]')).toBeVisible();
+    await expect(heroMedia.locator('img')).toHaveCount(0);
+    await expect(heroMedia).not.toContainText('media/seed/');
+  },
+);
+Then(
   'supplied Property Management portfolio images load while unavailable images use the neutral placeholder',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

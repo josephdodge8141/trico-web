@@ -41,6 +41,7 @@ Feature: Published TriCo website
     When I open "/property-management"
     Then the Property Management page presents every mounted section in its intended order
     And the Property Management hero presents an accessible primary and secondary action hierarchy
+    And the Property Management hero uses the approved neutral unavailable-image treatment
     And the Property Management hero actions stack at full content width on mobile
     And Property Management cards and team portraits retain the intended responsive geometry
     And all 35 Property Management entities have an editable visual boundary
