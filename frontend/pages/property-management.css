@@ -154,11 +154,23 @@
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
-    background 180ms ease;
+    background 180ms ease,
+    border-color 180ms ease;
 }
 .pm-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 20px rgb(15 23 41 / 12%);
+}
+.pm-hero .pm-button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+.pm-hero .pm-actions .pm-button {
+  gap: 0.5rem;
+}
+.pm-hero .pm-button svg {
+  width: 1rem;
+  height: 1rem;
 }
 .pm-button-primary {
   color: #fff !important;
@@ -168,10 +180,22 @@
   color: var(--pm-primary) !important;
   background: #fff;
 }
+.pm-hero .pm-button-light {
+  color: #fff !important;
+  border-color: var(--pm-gold);
+  background: var(--pm-gold);
+}
+.pm-hero .pm-button-light:hover {
+  background: #6f5125;
+}
 .pm-button-outline {
   color: #fff !important;
-  border-color: rgb(255 255 255 / 45%);
+  border-color: rgb(255 255 255 / 30%);
   background: transparent;
+}
+.pm-button-outline:hover {
+  border-color: rgb(255 255 255 / 55%);
+  background: rgb(255 255 255 / 10%);
 }
 .pm-button-outline-dark {
   color: var(--pm-primary) !important;

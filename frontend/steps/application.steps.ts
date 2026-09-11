@@ -412,6 +412,29 @@ Then(
   },
 );
 Then(
+  'the Property Management hero presents an accessible primary and secondary action hierarchy',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const primary = page.locator('.pm-hero .pm-actions a').nth(0);
+    const secondary = page.locator('.pm-hero .pm-actions a').nth(1);
+    await expect(primary).toHaveAttribute('href', '#contact');
+    await expect(secondary).toHaveAttribute('href', '#services');
+    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+    await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(secondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(secondary).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
+
+    await primary.hover();
+    await expect(primary).toHaveCSS('background-color', 'rgb(111, 81, 37)');
+    await secondary.hover();
+    await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
+    await primary.focus();
+    await expect(primary).toHaveCSS('outline-color', 'rgb(255, 255, 255)');
+    await expect(primary).toHaveCSS('outline-style', 'solid');
+  },
+);
+Then(
   'supplied Property Management portfolio images load while unavailable images use the neutral placeholder',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

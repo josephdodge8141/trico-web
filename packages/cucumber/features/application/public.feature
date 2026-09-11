@@ -40,6 +40,7 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "/property-management"
     Then the Property Management page presents every mounted section in its intended order
+    And the Property Management hero presents an accessible primary and secondary action hierarchy
     And all 35 Property Management entities have an editable visual boundary
     And supplied Property Management portfolio images load while unavailable images use the neutral placeholder
     And the Property Management client-only forms validate locally without creating CMS entities

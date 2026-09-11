@@ -1,5 +1,28 @@
 import { expect, test } from '@playwright/test';
 
+type Rgb = readonly [number, number, number];
+
+const relativeLuminance = ([red, green, blue]: Rgb) => {
+  const channelLuminance = (channel: number) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  };
+  return (
+    0.2126 * channelLuminance(red) +
+    0.7152 * channelLuminance(green) +
+    0.0722 * channelLuminance(blue)
+  );
+};
+
+const contrastRatio = (foreground: Rgb, background: Rgb) => {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  return (
+    (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) /
+    (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
+  );
+};
+
 const publicPages = [
   { route: '/', heading: "Building Utah's Future" },
   { route: '/property-management', heading: 'What to Expect with TriCo' },
@@ -173,6 +196,32 @@ test('preserves the Property Management visual scale and desktop split geometry'
   expect(fourthManagedCard?.y).toBeGreaterThan(
     (firstManagedCard?.y ?? 0) + (firstManagedCard?.height ?? 0),
   );
+});
+
+test('gives the Property Management hero actions an accessible visual hierarchy', async ({
+  page,
+}) => {
+  await page.goto('/property-management');
+  const primary = page.locator('.pm-hero .pm-actions a').nth(0);
+  const secondary = page.locator('.pm-hero .pm-actions a').nth(1);
+
+  await expect(primary).toHaveAttribute('href', '#contact');
+  await expect(secondary).toHaveAttribute('href', '#services');
+  await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+  await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(secondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(secondary).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
+  expect(contrastRatio([255, 255, 255], [134, 98, 45])).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio([255, 255, 255], [0, 18, 138])).toBeGreaterThanOrEqual(4.5);
+
+  await primary.hover();
+  await expect(primary).toHaveCSS('background-color', 'rgb(111, 81, 37)');
+  await secondary.hover();
+  await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
+  await primary.focus();
+  await expect(primary).toHaveCSS('outline-color', 'rgb(255, 255, 255)');
+  await expect(primary).toHaveCSS('outline-style', 'solid');
 });
 
 test('preserves the intended Home composition on a narrow mobile viewport', async ({ page }) => {

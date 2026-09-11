@@ -58,6 +58,9 @@ Last updated: 2026-09-10
   section density. At 1425x1100 the corrected page is 15,562px versus a 15,975px
   frozen capture that includes one intentionally excluded Property 7-10 row;
   section boundaries now converge closely without claiming SSIM acceptance.
+- The current Property Management CTA checkpoint restores the gold `#86622d`
+  primary action and subordinate transparent secondary action, with measured
+  contrast of 5.53:1 and at least 14.45:1 respectively plus clear hover/focus.
 
 Focused verification at this checkpoint:
 
@@ -82,8 +85,8 @@ Focused verification at this checkpoint:
   renderer and legacy contracts (142 entities remain).
 - Property Management requires its independent 2px/3px geometry and 0.98 SSIM
   comparison; its functional composition is not yet visual-parity acceptance.
-  Browser-only review confirmed these remaining gaps in priority order: wrong
-  hero CTA hierarchy and flattened contact details. The original isolated mobile
+  Browser-only review confirmed the remaining page-specific gap is flattened
+  contact details. The original isolated mobile
   comparison redirected to Lovable login, so mobile pixel parity remains
   unmeasured even though local responsive interactions were exercised.
 - Form-state and edit-mode visual references still need capture.
@@ -100,8 +103,7 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Close the remaining independent Property Management gaps one at a time: hero
-   CTA hierarchy, then contact presentation.
+4. Restore the original Property Management contact presentation.
 5. Re-run independent desktop/mobile visual comparison and only then begin Real
    Estate.
 

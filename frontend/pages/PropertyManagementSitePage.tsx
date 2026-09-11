@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  ArrowRight,
   BarChart3,
   Building,
   Building2,
@@ -484,6 +485,7 @@ function PropertyManagementBody(): React.JSX.Element {
                 <div className="pm-actions">
                   <a className="pm-button pm-button-light" href="#contact">
                     {hero.primaryActionLabel}
+                    <ArrowRight aria-hidden="true" />
                   </a>
                   <a className="pm-button pm-button-outline" href="#services">
                     {hero.secondaryActionLabel}
