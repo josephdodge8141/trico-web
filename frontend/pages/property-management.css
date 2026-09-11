@@ -1094,6 +1094,16 @@
   border: 0;
 }
 
+@media (min-width: 768px) {
+  .pm-hero .pm-actions .pm-button {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 2.03125rem;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+}
+
 @media (max-width: 1279px) {
   #managed-properties > .pm-container > .pm-entity-slot:nth-of-type(2) .editable-collection-items {
     grid-template-columns: repeat(3, 1fr);

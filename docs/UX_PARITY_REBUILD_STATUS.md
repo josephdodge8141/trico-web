@@ -88,6 +88,10 @@ Last updated: 2026-09-10
   logo inset, 1024px logo/title geometry, 60px heading and 28px body leading,
   390px full-width copy inset, and 52px mobile header offset while preserving the
   100vh hero and exact 1023/1024 navigation breakpoint.
+- The current Property Management desktop-CTA checkpoint matches the original
+  desktop/tablet geometry at 202x44 and 148x44 with 6px radii and medium weight,
+  while retaining accessible colors/focus states and the approved mobile 358x44
+  stacked treatment.
 
 Focused verification at this checkpoint:
 
@@ -113,10 +117,9 @@ Focused verification at this checkpoint:
 - Property Management requires a final independent 2px/3px geometry and 0.98
   SSIM comparison before visual-parity acceptance. The unlocked browser retry
   confirmed all editor, asset, contact, breakpoint, toolbar, mobile action, and
-  portrait fixes. The responsive-hero checkpoint addresses its remaining logo,
-  inset, wrap, line-height, and header-offset findings. Desktop CTA geometry still
-  differs from the reference; the accessible local secondary styling remains an
-  intentional correction to the original white-on-white defect.
+  portrait fixes. The responsive-hero and desktop-CTA checkpoints address its
+  remaining measured geometry findings; the accessible local secondary styling
+  remains an intentional correction to the original white-on-white defect.
 - Form-state and edit-mode visual references still need capture.
 - Independent browser-only review could not start because the Mac locked; rerun
   it after unlocking rather than accepting the implementation agent's review.
@@ -131,10 +134,8 @@ Focused verification at this checkpoint:
 2. Unlock the Mac and rerun the independent browser-only Home review.
 3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-4. Reconcile desktop CTA geometry without reintroducing the original contrast
-   defect, then perform exclusion-adjusted independent visual confirmation.
+4. Perform exclusion-adjusted independent visual confirmation.
 5. Begin Real Estate only after Property Management acceptance is resolved.
-   Estate.
 
 The local Docker stack may still be running after Compose verification. Inspect
 it with `docker compose ps`; stop it with `docker compose down` before closing a

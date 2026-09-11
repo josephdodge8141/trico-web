@@ -369,10 +369,34 @@ test('preserves square Property Management team portraits and mobile content wid
 test('gives the Property Management hero actions an accessible visual hierarchy', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1425, height: 1100 });
-  await page.goto('/property-management');
   const primary = page.locator('.pm-hero .pm-actions a').nth(0);
   const secondary = page.locator('.pm-hero .pm-actions a').nth(1);
+
+  for (const viewport of [
+    { width: 1440, height: 1100 },
+    { width: 1024, height: 1366 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/property-management');
+
+    const primaryBox = await primary.boundingBox();
+    const secondaryBox = await secondary.boundingBox();
+    expect(primaryBox?.width).toBeGreaterThanOrEqual(201);
+    expect(primaryBox?.width).toBeLessThanOrEqual(203);
+    expect(primaryBox?.height).toBe(44);
+    expect(secondaryBox?.width).toBeGreaterThanOrEqual(148);
+    expect(secondaryBox?.width).toBeLessThanOrEqual(150);
+    expect(secondaryBox?.height).toBe(44);
+    expect(secondaryBox?.x).toBeGreaterThan((primaryBox?.x ?? 0) + (primaryBox?.width ?? 0));
+    expect(secondaryBox?.y).toBe(primaryBox?.y);
+    await expect(primary).toHaveCSS('border-radius', '6px');
+    await expect(primary).toHaveCSS('font-weight', '500');
+    await expect(secondary).toHaveCSS('border-radius', '6px');
+    await expect(secondary).toHaveCSS('font-weight', '500');
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.goto('/property-management');
 
   await expect(primary).toHaveAttribute('href', '#contact');
   await expect(secondary).toHaveAttribute('href', '#services');
@@ -383,13 +407,6 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
   await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
   expect(contrastRatio([255, 255, 255], [134, 98, 45])).toBeGreaterThanOrEqual(4.5);
   expect(contrastRatio([255, 255, 255], [0, 18, 138])).toBeGreaterThanOrEqual(4.5);
-
-  const desktopPrimaryBox = await primary.boundingBox();
-  const desktopSecondaryBox = await secondary.boundingBox();
-  expect(desktopSecondaryBox?.x).toBeGreaterThan(
-    (desktopPrimaryBox?.x ?? 0) + (desktopPrimaryBox?.width ?? 0),
-  );
-  expect(desktopSecondaryBox?.y).toBe(desktopPrimaryBox?.y);
 
   await primary.hover();
   await expect(primary).toHaveCSS('background-color', 'rgb(111, 81, 37)');
