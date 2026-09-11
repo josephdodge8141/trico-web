@@ -20,6 +20,7 @@ import {
   estimatePublishActions,
 } from './services/content.js';
 import { ServiceError } from './services/errors.js';
+import { createMediaService } from './services/media.js';
 import { MemoryDynamo, MemoryS3 } from './steps/memory.js';
 
 const listenForTest = async (
@@ -104,6 +105,43 @@ test('media contracts reject disallowed MIME types and payloads over 20 MiB', ()
       contentType: 'image/jpeg',
       contentLength: 20 * 1_024 * 1_024 + 1,
     }).success,
+    false,
+  );
+});
+
+test('media confirmation rejects an object that does not match its constrained reservation', async () => {
+  const database = new MemoryDynamo();
+  const objects = new MemoryS3();
+  const uploadId = '50000000-0000-4000-8000-000000000001';
+  database.items.set(`MEDIA#UPLOAD|UPLOAD#${uploadId}`, {
+    pk: 'MEDIA#UPLOAD',
+    sk: `UPLOAD#${uploadId}`,
+    uploadId,
+    userId: '00000000-0000-4000-8000-000000000101',
+    bucket: 'media-test',
+    objectKey: `media/${uploadId}.png`,
+    publicUrl: `/media/${uploadId}.png`,
+    contentType: 'image/png',
+    contentLength: 4,
+    expiresAt: new Date(Date.now() + 300_000).toISOString(),
+    ttl: Math.floor(Date.now() / 1_000) + 300,
+  });
+  objects.objects.set(`media/${uploadId}.png`, 'different bytes');
+  const media = createMediaService(
+    objects.asClient(),
+    'media-test',
+    database.asClient(),
+    'media-test',
+  );
+  await assert.rejects(
+    media.confirm(
+      { uploadId, name: 'Office', altText: 'Office exterior' },
+      '00000000-0000-4000-8000-000000000101',
+    ),
+    (error: unknown) => error instanceof ServiceError && error.code === 'MEDIA_UPLOAD_MISMATCH',
+  );
+  assert.equal(
+    [...database.items.values()].some((item) => item['pk'] === 'MEDIA#LIBRARY'),
     false,
   );
 });

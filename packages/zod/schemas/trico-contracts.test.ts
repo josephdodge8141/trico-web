@@ -383,6 +383,7 @@ test('manifest, media, source, and scheduled-event wire contracts are strict', (
       type: 'MLS',
       url: 'http://127.0.0.1/internal',
       validationFields: ['price'],
+      overriddenFields: [],
       enabled: true,
       createdAt: '2026-09-08T12:00:00.000Z',
       updatedAt: '2026-09-08T12:00:00.000Z',

@@ -21,6 +21,36 @@ Feature: Managed media and external listing synchronization
       | wrong-mime | a disallowed MIME type |
       | too-large  | a file above 20 MiB    |
 
+  @id:media.library-confirm @frontend-noop
+  Scenario: Confirm an uploaded image in the managed library
+    frontend-noop: Persistence and object-existence validation are backend invariants; browser selection remains deferred until a page entity exposes a managed image field.
+    Given a requested image upload now exists in managed object storage
+    When the editor confirms it with a friendly name and alternative text
+    Then the image appears in the first managed-library page
+    And the editor-facing result contains no bucket or object key
+
+  @id:media.library-pagination @frontend-noop
+  Scenario: Page through the managed media library
+    frontend-noop: Deterministic cursor pagination is exercised by the backend adapter; browser pagination will be exercised when the first page media field is integrated.
+    Given the managed media library contains more images than one requested page
+    When the editor follows the returned media cursor
+    Then each image appears exactly once in creation order
+
+  @id:sync.field-override @frontend-noop
+  Scenario: Preserve manually overridden listing fields
+    frontend-noop: Field-level merge semantics are a scheduled backend invariant; pause and resume request transport is covered by focused frontend transport tests.
+    Given a synchronized listing has a manually overridden price
+    When scheduled synchronization returns a new price and status
+    Then the manual price is preserved
+    And the non-overridden status is updated
+
+  @id:sync.resume-field @frontend-noop
+  Scenario: Resume automatic updates for one listing field
+    frontend-noop: Persisted source configuration is exercised through the backend adapter; the browser control remains disabled until a listing editor is mounted.
+    Given a source mapping has paused automatic updates for price and status
+    When the editor resumes automatic updates for price
+    Then only status remains manually overridden
+
   @id:sync.source-unique @frontend-noop
   Scenario: Keep one source mapping per list item
     frontend-noop: Conditional source uniqueness is a backend persistence invariant exercised by the backend adapter.

@@ -135,9 +135,21 @@ export class MemoryDynamo {
       items = items.filter((item) => String(item['sk']).startsWith(prefix));
     items.sort((left, right) => String(left['sk']).localeCompare(String(right['sk'])));
     if (input['ScanIndexForward'] === false) items.reverse();
+    const exclusiveStartKey = input['ExclusiveStartKey'] as Item | undefined;
+    if (exclusiveStartKey !== undefined) {
+      const cursorIndex = items.findIndex(
+        (item) => item['pk'] === exclusiveStartKey['pk'] && item['sk'] === exclusiveStartKey['sk'],
+      );
+      if (cursorIndex >= 0) items = items.slice(cursorIndex + 1);
+    }
     const limit = input['Limit'];
-    if (typeof limit === 'number') items = items.slice(0, limit);
-    return { Items: copy(items) };
+    if (typeof limit !== 'number' || items.length <= limit) return { Items: copy(items) };
+    const page = items.slice(0, limit);
+    const last = page.at(-1);
+    return {
+      Items: copy(page),
+      ...(last === undefined ? {} : { LastEvaluatedKey: { pk: last['pk'], sk: last['sk'] } }),
+    };
   }
 
   private assertCondition(existing: Item | undefined, input: Record<string, unknown>): void {
@@ -194,6 +206,11 @@ export class MemoryS3 {
       this.objects.set(key, typeof body === 'string' ? body : String(body));
       this.writes.push(key);
       return {};
+    }
+    if (command.constructor.name === 'HeadObjectCommand') {
+      const body = this.objects.get(key);
+      if (body === undefined) throw new Error('NoSuchKey');
+      return { ContentType: 'image/webp', ContentLength: Buffer.byteLength(body) };
     }
     throw new Error(`Unsupported memory S3 command: ${command.constructor.name}`);
   }

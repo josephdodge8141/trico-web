@@ -20,6 +20,7 @@ import {
   type EntityModule,
   type EntityId,
   type ExternalSource,
+  type MediaAsset,
   type PendingChange,
   type Publication,
 } from '@app/schemas';
@@ -79,6 +80,12 @@ class BackendWorld extends World {
     this.dynamo.asClient(),
     TABLE,
   );
+  readonly media = createMediaService(
+    this.objects.asClient(),
+    BUCKET,
+    this.dynamo.asClient(),
+    TABLE,
+  );
   close: (() => Promise<void>) | undefined;
   baseUrl = '';
   response: Response | undefined;
@@ -95,6 +102,8 @@ class BackendWorld extends World {
   listBefore: readonly EditableValue[] = [];
   listAfter: readonly EditableValue[] = [];
   source: ExternalSource | undefined;
+  mediaAssets: readonly MediaAsset[] = [];
+  mediaCursor: string | null = null;
   fetchCalls = 0;
   aiCalls = 0;
   syncResult: ExternalSyncResult | undefined;
@@ -219,6 +228,7 @@ const sourceInput = (
   type: 'MLS',
   url,
   validationFields: ['price'],
+  overriddenFields: [],
   enabled: true,
 });
 
@@ -674,13 +684,21 @@ When(
       credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
     });
     try {
-      const upload = await createMediaService(objects, BUCKET).presign({
-        fileName: 'building.webp',
-        contentType: 'image/webp',
-        contentLength: 1024,
-      });
+      const upload = await createMediaService(
+        objects,
+        BUCKET,
+        this.dynamo.asClient(),
+        TABLE,
+      ).presign(
+        {
+          fileName: 'building.webp',
+          contentType: 'image/webp',
+          contentLength: 1024,
+        },
+        EDITOR,
+      );
       assert.match(upload.uploadUrl, /^https:/);
-      assert.match(upload.reference.publicUrl, /^\/media\//);
+      assert.match(upload.publicUrl, /^\/media\//);
     } finally {
       objects.destroy();
     }
@@ -698,6 +716,170 @@ When('I request an upload with {string}', function (this: BackendWorld, conditio
     : { fileName: 'huge.png', contentType: 'image/png', contentLength: 21 * 1024 * 1024 };
   assert.equal(mediaPresignRequestSchema.safeParse(input).success, false);
   mark(this, 'the request is rejected before a presigned URL is created');
+});
+
+Given(
+  'a requested image upload now exists in managed object storage',
+  function (this: BackendWorld) {
+    const uploadId = '50000000-0000-4000-8000-000000000001';
+    const objectKey = `${uploadId}.webp`;
+    const body = 'image bytes!';
+    this.objects.objects.set(`media/${objectKey}`, body);
+    this.dynamo.items.set(`MEDIA#UPLOAD|UPLOAD#${uploadId}`, {
+      pk: 'MEDIA#UPLOAD',
+      sk: `UPLOAD#${uploadId}`,
+      uploadId,
+      userId: EDITOR,
+      bucket: BUCKET,
+      objectKey: `media/${objectKey}`,
+      publicUrl: `/media/${objectKey}`,
+      contentType: 'image/webp',
+      contentLength: Buffer.byteLength(body),
+      expiresAt: new Date(Date.now() + 300_000).toISOString(),
+      ttl: Math.floor(Date.now() / 1_000) + 300,
+    });
+    this.token = uploadId;
+  },
+);
+
+When(
+  'the editor confirms it with a friendly name and alternative text',
+  async function (this: BackendWorld) {
+    const asset = await this.media.confirm(
+      {
+        uploadId: this.token,
+        name: 'Main office exterior',
+        altText: 'TriCo main office viewed from the street',
+      },
+      EDITOR,
+    );
+    this.mediaAssets = [asset];
+  },
+);
+
+Then('the image appears in the first managed-library page', async function (this: BackendWorld) {
+  const page = await this.media.list({ limit: 24 });
+  assert.deepEqual(page.assets, this.mediaAssets);
+  mark(this, 'the image appears in the first managed-library page');
+});
+
+Then('the editor-facing result contains no bucket or object key', function (this: BackendWorld) {
+  const serialized = JSON.stringify(this.mediaAssets);
+  assert.equal(serialized.includes('bucket'), false);
+  assert.equal(serialized.includes('objectKey'), false);
+  mark(this, 'the editor-facing result contains no bucket or object key');
+});
+
+Given(
+  'the managed media library contains more images than one requested page',
+  function (this: BackendWorld) {
+    const dates = [
+      '2026-09-08T00:00:00.000Z',
+      '2026-09-08T00:01:00.000Z',
+      '2026-09-08T00:02:00.000Z',
+    ];
+    dates.forEach((createdAt, index) => {
+      const id = `50000000-0000-4000-8000-${String(index + 10).padStart(12, '0')}`;
+      this.dynamo.items.set(`MEDIA#LIBRARY|${createdAt}#${id}`, {
+        pk: 'MEDIA#LIBRARY',
+        sk: `${createdAt}#${id}`,
+        id,
+        name: `Library image ${String(index + 1)}`,
+        altText: `Example image ${String(index + 1)}`,
+        contentType: 'image/webp',
+        contentLength: 100 + index,
+        publicUrl: `/media/example-${String(index + 1)}.webp`,
+        createdAt,
+        objectKey: `media/private-${String(index + 1)}.webp`,
+      });
+    });
+  },
+);
+
+When('the editor follows the returned media cursor', async function (this: BackendWorld) {
+  const first = await this.media.list({ limit: 2 });
+  assert.ok(first.nextCursor !== null);
+  const second = await this.media.list({ cursor: first.nextCursor, limit: 2 });
+  this.mediaAssets = [...first.assets, ...second.assets];
+  this.mediaCursor = second.nextCursor;
+});
+
+Then('each image appears exactly once in creation order', function (this: BackendWorld) {
+  assert.deepEqual(
+    this.mediaAssets.map((asset) => asset.name),
+    ['Library image 1', 'Library image 2', 'Library image 3'],
+  );
+  assert.equal(new Set(this.mediaAssets.map((asset) => asset.id)).size, 3);
+  assert.equal(this.mediaCursor, null);
+  mark(this, 'each image appears exactly once in creation order');
+});
+
+Given(
+  'a synchronized listing has a manually overridden price',
+  async function (this: BackendWorld) {
+    const seed = seedValue(LIST);
+    assert.ok(Array.isArray(seed));
+    const itemId = String((seed[0] as Record<string, unknown>)['id']);
+    this.source = await this.sources.create({
+      ...sourceInput(itemId),
+      overriddenFields: ['price'],
+    });
+    await seedManifest(this);
+  },
+);
+
+When(
+  'scheduled synchronization returns a new price and status',
+  async function (this: BackendWorld) {
+    this.syncResult = await createExternalSyncService(
+      this.sources,
+      this.content,
+      {
+        synthesize: async (request) => ({
+          ...(request.currentItem as Readonly<Record<string, EditableValue>>),
+          price: '$999,999',
+          status: 'sold',
+        }),
+      },
+      async () => 'changed listing',
+    ).run(syncEvent);
+    const page = await this.content.page('real-estate');
+    const listings = page[LIST];
+    assert.ok(Array.isArray(listings));
+    this.preview = listings[0];
+  },
+);
+
+Then('the manual price is preserved', function (this: BackendWorld) {
+  assert.equal(Reflect.get(this.preview as object, 'price'), '$512,000');
+  mark(this, 'the manual price is preserved');
+});
+
+Then('the non-overridden status is updated', function (this: BackendWorld) {
+  assert.equal(Reflect.get(this.preview as object, 'status'), 'sold');
+  mark(this, 'the non-overridden status is updated');
+});
+
+Given(
+  'a source mapping has paused automatic updates for price and status',
+  async function (this: BackendWorld) {
+    const seed = seedValue(LIST);
+    assert.ok(Array.isArray(seed));
+    this.source = await this.sources.create({
+      ...sourceInput(String((seed[0] as Record<string, unknown>)['id'])),
+      overriddenFields: ['price', 'status'],
+    });
+  },
+);
+
+When('the editor resumes automatic updates for price', async function (this: BackendWorld) {
+  assert.ok(this.source !== undefined);
+  this.source = await this.sources.update(this.source.id, { overriddenFields: ['status'] });
+});
+
+Then('only status remains manually overridden', function (this: BackendWorld) {
+  assert.deepEqual(this.source?.overriddenFields, ['status']);
+  mark(this, 'only status remains manually overridden');
 });
 
 Given('a list item already has an external source', async function (this: BackendWorld) {

@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { CmsRequestError, fetchCsrfToken, requestMediaUpload, saveEntityChange } from './cms.js';
+import {
+  CmsRequestError,
+  confirmMediaUpload,
+  fetchCsrfToken,
+  fetchMediaLibrary,
+  requestMediaUpload,
+  saveEntityChange,
+  updateExternalSource,
+} from './cms.js';
 
 const jsonResponse = (value: unknown): Response =>
   new Response(JSON.stringify(value), {
@@ -51,7 +59,7 @@ test('sends a complete replacement with the expected revision', async () => {
   });
 });
 
-test('uses contentLength and reads nested media reference', async () => {
+test('uses contentLength and receives an opaque media upload reservation', async () => {
   let requestBody = '';
   const result = await requestMediaUpload(new File(['image'], 'photo.png', { type: 'image/png' }), {
     fetchImpl: async (_input, init) => {
@@ -59,14 +67,73 @@ test('uses contentLength and reads nested media reference', async () => {
       return jsonResponse({
         uploadUrl: 'https://upload.example.test/media',
         expiresAt: '2026-09-08T12:05:00.000Z',
-        reference: {
-          bucket: 'media',
-          key: 'key/photo.png',
-          publicUrl: 'https://cdn.example.test/key/photo.png',
-        },
+        uploadId: '50000000-0000-4000-8000-000000000001',
+        publicUrl: 'https://cdn.example.test/photo.png',
       });
     },
   });
   assert.equal(JSON.parse(requestBody).contentLength, 5);
-  assert.equal(result.reference.publicUrl, 'https://cdn.example.test/key/photo.png');
+  assert.equal(result.publicUrl, 'https://cdn.example.test/photo.png');
+  assert.equal(JSON.stringify(result).includes('key'), false);
+});
+
+test('confirms uploads and validates paged library responses without storage details', async () => {
+  const asset = {
+    id: '50000000-0000-4000-8000-000000000002',
+    name: 'Main office',
+    altText: 'Main office exterior',
+    contentType: 'image/webp',
+    contentLength: 42,
+    publicUrl: '/media/main-office.webp',
+    createdAt: '2026-09-08T12:00:00.000Z',
+  } as const;
+  let confirmBody = '';
+  const confirmed = await confirmMediaUpload(
+    '50000000-0000-4000-8000-000000000001',
+    'Main office',
+    'Main office exterior',
+    {
+      csrfToken: 'x'.repeat(32),
+      fetchImpl: async (_input, init) => {
+        confirmBody = typeof init?.body === 'string' ? init.body : '';
+        return jsonResponse(asset);
+      },
+    },
+  );
+  assert.equal(JSON.stringify(confirmBody).includes('key'), false);
+  assert.deepEqual(confirmed, asset);
+  const page = await fetchMediaLibrary(undefined, 12, {
+    fetchImpl: async (input) => {
+      assert.match(String(input), /limit=12/);
+      return jsonResponse({ assets: [asset], nextCursor: null });
+    },
+  });
+  assert.deepEqual(page.assets, [asset]);
+});
+
+test('sends the explicit overridden field selection when resuming synchronization', async () => {
+  let requestBody = '';
+  await updateExternalSource(
+    '50000000-0000-4000-8000-000000000003',
+    { overriddenFields: ['status'] },
+    {
+      csrfToken: 'x'.repeat(32),
+      fetchImpl: async (_input, init) => {
+        requestBody = typeof init?.body === 'string' ? init.body : '';
+        return jsonResponse({
+          id: '50000000-0000-4000-8000-000000000003',
+          entityId: 'real-estate.listings.items',
+          itemId: '50000000-0000-4000-8000-000000000004',
+          type: 'MLS',
+          url: 'https://listings.example/item',
+          validationFields: ['price'],
+          overriddenFields: ['status'],
+          enabled: true,
+          createdAt: '2026-09-08T12:00:00.000Z',
+          updatedAt: '2026-09-08T12:01:00.000Z',
+        });
+      },
+    },
+  );
+  assert.deepEqual(JSON.parse(requestBody), { overriddenFields: ['status'] });
 });

@@ -3,6 +3,8 @@ import {
   deploymentStateResponseSchema,
   externalSourceSchema,
   externalSourcesResponseSchema,
+  mediaAssetSchema,
+  mediaLibraryResponseSchema,
   mediaPresignResponseSchema,
   pendingChangeResponseSchema,
   pendingChangesResponseSchema,
@@ -10,6 +12,8 @@ import {
   publishResponseSchema,
   type ExternalSource,
   type MediaPresignResponse,
+  type MediaAsset,
+  type MediaLibraryResponse,
   type PageId,
   type PendingChange,
   type Publication,
@@ -18,6 +22,7 @@ import {
 } from '@app/schemas';
 
 export type { ExternalSource, PendingChange, Publication, PublishOperation };
+export type { MediaAsset, MediaLibraryResponse, MediaPresignResponse };
 
 export interface CmsRequestOptions {
   readonly fetchImpl?: typeof fetch;
@@ -179,6 +184,28 @@ export const uploadMedia = async (
   if (!response.ok) throw new Error(`Media upload failed (${response.status})`);
 };
 
+export const confirmMediaUpload = async (
+  uploadId: string,
+  name: string,
+  altText: string,
+  options: CmsRequestOptions,
+): Promise<MediaAsset> =>
+  mediaAssetSchema.parse(
+    await request('/api/v1/media/confirm', 'POST', { uploadId, name, altText }, options),
+  );
+
+export const fetchMediaLibrary = async (
+  cursor: string | undefined,
+  limit = 24,
+  options: CmsRequestOptions = {},
+): Promise<MediaLibraryResponse> => {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (cursor !== undefined) query.set('cursor', cursor);
+  return mediaLibraryResponseSchema.parse(
+    await request(`/api/v1/media?${query.toString()}`, 'GET', undefined, options),
+  );
+};
+
 export const fetchDeploymentState = async (
   options: CmsRequestOptions = {},
 ): Promise<{ readonly blocked: boolean; readonly failedOperation: PublishOperation | null }> =>
@@ -221,7 +248,7 @@ export const deleteExternalSource = async (
 export const createExternalSource = async (
   input: Pick<
     ExternalSource,
-    'entityId' | 'itemId' | 'type' | 'url' | 'validationFields' | 'enabled'
+    'entityId' | 'itemId' | 'type' | 'url' | 'validationFields' | 'enabled' | 'overriddenFields'
   >,
   options: CmsRequestOptions,
 ): Promise<ExternalSource> =>
@@ -229,7 +256,9 @@ export const createExternalSource = async (
 
 export const updateExternalSource = async (
   sourceId: string,
-  input: Partial<Pick<ExternalSource, 'type' | 'url' | 'validationFields' | 'enabled'>>,
+  input: Partial<
+    Pick<ExternalSource, 'type' | 'url' | 'validationFields' | 'enabled' | 'overriddenFields'>
+  >,
   options: CmsRequestOptions,
 ): Promise<ExternalSource> =>
   externalSourceSchema.parse(

@@ -33,7 +33,12 @@ export function createApp(dependencies: AppDependencies): Express {
     environment.dynamoTable,
     environment.s3Bucket,
   );
-  const mediaService = createMediaService(dependencies.connections.s3, environment.s3Bucket);
+  const mediaService = createMediaService(
+    dependencies.connections.s3,
+    environment.s3Bucket,
+    dependencies.connections.dynamo,
+    environment.dynamoTable,
+  );
   const externalSourceService = createExternalSourceService(
     dependencies.connections.dynamo,
     environment.dynamoTable,

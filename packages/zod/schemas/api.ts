@@ -69,8 +69,33 @@ export const mediaPresignRequestSchema = z.strictObject({
 });
 export const mediaPresignResponseSchema = z.strictObject({
   uploadUrl: z.url(),
-  reference: mediaReferenceSchema,
+  uploadId: z.uuid(),
+  publicUrl: mediaReferenceSchema.shape.publicUrl,
   expiresAt: isoDateTimeSchema,
+});
+
+export const mediaAssetIdSchema = z.uuid();
+export const mediaAssetSchema = z.strictObject({
+  id: mediaAssetIdSchema,
+  name: z.string().trim().min(1).max(160),
+  altText: z.string().trim().min(1).max(500),
+  contentType: mediaPresignRequestSchema.shape.contentType,
+  contentLength: mediaPresignRequestSchema.shape.contentLength,
+  publicUrl: mediaReferenceSchema.shape.publicUrl,
+  createdAt: isoDateTimeSchema,
+});
+export const confirmMediaUploadRequestSchema = z.strictObject({
+  uploadId: z.uuid(),
+  name: mediaAssetSchema.shape.name,
+  altText: mediaAssetSchema.shape.altText,
+});
+export const mediaLibraryQuerySchema = z.strictObject({
+  cursor: z.string().trim().min(1).max(2_048).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(24),
+});
+export const mediaLibraryResponseSchema = z.strictObject({
+  assets: z.array(mediaAssetSchema),
+  nextCursor: z.string().nullable(),
 });
 
 export const externalSourceTypeSchema = z.enum(['MLS', 'LOOPNET', 'CREXI']);
@@ -81,6 +106,16 @@ export const externalSourceSchema = z.strictObject({
   type: externalSourceTypeSchema,
   url: z.url({ protocol: /^https$/ }),
   validationFields: z.array(z.string().trim().min(1).max(200)).min(1),
+  overriddenFields: z
+    .array(
+      z
+        .string()
+        .trim()
+        .regex(/^[A-Za-z][A-Za-z0-9]*$/)
+        .max(100),
+    )
+    .max(50)
+    .refine((fields) => new Set(fields).size === fields.length, 'Fields must be unique'),
   enabled: z.boolean(),
   createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema,
@@ -111,5 +146,9 @@ export type PublishResponse = z.infer<typeof publishResponseSchema>;
 export type MediaReference = z.infer<typeof mediaReferenceSchema>;
 export type MediaPresignRequest = z.infer<typeof mediaPresignRequestSchema>;
 export type MediaPresignResponse = z.infer<typeof mediaPresignResponseSchema>;
+export type MediaAsset = z.infer<typeof mediaAssetSchema>;
+export type ConfirmMediaUploadRequest = z.infer<typeof confirmMediaUploadRequestSchema>;
+export type MediaLibraryQuery = z.infer<typeof mediaLibraryQuerySchema>;
+export type MediaLibraryResponse = z.infer<typeof mediaLibraryResponseSchema>;
 export type ExternalSource = z.infer<typeof externalSourceSchema>;
 export type ScheduledSyncEvent = z.infer<typeof scheduledSyncEventSchema>;

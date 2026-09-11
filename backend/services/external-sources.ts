@@ -39,6 +39,7 @@ export function createExternalSourceService(
           'type',
           'url',
           'validationFields',
+          'overriddenFields',
           'enabled',
           'createdAt',
           'updatedAt',

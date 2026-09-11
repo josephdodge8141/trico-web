@@ -7,6 +7,32 @@ import type { ExternalSourceService } from './external-sources.js';
 
 const SYSTEM_EDITOR_ID = '00000000-0000-4000-8000-000000000001';
 
+const mergeSynchronizedItem = (
+  current: EditableValue,
+  synthesized: EditableValue,
+  overriddenFields: readonly string[],
+): EditableValue => {
+  if (
+    typeof current !== 'object' ||
+    current === null ||
+    Array.isArray(current) ||
+    typeof synthesized !== 'object' ||
+    synthesized === null ||
+    Array.isArray(synthesized)
+  ) {
+    return synthesized;
+  }
+  const currentRecord = current as Readonly<Record<string, EditableValue>>;
+  const replacement: Record<string, EditableValue> = {
+    ...(synthesized as Readonly<Record<string, EditableValue>>),
+  };
+  for (const field of overriddenFields) {
+    const manualValue = currentRecord[field];
+    if (manualValue !== undefined) replacement[field] = manualValue;
+  }
+  return replacement;
+};
+
 export interface ExternalSyncResult {
   readonly changedEntities: number;
   readonly skippedEntities: number;
@@ -56,14 +82,15 @@ export function createExternalSyncService(
           try {
             const sourceText = await fetchSource(source.url);
             if (source.validationFields.every((token) => sourceText.includes(token))) continue;
+            const synthesized = await ai.synthesize({
+              sourceUrl: source.url,
+              sourceText,
+              validationFields: source.validationFields,
+              currentItem,
+            });
             replacements.set(
               source.itemId,
-              await ai.synthesize({
-                sourceUrl: source.url,
-                sourceText,
-                validationFields: source.validationFields,
-                currentItem,
-              }),
+              mergeSynchronizedItem(currentItem, synthesized, source.overriddenFields),
             );
           } catch (error: unknown) {
             failures.push({
