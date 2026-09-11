@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { editableValueSchema, type EditableValue } from '@app/schemas';
 
 import type { PageId } from '../pages/pageContent.js';
 import { fetchAuthSession } from '../services/auth.js';
@@ -99,6 +100,17 @@ export function EditModeProvider({
     [pending, perform],
   );
 
+  const reload = useCallback(
+    async (entityId: string): Promise<EditableValue> => {
+      const changes = await fetchPendingChanges(pageId);
+      setPending(changes);
+      const latest = changes.find((change) => change.entityId === entityId);
+      if (latest === undefined) throw new Error('The latest saved change is no longer available.');
+      return editableValueSchema.parse(latest.replacementValue);
+    },
+    [pageId],
+  );
+
   const discard = useCallback(
     async (entityId: string): Promise<void> => {
       const current = pending.find((change) => change.entityId === entityId);
@@ -175,6 +187,7 @@ export function EditModeProvider({
       enter,
       leave,
       save,
+      reload,
       discard,
       togglePreview,
       setViewingPublic,
@@ -191,6 +204,7 @@ export function EditModeProvider({
       enter,
       leave,
       save,
+      reload,
       discard,
       togglePreview,
       setViewingPublic,

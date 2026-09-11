@@ -25,38 +25,44 @@ Last updated: 2026-09-10
 - `00e96f6` replaces the generic Home rendering with the dedicated mounted
   composition, all 18 visual/editor boundaries, bundled imagery, responsive
   styling, and the restored client-only resume form.
-- The current coordinator checkpoint hydrates persisted preview visibility and
+- `5c98efb` hydrates persisted preview visibility and
   the signed-in editor identity so other editors' pending sections lock instead
   of being presented as the current editor's work.
+- The current Home editor-matrix checkpoint exercises real add, edit, delete,
+  Undo, reorder, empty-list, cross-editor ownership, stale-conflict recovery,
+  and persisted-preview behavior through Compose Cucumber and Playwright. It
+  also makes sequential collection saves operate on the last saved local value
+  and keeps conflict drafts recoverable through Reload latest.
 
 Focused verification at this checkpoint:
 
 - Schemas build passed.
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
-- Backend Cucumber passed: 42/42 scenarios and 268/268 steps.
-- Root `npm run check` passed with 102 canonical cases.
+- Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
+- The Home matrix passes its focused build, type, lint, unit, catalog, Compose
+  Cucumber, and Compose Playwright gates. A repeated root `npm run check`
+  reproduced the separately tracked publication-history ordering defect below;
+  the Home/frontend stages completed before that unrelated backend failure.
 - Frontend unit tests passed: 21/21.
 - Frontend browser tests passed: 11/11.
-- Compose frontend Cucumber passed: 13/13 scenarios and 83/83 steps.
-- Compose Playwright passed: 6/6.
-- Backend Cucumber passed: 46/46 scenarios and 290/290 steps.
+- Compose frontend Cucumber passed: 18/18 scenarios and 118/118 steps.
+- Compose Playwright passed: 11/11, including 7/7 preview/editor cases.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
 
 ## Intentionally incomplete
 
 - The other 177 entities still use legacy contracts and seeds.
-- Home uses the collection primitives and exposes item controls, but the full
-  add/delete/Undo/reorder/conflict matrix still needs dedicated browser cases.
 - Media and source controls are implemented but not mounted in a page editor.
 - Property Management, Real Estate, Construction, Storage, and Development still
   use the generic renderer and legacy contracts (177 entities remain).
 - Form-state and edit-mode visual references still need capture.
 - Independent browser-only review could not start because the Mac locked; rerun
   it after unlocking rather than accepting the implementation agent's review.
-- A same-millisecond publication-history ordering flake surfaced once during the
-  media slice. It passed unchanged on rerun but remains a real ordering gap to fix.
+- A same-millisecond publication-history ordering race is confirmed by the
+  rollback behavior: equally timestamped publications can select MANUAL instead
+  of ROLLBACK. The root gate remains red until ordering is deterministic.
 - The existing local DynamoDB volume contains version-1 Home data. The idempotent
   seed correctly refuses it; run the explicit disposable-local v2 reset only when
   preserving that local content is no longer required.
@@ -66,11 +72,9 @@ Focused verification at this checkpoint:
 1. Confirm the branch is clean and starts at the latest checkpoint documented by
    `git log`, then run `npm run check`.
 2. Unlock the Mac and rerun the independent browser-only Home review.
-3. Add dedicated Home browser cases for add/edit/delete/Undo/reorder, empty lists,
-   other-editor ownership, conflict retention, and persisted preview visibility.
-4. Mount the media library in Home's logo/leadership image fields; source controls
+3. Mount the media library in Home's logo/leadership image fields; source controls
    wait for the first Real Estate listing editor.
-5. Fix deterministic publication-history ordering, then begin the other five
+4. Fix deterministic publication-history ordering, then begin the other five
    page-owned contract/composition waves.
 
 The local Docker stack may still be running after Compose verification. Inspect

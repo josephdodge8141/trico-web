@@ -49,10 +49,15 @@ export function EditableItem({
               ⋮⋮
             </button>
           ) : null}
-          <button type="button" onClick={onEdit} disabled={disabled}>
+          <button type="button" onClick={onEdit} disabled={disabled} aria-label={`Edit ${label}`}>
             Edit
           </button>
-          <button type="button" onClick={onDelete} disabled={disabled}>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={disabled}
+            aria-label={`Delete ${label}`}
+          >
             Delete
           </button>
           {reorderable ? (

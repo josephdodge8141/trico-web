@@ -91,14 +91,50 @@ Feature: In-page content editing and preview
     And the other pending replacements remain visible
     And another editor's preview preferences are unchanged
 
-  @id:content.list-identity @frontend-noop
+  @id:content.list-identity @backend-noop
   Scenario: Edit a list while retaining stable item identities
-    frontend-noop: UUID retention and registered-schema validation are shared-contract and backend invariants exercised outside this browser adapter.
-    Given an editable list has UUID-backed items
-    When I add, remove, and reorder list items before saving
+    backend-noop: Item-level controls and hidden identity behavior are browser presentation behavior; complete list validation is exercised through the real content API.
+    Given I am signed in and editing a Home collection with UUID-backed items
+    When I add and edit an item with friendly fields
+    And I reorder it with keyboard controls
+    And I delete and undo the deletion
     Then retained items keep their UUIDs
     And new items receive UUIDs
     And the complete replacement list passes its registered schema
+    And no item UUID is shown to me
+
+  @id:content.empty-list-add @backend-noop
+  Scenario: Add the first item to an empty collection
+    backend-noop: The empty-list affordance and semantic item sheet are browser presentation behavior; persistence uses the existing complete-replacement API.
+    Given I am signed in and previewing an empty Home collection
+    When I use its add control and save the first item
+    Then the new item appears in my private preview
+    And its generated identity remains hidden
+
+  @id:content.editor-ownership-state @backend-noop
+  Scenario: Explain when another editor owns a section
+    backend-noop: Ownership enforcement is already exercised at the backend boundary; this scenario covers its novice-safe browser presentation.
+    Given another editor has a pending change for a Home collection
+    When I enter edit mode on Home
+    Then that collection renders the other editor's change
+    And its item controls are disabled with a plain-language ownership message
+    And no owner identifier is shown to me
+
+  @id:content.editor-stale-conflict @backend-noop
+  Scenario: Keep a draft when the saved revision changes
+    backend-noop: Conditional stale-revision rejection is already exercised at the backend boundary; this scenario covers browser recovery.
+    Given I am editing one of my pending Home collection items
+    When that pending change advances before I save my draft
+    Then my draft remains in the editor
+    And I can reload the latest saved value or cancel
+
+  @id:content.preview-hydration @backend-noop
+  Scenario: Restore pending preview state when edit mode starts
+    backend-noop: Preview assembly is already exercised at the backend boundary; this scenario covers browser hydration and rendering.
+    Given I have a saved pending Home change from an earlier visit
+    When I enter edit mode on Home
+    Then my pending value is rendered without another save
+    And it is marked as an unpublished change
 
   @id:content.novice-inline-editor @backend-noop
   Scenario: Edit semantic content without exposing technical representations

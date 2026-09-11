@@ -11,10 +11,24 @@ import {
   World,
 } from '@cucumber/cucumber';
 import { chromium, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import {
+  homeCareersOpenPositionsSchema,
+  homeCoreValuesItemsSchema,
+  homeJourneyTimelineSchema,
+  homeNewsItemsSchema,
+  homeV2SeedData,
+  pendingChangesResponseSchema,
+  type EditableValue,
+  type PendingChange,
+} from '@app/schemas';
 
 const baseUrl = process.env.COMPOSE_BASE_URL ?? 'http://app.localhost:8088';
 const editorEmail = process.env.PREVIEW_EDITOR_EMAIL ?? 'editor@tricoinc.com';
 const editorPassword = process.env.PREVIEW_EDITOR_PASSWORD ?? 'local-preview-password';
+const applicationOrigin = new URL(baseUrl).origin;
+const mailpitAuthorization = `Basic ${Buffer.from(
+  `${process.env.MAILPIT_USERNAME ?? 'local-editor'}:${process.env.MAILPIT_PASSWORD ?? 'local-mailpit-password'}`,
+).toString('base64')}`;
 const headings: Readonly<Record<string, string>> = {
   '/': "Building Utah's Future",
   '/property-management': 'Property management that performs',
@@ -49,6 +63,14 @@ class FrontendWorld extends World {
   responseBody: unknown;
   originalHeading = '';
   editedHeading = '';
+  cleanup: { readonly page: Page; readonly entityId: string }[] = [];
+  secondaryContext: BrowserContext | undefined;
+  originalItemIds: readonly string[] = [];
+  finalItemIds: readonly string[] = [];
+  addedItemId = '';
+  collectionValue: readonly EditableValue[] = [];
+  noviceValue = '';
+  otherEditorId = '';
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
@@ -62,9 +84,143 @@ Before(async function (this: FrontendWorld) {
   this.page = await this.context.newPage();
 });
 After(async function (this: FrontendWorld) {
+  for (const target of this.cleanup.toReversed()) {
+    await discardPendingOwnedByCurrentUser(target.page, target.entityId).catch(() => undefined);
+  }
+  await this.secondaryContext?.close();
   await this.context?.close();
   await this.browser?.close();
 });
+
+async function loginEditor(
+  page: Page,
+  email = editorEmail,
+  password = editorPassword,
+): Promise<void> {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill(password);
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page).toHaveURL(/\/$/);
+}
+
+async function csrfHeaders(page: Page): Promise<Readonly<Record<string, string>>> {
+  const response = await page.request.get('/api/v1/auth/csrf');
+  assert.equal(response.status(), 200);
+  const body = (await response.json()) as { readonly token?: unknown };
+  assert.equal(typeof body.token, 'string');
+  return { Origin: applicationOrigin, 'X-CSRF-Token': String(body.token) };
+}
+
+async function pendingFor(page: Page, entityId: string): Promise<PendingChange | undefined> {
+  const response = await page.request.get('/api/v1/changes?pageId=home');
+  assert.equal(response.status(), 200);
+  return pendingChangesResponseSchema
+    .parse(await response.json())
+    .changes.find((change) => change.entityId === entityId);
+}
+
+async function saveReplacement(
+  page: Page,
+  entityId: string,
+  replacementValue: EditableValue,
+  expectedRevision?: number,
+): Promise<PendingChange> {
+  const headers = await csrfHeaders(page);
+  const response = await page.request.fetch(
+    `/api/v1/entities/${encodeURIComponent(entityId)}/changes`,
+    {
+      method: expectedRevision === undefined ? 'POST' : 'PUT',
+      headers,
+      data:
+        expectedRevision === undefined
+          ? { replacementValue }
+          : { replacementValue, expectedRevision },
+    },
+  );
+  assert.ok(response.status() === 200 || response.status() === 201);
+  return (await response.json()) as PendingChange;
+}
+
+async function discardPendingOwnedByCurrentUser(page: Page, entityId: string): Promise<void> {
+  const sessionResponse = await page.request.get('/api/v1/auth/me');
+  if (!sessionResponse.ok()) return;
+  const session = (await sessionResponse.json()) as {
+    readonly authenticated?: unknown;
+    readonly principal?: { readonly subject?: unknown } | null;
+  };
+  if (session.authenticated !== true || typeof session.principal?.subject !== 'string') return;
+  const pending = await pendingFor(page, entityId);
+  if (pending === undefined || pending.authorId !== session.principal.subject) return;
+  const response = await page.request.delete(
+    `/api/v1/entities/${encodeURIComponent(entityId)}/changes`,
+    {
+      headers: await csrfHeaders(page),
+      data: { expectedRevision: pending.revision },
+    },
+  );
+  assert.equal(response.status(), 204);
+}
+
+async function enterHomeEditMode(page: Page): Promise<void> {
+  if (!page.url().endsWith('/')) await page.goto('/');
+  const preview = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'GET' &&
+      response.url().includes('/api/v1/pages/home/preview'),
+  );
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  await preview;
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+}
+
+async function waitForMailLink(page: Page, email: string, subject: string): Promise<string> {
+  let link: string | undefined;
+  await expect
+    .poll(async () => {
+      const response = await page.request.get('/__mailpit/api/v1/messages', {
+        headers: { Authorization: mailpitAuthorization },
+      });
+      const body = (await response.json()) as {
+        readonly messages: readonly {
+          readonly To: readonly { readonly Address: string }[];
+          readonly Subject: string;
+          readonly Snippet: string;
+        }[];
+      };
+      link = body.messages.find(
+        (message) =>
+          message.Subject === subject &&
+          message.To.some((recipient) => recipient.Address === email),
+      )?.Snippet;
+      return link;
+    })
+    .toMatch(/^https?:\/\/[^/]+\//);
+  if (link === undefined) throw new Error('Verification email was not found.');
+  return link;
+}
+
+async function createVerifiedEditor(world: FrontendWorld): Promise<Page> {
+  assert.ok(world.browser);
+  world.secondaryContext = await world.browser.newContext({ baseURL: baseUrl });
+  const page = await world.secondaryContext.newPage();
+  const email = `ownership-${String(Date.now())}@tricoinc.com`;
+  await page.goto('/register');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill(editorPassword);
+  await page.getByRole('button', { name: 'Continue' }).click();
+  const verifyUrl = await waitForMailLink(page, email, 'Verify your TriCo website account');
+  const parsed = new URL(verifyUrl);
+  await page.goto(`${parsed.pathname}${parsed.search}`);
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await loginEditor(page, email);
+  const session = (await (await page.request.get('/api/v1/auth/me')).json()) as {
+    readonly principal?: { readonly subject?: unknown } | null;
+  };
+  assert.equal(typeof session.principal?.subject, 'string');
+  world.otherEditorId = String(session.principal?.subject);
+  return page;
+}
 
 Given('I have no authenticated editor session', async function (this: FrontendWorld) {
   await this.context?.clearCookies();
@@ -286,6 +442,292 @@ Then('the validated value appears in my private preview', async function (this: 
   await expect(this.currentPage().getByRole('heading', { level: 1 })).toHaveText(
     this.editedHeading,
   );
+});
+
+Given(
+  'I am signed in and editing a Home collection with UUID-backed items',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await discardPendingOwnedByCurrentUser(page, 'home.core-values.items');
+    this.cleanup.push({ page, entityId: 'home.core-values.items' });
+    await enterHomeEditMode(page);
+    const value = homeCoreValuesItemsSchema.parse(
+      (
+        (await (await page.request.get('/api/v1/pages/home/preview')).json()) as Record<
+          string,
+          unknown
+        >
+      )['home.core-values.items'] ?? homeV2SeedData['home.core-values.items'],
+    );
+    this.originalItemIds = value.map(({ id }) => id);
+  },
+);
+When('I add and edit an item with friendly fields', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.getByRole('button', { name: '+ Add core value' }).click();
+  const addSheet = page.getByRole('dialog', { name: 'Add core value' });
+  await addSheet.getByLabel('Value name').fill('Browser-added value');
+  await addSheet.getByLabel('Description').fill('Added through the friendly collection form.');
+  await addSheet.getByRole('radio', { name: 'Heart' }).check();
+  await addSheet.getByRole('button', { name: 'Save changes' }).click();
+  const addedHeading = page.getByRole('heading', { name: 'Browser-added value' });
+  await expect(addedHeading).toBeVisible();
+  const addedItem = addedHeading.locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  await addedItem.hover();
+  await addedItem.getByRole('button', { name: 'Edit Browser-added value' }).click();
+  const editSheet = page.getByRole('dialog', { name: 'Edit Browser-added value' });
+  await editSheet.getByLabel('Value name').fill('Browser-edited value');
+  await editSheet.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page.getByRole('heading', { name: 'Browser-edited value' })).toBeVisible();
+  const pending = await pendingFor(page, 'home.core-values.items');
+  assert.ok(pending);
+  const list = homeCoreValuesItemsSchema.parse(pending.replacementValue);
+  const added = list.find(({ title }) => title === 'Browser-edited value');
+  assert.ok(added);
+  this.addedItemId = added.id;
+  this.collectionValue = list;
+});
+When('I reorder it with keyboard controls', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const item = page
+    .getByRole('heading', { name: 'Browser-edited value' })
+    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+  await item.hover();
+  const response = page.waitForResponse(
+    (candidate) =>
+      candidate.request().method() === 'PUT' &&
+      candidate.url().includes('/api/v1/entities/home.core-values.items/changes'),
+  );
+  const preview = page.waitForResponse((candidate) =>
+    candidate.url().includes('/api/v1/pages/home/preview'),
+  );
+  await item.getByRole('button', { name: 'Move Browser-edited value up' }).focus();
+  await page.keyboard.press('Enter');
+  assert.equal((await response).status(), 200);
+  assert.equal((await preview).status(), 200);
+  await expect(page.getByRole('status').filter({ hasText: 'Order updated.' })).toBeVisible();
+});
+When('I delete and undo the deletion', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const item = page
+    .getByRole('heading', { name: 'Browser-edited value' })
+    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  await item.hover();
+  page.once('dialog', async (dialog) => dialog.accept());
+  const deletion = page
+    .waitForResponse(
+      (candidate) =>
+        candidate.request().method() === 'PUT' &&
+        candidate.url().includes('/api/v1/entities/home.core-values.items/changes'),
+      { timeout: 5_000 },
+    )
+    .catch(() => undefined);
+  const deleteButton = item.getByRole('button', { name: 'Delete Browser-edited value' });
+  assert.equal(await deleteButton.isEnabled(), true, 'Delete remained disabled after reorder.');
+  await deleteButton.click();
+  const deletionResponse = await deletion;
+  const operationErrors = await page.locator('.home-values .editor-error').allTextContents();
+  assert.equal(deletionResponse?.status(), 200, operationErrors.join(' '));
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Browser-edited value deleted.' }),
+  ).toBeVisible();
+  const undo = page.waitForResponse(
+    (candidate) =>
+      candidate.request().method() === 'PUT' &&
+      candidate.url().includes('/api/v1/entities/home.core-values.items/changes'),
+  );
+  const undoPreview = page.waitForResponse((candidate) =>
+    candidate.url().includes('/api/v1/pages/home/preview'),
+  );
+  await page.getByRole('button', { name: 'Undo' }).click();
+  assert.equal((await undo).status(), 200);
+  assert.equal((await undoPreview).status(), 200);
+  await expect(page.getByRole('heading', { name: 'Browser-edited value' })).toBeVisible();
+  const pending = await pendingFor(page, 'home.core-values.items');
+  assert.ok(pending);
+  const list = homeCoreValuesItemsSchema.parse(pending.replacementValue);
+  this.finalItemIds = list.map(({ id }) => id);
+  this.collectionValue = list;
+});
+Then('retained items keep their UUIDs', function (this: FrontendWorld) {
+  for (const id of this.originalItemIds) assert.ok(this.finalItemIds.includes(id));
+});
+Then('new items receive UUIDs', function (this: FrontendWorld) {
+  assert.match(
+    this.addedItemId,
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  );
+  assert.equal(this.originalItemIds.includes(this.addedItemId), false);
+  assert.ok(this.finalItemIds.includes(this.addedItemId));
+});
+Then('the complete replacement list passes its registered schema', function (this: FrontendWorld) {
+  assert.equal(homeCoreValuesItemsSchema.safeParse(this.collectionValue).success, true);
+});
+Then('no item UUID is shown to me', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByText(this.addedItemId, { exact: true })).toHaveCount(0);
+  assert.equal(
+    (await this.currentPage().locator('body').innerText()).includes(this.addedItemId),
+    false,
+  );
+});
+
+Given(
+  'I am signed in and previewing an empty Home collection',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await discardPendingOwnedByCurrentUser(page, 'home.careers.open-positions');
+    this.cleanup.push({ page, entityId: 'home.careers.open-positions' });
+    await saveReplacement(page, 'home.careers.open-positions', []);
+    await enterHomeEditMode(page);
+    await expect(page.locator('.home-careers .editable-item')).toHaveCount(0);
+  },
+);
+When('I use its add control and save the first item', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.getByRole('button', { name: '+ Add position' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Add position' });
+  this.noviceValue = `First browser position ${String(Date.now())}`;
+  await sheet.getByLabel('Position title').fill(this.noviceValue);
+  await sheet.getByLabel('Division').selectOption('Construction');
+  await sheet.getByLabel('Employment type').selectOption('Part-time');
+  await sheet.getByRole('button', { name: 'Save changes' }).click();
+});
+Then('the new item appears in my private preview', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByRole('heading', { name: this.noviceValue })).toBeVisible();
+  const pending = await pendingFor(this.currentPage(), 'home.careers.open-positions');
+  assert.ok(pending);
+  const list = homeCareersOpenPositionsSchema.parse(pending.replacementValue);
+  assert.equal(list.length, 1);
+  assert.equal(list[0]?.title, this.noviceValue);
+  this.addedItemId = list[0]?.id ?? '';
+});
+Then('its generated identity remains hidden', async function (this: FrontendWorld) {
+  assert.notEqual(this.addedItemId, '');
+  assert.equal(
+    (await this.currentPage().locator('body').innerText()).includes(this.addedItemId),
+    false,
+  );
+});
+
+Given(
+  'another editor has a pending change for a Home collection',
+  async function (this: FrontendWorld) {
+    const secondary = await createVerifiedEditor(this);
+    await discardPendingOwnedByCurrentUser(secondary, 'home.news.items');
+    const items = homeNewsItemsSchema.parse(homeV2SeedData['home.news.items']);
+    const first = items[0];
+    assert.ok(first);
+    this.noviceValue = `Another editor update ${String(Date.now())}`;
+    await saveReplacement(secondary, 'home.news.items', [
+      { ...first, title: this.noviceValue },
+      ...items.slice(1),
+    ]);
+    this.cleanup.push({ page: secondary, entityId: 'home.news.items' });
+    await loginEditor(this.currentPage());
+  },
+);
+When('I enter edit mode on Home', async function (this: FrontendWorld) {
+  await enterHomeEditMode(this.currentPage());
+});
+Then("that collection renders the other editor's change", async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByRole('heading', { name: this.noviceValue })).toBeVisible();
+});
+Then(
+  'its item controls are disabled with a plain-language ownership message',
+  async function (this: FrontendWorld) {
+    const collection = this.currentPage().locator('.home-news .editable-collection');
+    await expect(collection.getByText('Another editor is updating this section.')).toBeVisible();
+    await expect(collection.getByRole('button', { name: /Edit / }).first()).toBeDisabled();
+    await expect(collection.getByRole('button', { name: /Delete / }).first()).toBeDisabled();
+    await expect(collection.getByRole('button', { name: '+ Add news item' })).toHaveCount(0);
+  },
+);
+Then('no owner identifier is shown to me', async function (this: FrontendWorld) {
+  assert.notEqual(this.otherEditorId, '');
+  assert.equal(
+    (await this.currentPage().locator('body').innerText()).includes(this.otherEditorId),
+    false,
+  );
+});
+
+Given('I am editing one of my pending Home collection items', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await loginEditor(page);
+  await discardPendingOwnedByCurrentUser(page, 'home.journey.timeline');
+  this.cleanup.push({ page, entityId: 'home.journey.timeline' });
+  const timeline = homeJourneyTimelineSchema.parse(homeV2SeedData['home.journey.timeline']);
+  await saveReplacement(page, 'home.journey.timeline', timeline);
+  await enterHomeEditMode(page);
+  const first = timeline[0];
+  assert.ok(first);
+  const item = page
+    .getByText(first.year, { exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  await item.hover();
+  await item.getByRole('button', { name: `Edit ${first.year}` }).click();
+  this.noviceValue = `Draft retained ${String(Date.now())}`;
+  await page.getByLabel('Milestone').fill(this.noviceValue);
+});
+When('that pending change advances before I save my draft', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const current = await pendingFor(page, 'home.journey.timeline');
+  assert.ok(current);
+  const timeline = homeJourneyTimelineSchema.parse(current.replacementValue);
+  const first = timeline[0];
+  assert.ok(first);
+  await saveReplacement(
+    page,
+    'home.journey.timeline',
+    [{ ...first, event: 'Latest saved milestone' }, ...timeline.slice(1)],
+    current.revision,
+  );
+  const conflict = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'PUT' &&
+      response.url().includes('/api/v1/entities/home.journey.timeline/changes'),
+  );
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  assert.equal((await conflict).status(), 409);
+});
+Then('my draft remains in the editor', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByLabel('Milestone')).toHaveValue(this.noviceValue);
+  await expect(
+    this.currentPage().getByText('This section changed while you were editing.'),
+  ).toBeVisible();
+});
+Then('I can reload the latest saved value or cancel', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
+  await page.getByRole('button', { name: 'Reload latest' }).click();
+  await expect(page.getByLabel('Milestone')).toHaveValue('Latest saved milestone');
+});
+
+Given(
+  'I have a saved pending Home change from an earlier visit',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await discardPendingOwnedByCurrentUser(page, 'home.divisions.header');
+    this.cleanup.push({ page, entityId: 'home.divisions.header' });
+    this.noviceValue = `Hydrated divisions ${String(Date.now())}`;
+    await saveReplacement(page, 'home.divisions.header', {
+      heading: this.noviceValue,
+      description: 'This pending value was saved before edit mode started.',
+    });
+    await page.goto('/');
+  },
+);
+Then('my pending value is rendered without another save', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByRole('heading', { name: this.noviceValue })).toBeVisible();
+});
+Then('it is marked as an unpublished change', async function (this: FrontendWorld) {
+  const boundary = this.currentPage()
+    .getByRole('heading', { name: this.noviceValue })
+    .locator('xpath=ancestor::div[contains(@class,"editable-boundary")]');
+  await expect(boundary.getByText('Unpublished change', { exact: true })).toBeVisible();
 });
 
 Given('I am not signed in', async function (this: FrontendWorld) {

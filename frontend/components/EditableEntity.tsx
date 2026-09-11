@@ -52,6 +52,7 @@ export function EditableEntity({
       }
       busy={editing.busy}
       onSave={(next) => editing.save(entityId, next)}
+      onReloadLatest={() => editing.reload(entityId)}
     >
       {children}
     </EditableBoundary>

@@ -18,10 +18,9 @@ interface Selection {
   readonly value: EditableValue;
 }
 
-interface DeletedItem {
-  readonly index: number;
-  readonly value: EditableValue;
-  readonly label: string;
+interface UndoState {
+  readonly value: readonly EditableValue[];
+  readonly message: string;
 }
 
 export interface EditableCollectionProps {
@@ -35,6 +34,7 @@ export interface EditableCollectionProps {
   readonly linkChoices?: readonly EditorLinkChoice[];
   readonly createItemId?: () => string;
   readonly onSave: (value: readonly EditableValue[]) => Promise<void>;
+  readonly onReloadLatest?: () => Promise<EditableValue>;
 }
 
 function withFreshIdentity(value: EditableValue, createItemId: () => string): EditableValue {
@@ -53,6 +53,7 @@ export function EditableCollection({
   linkChoices,
   createItemId = () => crypto.randomUUID(),
   onSave,
+  onReloadLatest,
 }: EditableCollectionProps): React.JSX.Element {
   const editor = definition.editor;
   if (editor.kind !== 'list')
@@ -60,15 +61,19 @@ export function EditableCollection({
   if (definition.listItemSchema === undefined)
     throw new Error('EditableCollection requires an item schema');
   const [selection, setSelection] = useState<Selection>();
-  const [deleted, setDeleted] = useState<DeletedItem>();
+  const [undo, setUndo] = useState<UndoState>();
+  const [displayValue, setDisplayValue] = useState<readonly EditableValue[]>(value);
+  const [operationError, setOperationError] = useState(false);
   const dragIndex = useRef<number | undefined>(undefined);
   const locked = ownership === 'other';
 
   useEffect(() => {
-    if (deleted === undefined) return;
-    const timer = window.setTimeout(() => setDeleted(undefined), 8_000);
+    if (undo === undefined) return;
+    const timer = window.setTimeout(() => setUndo(undefined), 8_000);
     return () => window.clearTimeout(timer);
-  }, [deleted]);
+  }, [undo]);
+
+  useEffect(() => setDisplayValue(value), [value]);
 
   const labelFor = (item: EditableValue, index: number): string => {
     const candidate = readEditorValue(item, editor.itemLabelPath);
@@ -82,42 +87,50 @@ export function EditableCollection({
     const valueToSave = editableValueSchema.parse(parsed);
     if (!Array.isArray(valueToSave)) throw new Error('The collection schema must return a list');
     await onSave(valueToSave);
+    setDisplayValue(valueToSave);
+    setOperationError(false);
   };
 
   const saveSelection = async (item: EditableValue): Promise<void> => {
     if (selection === undefined) return;
-    if (selection.mode === 'add') await saveList([...value, item]);
+    if (selection.mode === 'add') await saveList([...displayValue, item]);
     else
-      await saveList(value.map((current, index) => (index === selection.index ? item : current)));
+      await saveList(
+        displayValue.map((current, index) => (index === selection.index ? item : current)),
+      );
   };
 
   const remove = (index: number): void => {
-    const item = value[index];
+    const item = displayValue[index];
     if (item === undefined) return;
     const label = labelFor(item, index);
     if (!window.confirm(`Delete ${label}? You can undo this for a short time.`)) return;
-    void saveList(value.filter((_, itemIndex) => itemIndex !== index))
-      .then(() => setDeleted({ index, value: item, label }))
-      .catch(() => undefined);
+    void saveList(displayValue.filter((_, itemIndex) => itemIndex !== index))
+      .then(() => setUndo({ value: structuredClone(displayValue), message: `${label} deleted.` }))
+      .catch(() => setOperationError(true));
   };
 
   const move = (index: number, direction: -1 | 1): void => {
     const destination = index + direction;
-    if (destination < 0 || destination >= value.length) return;
-    const next = [...value];
+    if (destination < 0 || destination >= displayValue.length) return;
+    const next = [...displayValue];
     [next[index], next[destination]] = [next[destination] ?? null, next[index] ?? null];
-    void saveList(next).catch(() => undefined);
+    void saveList(next)
+      .then(() => setUndo({ value: structuredClone(displayValue), message: 'Order updated.' }))
+      .catch(() => setOperationError(true));
   };
 
   const drop = (destination: number): void => {
     const source = dragIndex.current;
     dragIndex.current = undefined;
     if (source === undefined || source === destination) return;
-    const next = [...value];
+    const next = [...displayValue];
     const [moved] = next.splice(source, 1);
     if (moved === undefined) return;
     next.splice(destination, 0, moved);
-    void saveList(next).catch(() => undefined);
+    void saveList(next)
+      .then(() => setUndo({ value: structuredClone(displayValue), message: 'Order updated.' }))
+      .catch(() => setOperationError(true));
   };
 
   return (
@@ -134,7 +147,7 @@ export function EditableCollection({
         </p>
       ) : null}
       <div className="editable-collection-items">
-        {value.map((item, index) => {
+        {displayValue.map((item, index) => {
           const label = labelFor(item, index);
           return (
             <EditableItem
@@ -146,7 +159,7 @@ export function EditableCollection({
               active={active}
               label={label}
               index={index}
-              lastIndex={value.length - 1}
+              lastIndex={displayValue.length - 1}
               disabled={busy || locked}
               reorderable={editor.reorderable}
               onEdit={() => setSelection({ mode: 'edit', index, value: structuredClone(item) })}
@@ -170,7 +183,7 @@ export function EditableCollection({
           onClick={() =>
             setSelection({
               mode: 'add',
-              index: value.length,
+              index: displayValue.length,
               value: withFreshIdentity(editor.blankItem, createItemId),
             })
           }
@@ -178,23 +191,26 @@ export function EditableCollection({
           + {editor.addLabel}
         </button>
       ) : null}
-      {deleted === undefined ? null : (
+      {undo === undefined ? null : (
         <div className="editor-undo" role="status">
-          <span>{deleted.label} deleted.</span>
+          <span>{undo.message}</span>
           <button
             type="button"
             onClick={() => {
-              const next = [...value];
-              next.splice(deleted.index, 0, deleted.value);
-              void saveList(next)
-                .then(() => setDeleted(undefined))
-                .catch(() => undefined);
+              void saveList(undo.value)
+                .then(() => setUndo(undefined))
+                .catch(() => setOperationError(true));
             }}
           >
             Undo
           </button>
         </div>
       )}
+      {operationError ? (
+        <p className="editor-error" role="alert">
+          We could not save this collection change. Please try again.
+        </p>
+      ) : null}
       {selection === undefined ? null : (
         <EditorSheet
           title={
@@ -210,6 +226,19 @@ export function EditableCollection({
           {...(mediaChoices === undefined ? {} : { mediaChoices })}
           {...(linkChoices === undefined ? {} : { linkChoices })}
           onSave={saveSelection}
+          {...(onReloadLatest === undefined
+            ? {}
+            : {
+                onReloadLatest: async () => {
+                  const latest = await onReloadLatest();
+                  if (!Array.isArray(latest))
+                    throw new Error('The latest saved collection is unavailable.');
+                  const item = latest[selection.index];
+                  if (item === undefined)
+                    throw new Error('This item is no longer in the latest saved collection.');
+                  return editableValueSchema.parse(item);
+                },
+              })}
           onClose={() => setSelection(undefined)}
         />
       )}
