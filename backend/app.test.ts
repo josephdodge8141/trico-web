@@ -230,8 +230,10 @@ test('preview consistently renders saved revisions and honors hide/show preferen
   assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), second);
 
   await content.togglePreview(userId, entityId, true);
+  assert.deepEqual(await content.previewDisabled(userId), [entityId]);
   assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), published);
   await content.togglePreview(userId, entityId, false);
+  assert.deepEqual(await content.previewDisabled(userId), []);
   assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), second);
   assert.equal(updated.revision, 2);
 });

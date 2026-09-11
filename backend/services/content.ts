@@ -45,6 +45,7 @@ export interface ContentService {
   page(pageId: PageId): Promise<PageContent>;
   preview(pageId: PageId, userId: string): Promise<PageContent>;
   pending(pageId?: PageId): Promise<readonly PendingChange[]>;
+  previewDisabled(userId: string): Promise<readonly EntityId[]>;
   createChange(
     entityId: EntityId,
     userId: string,
@@ -397,6 +398,20 @@ export function createContentService(
         }),
       );
       return (response.Items ?? []).map(asPending);
+    },
+    previewDisabled: async (userId) => {
+      const preference = await database.send(
+        new GetCommand({
+          TableName: tableName,
+          Key: { pk: `PREF#${userId}`, sk: 'PREVIEW' },
+          ConsistentRead: true,
+        }),
+      );
+      return Array.isArray(preference.Item?.['disabledEntityIds'])
+        ? preference.Item['disabledEntityIds'].map(
+            (entityId) => requireEntityDefinition(String(entityId)).id,
+          )
+        : [];
     },
     createChange: async (entityId, userId, replacementValue) => {
       const definition = requireEntityDefinition(entityId);

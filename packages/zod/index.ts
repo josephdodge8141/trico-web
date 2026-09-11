@@ -226,6 +226,7 @@ export {
   pendingChangeResponseSchema,
   pendingChangesResponseSchema,
   previewPreferencesRequestSchema,
+  previewPreferencesResponseSchema,
   publicationHistoryResponseSchema,
   publishRequestSchema,
   publishResponseSchema,

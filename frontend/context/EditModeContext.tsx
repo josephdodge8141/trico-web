@@ -2,11 +2,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { PageId } from '../pages/pageContent.js';
+import { fetchAuthSession } from '../services/auth.js';
 import {
   discardEntityChange,
   CmsRequestError,
   fetchCsrfToken,
   fetchPendingChanges,
+  fetchPreviewDisabled,
   publishChanges,
   saveEntityChange,
   setPreviewDisabled,
@@ -26,6 +28,7 @@ export function EditModeProvider({
   const [active, setActive] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<readonly PendingChange[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>();
   const [csrfToken, setCsrfToken] = useState<string>();
   const [disabledEntityIds, setDisabledEntityIds] = useState<ReadonlySet<string>>(() => new Set());
   const [message, setMessage] = useState<string>();
@@ -51,8 +54,15 @@ export function EditModeProvider({
   const enter = useCallback(async (): Promise<void> => {
     try {
       await perform(async () => {
-        const changes = await fetchPendingChanges(pageId);
+        const [changes, disabledIds, session] = await Promise.all([
+          fetchPendingChanges(pageId),
+          fetchPreviewDisabled(),
+          fetchAuthSession(),
+        ]);
+        if (!session.authenticated) throw new CmsRequestError('Authentication is required', 401);
         setPending(changes);
+        setCurrentUserId(session.principal.subject);
+        setDisabledEntityIds(new Set(disabledIds));
         setActive(true);
         setMessage('Edit mode is active. Changes remain private until published.');
       });
@@ -157,6 +167,7 @@ export function EditModeProvider({
       busy,
       pageId,
       pending,
+      ...(currentUserId === undefined ? {} : { currentUserId }),
       disabledEntityIds,
       viewingPublic:
         pending.length > 0 && pending.every(({ entityId }) => disabledEntityIds.has(entityId)),
@@ -174,6 +185,7 @@ export function EditModeProvider({
       busy,
       pageId,
       pending,
+      currentUserId,
       disabledEntityIds,
       message,
       enter,

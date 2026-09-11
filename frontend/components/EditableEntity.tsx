@@ -42,7 +42,14 @@ export function EditableEntity({
       active={editing.active}
       definition={definition}
       value={semanticValue}
-      ownership={ownership ?? (pending === undefined ? 'available' : 'mine')}
+      ownership={
+        ownership ??
+        (pending === undefined
+          ? 'available'
+          : pending.authorId === editing.currentUserId
+            ? 'mine'
+            : 'other')
+      }
       busy={editing.busy}
       onSave={(next) => editing.save(entityId, next)}
     >

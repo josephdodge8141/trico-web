@@ -6,6 +6,7 @@ import {
   confirmMediaUpload,
   fetchCsrfToken,
   fetchMediaLibrary,
+  fetchPreviewDisabled,
   requestMediaUpload,
   saveEntityChange,
   updateExternalSource,
@@ -31,6 +32,16 @@ test('preserves an unauthorized response status for authentication routing', asy
     }),
     (error: unknown) => error instanceof CmsRequestError && error.status === 401,
   );
+});
+
+test('loads persisted preview visibility without exposing preference metadata', async () => {
+  const result = await fetchPreviewDisabled({
+    fetchImpl: async (input) => {
+      assert.equal(String(input), '/api/v1/preview/preferences');
+      return jsonResponse({ disabledEntityIds: ['home.hero'] });
+    },
+  });
+  assert.deepEqual(result, ['home.hero']);
 });
 
 test('sends a complete replacement with the expected revision', async () => {

@@ -8,6 +8,7 @@ import {
   mediaPresignResponseSchema,
   pendingChangeResponseSchema,
   pendingChangesResponseSchema,
+  previewPreferencesResponseSchema,
   publicationHistoryResponseSchema,
   publishResponseSchema,
   type ExternalSource,
@@ -87,6 +88,13 @@ export const fetchPendingChanges = async (
       options,
     ),
   ).changes;
+
+export const fetchPreviewDisabled = async (
+  options: CmsRequestOptions = {},
+): Promise<readonly string[]> =>
+  previewPreferencesResponseSchema.parse(
+    await request('/api/v1/preview/preferences', 'GET', undefined, options),
+  ).disabledEntityIds;
 
 export const saveEntityChange = async (
   entityId: string,

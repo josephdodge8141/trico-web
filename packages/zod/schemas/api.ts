@@ -32,6 +32,9 @@ export const pendingChangesResponseSchema = z.strictObject({
 export const previewPreferencesRequestSchema = z.strictObject({
   disabledEntityIds: z.array(entityIdSchema),
 });
+export const previewPreferencesResponseSchema = z.strictObject({
+  disabledEntityIds: z.array(entityIdSchema),
+});
 
 export const publishSelectionSchema = z.strictObject({
   entityId: entityIdSchema,

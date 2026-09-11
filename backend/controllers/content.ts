@@ -4,6 +4,7 @@ import {
   entityIdSchema,
   pageIdSchema,
   previewPreferencesRequestSchema,
+  previewPreferencesResponseSchema,
   publishRequestSchema,
   rollbackRequestSchema,
   publishOperationIdSchema,
@@ -140,6 +141,20 @@ export function setPreviewPreferencesController(service: ContentService): Reques
       const input = previewPreferencesRequestSchema.parse(request.body);
       await service.setPreviewDisabled(requireUser(request.auth?.userId), input.disabledEntityIds);
       response.status(204).end();
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+}
+
+export function getPreviewPreferencesController(service: ContentService): RequestHandler {
+  return async (request, response, next): Promise<void> => {
+    try {
+      response.status(200).json(
+        previewPreferencesResponseSchema.parse({
+          disabledEntityIds: await service.previewDisabled(requireUser(request.auth?.userId)),
+        }),
+      );
     } catch (error: unknown) {
       next(error);
     }

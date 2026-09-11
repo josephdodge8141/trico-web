@@ -8,6 +8,7 @@ export interface EditModeValue {
   readonly busy: boolean;
   readonly pageId: PageId;
   readonly pending: readonly PendingChange[];
+  readonly currentUserId?: string;
   readonly disabledEntityIds: ReadonlySet<string>;
   readonly viewingPublic: boolean;
   readonly message?: string;

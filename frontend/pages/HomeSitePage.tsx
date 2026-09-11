@@ -125,7 +125,12 @@ function ObjectBoundary({
 }): React.JSX.Element {
   const editing = useEditMode();
   const pending = editing.pending.find((change) => change.entityId === entityId);
-  const ownership: EditorOwnership = pending === undefined ? 'available' : 'mine';
+  const ownership: EditorOwnership =
+    pending === undefined
+      ? 'available'
+      : pending.authorId === editing.currentUserId
+        ? 'mine'
+        : 'other';
   return (
     <div className="home-entity-slot" data-home-entity-boundary="true">
       <EditableBoundary
@@ -160,7 +165,13 @@ function CollectionBoundary({
         definition={requireHomeDefinition(entityId)}
         value={value}
         renderItem={renderItem}
-        ownership={pending === undefined ? 'available' : 'mine'}
+        ownership={
+          pending === undefined
+            ? 'available'
+            : pending.authorId === editing.currentUserId
+              ? 'mine'
+              : 'other'
+        }
         busy={editing.busy}
         onSave={(next) => editing.save(entityId, next)}
       />

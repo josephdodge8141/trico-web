@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   createChangeController,
   createPendingListController,
+  getPreviewPreferencesController,
   createPreviewPageController,
   createPublishedPageController,
   deploymentStateController,
@@ -24,6 +25,11 @@ export function createContentRoute(service: ContentService, publicOrigin: string
   router.get('/pages/:pageId', createPublishedPageController(service));
   router.get('/pages/:pageId/preview', requireAuthenticated, createPreviewPageController(service));
   router.get('/changes', requireAuthenticated, createPendingListController(service));
+  router.get(
+    '/preview/preferences',
+    requireAuthenticated,
+    getPreviewPreferencesController(service),
+  );
   router.post('/entities/:entityId/changes', ...write, createChangeController(service));
   router.put('/entities/:entityId/changes', ...write, updateChangeController(service));
   router.delete('/entities/:entityId/changes', ...write, discardChangeController(service));
