@@ -246,6 +246,10 @@ Focused verification at this checkpoint:
 
 ## Intentionally incomplete
 
+- Field-level MLS/LoopNet source/manual override controls and transport exist,
+  but `SourceFieldControls` is not yet mounted inside the Real Estate listing
+  editor. That remains the next functional editor slice before external sync is
+  enabled.
 - Property Management requires production changes to reach the retained 0.98
   SSIM and 2px/3px geometry acceptance against its now-approved corrected
   baseline. The reference-policy blocker is resolved; the remaining failures
