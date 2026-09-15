@@ -48,6 +48,8 @@ Feature: Published TriCo website
     When I open "/"
     Then one shared semantic palette defines action highlight stat rating and brand accent roles
     And all page stylesheets source their colors exclusively from the global palette
+    And page stylesheets contain no typography declarations
+    And Open Sans is the only bundled typeface with every application weight loaded
     And Home Property Management Real Estate Construction Storage and Development use the shared blue highlight role
     And division statistics use the shared blue stat role while intentional brand accents remain gold
 

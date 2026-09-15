@@ -1,17 +1,6 @@
 .home-page {
   min-width: 320px;
-  color: var(--trico-color-ink);
   background: var(--trico-color-surface);
-  font-family: 'Open Sans', Arial, sans-serif;
-  line-height: 1.5;
-}
-
-.home-page h1,
-.home-page h2,
-.home-page h3,
-.home-page h4 {
-  color: var(--trico-color-ink);
-  font-family: Lato, Arial, sans-serif;
 }
 
 .home-container {
@@ -45,7 +34,6 @@
   justify-content: center;
   gap: 1rem;
   padding: 0.65rem 1.5rem;
-  color: var(--trico-color-surface);
   background: linear-gradient(
     90deg,
     var(--trico-color-dark),
@@ -53,9 +41,6 @@
     var(--trico-color-dark)
   );
   box-shadow: 0 2px 10px var(--trico-color-dark-a18);
-  font-family: Lato, Arial, sans-serif;
-  text-align: center;
-  text-transform: uppercase;
 }
 
 .home-anniversary::after {
@@ -71,11 +56,6 @@
     var(--trico-color-transparent)
   );
   content: '';
-}
-
-.home-anniversary strong {
-  font-size: 1.1rem;
-  letter-spacing: 0.04em;
 }
 
 .home-anniversary > span {
@@ -118,7 +98,6 @@
 
 .home-hero {
   padding: 212px 1rem 78px;
-  text-align: center;
 }
 
 .home-hero ~ .editable-boundary-controls {
@@ -128,19 +107,11 @@
 .home-hero h1 {
   max-width: none;
   margin: 0 0 1.2rem;
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
-  text-align: center;
 }
 
 .home-hero p {
   max-width: 48rem;
   margin: 0 auto;
-  color: var(--trico-color-muted);
-  font-size: clamp(1rem, 1.7vw, 1.25rem);
-  line-height: 1.7;
 }
 
 .home-accent-rule {
@@ -174,21 +145,14 @@
 .home-section-heading {
   max-width: 48rem;
   margin: 0 auto 3rem;
-  text-align: center;
 }
 
 .home-section-heading h2 {
   margin: 0 0 0.75rem;
-  font-size: clamp(2rem, 3vw, 2.7rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
 }
 
 .home-section-heading > p {
   margin: 0;
-  color: var(--trico-color-muted);
-  line-height: 1.65;
 }
 
 .home-divisions .editable-collection-items {
@@ -202,8 +166,6 @@
 .home-division-link {
   display: block;
   height: 100%;
-  color: inherit;
-  text-decoration: none;
 }
 
 .home-division-card {
@@ -229,13 +191,11 @@
 .home-card-icon {
   display: grid;
   place-items: center;
-  color: var(--trico-color-light);
 }
 
 .home-value-icon {
   display: grid;
   place-items: center;
-  color: var(--trico-color-highlight);
 }
 
 .home-card-icon {
@@ -273,28 +233,18 @@
 
 .home-division-card h3 {
   margin: 0 0 0.7rem;
-  font-size: 1.5rem;
   transition: color 220ms ease;
-}
-
-.home-division-card:hover h3 {
-  color: var(--trico-color-light);
 }
 
 .home-division-card p {
   min-height: 4.6rem;
   margin: 0 0 1.35rem;
-  color: var(--trico-color-muted);
-  line-height: 1.6;
 }
 
 .home-card-link {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--trico-color-light);
-  font-size: 0.9rem;
-  font-weight: 700;
 }
 
 .home-card-link svg {
@@ -311,7 +261,6 @@
 
 .home-value {
   padding: 1rem;
-  text-align: center;
 }
 
 .home-value-icon {
@@ -329,31 +278,20 @@
 
 .home-value h3 {
   margin: 0 0 0.45rem;
-  font-size: 1.15rem;
 }
 
 .home-value p {
   margin: 0;
-  color: var(--trico-color-muted);
-  font-size: 0.88rem;
 }
 
 .home-eyebrow {
   display: block;
   margin-bottom: 0.75rem;
-  color: var(--trico-color-highlight);
-  font-family: Lato, Arial, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-align: left;
-  text-transform: uppercase;
 }
 
 .home-history {
   max-width: 50rem;
   margin: 1.5rem auto 0 !important;
-  font-size: 0.88rem;
 }
 
 .home-journey .editable-collection {
@@ -388,7 +326,6 @@
 .home-timeline-card {
   position: relative;
   padding: 1.75rem 0.55rem 0;
-  text-align: center;
 }
 
 .home-timeline-dot {
@@ -403,16 +340,8 @@
   background: var(--trico-color-light);
 }
 
-.home-timeline-card strong {
-  color: var(--trico-color-gold);
-  font-size: 1.05rem;
-}
-
 .home-timeline-card p {
   margin: 0.35rem 0 0;
-  color: var(--trico-color-muted);
-  font-size: 0.77rem;
-  line-height: 1.45;
 }
 
 .home-leadership .editable-collection-items {
@@ -445,25 +374,18 @@
 
 .home-leader-card > div:last-child {
   padding: 1rem;
-  text-align: center;
 }
 
 .home-leader-card h3 {
   margin: 0;
-  font-size: 1.05rem;
 }
 
 .home-leader-card p {
   margin: 0.25rem 0 0;
-  color: var(--trico-color-gold);
-  font-size: 0.82rem;
 }
 
 .home-section-note {
   margin: 2rem 0 0;
-  color: var(--trico-color-muted);
-  font-size: 0.85rem;
-  text-align: center;
 }
 
 .home-news .editable-collection-items {
@@ -495,8 +417,6 @@
   align-items: center;
   gap: 0.45rem;
   margin: 0 0 0.75rem !important;
-  color: var(--trico-color-gold) !important;
-  font-size: 0.78rem;
 }
 
 .home-news-date svg {
@@ -505,13 +425,10 @@
 
 .home-news-card h3 {
   margin: 0 0 0.45rem;
-  font-size: 1.15rem;
 }
 
 .home-news-card > p:last-child {
   margin: 0;
-  color: var(--trico-color-muted);
-  font-size: 0.86rem;
 }
 
 .home-careers-container {
@@ -539,14 +456,11 @@
   align-items: center;
   gap: 0.5rem;
   margin: 0;
-  font-family: 'Open Sans', Arial, sans-serif;
-  font-size: 0.95rem;
 }
 
 .home-career-card h3 svg,
 .home-career-card p svg {
   width: 0.9rem;
-  color: var(--trico-color-gold);
 }
 
 .home-career-card p,
@@ -558,8 +472,6 @@
 .home-career-card p {
   gap: 1rem;
   margin: 0.35rem 0 0;
-  color: var(--trico-color-muted);
-  font-size: 0.75rem;
 }
 
 .home-career-card p span {
@@ -571,26 +483,18 @@
   padding: 0.45rem 0.8rem;
   border: 1px solid var(--trico-color-light-a45);
   border-radius: 6px;
-  color: var(--trico-color-light);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-decoration: none;
 }
 
 .home-resume-heading {
   margin: 3.5rem 0 1.7rem;
-  text-align: center;
 }
 
 .home-resume-heading h3 {
   margin: 0 0 0.4rem;
-  font-size: 1.7rem;
 }
 
 .home-resume-heading p {
   margin: 0;
-  color: var(--trico-color-muted);
-  font-size: 0.88rem;
 }
 
 .home-resume-form,
@@ -614,9 +518,6 @@
 .home-form-grid label {
   display: grid;
   gap: 0.4rem;
-  color: var(--trico-color-ink);
-  font-size: 0.8rem;
-  font-weight: 700;
 }
 
 .home-resume-form input:not([type='file']),
@@ -627,10 +528,7 @@
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--trico-color-border);
   border-radius: 6px;
-  color: var(--trico-color-ink);
   background: var(--trico-color-surface-a78);
-  font: inherit;
-  font-weight: 400;
 }
 
 .home-resume-form textarea {
@@ -650,11 +548,6 @@
   border-color: var(--trico-color-danger);
 }
 
-.home-form-error {
-  color: var(--trico-color-danger);
-  font-weight: 700;
-}
-
 .home-file-control {
   position: relative;
   min-height: 3.5rem;
@@ -665,14 +558,11 @@
   overflow: hidden;
   border: 1px dashed var(--trico-color-border-strong);
   border-radius: 8px;
-  color: var(--trico-color-muted);
   cursor: pointer;
-  font-weight: 400;
 }
 
 .home-file-control svg {
   width: 1.2rem;
-  color: var(--trico-color-gold);
 }
 
 .home-file-control input {
@@ -691,10 +581,8 @@
   gap: 0.55rem;
   border: 1px solid var(--trico-color-light);
   border-radius: 6px;
-  color: var(--trico-color-surface);
   background: var(--trico-color-light);
   cursor: pointer;
-  font-weight: 700;
 }
 
 .home-submit-button svg {
@@ -703,20 +591,15 @@
 
 .home-form-note {
   margin: 0;
-  color: var(--trico-color-muted);
-  font-size: 0.72rem;
-  text-align: center;
 }
 
 .home-resume-success {
   place-items: center;
-  text-align: center;
 }
 
 .home-resume-success > svg {
   width: 3rem;
   height: 3rem;
-  color: var(--trico-color-success);
 }
 
 .home-resume-success h4,
@@ -726,30 +609,20 @@
 
 .home-resume-success button {
   padding-inline: 1rem;
-  color: var(--trico-color-light);
   background: var(--trico-color-surface);
-}
-
-.home-contact {
-  text-align: center;
 }
 
 .home-contact h2 {
   margin: 0 0 1rem;
-  font-size: clamp(2rem, 3vw, 2.7rem);
 }
 
 .home-contact p {
   margin: 0 0 1.8rem;
-  color: var(--trico-color-muted);
 }
 
 .home-contact address {
   display: grid;
   gap: 1rem;
-  color: var(--trico-color-muted);
-  font-size: 0.9rem;
-  font-style: normal;
 }
 
 .home-contact-row,
@@ -758,18 +631,6 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.6rem 1.2rem;
-}
-
-.home-contact a {
-  text-decoration: none;
-}
-
-.home-contact a:hover {
-  color: var(--trico-color-gold);
-}
-
-.home-license-row {
-  font-size: 0.78rem;
 }
 
 .home-footer {
@@ -781,7 +642,6 @@
   padding: 2rem 1rem;
   border-top: 1px solid var(--trico-color-light-a20);
   background: linear-gradient(0deg, var(--trico-color-dark-a06), var(--trico-color-transparent));
-  text-align: center;
 }
 
 .home-footer img {
@@ -792,8 +652,6 @@
 
 .home-footer p {
   margin: 0;
-  color: var(--trico-color-muted);
-  font-size: 0.78rem;
 }
 
 @media (max-width: 767px) {
@@ -803,10 +661,6 @@
 
   .home-anniversary {
     padding-block: 0.5rem;
-  }
-
-  .home-anniversary strong {
-    font-size: 0.9rem;
   }
 
   .home-anniversary > span {
@@ -856,10 +710,6 @@
   .home-career-card {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .home-career-card > a {
-    text-align: center;
   }
 
   .home-contact-row i {

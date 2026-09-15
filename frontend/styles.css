@@ -1,9 +1,17 @@
 :root {
   color: var(--trico-color-ink);
   background: var(--trico-color-surface);
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--trico-font-family);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  /* The complete, site-wide typography contract. */
+  --trico-font-family: 'Open Sans', Arial, sans-serif;
+  --trico-font-weight-light: 300;
+  --trico-font-weight-regular: 400;
+  --trico-font-weight-medium: 500;
+  --trico-font-weight-semibold: 600;
+  --trico-font-weight-bold: 700;
+  --trico-font-weight-extrabold: 800;
   /*
    * The one site-wide TriCo palette. Division pages may compose these roles but
    * never define colors of their own. The deep blue exists only for gradient
@@ -530,7 +538,7 @@ a {
   gap: 0.85rem;
   margin-right: auto;
   color: var(--navy);
-  font-family: 'Playfair Display', serif;
+  font-family: var(--trico-font-family);
   font-weight: 700;
   text-decoration: none;
 }
@@ -586,7 +594,7 @@ a {
 h1,
 h2,
 h3 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--trico-font-family);
 }
 h1 {
   max-width: 57rem;
@@ -725,7 +733,7 @@ h1 {
 .empty-state h2 {
   margin: 0;
   color: var(--navy);
-  font-family: 'Playfair Display', serif;
+  font-family: var(--trico-font-family);
   font-size: 1.4rem;
 }
 .empty-state p {
@@ -1067,7 +1075,7 @@ h1 {
 .editor-sheet h2 {
   margin: 0.2rem 0 0.45rem;
   color: #000a4d;
-  font-family: Lato, Arial, sans-serif;
+  font-family: var(--trico-font-family);
   font-size: 1.45rem;
 }
 .editor-sheet-kicker {
@@ -1123,7 +1131,7 @@ h1 {
   gap: 0.4rem;
 }
 .editor-field > label {
-  font-weight: 750;
+  font-weight: 700;
 }
 .editor-field input:not([type='radio']):not([type='checkbox']),
 .editor-field textarea,
@@ -1265,7 +1273,7 @@ h1 {
   border: 1px solid #00128a;
   border-radius: 0.4rem;
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 700;
 }
 .editor-save {
   color: white;
@@ -1405,7 +1413,7 @@ h1 {
   border-radius: 999px;
   background: #e2e8f0;
   font-size: 0.78rem;
-  font-weight: 750;
+  font-weight: 700;
 }
 .source-badge-auto {
   color: #166534;
@@ -1427,7 +1435,7 @@ h1 {
   padding: 1.5rem clamp(1.25rem, 7vw, 7rem);
   color: white;
   background: var(--navy);
-  font-family: 'Playfair Display', serif;
+  font-family: var(--trico-font-family);
   font-size: 1.25rem;
 }
 .category-header a,
@@ -1628,5 +1636,1911 @@ h1 {
   }
   * {
     transition: none !important;
+  }
+}
+
+/* Page composition typography: page stylesheets intentionally contain no typography declarations. */
+/* Typography formerly colocated with home.css; centrally owned here. */
+.home-page {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.5;
+}
+
+.home-page h1,
+.home-page h2,
+.home-page h3,
+.home-page h4 {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+}
+
+.home-anniversary {
+  color: var(--trico-color-surface);
+  font-family: var(--trico-font-family);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.home-anniversary strong {
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+}
+
+.home-hero {
+  text-align: center;
+}
+
+.home-hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  text-align: center;
+}
+
+.home-hero p {
+  color: var(--trico-color-muted);
+  font-size: clamp(1rem, 1.7vw, 1.25rem);
+  line-height: 1.7;
+}
+
+.home-section-heading {
+  text-align: center;
+}
+
+.home-section-heading h2 {
+  font-size: clamp(2rem, 3vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.home-section-heading > p {
+  color: var(--trico-color-muted);
+  line-height: 1.65;
+}
+
+.home-division-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-card-icon {
+  color: var(--trico-color-light);
+}
+
+.home-value-icon {
+  color: var(--trico-color-highlight);
+}
+
+.home-division-card h3 {
+  font-size: 1.5rem;
+}
+
+.home-division-card:hover h3 {
+  color: var(--trico-color-light);
+}
+
+.home-division-card p {
+  color: var(--trico-color-muted);
+  line-height: 1.6;
+}
+
+.home-card-link {
+  color: var(--trico-color-light);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.home-value {
+  text-align: center;
+}
+
+.home-value h3 {
+  font-size: 1.15rem;
+}
+
+.home-value p {
+  color: var(--trico-color-muted);
+  font-size: 0.88rem;
+}
+
+.home-eyebrow {
+  color: var(--trico-color-highlight);
+  font-family: var(--trico-font-family);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.home-history {
+  font-size: 0.88rem;
+}
+
+.home-timeline-card {
+  text-align: center;
+}
+
+.home-timeline-card strong {
+  color: var(--trico-color-gold);
+  font-size: 1.05rem;
+}
+
+.home-timeline-card p {
+  color: var(--trico-color-muted);
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
+
+.home-leader-card > div:last-child {
+  text-align: center;
+}
+
+.home-leader-card h3 {
+  font-size: 1.05rem;
+}
+
+.home-leader-card p {
+  color: var(--trico-color-gold);
+  font-size: 0.82rem;
+}
+
+.home-section-note {
+  color: var(--trico-color-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.home-news-date {
+  color: var(--trico-color-gold) !important;
+  font-size: 0.78rem;
+}
+
+.home-news-card h3 {
+  font-size: 1.15rem;
+}
+
+.home-news-card > p:last-child {
+  color: var(--trico-color-muted);
+  font-size: 0.86rem;
+}
+
+.home-career-card h3 {
+  font-family: var(--trico-font-family);
+  font-size: 0.95rem;
+}
+
+.home-career-card h3 svg,
+.home-career-card p svg {
+  color: var(--trico-color-gold);
+}
+
+.home-career-card p {
+  color: var(--trico-color-muted);
+  font-size: 0.75rem;
+}
+
+.home-career-card > a {
+  color: var(--trico-color-light);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-resume-heading {
+  text-align: center;
+}
+
+.home-resume-heading h3 {
+  font-size: 1.7rem;
+}
+
+.home-resume-heading p {
+  color: var(--trico-color-muted);
+  font-size: 0.88rem;
+}
+
+.home-resume-form > label,
+.home-form-grid label {
+  color: var(--trico-color-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.home-resume-form input:not([type='file']),
+.home-resume-form select,
+.home-resume-form textarea {
+  color: var(--trico-color-ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.home-form-error {
+  color: var(--trico-color-danger);
+  font-weight: 700;
+}
+
+.home-file-control {
+  color: var(--trico-color-muted);
+  font-weight: 400;
+}
+
+.home-file-control svg {
+  color: var(--trico-color-gold);
+}
+
+.home-submit-button,
+.home-resume-success button {
+  color: var(--trico-color-surface);
+  font-weight: 700;
+}
+
+.home-form-note {
+  color: var(--trico-color-muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.home-resume-success {
+  text-align: center;
+}
+
+.home-resume-success > svg {
+  color: var(--trico-color-success);
+}
+
+.home-resume-success button {
+  color: var(--trico-color-light);
+}
+
+.home-contact {
+  text-align: center;
+}
+
+.home-contact h2 {
+  font-size: clamp(2rem, 3vw, 2.7rem);
+}
+
+.home-contact p {
+  color: var(--trico-color-muted);
+}
+
+.home-contact address {
+  color: var(--trico-color-muted);
+  font-size: 0.9rem;
+  font-style: normal;
+}
+
+.home-contact a {
+  text-decoration: none;
+}
+
+.home-contact a:hover {
+  color: var(--trico-color-gold);
+}
+
+.home-license-row {
+  font-size: 0.78rem;
+}
+
+.home-footer {
+  text-align: center;
+}
+
+.home-footer p {
+  color: var(--trico-color-muted);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 767px) {
+  .home-anniversary strong {
+    font-size: 0.9rem;
+  }
+
+  .home-career-card > a {
+    text-align: center;
+  }
+}
+
+/* Typography formerly colocated with property-management.css; centrally owned here. */
+.pm-page {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.5;
+}
+.pm-page h1,
+.pm-page h2,
+.pm-page h3,
+.pm-page h4 {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.15;
+}
+.pm-page a {
+  color: inherit;
+}
+.pm-anniversary {
+  color: var(--trico-color-surface);
+  font-family: var(--trico-font-family);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pm-brand {
+  text-decoration: none;
+}
+.pm-brand strong {
+  color: var(--trico-color-gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.pm-header nav a {
+  color: var(--trico-color-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pm-header nav a:hover {
+  color: var(--trico-color-dark);
+}
+.pm-header-actions {
+  white-space: nowrap;
+}
+.pm-header-actions > a:first-child {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.pm-button {
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.pm-button-primary {
+  color: var(--trico-color-surface) !important;
+}
+.pm-button-light {
+  color: var(--trico-color-dark) !important;
+}
+.pm-hero .pm-button-light {
+  color: var(--trico-color-surface) !important;
+}
+.pm-button-outline {
+  color: var(--trico-color-surface) !important;
+}
+.pm-button-outline-dark {
+  color: var(--trico-color-dark) !important;
+}
+.pm-pill {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.pm-pill-gold {
+  color: var(--trico-color-gold);
+}
+.pm-hero {
+  color: var(--trico-color-surface);
+}
+.pm-hero h1 {
+  color: var(--trico-color-surface);
+  font-size: 3.75rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.pm-hero-grid > div:first-child > p {
+  color: var(--trico-color-surface-a79);
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+.pm-stat svg {
+  color: var(--trico-color-stat);
+}
+.pm-stat strong {
+  color: var(--trico-color-stat);
+  font: 700 1.875rem var(--trico-font-family);
+}
+.pm-stat span {
+  color: var(--trico-color-surface-a70);
+  font-size: 0.875rem;
+}
+.pm-section-heading {
+  text-align: center;
+}
+.pm-section-heading > span {
+  color: var(--trico-color-highlight);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+.pm-section-heading h2 {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 1;
+}
+.pm-section-heading p {
+  color: var(--trico-color-muted);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+.pm-icon {
+  color: var(--trico-color-highlight);
+}
+.pm-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+#services .pm-card h3 {
+  font-weight: 600;
+  line-height: 1.75rem;
+}
+.pm-card p {
+  color: var(--trico-color-muted);
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+.pm-step-number {
+  color: var(--trico-color-surface);
+  font: 800 1.1rem var(--trico-font-family);
+}
+.pm-process-step h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.pm-process-step p {
+  color: var(--trico-color-muted);
+  font-size: 1rem;
+}
+.pm-property-image {
+  color: var(--trico-color-muted);
+  font-size: 0.8rem;
+}
+.pm-property-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.75rem;
+}
+.pm-property-card p {
+  color: var(--trico-color-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.pm-portal .pm-card {
+  text-align: center;
+}
+.pm-portal .pm-card h3 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+.pm-portal .pm-card p {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.pm-portal-action {
+  text-align: center;
+}
+.pm-portal-action .pm-button {
+  font-size: 1.125rem;
+}
+.pm-portal-action p {
+  color: var(--trico-color-muted);
+  font-size: 0.8rem;
+}
+.pm-team .pm-section-heading h2 {
+  font-size: 3.75rem;
+}
+.pm-about {
+  color: var(--trico-color-surface);
+}
+.pm-about h2 {
+  color: var(--trico-color-surface);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.pm-about p {
+  color: var(--trico-color-surface-a76);
+}
+.pm-about-grid > div:last-child > p:first-of-type {
+  font-size: 1.125rem;
+}
+.pm-about-image aside {
+  color: var(--trico-color-ink);
+}
+.pm-about-image aside strong {
+  color: var(--trico-color-dark);
+  font: 800 2.3rem var(--trico-font-family);
+}
+.pm-check {
+  font-size: 0.88rem;
+}
+.pm-check svg {
+  color: var(--trico-color-highlight);
+}
+.pm-quote-card > svg {
+  color: var(--trico-color-dark-a09);
+}
+.pm-quote-card h3 {
+  font-size: 1rem;
+}
+.pm-quote-card header span,
+.pm-quote-card p {
+  color: var(--trico-color-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.pm-quote-card > p {
+  font-size: 1rem;
+  line-height: 1.625rem;
+}
+.pm-stars svg {
+  color: var(--trico-color-rating);
+}
+.pm-trust-stat strong {
+  color: var(--trico-color-stat);
+  font: 700 2.25rem var(--trico-font-family);
+}
+.pm-trust-stat span {
+  color: var(--trico-color-muted);
+  font-size: 1rem;
+}
+.pm-faq-item summary {
+  font-weight: 500;
+}
+.pm-faq-item p {
+  color: var(--trico-color-muted);
+}
+.pm-careers {
+  text-align: center;
+}
+.pm-careers h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+.pm-careers > .pm-container > p {
+  color: var(--trico-color-muted);
+  font-size: 1.125rem;
+}
+.pm-career-icon {
+  color: var(--trico-color-dark);
+}
+.pm-career-card p {
+  color: var(--trico-color-muted);
+}
+.pm-form-card {
+  line-height: 1.5rem;
+}
+.pm-form-card label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+.pm-form-card input,
+.pm-form-card select,
+.pm-form-card textarea {
+  color: var(--trico-color-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+.pm-form-error {
+  color: var(--trico-color-danger);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+.pm-form-note {
+  color: var(--trico-color-muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+.pm-form-success {
+  text-align: center;
+}
+.pm-form-success button {
+  color: var(--trico-color-dark);
+  font: inherit;
+  font-weight: 700;
+}
+.pm-reviews-footer {
+  color: var(--trico-color-muted);
+  text-align: center;
+}
+.pm-reviews-footer a {
+  color: var(--trico-color-dark);
+}
+.pm-contact {
+  line-height: 1.5;
+}
+.pm-contact .pm-section-heading {
+  text-align: left;
+}
+.pm-contact-details {
+  color: var(--trico-color-muted);
+}
+.pm-contact-icon {
+  color: var(--trico-color-dark);
+}
+.pm-contact-detail h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.pm-contact-detail:nth-of-type(2) p,
+.pm-contact-detail:nth-of-type(4) p {
+  font-size: 0.875rem;
+}
+.pm-contact-details address {
+  font-style: normal;
+  white-space: pre-line;
+}
+.pm-contact-details a {
+  text-decoration: none;
+}
+.pm-google {
+  color: var(--trico-color-surface) !important;
+  font-weight: 700;
+}
+.pm-analysis-form h3 {
+  font-size: 1.5rem;
+}
+.pm-footer {
+  color: var(--trico-color-surface);
+}
+.pm-footer-brand p {
+  color: var(--trico-color-surface-a68);
+}
+.pm-footer-link strong {
+  color: var(--trico-color-surface);
+  font-size: 1.125rem;
+}
+.pm-footer-link a {
+  color: var(--trico-color-surface-a68);
+  font-size: 1rem;
+  text-decoration: none;
+}
+.pm-footer-legal {
+  color: var(--trico-color-surface-a55);
+  font-size: 0.78rem;
+}
+.sr-only {
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .pm-hero .pm-actions .pm-button {
+    font-weight: 500;
+  }
+}
+
+@media (max-width: 1023px) {
+  .pm-hero h1 {
+    font-size: 3rem;
+  }
+  .pm-section-heading h2 {
+    font-size: 2.25rem;
+  }
+  .pm-team .pm-section-heading h2 {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .pm-anniversary {
+    font-size: 0.78rem;
+  }
+  .pm-brand strong {
+    font-size: 0.62rem;
+  }
+  .pm-hero h1 {
+    font-size: 2.25rem;
+  }
+  .pm-hero-grid > div:first-child > p {
+    font-size: 1.125rem;
+  }
+  .pm-stat strong {
+    font-size: 1.875rem;
+  }
+  .pm-section-heading h2 {
+    font-size: 1.875rem;
+    line-height: 1.2;
+  }
+  .pm-team .pm-section-heading h2 {
+    font-size: 2.25rem;
+  }
+  .pm-about h2 {
+    font-size: 1.875rem;
+    line-height: 1.2;
+  }
+  .pm-form-card input,
+  .pm-form-card select,
+  .pm-form-card textarea {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+/* Typography formerly colocated with real-estate.css; centrally owned here. */
+.re-page {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.55;
+}
+.re-page h1,
+.re-page h2,
+.re-page h3,
+.re-page h4 {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.13;
+}
+.re-page a {
+  color: inherit;
+}
+.re-empty-state {
+  text-align: center;
+}
+.re-empty-state p {
+  color: var(--trico-color-muted);
+}
+.re-anniversary {
+  color: var(--trico-color-surface);
+  font-family: var(--trico-font-family);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.re-anniversary svg {
+  color: var(--trico-color-gold);
+}
+.re-brand {
+  text-decoration: none;
+}
+.re-brand strong {
+  color: var(--trico-color-gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.re-header nav a {
+  color: var(--trico-color-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.re-header nav a:hover {
+  color: var(--trico-color-dark);
+}
+.re-header-actions {
+  white-space: nowrap;
+}
+.re-header-actions > a:first-child {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.re-button {
+  font-weight: 700;
+  text-decoration: none;
+}
+.re-page .re-button-primary {
+  color: var(--trico-color-surface);
+}
+.re-page .re-button-light {
+  color: var(--trico-color-deep);
+}
+.re-button-outline {
+  color: var(--trico-color-surface);
+}
+.re-page .re-button-gold {
+  color: var(--trico-color-surface);
+}
+.re-page .re-button-quiet {
+  color: var(--trico-color-deep);
+}
+.re-pill {
+  color: var(--trico-color-light);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.re-pill-gold {
+  color: var(--trico-color-gold);
+}
+.re-hero {
+  color: var(--trico-color-surface);
+}
+.re-hero h1 {
+  color: var(--trico-color-surface);
+  font-size: clamp(3rem, 5vw, 4rem);
+}
+.re-hero-copy > p {
+  color: var(--trico-color-surface-a80);
+  font-size: 1.18rem;
+}
+.re-hero-stats svg {
+  color: var(--trico-color-stat);
+}
+.re-hero-stats strong {
+  color: var(--trico-color-stat);
+  font-family: var(--trico-font-family);
+  font-size: 1.8rem;
+}
+.re-hero-stats span {
+  color: var(--trico-color-surface-a68);
+  font-size: 0.78rem;
+}
+.re-section-heading {
+  text-align: center;
+}
+.re-section-heading h2 {
+  font-size: clamp(2.4rem, 4.3vw, 3.75rem);
+}
+.re-section-heading p {
+  color: var(--trico-color-muted);
+  font-size: 1.1rem;
+}
+.re-tabs button {
+  color: var(--trico-color-muted);
+  font-weight: 700;
+}
+.re-tabs button span {
+  font-weight: 600;
+}
+.re-tabs button[aria-selected='true'] {
+  color: var(--trico-color-dark);
+}
+.re-badge {
+  color: var(--trico-color-surface);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.re-badge.re-type {
+  color: var(--trico-color-ink);
+}
+.re-price {
+  font-family: var(--trico-font-family);
+  font-size: 1.25rem;
+}
+.re-listing-body > p,
+.re-listing-body > span {
+  color: var(--trico-color-muted);
+  font-size: 0.87rem;
+}
+.re-listing-foot a {
+  color: var(--trico-color-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.re-card > svg:first-child {
+  color: var(--trico-color-highlight);
+}
+.re-card h3 {
+  font-size: 1.25rem;
+}
+.re-card p {
+  color: var(--trico-color-muted);
+}
+.re-process article {
+  text-align: right;
+}
+.re-process article.reverse {
+  text-align: left;
+}
+.re-process article span {
+  color: var(--trico-color-surface);
+  font-family: var(--trico-font-family);
+  font-weight: 700;
+}
+.re-process article h3 {
+  font-size: 1.25rem;
+}
+.re-process article p {
+  color: var(--trico-color-muted);
+}
+.re-dark {
+  color: var(--trico-color-surface);
+}
+.re-dark h2 {
+  color: var(--trico-color-surface);
+  font-size: clamp(2.5rem, 4.2vw, 3.5rem);
+}
+.re-dark p {
+  color: var(--trico-color-surface-a78);
+  font-size: 1.05rem;
+}
+.re-about-visual > strong {
+  color: var(--trico-color-gold);
+  font: 700 4rem var(--trico-font-family);
+}
+.re-about-visual > span {
+  color: var(--trico-color-surface-a80);
+  font-size: 1.25rem;
+}
+.re-about-visual > b {
+  color: var(--trico-color-dark);
+  font: 700 2.25rem var(--trico-font-family);
+}
+.re-about-visual small {
+  color: var(--trico-color-muted);
+  font: 400 0.85rem var(--trico-font-family);
+}
+.re-check-grid [role='listitem'] {
+  color: var(--trico-color-surface-a90);
+}
+.re-check-grid svg {
+  color: var(--trico-color-gold);
+}
+.re-group-title {
+  text-align: center;
+  font-size: 1.55rem;
+}
+.re-careers h2 {
+  font-size: 2.5rem;
+}
+.re-careers p {
+  color: var(--trico-color-muted);
+}
+.re-careers li svg {
+  color: var(--trico-color-highlight);
+}
+.re-careers aside {
+  text-align: center;
+}
+.re-careers aside > svg {
+  color: var(--trico-color-highlight);
+}
+.re-careers aside h3 {
+  font-size: 1.5rem;
+}
+.re-careers aside a {
+  color: var(--trico-color-highlight);
+  font-weight: 700;
+}
+.re-testimonial-grid .re-card > .re-quote {
+  color: var(--trico-color-dark-a10);
+}
+.re-stars {
+  color: var(--trico-color-rating);
+}
+.re-testimonial-grid .re-card span {
+  color: var(--trico-color-muted);
+  font-size: 0.8rem;
+}
+.re-faqs summary {
+  font-family: var(--trico-font-family);
+  font-weight: 700;
+}
+.re-faqs details p {
+  color: var(--trico-color-muted);
+}
+.re-form-card h3 {
+  font-size: 1.5rem;
+}
+.re-form-card label {
+  color: var(--trico-color-ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.re-form-card input,
+.re-form-card select,
+.re-form-card textarea {
+  color: var(--trico-color-ink);
+  font: 400 0.95rem var(--trico-font-family);
+}
+.re-form-success {
+  text-align: center;
+}
+.re-form-success > svg {
+  color: var(--trico-color-dark);
+}
+.re-review-footer {
+  color: var(--trico-color-muted);
+  text-align: center;
+}
+.re-review-footer a {
+  color: var(--trico-color-dark);
+}
+.re-contact h2 {
+  font-size: clamp(2.5rem, 4vw, 3.25rem);
+}
+.re-contact-grid > div:first-child > .re-entity-slot:first-of-type p {
+  color: var(--trico-color-muted);
+  font-size: 1.05rem;
+}
+.re-contact-list > div > svg {
+  color: var(--trico-color-light);
+}
+.re-contact-list p {
+  color: var(--trico-color-muted);
+}
+.re-contact-list strong {
+  color: var(--trico-color-ink);
+}
+.re-footer {
+  color: var(--trico-color-surface);
+}
+.re-footer h3 {
+  color: var(--trico-color-surface);
+  font-size: 1.1rem;
+}
+.re-footer-grid p,
+.re-footer-grid span,
+.re-footer-grid a {
+  color: var(--trico-color-surface-a70);
+  font-size: 0.86rem;
+}
+.re-footer-grid span,
+.re-footer-grid a {
+  text-decoration: none;
+}
+.re-footer-grid svg {
+  color: var(--trico-color-gold);
+}
+.re-copyright {
+  color: var(--trico-color-surface-a60);
+  text-align: center;
+  font-size: 0.82rem;
+}
+@media (max-width: 767px) {
+  .re-anniversary {
+    font-size: 0.82rem;
+  }
+  .re-hero h1 {
+    font-size: 2.65rem;
+  }
+  .re-hero-copy > p {
+    font-size: 1rem;
+  }
+  .re-hero-stats strong {
+    font-size: 1.35rem;
+  }
+  .re-section-heading h2 {
+    font-size: 2.25rem;
+  }
+  .re-process article,
+  .re-process article.reverse {
+    text-align: left;
+  }
+}
+
+/* Typography formerly colocated with construction.css; centrally owned here. */
+.co-page {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.5;
+}
+.co-page h1,
+.co-page h2,
+.co-page h3 {
+  font-family: var(--trico-font-family);
+  line-height: 1.12;
+}
+.co-project-photo {
+  color: var(--trico-color-muted);
+}
+.co-project-details dt {
+  color: var(--trico-color-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.co-project-details dd {
+  color: var(--trico-color-ink);
+  font-size: 0.9rem;
+}
+.co-page a {
+  color: inherit;
+}
+.co-anniversary {
+  color: var(--trico-color-surface);
+  font-family: var(--trico-font-family);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.co-brand {
+  text-decoration: none;
+}
+.co-brand strong {
+  color: var(--trico-color-gold);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.co-header nav a {
+  color: var(--trico-color-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.co-header nav a:hover {
+  color: var(--trico-color-dark);
+}
+.co-header-actions {
+  white-space: nowrap;
+}
+.co-header-actions > a:first-child {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.co-button {
+  font-weight: 700;
+  text-decoration: none;
+}
+.co-button-blue {
+  color: var(--trico-color-surface) !important;
+}
+.co-button-gold {
+  color: var(--trico-color-surface) !important;
+}
+.co-button-outline {
+  color: var(--trico-color-surface) !important;
+}
+.co-hero {
+  color: var(--trico-color-surface);
+}
+.co-pills span {
+  color: var(--trico-color-gold);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.co-pills span:last-child {
+  color: var(--trico-color-light-a30);
+}
+.co-hero h1 {
+  color: var(--trico-color-surface);
+  font-size: clamp(2.8rem, 5vw, 4.5rem);
+}
+.co-hero h2 {
+  color: var(--trico-color-light-a50);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+}
+.co-hero h3 {
+  color: var(--trico-color-gold);
+  font-size: clamp(1.3rem, 2vw, 1.65rem);
+}
+.co-hero p {
+  color: var(--trico-color-surface-a78);
+  font-size: 1.1rem;
+}
+.co-hero-stats strong {
+  color: var(--trico-color-gold);
+  font-family: var(--trico-font-family);
+  font-size: 1.8rem;
+}
+.co-hero-stats span {
+  color: var(--trico-color-surface-a68);
+  font-size: 0.8rem;
+}
+.co-heading {
+  text-align: center;
+}
+.co-heading > span,
+.co-about-pill {
+  color: var(--trico-color-highlight);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.co-heading h2 {
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+}
+.co-heading p {
+  color: var(--trico-color-muted);
+  font-size: 1.05rem;
+}
+.co-card i,
+.co-contact-list i,
+.co-benefits i {
+  color: var(--trico-color-highlight);
+}
+.co-card i.co-blue-icon {
+  color: var(--trico-color-dark);
+}
+.co-card h3 {
+  font-size: 1.25rem;
+}
+.co-card p {
+  color: var(--trico-color-muted);
+}
+.co-sector {
+  text-decoration: none;
+}
+.co-sector h3 {
+  font-size: 1.1rem;
+}
+.co-sector p {
+  color: var(--trico-color-muted);
+  font-size: 0.86rem;
+}
+.co-sector span {
+  color: var(--trico-color-gold);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.co-notice > svg {
+  color: var(--trico-color-gold);
+}
+.co-notice p {
+  color: var(--trico-color-muted);
+  font-size: 0.9rem;
+}
+.co-subheading {
+  font-size: 1.5rem;
+}
+.co-subheading svg {
+  color: var(--trico-color-light);
+}
+.co-plan header i {
+  color: var(--trico-color-gold);
+}
+.co-plan h3 {
+  font-size: 1.05rem;
+}
+.co-plan small {
+  color: var(--trico-color-muted);
+}
+.co-plan b {
+  color: var(--trico-color-gold);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.co-plan > p {
+  color: var(--trico-color-muted);
+  font-size: 0.82rem;
+}
+.co-plan > p svg {
+  color: var(--trico-color-light);
+}
+.co-plan button {
+  color: var(--trico-color-gold);
+  font-weight: 700;
+}
+.co-plan-access {
+  text-align: center;
+}
+.co-plan-access p {
+  color: var(--trico-color-muted);
+}
+.co-pro-stats {
+  text-align: center;
+}
+.co-pro-stats strong {
+  color: var(--trico-color-stat);
+  font-family: var(--trico-font-family);
+  font-size: 2.5rem;
+}
+.co-pro-stats span {
+  color: var(--trico-color-muted);
+}
+.co-team-card {
+  text-align: center;
+}
+.co-team-card strong {
+  color: var(--trico-color-dark);
+}
+.co-team-card a {
+  color: var(--trico-color-muted);
+  font-size: 0.8rem;
+}
+.co-about,
+.co-bid,
+.co-footer {
+  color: var(--trico-color-surface);
+}
+.co-about-art > span {
+  color: var(--trico-color-gold);
+  font-family: var(--trico-font-family);
+  font-size: 3.8rem;
+  font-weight: 700;
+}
+.co-about-art aside {
+  color: var(--trico-color-muted);
+}
+.co-about-art aside strong {
+  color: var(--trico-color-gold);
+  font-size: 2rem;
+}
+.co-about h2 {
+  color: var(--trico-color-surface);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+}
+.co-about p {
+  color: var(--trico-color-surface-a75);
+}
+.co-checks svg {
+  color: var(--trico-color-gold);
+}
+.co-bid .co-heading h2,
+.co-bid .co-heading p {
+  color: var(--trico-color-surface);
+}
+.co-form label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.co-form input,
+.co-form select,
+.co-form textarea {
+  color: var(--trico-color-ink);
+  font: inherit;
+}
+.co-bid .co-form input,
+.co-bid .co-form select,
+.co-bid .co-form textarea {
+  color: var(--trico-color-surface);
+}
+.co-bid .co-form input::placeholder,
+.co-bid .co-form textarea::placeholder {
+  color: var(--trico-color-surface-a55);
+}
+.co-form-success {
+  color: var(--trico-color-success-a20);
+  font-weight: 700;
+}
+.co-careers .co-heading {
+  text-align: left;
+}
+.co-careers .co-heading > span {
+  color: var(--trico-color-light);
+}
+.co-benefits small {
+  color: var(--trico-color-muted);
+}
+.co-positions span {
+  color: var(--trico-color-muted);
+  font-size: 0.7rem;
+}
+.co-review-footer {
+  color: var(--trico-color-muted);
+  text-align: center;
+}
+.co-review-footer a {
+  color: var(--trico-color-dark);
+}
+.co-contact .co-heading {
+  text-align: left;
+}
+.co-contact-list p {
+  color: var(--trico-color-muted);
+}
+.co-contact-list i {
+  color: var(--trico-color-light);
+}
+.co-contact-list strong {
+  color: var(--trico-color-ink);
+}
+.co-footer p,
+.co-footer address,
+.co-footer a {
+  color: var(--trico-color-surface-a68);
+  font-size: 0.88rem;
+  font-style: normal;
+}
+.co-footer h3 {
+  color: var(--trico-color-surface);
+}
+.co-legal {
+  text-align: center;
+}
+.co-category-back {
+  color: var(--trico-color-muted);
+  text-decoration: none;
+}
+.co-category-tabs a {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.co-category-tabs a.active {
+  color: var(--trico-color-surface);
+}
+.co-project-empty {
+  text-align: center;
+}
+.co-project-empty svg {
+  color: var(--trico-color-gold);
+}
+.co-project-empty p {
+  color: var(--trico-color-muted);
+}
+@media (max-width: 767px) {
+  .co-anniversary {
+    font-size: 0.84rem;
+  }
+  .co-heading h2 {
+    font-size: 2.2rem;
+  }
+  .co-hero-stats strong {
+    font-size: 1.45rem;
+  }
+}
+
+/* Typography formerly colocated with storage.css; centrally owned here. */
+.storage-page {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.55;
+}
+.storage-page h1,
+.storage-page h2,
+.storage-page h3 {
+  font-family: var(--trico-font-family);
+}
+.storage-banner {
+  color: var(--trico-color-surface);
+}
+.storage-banner svg {
+  color: var(--trico-color-gold);
+}
+.storage-mobile-nav a {
+  text-decoration: none;
+}
+.storage-notice {
+  text-align: center;
+}
+.storage-hero-copy {
+  color: var(--trico-color-surface);
+}
+.storage-badges span,
+.storage-pill {
+  color: var(--trico-color-gold);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.storage-badges span + span {
+  color: var(--trico-color-light-a30);
+}
+.storage-hero h1 {
+  color: var(--trico-color-surface);
+  font-size: clamp(2.6rem, 4.5vw, 4.5rem);
+  line-height: 1.06;
+}
+.storage-promise {
+  color: var(--trico-color-gold);
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-weight: 600;
+}
+.storage-actions a,
+.storage-about a {
+  color: var(--trico-color-surface);
+  font-weight: 700;
+  text-decoration: none;
+}
+.storage-actions a:first-child,
+.storage-about a {
+  color: var(--trico-color-deep);
+}
+.storage-hero figcaption {
+  color: var(--trico-color-surface);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.storage-stat svg {
+  color: var(--trico-color-stat);
+}
+.storage-stat strong {
+  color: var(--trico-color-stat);
+  font: 700 2rem var(--trico-font-family);
+}
+.storage-stat span {
+  font-size: 0.85rem;
+  color: var(--trico-color-surface-a72);
+}
+.storage-section-heading {
+  text-align: center;
+}
+.storage-section-heading span {
+  color: var(--trico-color-highlight);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.storage-section-heading h2 {
+  font-size: clamp(2.35rem, 4vw, 3.75rem);
+  line-height: 1.08;
+}
+.storage-section-heading p {
+  color: var(--trico-color-muted);
+  font-size: 1.1rem;
+}
+.storage-service-card > span {
+  color: var(--trico-color-highlight);
+}
+.storage-review-card > span:first-child {
+  color: var(--trico-color-success);
+}
+.storage-service-card h3 {
+  font-size: 1.25rem;
+}
+.storage-service-card p {
+  color: var(--trico-color-muted);
+}
+.storage-team-card h3 {
+  font-size: 1.25rem;
+}
+.storage-team-card strong {
+  color: var(--trico-color-light);
+  font-size: 0.85rem;
+}
+.storage-team-card p {
+  color: var(--trico-color-muted);
+  font-size: 0.88rem;
+}
+.storage-about {
+  color: var(--trico-color-surface);
+}
+.storage-about-mark > strong {
+  color: var(--trico-color-stat);
+  font: 700 clamp(3rem, 6vw, 5rem) var(--trico-font-family);
+}
+.storage-about-mark > span {
+  font-size: 1.25rem;
+}
+.storage-about-mark aside {
+  color: var(--trico-color-muted);
+}
+.storage-about-mark aside b {
+  color: var(--trico-color-success);
+  font: 700 2.25rem var(--trico-font-family);
+}
+.storage-about h2 {
+  font-size: clamp(2.3rem, 4vw, 3.3rem);
+}
+.storage-about p {
+  color: var(--trico-color-surface-a73);
+}
+.storage-about .storage-bridge {
+  color: var(--trico-color-gold);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.storage-review-footer {
+  text-align: center;
+  color: var(--trico-color-muted);
+}
+.storage-review-footer a {
+  color: var(--trico-color-dark);
+}
+.storage-contact .storage-section-heading {
+  text-align: left;
+}
+.storage-contact-details > div > svg {
+  color: var(--trico-color-light);
+}
+.storage-contact-details p {
+  white-space: pre-line;
+  color: var(--trico-color-muted);
+}
+.storage-contact-details strong {
+  color: var(--trico-color-ink);
+}
+.storage-contact-details a {
+  text-decoration: none;
+}
+.storage-contact-details small {
+  font-size: 0.8rem;
+}
+.storage-contact-form h3 {
+  font-size: 1.6rem;
+}
+.storage-contact-form label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.storage-contact-form button {
+  color: var(--trico-color-surface);
+  font-weight: 700;
+}
+.storage-footer {
+  color: var(--trico-color-surface-a72);
+}
+.storage-footer h3 {
+  color: var(--trico-color-surface);
+}
+.storage-footer address {
+  font-style: normal;
+}
+.storage-footer address a,
+.storage-footer-link,
+.storage-branding-option {
+  color: var(--trico-color-surface-a72);
+  text-decoration: none;
+}
+.storage-footer > small {
+  text-align: center;
+}
+@media (min-width: 1024px) {
+  .storage-header nav a {
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+}
+@media (max-width: 639px) {
+  .storage-banner {
+    font-size: 0.8rem;
+  }
+  .storage-hero h1 {
+    font-size: 2.6rem;
+  }
+}
+
+/* Typography formerly colocated with development.css; centrally owned here. */
+.dev-page {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.55;
+}
+.dev-page h1,
+.dev-page h2,
+.dev-page h3 {
+  color: var(--trico-color-ink);
+  font-family: var(--trico-font-family);
+  line-height: 1.13;
+}
+.dev-page a {
+  color: inherit;
+}
+.dev-anniversary {
+  color: var(--trico-color-surface);
+  text-transform: uppercase;
+}
+.dev-anniversary strong {
+  font: 700 1.15rem var(--trico-font-family);
+  letter-spacing: 0.04em;
+}
+.dev-anniversary small {
+  font-size: 0.82rem;
+}
+.dev-anniversary span {
+  color: var(--trico-color-gold);
+}
+.dev-brand {
+  text-decoration: none;
+}
+.dev-brand strong,
+.dev-footer b {
+  color: var(--trico-color-gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.dev-header nav a {
+  color: var(--trico-color-muted);
+  font-size: 0.83rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.dev-header-actions > a:first-child {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.dev-button {
+  font-weight: 700;
+  text-decoration: none;
+}
+.dev-page .dev-primary {
+  color: var(--trico-color-surface);
+}
+.dev-outline-gold {
+  color: var(--trico-color-gold);
+}
+.dev-pill {
+  color: var(--trico-color-highlight);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.dev-pill-blue {
+  color: var(--trico-color-light);
+}
+.dev-hero {
+  text-align: center;
+}
+.dev-hero h1 {
+  font-size: clamp(3rem, 5vw, 4rem);
+}
+.dev-hero h1 em {
+  color: var(--trico-color-highlight);
+  font-style: normal;
+}
+.dev-hero-inner > p {
+  color: var(--trico-color-muted);
+  font-size: 1.15rem;
+}
+.dev-stats svg {
+  color: var(--trico-color-stat);
+}
+.dev-stats strong {
+  color: var(--trico-color-stat);
+  font: 700 1.8rem var(--trico-font-family);
+}
+.dev-stats span {
+  color: var(--trico-color-muted);
+  font-size: 0.82rem;
+}
+.dev-heading {
+  text-align: center;
+}
+.dev-heading h2 {
+  font-size: clamp(2.4rem, 4.3vw, 3.75rem);
+}
+.dev-heading p {
+  color: var(--trico-color-muted);
+  font-size: 1.08rem;
+}
+.dev-land-card {
+  text-align: center;
+}
+.dev-land-card > svg {
+  color: var(--trico-color-highlight);
+}
+.dev-land-card h3,
+.dev-card h3 {
+  font-size: 1.25rem;
+}
+.dev-land-card p,
+.dev-card p {
+  color: var(--trico-color-muted);
+}
+.dev-trust svg {
+  color: var(--trico-color-stat);
+}
+.dev-trust strong {
+  color: var(--trico-color-stat);
+  font: 700 1.75rem var(--trico-font-family);
+}
+.dev-trust span {
+  color: var(--trico-color-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+.dev-card > svg:first-child {
+  color: var(--trico-color-highlight);
+}
+.dev-subheading {
+  text-align: center;
+  font-size: 1.55rem;
+}
+.dev-category {
+  text-align: center;
+}
+.dev-category > svg {
+  color: var(--trico-color-gold);
+}
+.dev-category > strong {
+  color: var(--trico-color-gold);
+  font-size: 0.85rem;
+}
+.dev-category h3 {
+  font-size: 1.5rem;
+}
+.dev-category p {
+  color: var(--trico-color-muted);
+}
+.dev-featured-grid span {
+  color: var(--trico-color-gold);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.dev-featured-grid h3 {
+  font-size: 1.25rem;
+}
+.dev-featured-grid p {
+  color: var(--trico-color-muted);
+  font-size: 0.85rem;
+}
+.dev-partner-grid div {
+  color: var(--trico-color-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+.dev-partner-footer,
+.dev-review-footer {
+  color: var(--trico-color-muted);
+  text-align: center;
+}
+.dev-partner-footer a,
+.dev-review-footer a {
+  color: var(--trico-color-gold);
+}
+.dev-about-grid h2,
+.dev-contact h2 {
+  font-size: clamp(2.4rem, 4vw, 3.25rem);
+}
+.dev-about-grid p {
+  color: var(--trico-color-muted);
+}
+.dev-highlights svg {
+  color: var(--trico-color-highlight);
+}
+.dev-values > article > svg {
+  color: var(--trico-color-highlight);
+}
+.dev-values h3 {
+  font-size: 1.1rem;
+}
+.dev-values p {
+  color: var(--trico-color-muted);
+}
+.dev-contact-grid > div:first-child > .dev-entity-slot:first-of-type p {
+  color: var(--trico-color-muted);
+  font-size: 1.05rem;
+}
+.dev-contact-list > div > svg {
+  color: var(--trico-color-highlight);
+}
+.dev-contact-list p {
+  color: var(--trico-color-muted);
+}
+.dev-contact-list strong {
+  color: var(--trico-color-ink);
+}
+.dev-form-card h3 {
+  font-size: 1.5rem;
+}
+.dev-form-card label {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.dev-form-card input,
+.dev-form-card textarea {
+  font: 400 0.95rem var(--trico-font-family);
+}
+.dev-form-success {
+  text-align: center;
+}
+.dev-form-success > svg {
+  color: var(--trico-color-gold);
+}
+.dev-footer {
+  color: var(--trico-color-surface);
+}
+.dev-footer h3 {
+  color: var(--trico-color-surface);
+  font-size: 1.1rem;
+}
+.dev-footer-grid p,
+.dev-footer-grid span,
+.dev-footer-grid a {
+  color: var(--trico-color-surface-a70);
+  font-size: 0.86rem;
+}
+.dev-footer-grid span,
+.dev-footer-grid a {
+  text-decoration: none;
+}
+.dev-footer-grid svg {
+  color: var(--trico-color-gold);
+}
+.dev-copyright {
+  color: var(--trico-color-surface-a60);
+  text-align: center;
+  font-size: 0.82rem;
+}
+@media (max-width: 767px) {
+  .dev-anniversary strong {
+    font-size: 0.88rem;
+    text-align: center;
+  }
+  .dev-hero h1 {
+    font-size: 2.65rem;
+  }
+  .dev-hero-inner > p {
+    font-size: 1rem;
+  }
+  .dev-stats strong {
+    font-size: 1.35rem;
+  }
+  .dev-heading h2 {
+    font-size: 2.25rem;
   }
 }

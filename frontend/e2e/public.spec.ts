@@ -100,19 +100,24 @@ for (const publicPage of publicPages) {
   });
 }
 
-test('self-hosts the intended public-site typefaces', async ({ page }) => {
+test('self-hosts the single public-site typeface and every used weight', async ({ page }) => {
   await page.goto('/property-management');
-  const registeredFamilies = await page.evaluate(async () => {
+  const registeredFaces = await page.evaluate(async () => {
     await document.fonts.ready;
-    return [...document.fonts].map(({ family }) => family.replaceAll('"', ''));
+    return [...document.fonts].map(({ family, weight }) => ({
+      family: family.replaceAll('"', ''),
+      weight: Number(weight),
+    }));
   });
 
-  expect(registeredFamilies).toContain('Open Sans');
-  expect(registeredFamilies).toContain('Lato');
+  expect([...new Set(registeredFaces.map(({ family }) => family))]).toEqual(['Open Sans']);
+  expect(
+    [...new Set(registeredFaces.map(({ weight }) => weight))].sort((left, right) => left - right),
+  ).toEqual([300, 400, 500, 600, 700, 800]);
   await expect(page.locator('.pm-page')).toHaveCSS('font-family', /Open Sans/);
   await expect(page.getByRole('heading', { name: 'What to Expect with TriCo' })).toHaveCSS(
     'font-family',
-    /Lato/,
+    /Open Sans/,
   );
 });
 

@@ -93,6 +93,11 @@ async function pageStyleColorErrors(root: string): Promise<string[]> {
         withoutComments,
       );
     if (ownsColor) errors.push(`${file} contains page-owned color values or aliases`);
+    const ownsTypography =
+      /(?:^|[;{])\s*(?:color|font(?:-[\w-]+)?|line-height|letter-spacing|word-spacing|text-align|text-transform|text-decoration(?:-[\w-]+)?|text-indent|text-shadow|white-space|overflow-wrap|word-break|hyphens)\s*:/m.test(
+        withoutComments,
+      );
+    if (ownsTypography) errors.push(`${file} contains page-owned typography declarations`);
   }
   return errors;
 }

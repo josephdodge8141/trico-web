@@ -1,14 +1,6 @@
 .storage-page {
   min-width: 320px;
-  color: var(--trico-color-ink);
   background: var(--trico-color-surface);
-  font-family: 'Open Sans', Arial, sans-serif;
-  line-height: 1.55;
-}
-.storage-page h1,
-.storage-page h2,
-.storage-page h3 {
-  font-family: Lato, Arial, sans-serif;
 }
 .storage-entity-slot {
   display: contents;
@@ -26,7 +18,6 @@
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  color: var(--trico-color-surface);
   background: linear-gradient(
     90deg,
     var(--trico-color-dark),
@@ -37,7 +28,6 @@
 }
 .storage-banner svg {
   width: 1rem;
-  color: var(--trico-color-gold);
 }
 .storage-header {
   position: fixed;
@@ -77,12 +67,10 @@
 }
 .storage-mobile-nav a {
   padding: 0.75rem;
-  text-decoration: none;
 }
 .storage-notice {
   margin: 148px 0 0;
   padding: 0.6rem;
-  text-align: center;
   background: var(--trico-color-warning-surface);
 }
 .storage-hero {
@@ -101,7 +89,6 @@
   flex-direction: column;
   justify-content: center;
   padding: 5rem clamp(1.25rem, 6vw, 6rem);
-  color: var(--trico-color-surface);
 }
 .storage-badges {
   display: flex;
@@ -118,9 +105,6 @@
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
   background: var(--trico-color-gold-a15);
-  color: var(--trico-color-gold);
-  font-size: 0.875rem;
-  font-weight: 600;
 }
 .storage-badges svg {
   width: 1rem;
@@ -128,23 +112,16 @@
 .storage-badges span + span {
   border: 1px solid var(--trico-color-light-a33);
   background: var(--trico-color-light-a20);
-  color: var(--trico-color-light-a30);
 }
 .storage-hero h1 {
   max-width: 44rem;
   margin: 0 0 1rem;
-  color: var(--trico-color-surface);
-  font-size: clamp(2.6rem, 4.5vw, 4.5rem);
-  line-height: 1.06;
 }
 .storage-hero-copy > p {
   max-width: 43rem;
 }
 .storage-promise {
   margin: 0.5rem 0 1rem;
-  color: var(--trico-color-gold);
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
-  font-weight: 600;
 }
 .storage-actions {
   display: flex;
@@ -161,15 +138,11 @@
   padding: 0.7rem 1.1rem;
   border: 1px solid var(--trico-color-surface-a33);
   border-radius: 8px;
-  color: var(--trico-color-surface);
-  font-weight: 700;
-  text-decoration: none;
 }
 .storage-actions a:first-child,
 .storage-about a {
   border-color: var(--trico-color-transparent);
   background: var(--trico-color-surface);
-  color: var(--trico-color-deep);
 }
 .storage-actions svg {
   width: 1rem;
@@ -181,10 +154,7 @@
   position: absolute;
   inset: auto 0 0;
   padding: 3rem 1.5rem 1.5rem;
-  color: var(--trico-color-surface);
   background: linear-gradient(var(--trico-color-transparent), var(--trico-color-deep-a93));
-  font-size: 1.1rem;
-  font-weight: 600;
 }
 .storage-hero .editable-collection-items {
   display: grid;
@@ -202,15 +172,6 @@
 .storage-stat svg {
   grid-row: span 2;
   width: 1.3rem;
-  color: var(--trico-color-stat);
-}
-.storage-stat strong {
-  color: var(--trico-color-stat);
-  font: 700 2rem Lato;
-}
-.storage-stat span {
-  font-size: 0.85rem;
-  color: var(--trico-color-surface-a72);
 }
 .storage-section {
   padding: 6rem max(1rem, calc((100vw - 1400px) / 2));
@@ -218,25 +179,15 @@
 .storage-section-heading {
   max-width: 54rem;
   margin: 0 auto 4rem;
-  text-align: center;
 }
 .storage-section-heading span {
   display: inline-block;
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
   background: var(--trico-color-dark-a07);
-  color: var(--trico-color-highlight);
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 .storage-section-heading h2 {
   margin: 1rem 0;
-  font-size: clamp(2.35rem, 4vw, 3.75rem);
-  line-height: 1.08;
-}
-.storage-section-heading p {
-  color: var(--trico-color-muted);
-  font-size: 1.1rem;
 }
 .storage-services {
   background: linear-gradient(
@@ -273,11 +224,9 @@
   border-radius: 8px;
 }
 .storage-service-card > span {
-  color: var(--trico-color-highlight);
   background: var(--trico-color-light-a10);
 }
 .storage-review-card > span:first-child {
-  color: var(--trico-color-success);
   background: var(--trico-color-success-a09);
 }
 .storage-service-card svg {
@@ -285,11 +234,9 @@
 }
 .storage-service-card h3 {
   margin: 1rem 0 0.65rem;
-  font-size: 1.25rem;
 }
 .storage-service-card p {
   margin: 0;
-  color: var(--trico-color-muted);
 }
 .storage-team {
   background: linear-gradient(
@@ -324,18 +271,13 @@
 }
 .storage-team-card h3 {
   margin: 0;
-  font-size: 1.25rem;
 }
 .storage-team-card strong {
   display: block;
   margin: 0.2rem 0 0.75rem;
-  color: var(--trico-color-light);
-  font-size: 0.85rem;
 }
 .storage-team-card p {
   margin: 0;
-  color: var(--trico-color-muted);
-  font-size: 0.88rem;
 }
 .storage-about {
   display: grid;
@@ -343,7 +285,6 @@
   align-items: center;
   gap: 5rem;
   padding: 6rem max(1rem, calc((100vw - 1400px) / 2));
-  color: var(--trico-color-surface);
   background: linear-gradient(
     135deg,
     var(--trico-color-dark),
@@ -367,13 +308,6 @@
     var(--trico-color-dark-a33)
   );
 }
-.storage-about-mark > strong {
-  color: var(--trico-color-stat);
-  font: 700 clamp(3rem, 6vw, 5rem) Lato;
-}
-.storage-about-mark > span {
-  font-size: 1.25rem;
-}
 .storage-about-mark aside {
   position: absolute;
   right: -1.5rem;
@@ -382,24 +316,10 @@
   padding: 1.25rem;
   border-radius: 12px;
   background: var(--trico-color-surface);
-  color: var(--trico-color-muted);
   box-shadow: 0 15px 30px var(--trico-color-ink-a20);
-}
-.storage-about-mark aside b {
-  color: var(--trico-color-success);
-  font: 700 2.25rem Lato;
 }
 .storage-about h2 {
   margin: 1rem 0;
-  font-size: clamp(2.3rem, 4vw, 3.3rem);
-}
-.storage-about p {
-  color: var(--trico-color-surface-a73);
-}
-.storage-about .storage-bridge {
-  color: var(--trico-color-gold);
-  font-size: 1.1rem;
-  font-weight: 700;
 }
 .storage-about a {
   margin-top: 0.5rem;
@@ -410,13 +330,6 @@
   gap: 1.5rem;
   max-width: 1100px;
   margin: auto;
-}
-.storage-review-footer {
-  text-align: center;
-  color: var(--trico-color-muted);
-}
-.storage-review-footer a {
-  color: var(--trico-color-dark);
 }
 .storage-contact {
   display: grid;
@@ -430,7 +343,6 @@
   );
 }
 .storage-contact .storage-section-heading {
-  text-align: left;
   margin: 0 0 2rem;
 }
 .storage-contact-details {
@@ -447,22 +359,10 @@
   padding: 13px;
   border-radius: 8px;
   background: var(--trico-color-dark-a07);
-  color: var(--trico-color-light);
 }
 .storage-contact-details p {
   display: grid;
   margin: 0;
-  white-space: pre-line;
-  color: var(--trico-color-muted);
-}
-.storage-contact-details strong {
-  color: var(--trico-color-ink);
-}
-.storage-contact-details a {
-  text-decoration: none;
-}
-.storage-contact-details small {
-  font-size: 0.8rem;
 }
 .storage-contact-form {
   display: grid;
@@ -475,7 +375,6 @@
 }
 .storage-contact-form h3 {
   margin: 0 0 0.5rem;
-  font-size: 1.6rem;
 }
 .storage-form-row {
   display: grid;
@@ -485,8 +384,6 @@
 .storage-contact-form label {
   display: grid;
   gap: 0.4rem;
-  font-size: 0.88rem;
-  font-weight: 600;
 }
 .storage-contact-form input,
 .storage-contact-form textarea {
@@ -505,8 +402,6 @@
   border: 0;
   border-radius: 8px;
   background: var(--trico-color-dark);
-  color: var(--trico-color-surface);
-  font-weight: 700;
 }
 .storage-contact-form button svg {
   width: 1rem;
@@ -514,7 +409,6 @@
 .storage-footer {
   padding: 4rem max(1rem, calc((100vw - 1400px) / 2)) 2rem;
   border-top: 4px solid var(--trico-color-light-a53);
-  color: var(--trico-color-surface-a72);
   background: linear-gradient(
     135deg,
     var(--trico-color-dark),
@@ -532,28 +426,21 @@
   max-width: 100%;
   object-fit: contain;
 }
-.storage-footer h3 {
-  color: var(--trico-color-surface);
-}
 .storage-footer address {
   display: grid;
   gap: 0.5rem;
-  font-style: normal;
 }
 .storage-footer address a,
 .storage-footer-link,
 .storage-branding-option {
   display: block;
   padding: 0.25rem 0;
-  color: var(--trico-color-surface-a72);
-  text-decoration: none;
 }
 .storage-footer > small {
   display: block;
   margin-top: 3rem;
   padding-top: 2rem;
   border-top: 1px solid var(--trico-color-surface-a20);
-  text-align: center;
 }
 .storage-footer .editable-collection-items {
   display: grid;
@@ -599,19 +486,11 @@
     display: flex;
     gap: 1.3rem;
   }
-  .storage-header nav a {
-    font-size: 0.88rem;
-    font-weight: 600;
-    text-decoration: none;
-  }
   .storage-mobile-nav {
     display: none;
   }
 }
 @media (max-width: 639px) {
-  .storage-banner {
-    font-size: 0.8rem;
-  }
   .storage-header {
     height: 82px;
   }
@@ -626,9 +505,6 @@
   }
   .storage-hero-copy {
     padding: 4rem 1rem;
-  }
-  .storage-hero h1 {
-    font-size: 2.6rem;
   }
   .storage-actions {
     flex-direction: column;

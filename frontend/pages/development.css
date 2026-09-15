@@ -1,9 +1,6 @@
 .dev-page {
   min-width: 320px;
-  color: var(--trico-color-ink);
   background: var(--trico-color-surface);
-  font-family: 'Open Sans', Arial, sans-serif;
-  line-height: 1.55;
 }
 .dev-page *,
 .dev-page *::before,
@@ -14,15 +11,9 @@
 .dev-page h2,
 .dev-page h3 {
   margin: 0;
-  color: var(--trico-color-ink);
-  font-family: Lato, Arial, sans-serif;
-  line-height: 1.13;
 }
 .dev-page p {
   margin-top: 0;
-}
-.dev-page a {
-  color: inherit;
 }
 .dev-container {
   width: min(100% - 2rem, 1400px);
@@ -54,7 +45,6 @@
   justify-content: center;
   gap: 1rem;
   padding: 0.5rem 1rem;
-  color: var(--trico-color-surface);
   background: linear-gradient(
     90deg,
     var(--trico-color-dark),
@@ -62,7 +52,6 @@
     var(--trico-color-dark)
   );
   box-shadow: 0 3px 14px var(--trico-color-dark-a20);
-  text-transform: uppercase;
 }
 .dev-anniversary::after {
   position: absolute;
@@ -84,18 +73,8 @@
 .dev-anniversary i:last-child {
   transform: rotate(180deg);
 }
-.dev-anniversary strong {
-  font:
-    700 1.15rem Lato,
-    sans-serif;
-  letter-spacing: 0.04em;
-}
 .dev-anniversary small {
-  font-size: 0.82rem;
   opacity: 0.9;
-}
-.dev-anniversary span {
-  color: var(--trico-color-gold);
 }
 .dev-header {
   position: fixed;
@@ -117,7 +96,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-decoration: none;
 }
 .dev-brand img {
   height: 64px;
@@ -126,21 +104,11 @@
 .dev-brand strong,
 .dev-footer b {
   margin-top: 0.15rem;
-  color: var(--trico-color-gold);
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
 }
 .dev-header nav {
   display: flex;
   align-items: center;
   gap: clamp(1rem, 2vw, 2rem);
-}
-.dev-header nav a {
-  color: var(--trico-color-muted);
-  font-size: 0.83rem;
-  font-weight: 600;
-  text-decoration: none;
 }
 .dev-header-actions {
   display: flex;
@@ -151,9 +119,6 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-decoration: none;
 }
 .dev-header-actions svg {
   width: 1rem;
@@ -171,15 +136,12 @@
   padding: 0.7rem 1.25rem;
   border: 1px solid var(--trico-color-transparent);
   border-radius: 8px;
-  font-weight: 700;
-  text-decoration: none;
   cursor: pointer;
 }
 .dev-button svg {
   width: 1rem;
 }
 .dev-page .dev-primary {
-  color: var(--trico-color-surface);
   background: var(--trico-color-dark);
 }
 .dev-outline {
@@ -188,7 +150,6 @@
 }
 .dev-outline-gold {
   border-color: var(--trico-color-gold);
-  color: var(--trico-color-gold);
   background: var(--trico-color-transparent);
 }
 .dev-wide {
@@ -202,16 +163,12 @@
   padding: 0.45rem 1rem;
   border: 1px solid var(--trico-color-light-a28);
   border-radius: 999px;
-  color: var(--trico-color-highlight);
   background: var(--trico-color-light-a09);
-  font-size: 0.86rem;
-  font-weight: 600;
 }
 .dev-pill svg {
   width: 1rem;
 }
 .dev-pill-blue {
-  color: var(--trico-color-light);
   border-color: var(--trico-color-light-a28);
   background: var(--trico-color-light-a08);
 }
@@ -224,23 +181,13 @@
     var(--trico-color-surface),
     var(--trico-color-dark-a10)
   );
-  text-align: center;
 }
 .dev-hero-inner {
   max-width: 900px;
 }
-.dev-hero h1 {
-  font-size: clamp(3rem, 5vw, 4rem);
-}
-.dev-hero h1 em {
-  color: var(--trico-color-highlight);
-  font-style: normal;
-}
 .dev-hero-inner > p {
   max-width: 700px;
   margin: 1.5rem auto 2rem;
-  color: var(--trico-color-muted);
-  font-size: 1.15rem;
 }
 .dev-actions {
   display: flex;
@@ -261,17 +208,6 @@
 }
 .dev-stats svg {
   width: 1.3rem;
-  color: var(--trico-color-stat);
-}
-.dev-stats strong {
-  color: var(--trico-color-stat);
-  font:
-    700 1.8rem Lato,
-    sans-serif;
-}
-.dev-stats span {
-  color: var(--trico-color-muted);
-  font-size: 0.82rem;
 }
 .dev-section {
   padding: var(--trico-section-spacing) 0;
@@ -287,15 +223,9 @@
 .dev-heading {
   max-width: 780px;
   margin: 0 auto var(--trico-section-heading-gap);
-  text-align: center;
-}
-.dev-heading h2 {
-  font-size: clamp(2.4rem, 4.3vw, 3.75rem);
 }
 .dev-heading p {
   margin: 1.25rem 0 0;
-  color: var(--trico-color-muted);
-  font-size: 1.08rem;
 }
 .dev-land-grid {
   max-width: 1024px;
@@ -313,28 +243,22 @@
   background: var(--trico-color-surface-a72);
   box-shadow: 0 2px 9px var(--trico-color-ink-a04);
 }
-.dev-land-card {
-  text-align: center;
-}
 .dev-land-card > svg {
   width: 64px;
   height: 64px;
   padding: 16px;
   border: 1px solid var(--trico-color-light-a26);
   border-radius: 50%;
-  color: var(--trico-color-highlight);
   background: linear-gradient(135deg, var(--trico-color-light-a18), var(--trico-color-light-a08));
 }
 .dev-land-card h3,
 .dev-card h3 {
   margin-top: 1.2rem;
-  font-size: 1.25rem;
 }
 .dev-land-card p,
 .dev-card p {
   max-width: var(--trico-card-copy-measure);
   margin: 0.75rem 0 0;
-  color: var(--trico-color-muted);
 }
 .dev-trust {
   max-width: 900px;
@@ -353,18 +277,6 @@
 }
 .dev-trust svg {
   width: 1.2rem;
-  color: var(--trico-color-stat);
-}
-.dev-trust strong {
-  color: var(--trico-color-stat);
-  font:
-    700 1.75rem Lato,
-    sans-serif;
-}
-.dev-trust span {
-  color: var(--trico-color-muted);
-  font-size: 0.8rem;
-  text-align: center;
 }
 .dev-service-grid {
   display: grid;
@@ -377,13 +289,10 @@
   height: 48px;
   padding: 12px;
   border-radius: 8px;
-  color: var(--trico-color-highlight);
   background: var(--trico-color-light-a10);
 }
 .dev-subheading {
   margin: 3.5rem 0 2rem !important;
-  text-align: center;
-  font-size: 1.55rem;
 }
 .dev-category-grid {
   max-width: 780px;
@@ -397,28 +306,20 @@
   border: 2px solid var(--trico-color-gold-a20);
   border-radius: 12px;
   background: linear-gradient(135deg, var(--trico-color-surface), var(--trico-color-gold-a05));
-  text-align: center;
 }
 .dev-category > svg {
   width: 64px;
   height: 64px;
   padding: 16px;
   border-radius: 50%;
-  color: var(--trico-color-gold);
   background: var(--trico-color-gold-a10);
 }
 .dev-category > strong {
   display: block;
   margin-top: 1rem;
-  color: var(--trico-color-gold);
-  font-size: 0.85rem;
 }
 .dev-category h3 {
   margin-top: 0.35rem;
-  font-size: 1.5rem;
-}
-.dev-category p {
-  color: var(--trico-color-muted);
 }
 .dev-featured-grid {
   max-width: 1024px;
@@ -442,19 +343,11 @@
 .dev-featured-grid article > div {
   padding: 1.5rem;
 }
-.dev-featured-grid span {
-  color: var(--trico-color-gold);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
 .dev-featured-grid h3 {
   margin-top: 0.3rem;
-  font-size: 1.25rem;
 }
 .dev-featured-grid p {
   margin: 0.25rem 0;
-  color: var(--trico-color-muted);
-  font-size: 0.85rem;
 }
 .dev-partners {
   padding-block: 80px;
@@ -473,21 +366,11 @@
   padding: 1rem;
   border: 1px solid var(--trico-color-border);
   border-radius: 12px;
-  color: var(--trico-color-muted);
   background: var(--trico-color-surface-a70);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-align: center;
 }
 .dev-partner-footer,
 .dev-review-footer {
   margin: 2rem auto 0;
-  color: var(--trico-color-muted);
-  text-align: center;
-}
-.dev-partner-footer a,
-.dev-review-footer a {
-  color: var(--trico-color-gold);
 }
 .dev-team-grid {
   max-width: 1024px;
@@ -503,13 +386,8 @@
   gap: 4rem;
   align-items: center;
 }
-.dev-about-grid h2,
-.dev-contact h2 {
-  font-size: clamp(2.4rem, 4vw, 3.25rem);
-}
 .dev-about-grid p {
   margin: 1.25rem 0;
-  color: var(--trico-color-muted);
 }
 .dev-highlights {
   display: grid;
@@ -524,7 +402,6 @@
 }
 .dev-highlights svg {
   width: 1.15rem;
-  color: var(--trico-color-highlight);
 }
 .dev-values {
   display: grid;
@@ -544,15 +421,10 @@
   flex: 0 0 48px;
   padding: 12px;
   border-radius: 8px;
-  color: var(--trico-color-highlight);
   background: var(--trico-color-light-a10);
-}
-.dev-values h3 {
-  font-size: 1.1rem;
 }
 .dev-values p {
   margin: 0.4rem 0 0;
-  color: var(--trico-color-muted);
 }
 .dev-reviews {
   background: var(--trico-color-surface);
@@ -579,8 +451,6 @@
 }
 .dev-contact-grid > div:first-child > .dev-entity-slot:first-of-type p {
   margin: 1.5rem 0 2rem;
-  color: var(--trico-color-muted);
-  font-size: 1.05rem;
 }
 .dev-contact-list {
   display: grid;
@@ -597,15 +467,10 @@
   flex: 0 0 48px;
   padding: 14px;
   border-radius: 8px;
-  color: var(--trico-color-highlight);
   background: var(--trico-color-light-a10);
-}
-.dev-contact-list p {
-  color: var(--trico-color-muted);
 }
 .dev-contact-list strong {
   display: block;
-  color: var(--trico-color-ink);
 }
 .dev-form-card {
   padding: 2rem;
@@ -616,7 +481,6 @@
 }
 .dev-form-card h3 {
   margin-bottom: 1.5rem;
-  font-size: 1.5rem;
 }
 .dev-form-card form {
   display: grid;
@@ -630,8 +494,6 @@
 .dev-form-card label {
   display: grid;
   gap: 0.45rem;
-  font-size: 0.86rem;
-  font-weight: 600;
 }
 .dev-form-card input,
 .dev-form-card textarea {
@@ -640,9 +502,6 @@
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  font:
-    400 0.95rem 'Open Sans',
-    sans-serif;
 }
 .dev-form-card textarea {
   min-height: 108px;
@@ -653,12 +512,10 @@
   display: grid;
   place-items: center;
   align-content: center;
-  text-align: center;
 }
 .dev-form-success > svg {
   width: 48px;
   height: 48px;
-  color: var(--trico-color-gold);
 }
 .dev-form-success h3 {
   margin: 1rem 0 0.5rem;
@@ -666,7 +523,6 @@
 .dev-footer {
   padding: 64px 0 0;
   border-top: 4px solid var(--trico-color-light-a50);
-  color: var(--trico-color-surface);
   background: linear-gradient(
     135deg,
     var(--trico-color-dark),
@@ -676,8 +532,6 @@
 }
 .dev-footer h3 {
   margin-bottom: 1rem;
-  color: var(--trico-color-surface);
-  font-size: 1.1rem;
 }
 .dev-footer-grid {
   display: grid;
@@ -689,31 +543,20 @@
   width: auto;
   height: 48px;
 }
-.dev-footer-grid p,
-.dev-footer-grid span,
-.dev-footer-grid a {
-  color: var(--trico-color-surface-a70);
-  font-size: 0.86rem;
-}
 .dev-footer-grid span,
 .dev-footer-grid a {
   display: flex;
   align-items: center;
   gap: 0.55rem;
   margin-top: 0.75rem;
-  text-decoration: none;
 }
 .dev-footer-grid svg {
   width: 1rem;
-  color: var(--trico-color-gold);
 }
 .dev-copyright {
   margin: 3rem auto 0;
   padding: 2rem 1rem;
   border-top: 1px solid var(--trico-color-surface-a20);
-  color: var(--trico-color-surface-a60);
-  text-align: center;
-  font-size: 0.82rem;
 }
 @media (max-width: 1023px) {
   .dev-header nav,
@@ -754,8 +597,6 @@
   }
   .dev-anniversary strong {
     width: 100%;
-    font-size: 0.88rem;
-    text-align: center;
   }
   .dev-header {
     top: 56px;
@@ -769,12 +610,6 @@
   .dev-hero {
     padding: 184px 0 72px;
   }
-  .dev-hero h1 {
-    font-size: 2.65rem;
-  }
-  .dev-hero-inner > p {
-    font-size: 1rem;
-  }
   .dev-actions {
     flex-direction: column;
   }
@@ -784,17 +619,11 @@
   .dev-stats svg {
     display: none;
   }
-  .dev-stats strong {
-    font-size: 1.35rem;
-  }
   .dev-section {
     padding: var(--trico-section-spacing-compact) 0;
   }
   .dev-heading {
     margin-bottom: var(--trico-section-heading-gap-compact);
-  }
-  .dev-heading h2 {
-    font-size: 2.25rem;
   }
   .dev-land-grid,
   .dev-service-grid,

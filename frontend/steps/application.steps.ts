@@ -578,6 +578,48 @@ Then(
     assert.deepEqual(violations, []);
   },
 );
+Then('page stylesheets contain no typography declarations', async function () {
+  const pageStyles = [
+    'home.css',
+    'property-management.css',
+    'real-estate.css',
+    'construction.css',
+    'storage.css',
+    'development.css',
+  ] as const;
+  const typographyDeclaration =
+    /^\s*(?:color|font(?:-[\w-]+)?|line-height|letter-spacing|word-spacing|text-align|text-transform|text-decoration(?:-[\w-]+)?|text-indent|text-shadow|white-space|overflow-wrap|word-break|hyphens)\s*:/gm;
+  const violations: string[] = [];
+  for (const fileName of pageStyles) {
+    const source = await readFile(new URL(`../pages/${fileName}`, import.meta.url), 'utf8');
+    const declarations = source.match(typographyDeclaration) ?? [];
+    if (declarations.length > 0) violations.push(`${fileName}: ${declarations.length}`);
+  }
+  assert.deepEqual(violations, []);
+});
+Then(
+  'Open Sans is the only bundled typeface with every application weight loaded',
+  async function (this: FrontendWorld) {
+    const typography = await this.currentPage().evaluate(async () => {
+      await document.fonts.ready;
+      const faces = [...document.fonts];
+      const heading = document.querySelector('h1');
+      if (heading === null) throw new Error('Expected the public page to contain a heading');
+      return {
+        families: [...new Set(faces.map(({ family }) => family.replaceAll('"', '')))].sort(),
+        weights: [...new Set(faces.map(({ weight }) => Number(weight)))].sort(
+          (left, right) => left - right,
+        ),
+        bodyFamily: window.getComputedStyle(document.body).fontFamily,
+        headingFamily: window.getComputedStyle(heading).fontFamily,
+      };
+    });
+    assert.deepEqual(typography.families, ['Open Sans']);
+    assert.deepEqual(typography.weights, [300, 400, 500, 600, 700, 800]);
+    assert.match(typography.bodyFamily, /Open Sans/);
+    assert.match(typography.headingFamily, /Open Sans/);
+  },
+);
 Then(
   'Home Property Management Real Estate Construction Storage and Development use the shared blue highlight role',
   async function (this: FrontendWorld) {

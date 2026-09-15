@@ -1,9 +1,6 @@
 .re-page {
   min-width: 320px;
-  color: var(--trico-color-ink);
   background: var(--trico-color-surface);
-  font-family: 'Open Sans', Arial, sans-serif;
-  line-height: 1.55;
 }
 .re-page *,
 .re-page *::before,
@@ -15,15 +12,9 @@
 .re-page h3,
 .re-page h4 {
   margin: 0;
-  color: var(--trico-color-ink);
-  font-family: Lato, Arial, sans-serif;
-  line-height: 1.13;
 }
 .re-page p {
   margin-top: 0;
-}
-.re-page a {
-  color: inherit;
 }
 .re-container {
   width: min(100% - 2rem, 1400px);
@@ -61,11 +52,9 @@
   padding: 1.25rem;
   border: 1px dashed var(--trico-color-border);
   border-radius: 8px;
-  text-align: center;
 }
 .re-empty-state p {
   margin: 0.4rem 0 0;
-  color: var(--trico-color-muted);
 }
 .re-hero-stats .editable-collection-items {
   grid-template-columns: repeat(3, 1fr);
@@ -114,22 +103,15 @@
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
-  color: var(--trico-color-surface);
   background: linear-gradient(
     90deg,
     var(--trico-color-dark),
     var(--trico-color-light),
     var(--trico-color-dark)
   );
-  font-family: Lato, sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 .re-anniversary svg {
   width: 1rem;
-  color: var(--trico-color-gold);
 }
 .re-header {
   position: fixed;
@@ -151,7 +133,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-decoration: none;
 }
 .re-brand img {
   width: auto;
@@ -160,38 +141,21 @@
 }
 .re-brand strong {
   margin-top: 0.1rem;
-  color: var(--trico-color-gold);
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
 }
 .re-header nav {
   display: flex;
   gap: clamp(0.9rem, 1.5vw, 2rem);
   align-items: center;
 }
-.re-header nav a {
-  color: var(--trico-color-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-.re-header nav a:hover {
-  color: var(--trico-color-dark);
-}
 .re-header-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
-  white-space: nowrap;
 }
 .re-header-actions > a:first-child {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-decoration: none;
 }
 .re-header-actions svg {
   width: 1rem;
@@ -209,8 +173,6 @@
   padding: 0.7rem 1.25rem;
   border: 1px solid var(--trico-color-transparent);
   border-radius: 8px;
-  font-weight: 700;
-  text-decoration: none;
   cursor: pointer;
 }
 .re-button svg {
@@ -218,24 +180,19 @@
   height: 1rem;
 }
 .re-page .re-button-primary {
-  color: var(--trico-color-surface);
   background: var(--trico-color-dark);
 }
 .re-page .re-button-light {
-  color: var(--trico-color-deep);
   background: var(--trico-color-surface);
 }
 .re-button-outline {
-  color: var(--trico-color-surface);
   border-color: var(--trico-color-surface-a35);
   background: var(--trico-color-transparent);
 }
 .re-page .re-button-gold {
-  color: var(--trico-color-surface);
   background: var(--trico-color-action);
 }
 .re-page .re-button-quiet {
-  color: var(--trico-color-deep);
   border-color: var(--trico-color-border);
   background: var(--trico-color-surface);
 }
@@ -249,16 +206,12 @@
   margin-bottom: 1rem;
   padding: 0.45rem 1rem;
   border-radius: 999px;
-  color: var(--trico-color-light);
   background: var(--trico-color-light-a10);
-  font-size: 0.875rem;
-  font-weight: 600;
 }
 .re-pill svg {
   width: 1rem;
 }
 .re-pill-gold {
-  color: var(--trico-color-gold);
   background: var(--trico-color-gold-a22);
 }
 .re-hero {
@@ -266,7 +219,6 @@
   display: flex;
   align-items: center;
   padding: 196px 0 48px;
-  color: var(--trico-color-surface);
   background: linear-gradient(
     90deg,
     var(--trico-color-deep) 0 50%,
@@ -284,14 +236,10 @@
 }
 .re-hero h1 {
   max-width: 660px;
-  color: var(--trico-color-surface);
-  font-size: clamp(3rem, 5vw, 4rem);
 }
 .re-hero-copy > p {
   max-width: 670px;
   margin: 1.5rem 0 2rem;
-  color: var(--trico-color-surface-a80);
-  font-size: 1.18rem;
 }
 .re-actions {
   display: flex;
@@ -313,17 +261,9 @@
 }
 .re-hero-stats svg {
   width: 1.2rem;
-  color: var(--trico-color-stat);
-}
-.re-hero-stats strong {
-  color: var(--trico-color-stat);
-  font-family: Lato, sans-serif;
-  font-size: 1.8rem;
 }
 .re-hero-stats span {
   grid-column: 1 / -1;
-  color: var(--trico-color-surface-a68);
-  font-size: 0.78rem;
 }
 .re-hero-visual {
   margin: 0;
@@ -342,15 +282,9 @@
 .re-section-heading {
   max-width: 780px;
   margin: 0 auto var(--trico-section-heading-gap);
-  text-align: center;
-}
-.re-section-heading h2 {
-  font-size: clamp(2.4rem, 4.3vw, 3.75rem);
 }
 .re-section-heading p {
   margin: 1.25rem 0 0;
-  color: var(--trico-color-muted);
-  font-size: 1.1rem;
 }
 .re-tabs {
   display: flex;
@@ -368,16 +302,10 @@
   padding: 0.7rem 1rem;
   border: 0;
   border-radius: 7px;
-  color: var(--trico-color-muted);
   background: var(--trico-color-transparent);
-  font-weight: 700;
   cursor: pointer;
 }
-.re-tabs button span {
-  font-weight: 600;
-}
 .re-tabs button[aria-selected='true'] {
-  color: var(--trico-color-dark);
   background: var(--trico-color-surface);
   box-shadow: 0 1px 3px var(--trico-color-ink-a12);
 }
@@ -413,10 +341,7 @@
   left: 0.75rem;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  color: var(--trico-color-surface);
   background: var(--trico-color-success);
-  font-size: 0.72rem;
-  font-weight: 700;
 }
 .re-badge.sold {
   background: var(--trico-color-danger);
@@ -424,7 +349,6 @@
 .re-badge.re-type {
   right: 0.75rem;
   left: auto;
-  color: var(--trico-color-ink);
   background: var(--trico-color-surface-a88);
 }
 .re-listing-body {
@@ -432,8 +356,6 @@
 }
 .re-price {
   display: block;
-  font-family: Lato, sans-serif;
-  font-size: 1.25rem;
 }
 .re-listing-body > p,
 .re-listing-body > span {
@@ -441,8 +363,6 @@
   align-items: center;
   gap: 0.35rem;
   margin: 0.55rem 0;
-  color: var(--trico-color-muted);
-  font-size: 0.87rem;
 }
 .re-listing-body svg {
   width: 1rem;
@@ -466,10 +386,6 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--trico-color-dark);
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-decoration: none;
 }
 .re-listing-gallery {
   display: grid;
@@ -502,17 +418,14 @@
   height: 48px;
   padding: 12px;
   border-radius: 8px;
-  color: var(--trico-color-highlight);
   background: var(--trico-color-light-a10);
 }
 .re-card h3 {
   margin-top: 1.25rem;
-  font-size: 1.25rem;
 }
 .re-card p {
   max-width: var(--trico-card-copy-measure);
   margin: 0.8rem 0 0;
-  color: var(--trico-color-muted);
 }
 .re-process-container {
   max-width: 1040px;
@@ -534,12 +447,10 @@
 .re-process article {
   width: 50%;
   padding: 0 64px 40px 0;
-  text-align: right;
 }
 .re-process article.reverse {
   margin-left: 50%;
   padding: 0 0 40px 64px;
-  text-align: left;
 }
 .re-process article > div {
   position: relative;
@@ -556,20 +467,12 @@
   place-items: center;
   margin-bottom: 1rem;
   border-radius: 50%;
-  color: var(--trico-color-surface);
   background: var(--trico-color-dark);
-  font-family: Lato, sans-serif;
-  font-weight: 700;
-}
-.re-process article h3 {
-  font-size: 1.25rem;
 }
 .re-process article p {
   margin: 0.6rem 0 0;
-  color: var(--trico-color-muted);
 }
 .re-dark {
-  color: var(--trico-color-surface);
   background: linear-gradient(
     135deg,
     var(--trico-color-dark),
@@ -577,14 +480,8 @@
     var(--trico-color-dark)
   );
 }
-.re-dark h2 {
-  color: var(--trico-color-surface);
-  font-size: clamp(2.5rem, 4.2vw, 3.5rem);
-}
 .re-dark p {
   margin: 1.5rem 0;
-  color: var(--trico-color-surface-a78);
-  font-size: 1.05rem;
 }
 .re-about-grid {
   display: grid;
@@ -609,35 +506,17 @@
     var(--trico-color-dark-a30)
   );
 }
-.re-about-visual > strong {
-  color: var(--trico-color-gold);
-  font:
-    700 4rem Lato,
-    sans-serif;
-}
-.re-about-visual > span {
-  color: var(--trico-color-surface-a80);
-  font-size: 1.25rem;
-}
 .re-about-visual > b {
   position: absolute;
   right: -24px;
   bottom: -24px;
   padding: 1.5rem;
   border-radius: 12px;
-  color: var(--trico-color-dark);
   background: var(--trico-color-surface);
   box-shadow: 0 16px 36px var(--trico-color-ink-a18);
-  font:
-    700 2.25rem Lato,
-    sans-serif;
 }
 .re-about-visual small {
   display: block;
-  color: var(--trico-color-muted);
-  font:
-    400 0.85rem 'Open Sans',
-    sans-serif;
 }
 .re-check-grid {
   display: grid;
@@ -651,16 +530,12 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  color: var(--trico-color-surface-a90);
 }
 .re-check-grid svg {
   width: 1.2rem;
-  color: var(--trico-color-gold);
 }
 .re-group-title {
   margin: 3rem 0 2rem !important;
-  text-align: center;
-  font-size: 1.55rem;
 }
 .re-person-grid {
   max-width: 1152px;
@@ -684,12 +559,8 @@
   gap: 3rem;
   align-items: center;
 }
-.re-careers h2 {
-  font-size: 2.5rem;
-}
 .re-careers p {
   margin: 1.25rem 0;
-  color: var(--trico-color-muted);
 }
 .re-careers ul {
   display: grid;
@@ -705,30 +576,22 @@
 }
 .re-careers li svg {
   width: 1.1rem;
-  color: var(--trico-color-highlight);
 }
 .re-careers aside {
   padding: 2.5rem;
   border: 2px solid var(--trico-color-light-a20);
   border-radius: 12px;
   background: linear-gradient(135deg, var(--trico-color-surface), var(--trico-color-light-a06));
-  text-align: center;
 }
 .re-careers aside > svg {
   width: 72px;
   height: 72px;
   padding: 17px;
   border-radius: 50%;
-  color: var(--trico-color-highlight);
   background: var(--trico-color-light-a10);
 }
 .re-careers aside h3 {
   margin-top: 1.25rem;
-  font-size: 1.5rem;
-}
-.re-careers aside a {
-  color: var(--trico-color-highlight);
-  font-weight: 700;
 }
 .re-testimonials {
   background: var(--trico-color-surface-muted-a58);
@@ -746,15 +609,11 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  color: var(--trico-color-dark-a10);
   background: none;
 }
 .re-stars {
   display: flex;
   gap: 0.25rem;
-}
-.re-stars {
-  color: var(--trico-color-rating);
 }
 .re-stars svg {
   width: 1rem;
@@ -763,10 +622,6 @@
 .re-testimonial-grid .re-card strong,
 .re-testimonial-grid .re-card span {
   display: block;
-}
-.re-testimonial-grid .re-card span {
-  color: var(--trico-color-muted);
-  font-size: 0.8rem;
 }
 .re-faq-container {
   max-width: 780px;
@@ -787,8 +642,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  font-family: Lato, sans-serif;
-  font-weight: 700;
   cursor: pointer;
   list-style: none;
 }
@@ -800,7 +653,6 @@
 }
 .re-faqs details p {
   padding-bottom: 1rem;
-  color: var(--trico-color-muted);
 }
 .re-new-client {
   background: var(--trico-color-surface-muted-a40);
@@ -817,7 +669,6 @@
 }
 .re-form-card h3 {
   margin-bottom: 1.5rem;
-  font-size: 1.5rem;
 }
 .re-form-card form {
   display: grid;
@@ -831,9 +682,6 @@
 .re-form-card label {
   display: grid;
   gap: 0.45rem;
-  color: var(--trico-color-ink);
-  font-size: 0.86rem;
-  font-weight: 600;
 }
 .re-form-card input,
 .re-form-card select,
@@ -843,11 +691,7 @@
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  color: var(--trico-color-ink);
   background: var(--trico-color-surface);
-  font:
-    400 0.95rem 'Open Sans',
-    sans-serif;
 }
 .re-form-card textarea {
   min-height: 108px;
@@ -858,12 +702,10 @@
   display: grid;
   place-items: center;
   align-content: center;
-  text-align: center;
 }
 .re-form-success > svg {
   width: 48px;
   height: 48px;
-  color: var(--trico-color-dark);
 }
 .re-form-success h3 {
   margin: 1rem 0 0.5rem;
@@ -877,11 +719,6 @@
 }
 .re-review-footer {
   margin: 2.5rem auto 0;
-  color: var(--trico-color-muted);
-  text-align: center;
-}
-.re-review-footer a {
-  color: var(--trico-color-dark);
 }
 .re-contact {
   background: linear-gradient(
@@ -896,13 +733,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
 }
-.re-contact h2 {
-  font-size: clamp(2.5rem, 4vw, 3.25rem);
-}
 .re-contact-grid > div:first-child > .re-entity-slot:first-of-type p {
   margin: 1.5rem 0 2rem;
-  color: var(--trico-color-muted);
-  font-size: 1.05rem;
 }
 .re-contact-list {
   display: grid;
@@ -919,20 +751,14 @@
   flex: 0 0 48px;
   padding: 14px;
   border-radius: 8px;
-  color: var(--trico-color-light);
   background: var(--trico-color-light-a10);
-}
-.re-contact-list p {
-  color: var(--trico-color-muted);
 }
 .re-contact-list strong {
   display: block;
-  color: var(--trico-color-ink);
 }
 .re-footer {
   padding: 64px 0 0;
   border-top: 4px solid var(--trico-color-light-a50);
-  color: var(--trico-color-surface);
   background: linear-gradient(
     135deg,
     var(--trico-color-dark),
@@ -942,8 +768,6 @@
 }
 .re-footer h3 {
   margin-bottom: 1rem;
-  color: var(--trico-color-surface);
-  font-size: 1.1rem;
 }
 .re-footer-grid {
   display: grid;
@@ -954,31 +778,20 @@
   width: auto;
   height: 48px;
 }
-.re-footer-grid p,
-.re-footer-grid span,
-.re-footer-grid a {
-  color: var(--trico-color-surface-a70);
-  font-size: 0.86rem;
-}
 .re-footer-grid span,
 .re-footer-grid a {
   display: flex;
   align-items: center;
   gap: 0.55rem;
   margin-top: 0.75rem;
-  text-decoration: none;
 }
 .re-footer-grid svg {
   width: 1rem;
-  color: var(--trico-color-gold);
 }
 .re-copyright {
   margin: 3rem auto 0;
   padding: 2rem 1rem;
   border-top: 1px solid var(--trico-color-surface-a20);
-  color: var(--trico-color-surface-a60);
-  text-align: center;
-  font-size: 0.82rem;
 }
 
 @media (max-width: 1023px) {
@@ -1036,7 +849,6 @@
 @media (max-width: 767px) {
   .re-anniversary {
     height: 44px;
-    font-size: 0.82rem;
   }
   .re-header {
     top: 44px;
@@ -1049,12 +861,6 @@
   }
   .re-hero {
     padding: 176px 0 64px;
-  }
-  .re-hero h1 {
-    font-size: 2.65rem;
-  }
-  .re-hero-copy > p {
-    font-size: 1rem;
   }
   .re-actions {
     flex-direction: column;
@@ -1071,16 +877,12 @@
   }
   .re-hero-stats strong {
     display: block;
-    font-size: 1.35rem;
   }
   .re-section {
     padding: var(--trico-section-spacing-compact) 0;
   }
   .re-section-heading {
     margin-bottom: var(--trico-section-heading-gap-compact);
-  }
-  .re-section-heading h2 {
-    font-size: 2.25rem;
   }
   .re-listing-grid,
   .re-service-grid,
@@ -1119,7 +921,6 @@
     width: auto;
     margin-left: 0;
     padding: 0 0 1.5rem 48px;
-    text-align: left;
   }
   .re-process article > div {
     padding: 1.5rem;

@@ -60,6 +60,16 @@ test('rejects page-owned color values and aliases', async () => {
   });
   assert.deepEqual(await checkSourcePolicy(root), [
     'frontend/pages/home.css contains page-owned color values or aliases',
+    'frontend/pages/home.css contains page-owned typography declarations',
+  ]);
+});
+
+test('rejects page-owned typography declarations', async () => {
+  const root = await fixture({
+    'frontend/pages/home.css': '.copy { font-size: 1rem; line-height: 1.5; }\n',
+  });
+  assert.deepEqual(await checkSourcePolicy(root), [
+    'frontend/pages/home.css contains page-owned typography declarations',
   ]);
 });
 
