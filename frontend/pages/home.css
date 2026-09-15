@@ -1,24 +1,16 @@
 .home-page {
   min-width: 320px;
-  color: #0f1729;
-  background: #fff;
+  color: var(--trico-color-ink);
+  background: var(--trico-color-surface);
   font-family: 'Open Sans', Arial, sans-serif;
   line-height: 1.5;
-  --home-primary: var(--trico-color-action);
-  --home-navy: #000a4d;
-  --home-gold: var(--trico-color-brand-accent);
-  --home-slate-blue: var(--trico-color-highlight);
-  --home-division-accent: var(--trico-color-highlight);
-  --home-muted: #6b7280;
-  --home-tint: #f3f4f6;
-  --home-border: #e5e7eb;
 }
 
 .home-page h1,
 .home-page h2,
 .home-page h3,
 .home-page h4 {
-  color: #0f1729;
+  color: var(--trico-color-ink);
   font-family: Lato, Arial, sans-serif;
 }
 
@@ -53,9 +45,14 @@
   justify-content: center;
   gap: 1rem;
   padding: 0.65rem 1.5rem;
-  color: #fff;
-  background: linear-gradient(90deg, var(--home-primary), #2563eb, var(--home-primary));
-  box-shadow: 0 2px 10px rgb(0 18 138 / 18%);
+  color: var(--trico-color-surface);
+  background: linear-gradient(
+    90deg,
+    var(--trico-color-dark),
+    var(--trico-color-light),
+    var(--trico-color-dark)
+  );
+  box-shadow: 0 2px 10px var(--trico-color-dark-a18);
   font-family: Lato, Arial, sans-serif;
   text-align: center;
   text-transform: uppercase;
@@ -67,7 +64,12 @@
   bottom: 0;
   left: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #d2aa69, transparent);
+  background: linear-gradient(
+    90deg,
+    var(--trico-color-transparent),
+    var(--trico-color-gold),
+    var(--trico-color-transparent)
+  );
   content: '';
 }
 
@@ -79,11 +81,11 @@
 .home-anniversary > span {
   width: 3rem;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #d2aa69);
+  background: linear-gradient(90deg, var(--trico-color-transparent), var(--trico-color-gold));
 }
 
 .home-anniversary > span:last-child {
-  background: linear-gradient(90deg, #d2aa69, transparent);
+  background: linear-gradient(90deg, var(--trico-color-gold), var(--trico-color-transparent));
 }
 
 .home-header-shell {
@@ -99,8 +101,8 @@
   height: 100%;
   display: grid;
   place-items: center;
-  border-bottom: 1px solid rgb(229 231 235 / 65%);
-  background: rgb(255 255 255 / 95%);
+  border-bottom: 1px solid var(--trico-color-border-a65);
+  background: var(--trico-color-surface-a95);
   backdrop-filter: blur(8px);
 }
 
@@ -136,7 +138,7 @@
 .home-hero p {
   max-width: 48rem;
   margin: 0 auto;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: clamp(1rem, 1.7vw, 1.25rem);
   line-height: 1.7;
 }
@@ -146,7 +148,12 @@
   height: 4px;
   display: block;
   margin: 2rem auto 0;
-  background: linear-gradient(90deg, #2563eb, #d2aa69, #2563eb);
+  background: linear-gradient(
+    90deg,
+    var(--trico-color-light),
+    var(--trico-color-gold),
+    var(--trico-color-light)
+  );
 }
 
 .home-section {
@@ -155,8 +162,13 @@
 
 .home-tint {
   background:
-    linear-gradient(135deg, rgb(0 18 138 / 7%), rgb(255 255 255 / 42%) 45%, rgb(0 18 138 / 4%)),
-    var(--home-tint);
+    linear-gradient(
+      135deg,
+      var(--trico-color-dark-a07),
+      var(--trico-color-surface-a42) 45%,
+      var(--trico-color-dark-a04)
+    ),
+    var(--trico-color-surface-muted);
 }
 
 .home-section-heading {
@@ -175,7 +187,7 @@
 
 .home-section-heading > p {
   margin: 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   line-height: 1.65;
 }
 
@@ -198,10 +210,10 @@
   min-height: 18rem;
   height: 100%;
   padding: 2rem;
-  border: 1px solid var(--home-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  background: rgb(255 255 255 / 72%);
-  box-shadow: 0 3px 16px rgb(15 23 41 / 2%);
+  background: var(--trico-color-surface-a72);
+  box-shadow: 0 3px 16px var(--trico-color-ink-a02);
   transition:
     border-color 220ms ease,
     transform 220ms ease,
@@ -209,15 +221,15 @@
 }
 
 .home-division-card:hover {
-  border-color: rgb(94 133 186 / 50%);
-  box-shadow: 0 12px 30px rgb(15 23 41 / 8%);
+  border-color: var(--trico-color-light-a50);
+  box-shadow: 0 12px 30px var(--trico-color-ink-a08);
   transform: translateY(-2px);
 }
 
 .home-card-icon {
   display: grid;
   place-items: center;
-  color: var(--home-division-accent);
+  color: var(--trico-color-light);
 }
 
 .home-value-icon {
@@ -231,7 +243,7 @@
   height: 4rem;
   margin-bottom: 1.5rem;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgb(94 133 186 / 18%), rgb(134 98 45 / 6%));
+  background: linear-gradient(135deg, var(--trico-color-light-a18), var(--trico-color-gold-a06));
 }
 
 .home-card-icon svg {
@@ -240,19 +252,23 @@
 }
 
 .home-division-property-management .home-card-icon {
-  background: linear-gradient(135deg, rgb(37 99 235 / 18%), rgb(37 99 235 / 5%));
+  background: linear-gradient(135deg, var(--trico-color-light-a18), var(--trico-color-light-a05));
 }
 
 .home-division-construction .home-card-icon {
-  background: linear-gradient(135deg, rgb(245 158 11 / 18%), rgb(245 158 11 / 5%));
+  background: linear-gradient(135deg, var(--trico-color-gold-a18), var(--trico-color-gold-a05));
 }
 
 .home-division-storage .home-card-icon {
-  background: linear-gradient(135deg, rgb(16 185 129 / 18%), rgb(16 185 129 / 5%));
+  background: linear-gradient(
+    135deg,
+    var(--trico-color-success-a18),
+    var(--trico-color-success-a05)
+  );
 }
 
 .home-division-development .home-card-icon {
-  background: linear-gradient(135deg, rgb(139 92 246 / 18%), rgb(139 92 246 / 5%));
+  background: linear-gradient(135deg, var(--trico-color-light-a18), var(--trico-color-light-a05));
 }
 
 .home-division-card h3 {
@@ -262,13 +278,13 @@
 }
 
 .home-division-card:hover h3 {
-  color: var(--home-division-accent);
+  color: var(--trico-color-light);
 }
 
 .home-division-card p {
   min-height: 4.6rem;
   margin: 0 0 1.35rem;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   line-height: 1.6;
 }
 
@@ -276,7 +292,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--home-division-accent);
+  color: var(--trico-color-light);
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -302,9 +318,9 @@
   width: 3.5rem;
   height: 3.5rem;
   margin: 0 auto 1rem;
-  border: 1px solid rgb(94 133 186 / 22%);
+  border: 1px solid var(--trico-color-light-a22);
   border-radius: 50%;
-  background: linear-gradient(135deg, rgb(37 99 235 / 14%), rgb(134 98 45 / 7%));
+  background: linear-gradient(135deg, var(--trico-color-light-a14), var(--trico-color-gold-a07));
 }
 
 .home-value-icon svg {
@@ -318,7 +334,7 @@
 
 .home-value p {
   margin: 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.88rem;
 }
 
@@ -362,9 +378,9 @@
   height: 2px;
   background: linear-gradient(
     90deg,
-    rgb(37 99 235 / 55%),
-    rgb(134 98 45 / 60%),
-    rgb(37 99 235 / 55%)
+    var(--trico-color-light-a55),
+    var(--trico-color-gold-a60),
+    var(--trico-color-light-a55)
   );
   content: '';
 }
@@ -382,19 +398,19 @@
   left: calc(50% - 6px);
   width: 12px;
   height: 12px;
-  border: 2px solid rgb(134 98 45 / 55%);
+  border: 2px solid var(--trico-color-gold-a55);
   border-radius: 50%;
-  background: #2563eb;
+  background: var(--trico-color-light);
 }
 
 .home-timeline-card strong {
-  color: var(--home-gold);
+  color: var(--trico-color-gold);
   font-size: 1.05rem;
 }
 
 .home-timeline-card p {
   margin: 0.35rem 0 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.77rem;
   line-height: 1.45;
 }
@@ -409,15 +425,15 @@
 
 .home-leader-card {
   overflow: hidden;
-  border: 1px solid var(--home-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  background: rgb(255 255 255 / 75%);
+  background: var(--trico-color-surface-a75);
 }
 
 .home-leader-photo {
   aspect-ratio: 1;
   overflow: hidden;
-  background: linear-gradient(135deg, rgb(37 99 235 / 15%), rgb(134 98 45 / 8%));
+  background: linear-gradient(135deg, var(--trico-color-light-a15), var(--trico-color-gold-a08));
 }
 
 .home-leader-photo img {
@@ -439,13 +455,13 @@
 
 .home-leader-card p {
   margin: 0.25rem 0 0;
-  color: var(--home-gold);
+  color: var(--trico-color-gold);
   font-size: 0.82rem;
 }
 
 .home-section-note {
   margin: 2rem 0 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.85rem;
   text-align: center;
 }
@@ -461,16 +477,16 @@
 .home-news-card {
   min-height: 11rem;
   padding: 1.5rem;
-  border: 1px solid var(--home-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  background: rgb(255 255 255 / 75%);
+  background: var(--trico-color-surface-a75);
   transition:
     border-color 220ms ease,
     transform 220ms ease;
 }
 
 .home-news-card:hover {
-  border-color: rgb(134 98 45 / 45%);
+  border-color: var(--trico-color-gold-a45);
   transform: translateY(-2px);
 }
 
@@ -479,7 +495,7 @@
   align-items: center;
   gap: 0.45rem;
   margin: 0 0 0.75rem !important;
-  color: var(--home-gold) !important;
+  color: var(--trico-color-gold) !important;
   font-size: 0.78rem;
 }
 
@@ -494,7 +510,7 @@
 
 .home-news-card > p:last-child {
   margin: 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.86rem;
 }
 
@@ -513,9 +529,9 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--home-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  background: rgb(255 255 255 / 70%);
+  background: var(--trico-color-surface-a70);
 }
 
 .home-career-card h3 {
@@ -530,7 +546,7 @@
 .home-career-card h3 svg,
 .home-career-card p svg {
   width: 0.9rem;
-  color: var(--home-gold);
+  color: var(--trico-color-gold);
 }
 
 .home-career-card p,
@@ -542,7 +558,7 @@
 .home-career-card p {
   gap: 1rem;
   margin: 0.35rem 0 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.75rem;
 }
 
@@ -553,9 +569,9 @@
 .home-career-card > a {
   flex: none;
   padding: 0.45rem 0.8rem;
-  border: 1px solid rgb(37 99 235 / 45%);
+  border: 1px solid var(--trico-color-light-a45);
   border-radius: 6px;
-  color: #2563eb;
+  color: var(--trico-color-light);
   font-size: 0.75rem;
   font-weight: 700;
   text-decoration: none;
@@ -573,7 +589,7 @@
 
 .home-resume-heading p {
   margin: 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.88rem;
 }
 
@@ -582,10 +598,10 @@
   display: grid;
   gap: 1.15rem;
   padding: 2rem;
-  border: 1px solid var(--home-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  background: rgb(255 255 255 / 78%);
-  box-shadow: 0 6px 22px rgb(15 23 41 / 4%);
+  background: var(--trico-color-surface-a78);
+  box-shadow: 0 6px 22px var(--trico-color-ink-a04);
 }
 
 .home-form-grid {
@@ -598,7 +614,7 @@
 .home-form-grid label {
   display: grid;
   gap: 0.4rem;
-  color: #0f1729;
+  color: var(--trico-color-ink);
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -609,10 +625,10 @@
   width: 100%;
   min-height: 2.7rem;
   padding: 0.65rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--trico-color-border);
   border-radius: 6px;
-  color: #0f1729;
-  background: rgb(255 255 255 / 78%);
+  color: var(--trico-color-ink);
+  background: var(--trico-color-surface-a78);
   font: inherit;
   font-weight: 400;
 }
@@ -626,16 +642,16 @@
 .home-resume-form textarea:focus-visible,
 .home-resume-form button:focus-visible,
 .home-file-control:focus-within {
-  outline: 3px solid rgb(94 133 186 / 45%);
+  outline: 3px solid var(--trico-color-light-a45);
   outline-offset: 2px;
 }
 
 .home-resume-form [aria-invalid='true'] {
-  border-color: #b42318;
+  border-color: var(--trico-color-danger);
 }
 
 .home-form-error {
-  color: #b42318;
+  color: var(--trico-color-danger);
   font-weight: 700;
 }
 
@@ -647,16 +663,16 @@
   gap: 0.75rem;
   padding: 0.8rem 1rem;
   overflow: hidden;
-  border: 1px dashed #c3c7ce;
+  border: 1px dashed var(--trico-color-border-strong);
   border-radius: 8px;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   cursor: pointer;
   font-weight: 400;
 }
 
 .home-file-control svg {
   width: 1.2rem;
-  color: var(--home-gold);
+  color: var(--trico-color-gold);
 }
 
 .home-file-control input {
@@ -673,10 +689,10 @@
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  border: 1px solid #2563eb;
+  border: 1px solid var(--trico-color-light);
   border-radius: 6px;
-  color: #fff;
-  background: #2563eb;
+  color: var(--trico-color-surface);
+  background: var(--trico-color-light);
   cursor: pointer;
   font-weight: 700;
 }
@@ -687,7 +703,7 @@
 
 .home-form-note {
   margin: 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.72rem;
   text-align: center;
 }
@@ -700,7 +716,7 @@
 .home-resume-success > svg {
   width: 3rem;
   height: 3rem;
-  color: #15803d;
+  color: var(--trico-color-success);
 }
 
 .home-resume-success h4,
@@ -710,8 +726,8 @@
 
 .home-resume-success button {
   padding-inline: 1rem;
-  color: #2563eb;
-  background: #fff;
+  color: var(--trico-color-light);
+  background: var(--trico-color-surface);
 }
 
 .home-contact {
@@ -725,13 +741,13 @@
 
 .home-contact p {
   margin: 0 0 1.8rem;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
 }
 
 .home-contact address {
   display: grid;
   gap: 1rem;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.9rem;
   font-style: normal;
 }
@@ -749,7 +765,7 @@
 }
 
 .home-contact a:hover {
-  color: var(--home-gold);
+  color: var(--trico-color-gold);
 }
 
 .home-license-row {
@@ -763,8 +779,8 @@
   align-content: center;
   gap: 0.8rem;
   padding: 2rem 1rem;
-  border-top: 1px solid rgb(94 133 186 / 20%);
-  background: linear-gradient(0deg, rgb(0 18 138 / 6%), transparent);
+  border-top: 1px solid var(--trico-color-light-a20);
+  background: linear-gradient(0deg, var(--trico-color-dark-a06), var(--trico-color-transparent));
   text-align: center;
 }
 
@@ -776,7 +792,7 @@
 
 .home-footer p {
   margin: 0;
-  color: var(--home-muted);
+  color: var(--trico-color-muted);
   font-size: 0.78rem;
 }
 

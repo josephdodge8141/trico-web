@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import {
   After,
@@ -523,6 +524,10 @@ Then(
     const roles = await this.currentPage().evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement);
       return {
+        dark: styles.getPropertyValue('--trico-color-dark').trim(),
+        deep: styles.getPropertyValue('--trico-color-deep').trim(),
+        light: styles.getPropertyValue('--trico-color-light').trim(),
+        gold: styles.getPropertyValue('--trico-color-gold').trim(),
         action: styles.getPropertyValue('--trico-color-action').trim(),
         highlight: styles.getPropertyValue('--trico-color-highlight').trim(),
         stat: styles.getPropertyValue('--trico-color-stat').trim(),
@@ -531,12 +536,46 @@ Then(
       };
     });
     assert.deepEqual(roles, {
+      dark: '#00128a',
+      deep: '#000a4d',
+      light: '#5e85ba',
+      gold: '#86622d',
       action: '#00128a',
       highlight: '#5e85ba',
       stat: '#5e85ba',
       rating: '#5e85ba',
       brandAccent: '#86622d',
     });
+  },
+);
+Then(
+  'all page stylesheets source their colors exclusively from the global palette',
+  async function () {
+    const pageStyles = [
+      'home.css',
+      'property-management.css',
+      'real-estate.css',
+      'construction.css',
+      'storage.css',
+      'development.css',
+    ] as const;
+    const violations: string[] = [];
+    for (const fileName of pageStyles) {
+      const source = await readFile(new URL(`../pages/${fileName}`, import.meta.url), 'utf8');
+      const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, '');
+      if (/#[\da-f]{3,8}\b/i.test(withoutComments)) violations.push(`${fileName}: hex literal`);
+      if (/\b(?:rgb|rgba|hsl|hsla|lab|lch|oklab|oklch|color)\(/i.test(withoutComments))
+        violations.push(`${fileName}: color function`);
+      if (/(?<![-\w])(?:white|black|transparent)(?![-\w])/i.test(withoutComments))
+        violations.push(`${fileName}: named color`);
+      if (
+        /--(?:home|pm|re|co|sp|storage|dev)-(?:primary|navy|gold|blue|muted|tint|border)\b/.test(
+          withoutComments,
+        )
+      )
+        violations.push(`${fileName}: page-local color alias`);
+    }
+    assert.deepEqual(violations, []);
   },
 );
 Then(
@@ -1083,7 +1122,7 @@ Then(
     await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
 
     await primary.hover();
-    await expect(primary).toHaveCSS('background-color', 'rgb(111, 81, 37)');
+    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
     await secondary.hover();
     await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
     await primary.focus();

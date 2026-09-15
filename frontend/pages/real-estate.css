@@ -1,16 +1,9 @@
 .re-page {
   min-width: 320px;
-  color: #0f1729;
-  background: #fff;
+  color: var(--trico-color-ink);
+  background: var(--trico-color-surface);
   font-family: 'Open Sans', Arial, sans-serif;
   line-height: 1.55;
-  --re-primary: var(--trico-color-action);
-  --re-navy: #000a4d;
-  --re-gold: var(--trico-color-brand-accent);
-  --re-blue: var(--trico-color-highlight);
-  --re-muted: #6b7280;
-  --re-tint: #f3f4f6;
-  --re-border: #e5e7eb;
 }
 .re-page *,
 .re-page *::before,
@@ -22,7 +15,7 @@
 .re-page h3,
 .re-page h4 {
   margin: 0;
-  color: #0f1729;
+  color: var(--trico-color-ink);
   font-family: Lato, Arial, sans-serif;
   line-height: 1.13;
 }
@@ -66,13 +59,13 @@
   max-width: 36rem;
   margin: 1rem auto;
   padding: 1.25rem;
-  border: 1px dashed var(--re-border);
+  border: 1px dashed var(--trico-color-border);
   border-radius: 8px;
   text-align: center;
 }
 .re-empty-state p {
   margin: 0.4rem 0 0;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
 }
 .re-hero-stats .editable-collection-items {
   grid-template-columns: repeat(3, 1fr);
@@ -121,8 +114,13 @@
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
-  color: #fff;
-  background: linear-gradient(90deg, #1d4ed8, #2563eb, #1d4ed8);
+  color: var(--trico-color-surface);
+  background: linear-gradient(
+    90deg,
+    var(--trico-color-dark),
+    var(--trico-color-light),
+    var(--trico-color-dark)
+  );
   font-family: Lato, sans-serif;
   font-size: 1rem;
   font-weight: 700;
@@ -131,14 +129,14 @@
 }
 .re-anniversary svg {
   width: 1rem;
-  color: #d4ad70;
+  color: var(--trico-color-gold);
 }
 .re-header {
   position: fixed;
   z-index: 50;
   inset: 52px 0 auto;
-  border-bottom: 1px solid rgb(229 231 235 / 80%);
-  background: rgb(255 255 255 / 95%);
+  border-bottom: 1px solid var(--trico-color-border-a80);
+  background: var(--trico-color-surface-a95);
   backdrop-filter: blur(8px);
 }
 .re-header-inner {
@@ -162,7 +160,7 @@
 }
 .re-brand strong {
   margin-top: 0.1rem;
-  color: var(--re-gold);
+  color: var(--trico-color-gold);
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -173,13 +171,13 @@
   align-items: center;
 }
 .re-header nav a {
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
   font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
 }
 .re-header nav a:hover {
-  color: var(--re-primary);
+  color: var(--trico-color-dark);
 }
 .re-header-actions {
   display: flex;
@@ -209,7 +207,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.7rem 1.25rem;
-  border: 1px solid transparent;
+  border: 1px solid var(--trico-color-transparent);
   border-radius: 8px;
   font-weight: 700;
   text-decoration: none;
@@ -220,26 +218,26 @@
   height: 1rem;
 }
 .re-page .re-button-primary {
-  color: #fff;
-  background: var(--re-primary);
+  color: var(--trico-color-surface);
+  background: var(--trico-color-dark);
 }
 .re-page .re-button-light {
-  color: var(--re-navy);
-  background: #fff;
+  color: var(--trico-color-deep);
+  background: var(--trico-color-surface);
 }
 .re-button-outline {
-  color: #fff;
-  border-color: rgb(255 255 255 / 35%);
-  background: transparent;
+  color: var(--trico-color-surface);
+  border-color: var(--trico-color-surface-a35);
+  background: var(--trico-color-transparent);
 }
 .re-page .re-button-gold {
-  color: #fff;
+  color: var(--trico-color-surface);
   background: var(--trico-color-action);
 }
 .re-page .re-button-quiet {
-  color: var(--re-navy);
-  border-color: var(--re-border);
-  background: #fff;
+  color: var(--trico-color-deep);
+  border-color: var(--trico-color-border);
+  background: var(--trico-color-surface);
 }
 .re-button-wide {
   width: 100%;
@@ -251,8 +249,8 @@
   margin-bottom: 1rem;
   padding: 0.45rem 1rem;
   border-radius: 999px;
-  color: var(--re-blue);
-  background: rgb(var(--trico-color-highlight-rgb) / 10%);
+  color: var(--trico-color-light);
+  background: var(--trico-color-light-a10);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -260,16 +258,20 @@
   width: 1rem;
 }
 .re-pill-gold {
-  color: #d7b16d;
-  background: rgb(134 98 45 / 22%);
+  color: var(--trico-color-gold);
+  background: var(--trico-color-gold-a22);
 }
 .re-hero {
   min-height: 100vh;
   display: flex;
   align-items: center;
   padding: 196px 0 48px;
-  color: #fff;
-  background: linear-gradient(90deg, var(--re-navy) 0 50%, #f6f8fb 50%);
+  color: var(--trico-color-surface);
+  background: linear-gradient(
+    90deg,
+    var(--trico-color-deep) 0 50%,
+    var(--trico-color-surface-muted) 50%
+  );
 }
 .re-hero-grid {
   display: grid;
@@ -282,13 +284,13 @@
 }
 .re-hero h1 {
   max-width: 660px;
-  color: #fff;
+  color: var(--trico-color-surface);
   font-size: clamp(3rem, 5vw, 4rem);
 }
 .re-hero-copy > p {
   max-width: 670px;
   margin: 1.5rem 0 2rem;
-  color: rgb(255 255 255 / 80%);
+  color: var(--trico-color-surface-a80);
   font-size: 1.18rem;
 }
 .re-actions {
@@ -301,7 +303,7 @@
   gap: 1.25rem;
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid rgb(255 255 255 / 20%);
+  border-top: 1px solid var(--trico-color-surface-a20);
 }
 .re-hero-stats div {
   display: grid;
@@ -320,7 +322,7 @@
 }
 .re-hero-stats span {
   grid-column: 1 / -1;
-  color: rgb(255 255 255 / 68%);
+  color: var(--trico-color-surface-a68);
   font-size: 0.78rem;
 }
 .re-hero-visual {
@@ -332,9 +334,9 @@
 .re-tint {
   background: linear-gradient(
     135deg,
-    rgb(30 64 175 / 7%),
-    rgb(243 244 246 / 72%),
-    rgb(30 64 175 / 4%)
+    var(--trico-color-dark-a07),
+    var(--trico-color-surface-muted-a72),
+    var(--trico-color-dark-a04)
   );
 }
 .re-section-heading {
@@ -347,7 +349,7 @@
 }
 .re-section-heading p {
   margin: 1.25rem 0 0;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
   font-size: 1.1rem;
 }
 .re-tabs {
@@ -357,17 +359,17 @@
   gap: 0.25rem;
   margin: -24px auto 40px;
   padding: 0.3rem;
-  border: 1px solid var(--re-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 10px;
-  background: var(--re-tint);
+  background: var(--trico-color-surface-muted);
 }
 .re-tabs button {
   min-width: 132px;
   padding: 0.7rem 1rem;
   border: 0;
   border-radius: 7px;
-  color: var(--re-muted);
-  background: transparent;
+  color: var(--trico-color-muted);
+  background: var(--trico-color-transparent);
   font-weight: 700;
   cursor: pointer;
 }
@@ -375,9 +377,9 @@
   font-weight: 600;
 }
 .re-tabs button[aria-selected='true'] {
-  color: var(--re-primary);
-  background: #fff;
-  box-shadow: 0 1px 3px rgb(15 23 41 / 12%);
+  color: var(--trico-color-dark);
+  background: var(--trico-color-surface);
+  box-shadow: 0 1px 3px var(--trico-color-ink-a12);
 }
 .re-listings-gallery {
   width: min(100%, 1120px);
@@ -390,10 +392,10 @@
 }
 .re-listing {
   overflow: hidden;
-  border: 1px solid var(--re-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 2px 12px rgb(15 23 41 / 5%);
+  background: var(--trico-color-surface);
+  box-shadow: 0 2px 12px var(--trico-color-ink-a05);
 }
 .re-listing-photo {
   position: relative;
@@ -411,19 +413,19 @@
   left: 0.75rem;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  color: #fff;
-  background: #15803d;
+  color: var(--trico-color-surface);
+  background: var(--trico-color-success);
   font-size: 0.72rem;
   font-weight: 700;
 }
 .re-badge.sold {
-  background: #dc2626;
+  background: var(--trico-color-danger);
 }
 .re-badge.re-type {
   right: 0.75rem;
   left: auto;
-  color: #0f1729;
-  background: rgb(255 255 255 / 88%);
+  color: var(--trico-color-ink);
+  background: var(--trico-color-surface-a88);
 }
 .re-listing-body {
   padding: 1.25rem;
@@ -439,7 +441,7 @@
   align-items: center;
   gap: 0.35rem;
   margin: 0.55rem 0;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
   font-size: 0.87rem;
 }
 .re-listing-body svg {
@@ -454,7 +456,7 @@
   gap: 1rem;
   margin-top: 1rem;
   padding-top: 0.9rem;
-  border-top: 1px solid var(--re-border);
+  border-top: 1px solid var(--trico-color-border);
 }
 .re-listing-foot img {
   width: auto;
@@ -464,7 +466,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--re-primary);
+  color: var(--trico-color-dark);
   font-size: 0.78rem;
   font-weight: 700;
   text-decoration: none;
@@ -490,10 +492,10 @@
   position: relative;
   min-height: var(--trico-card-min-height);
   padding: var(--trico-card-padding);
-  border: 1px solid var(--re-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 2px 9px rgb(15 23 41 / 4%);
+  background: var(--trico-color-surface);
+  box-shadow: 0 2px 9px var(--trico-color-ink-a04);
 }
 .re-card > svg:first-child {
   width: 48px;
@@ -501,7 +503,7 @@
   padding: 12px;
   border-radius: 8px;
   color: var(--trico-color-highlight);
-  background: rgb(var(--trico-color-highlight-rgb) / 10%);
+  background: var(--trico-color-light-a10);
 }
 .re-card h3 {
   margin-top: 1.25rem;
@@ -510,7 +512,7 @@
 .re-card p {
   max-width: var(--trico-card-copy-measure);
   margin: 0.8rem 0 0;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
 }
 .re-process-container {
   max-width: 1040px;
@@ -526,7 +528,7 @@
   bottom: 0;
   left: 50%;
   width: 2px;
-  background: var(--re-border);
+  background: var(--trico-color-border);
   content: '';
 }
 .re-process article {
@@ -542,10 +544,10 @@
 .re-process article > div {
   position: relative;
   padding: 2rem;
-  border: 1px solid var(--re-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 2px 9px rgb(15 23 41 / 5%);
+  background: var(--trico-color-surface);
+  box-shadow: 0 2px 9px var(--trico-color-ink-a05);
 }
 .re-process article span {
   display: inline-grid;
@@ -554,8 +556,8 @@
   place-items: center;
   margin-bottom: 1rem;
   border-radius: 50%;
-  color: #fff;
-  background: var(--re-primary);
+  color: var(--trico-color-surface);
+  background: var(--trico-color-dark);
   font-family: Lato, sans-serif;
   font-weight: 700;
 }
@@ -564,19 +566,24 @@
 }
 .re-process article p {
   margin: 0.6rem 0 0;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
 }
 .re-dark {
-  color: #fff;
-  background: linear-gradient(135deg, #1e3a8a, var(--re-navy), #1e40af);
+  color: var(--trico-color-surface);
+  background: linear-gradient(
+    135deg,
+    var(--trico-color-dark),
+    var(--trico-color-deep),
+    var(--trico-color-dark)
+  );
 }
 .re-dark h2 {
-  color: #fff;
+  color: var(--trico-color-surface);
   font-size: clamp(2.5rem, 4.2vw, 3.5rem);
 }
 .re-dark p {
   margin: 1.5rem 0;
-  color: rgb(255 255 255 / 78%);
+  color: var(--trico-color-surface-a78);
   font-size: 1.05rem;
 }
 .re-about-grid {
@@ -593,23 +600,23 @@
   align-items: center;
   justify-content: center;
   overflow: visible;
-  border: 1px solid rgb(96 165 250 / 20%);
+  border: 1px solid var(--trico-color-light-a20);
   border-radius: 16px;
   background: linear-gradient(
     135deg,
-    rgb(37 99 235 / 22%),
-    rgb(134 98 45 / 25%),
-    rgb(30 64 175 / 30%)
+    var(--trico-color-light-a22),
+    var(--trico-color-gold-a25),
+    var(--trico-color-dark-a30)
   );
 }
 .re-about-visual > strong {
-  color: #d7b16d;
+  color: var(--trico-color-gold);
   font:
     700 4rem Lato,
     sans-serif;
 }
 .re-about-visual > span {
-  color: rgb(255 255 255 / 80%);
+  color: var(--trico-color-surface-a80);
   font-size: 1.25rem;
 }
 .re-about-visual > b {
@@ -618,16 +625,16 @@
   bottom: -24px;
   padding: 1.5rem;
   border-radius: 12px;
-  color: var(--re-primary);
-  background: #fff;
-  box-shadow: 0 16px 36px rgb(0 0 0 / 18%);
+  color: var(--trico-color-dark);
+  background: var(--trico-color-surface);
+  box-shadow: 0 16px 36px var(--trico-color-ink-a18);
   font:
     700 2.25rem Lato,
     sans-serif;
 }
 .re-about-visual small {
   display: block;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
   font:
     400 0.85rem 'Open Sans',
     sans-serif;
@@ -644,11 +651,11 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  color: rgb(255 255 255 / 90%);
+  color: var(--trico-color-surface-a90);
 }
 .re-check-grid svg {
   width: 1.2rem;
-  color: #d7b16d;
+  color: var(--trico-color-gold);
 }
 .re-group-title {
   margin: 3rem 0 2rem !important;
@@ -665,9 +672,9 @@
 .re-careers {
   background: linear-gradient(
     135deg,
-    rgb(var(--trico-color-highlight-rgb) / 8%),
-    #fff,
-    rgb(0 18 138 / 5%)
+    var(--trico-color-light-a08),
+    var(--trico-color-surface),
+    var(--trico-color-dark-a05)
   );
 }
 .re-careers-grid {
@@ -682,7 +689,7 @@
 }
 .re-careers p {
   margin: 1.25rem 0;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
 }
 .re-careers ul {
   display: grid;
@@ -702,9 +709,9 @@
 }
 .re-careers aside {
   padding: 2.5rem;
-  border: 2px solid rgb(var(--trico-color-highlight-rgb) / 20%);
+  border: 2px solid var(--trico-color-light-a20);
   border-radius: 12px;
-  background: linear-gradient(135deg, #fff, rgb(var(--trico-color-highlight-rgb) / 6%));
+  background: linear-gradient(135deg, var(--trico-color-surface), var(--trico-color-light-a06));
   text-align: center;
 }
 .re-careers aside > svg {
@@ -713,7 +720,7 @@
   padding: 17px;
   border-radius: 50%;
   color: var(--trico-color-highlight);
-  background: rgb(var(--trico-color-highlight-rgb) / 10%);
+  background: var(--trico-color-light-a10);
 }
 .re-careers aside h3 {
   margin-top: 1.25rem;
@@ -724,7 +731,7 @@
   font-weight: 700;
 }
 .re-testimonials {
-  background: rgb(243 244 246 / 58%);
+  background: var(--trico-color-surface-muted-a58);
 }
 .re-testimonial-grid,
 .re-review-grid {
@@ -739,7 +746,7 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  color: rgb(0 18 138 / 10%);
+  color: var(--trico-color-dark-a10);
   background: none;
 }
 .re-stars {
@@ -758,7 +765,7 @@
   display: block;
 }
 .re-testimonial-grid .re-card span {
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
   font-size: 0.8rem;
 }
 .re-faq-container {
@@ -770,9 +777,9 @@
 }
 .re-faqs details {
   padding: 0 1.5rem;
-  border: 1px solid var(--re-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--trico-color-surface);
 }
 .re-faqs summary {
   min-height: 58px;
@@ -793,20 +800,20 @@
 }
 .re-faqs details p {
   padding-bottom: 1rem;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
 }
 .re-new-client {
-  background: rgb(243 244 246 / 40%);
+  background: var(--trico-color-surface-muted-a40);
 }
 .re-form-narrow {
   max-width: 780px;
 }
 .re-form-card {
   padding: 2rem;
-  border: 1px solid var(--re-border);
+  border: 1px solid var(--trico-color-border);
   border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 4px 18px rgb(15 23 41 / 5%);
+  background: var(--trico-color-surface);
+  box-shadow: 0 4px 18px var(--trico-color-ink-a05);
 }
 .re-form-card h3 {
   margin-bottom: 1.5rem;
@@ -824,7 +831,7 @@
 .re-form-card label {
   display: grid;
   gap: 0.45rem;
-  color: #0f1729;
+  color: var(--trico-color-ink);
   font-size: 0.86rem;
   font-weight: 600;
 }
@@ -834,10 +841,10 @@
   width: 100%;
   min-height: 44px;
   padding: 0.7rem 0.8rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--trico-color-border);
   border-radius: 8px;
-  color: #0f1729;
-  background: #fff;
+  color: var(--trico-color-ink);
+  background: var(--trico-color-surface);
   font:
     400 0.95rem 'Open Sans',
     sans-serif;
@@ -856,13 +863,13 @@
 .re-form-success > svg {
   width: 48px;
   height: 48px;
-  color: var(--re-primary);
+  color: var(--trico-color-dark);
 }
 .re-form-success h3 {
   margin: 1rem 0 0.5rem;
 }
 .re-reviews {
-  background: #fff;
+  background: var(--trico-color-surface);
 }
 .re-review-grid {
   max-width: 1024px;
@@ -870,18 +877,18 @@
 }
 .re-review-footer {
   margin: 2.5rem auto 0;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
   text-align: center;
 }
 .re-review-footer a {
-  color: var(--re-primary);
+  color: var(--trico-color-dark);
 }
 .re-contact {
   background: linear-gradient(
     135deg,
-    rgb(30 64 175 / 7%),
-    rgb(243 244 246 / 55%),
-    rgb(30 64 175 / 4%)
+    var(--trico-color-dark-a07),
+    var(--trico-color-surface-muted-a55),
+    var(--trico-color-dark-a04)
   );
 }
 .re-contact-grid {
@@ -894,7 +901,7 @@
 }
 .re-contact-grid > div:first-child > .re-entity-slot:first-of-type p {
   margin: 1.5rem 0 2rem;
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
   font-size: 1.05rem;
 }
 .re-contact-list {
@@ -912,25 +919,30 @@
   flex: 0 0 48px;
   padding: 14px;
   border-radius: 8px;
-  color: var(--re-blue);
-  background: rgb(37 99 235 / 10%);
+  color: var(--trico-color-light);
+  background: var(--trico-color-light-a10);
 }
 .re-contact-list p {
-  color: var(--re-muted);
+  color: var(--trico-color-muted);
 }
 .re-contact-list strong {
   display: block;
-  color: #0f1729;
+  color: var(--trico-color-ink);
 }
 .re-footer {
   padding: 64px 0 0;
-  border-top: 4px solid rgb(37 99 235 / 50%);
-  color: #fff;
-  background: linear-gradient(135deg, #1e3a8a, var(--re-navy), #1e40af);
+  border-top: 4px solid var(--trico-color-light-a50);
+  color: var(--trico-color-surface);
+  background: linear-gradient(
+    135deg,
+    var(--trico-color-dark),
+    var(--trico-color-deep),
+    var(--trico-color-dark)
+  );
 }
 .re-footer h3 {
   margin-bottom: 1rem;
-  color: #fff;
+  color: var(--trico-color-surface);
   font-size: 1.1rem;
 }
 .re-footer-grid {
@@ -945,7 +957,7 @@
 .re-footer-grid p,
 .re-footer-grid span,
 .re-footer-grid a {
-  color: rgb(255 255 255 / 70%);
+  color: var(--trico-color-surface-a70);
   font-size: 0.86rem;
 }
 .re-footer-grid span,
@@ -958,13 +970,13 @@
 }
 .re-footer-grid svg {
   width: 1rem;
-  color: #d7b16d;
+  color: var(--trico-color-gold);
 }
 .re-copyright {
   margin: 3rem auto 0;
   padding: 2rem 1rem;
-  border-top: 1px solid rgb(255 255 255 / 20%);
-  color: rgb(255 255 255 / 60%);
+  border-top: 1px solid var(--trico-color-surface-a20);
+  color: var(--trico-color-surface-a60);
   text-align: center;
   font-size: 0.82rem;
 }
@@ -980,18 +992,23 @@
     height: 44px;
     place-items: center;
     border: 0;
-    background: transparent;
+    background: var(--trico-color-transparent);
   }
   .re-mobile-menu {
     display: grid !important;
     gap: 1rem;
     padding: 1rem 2rem 1.5rem;
-    border-top: 1px solid var(--re-border);
+    border-top: 1px solid var(--trico-color-border);
   }
   .re-hero {
     min-height: auto;
     padding-block: 212px 80px;
-    background: linear-gradient(135deg, #1e3a8a, var(--re-navy), #1e40af);
+    background: linear-gradient(
+      135deg,
+      var(--trico-color-dark),
+      var(--trico-color-deep),
+      var(--trico-color-dark)
+    );
   }
   .re-hero-grid {
     grid-template-columns: 1fr;

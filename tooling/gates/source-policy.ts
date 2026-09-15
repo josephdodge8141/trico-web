@@ -20,6 +20,14 @@ const BACKEND_LAYERS: Readonly<Record<string, number>> = {
   routes: 3,
 };
 const REQUIRED_PROJECTS = ['backend', 'frontend', 'infra', 'packages/zod', 'packages/cucumber'];
+const PAGE_STYLES = [
+  'construction.css',
+  'development.css',
+  'home.css',
+  'property-management.css',
+  'real-estate.css',
+  'storage.css',
+] as const;
 const ROOT_SOURCE_FILES = {
   backend: [
     'app.test.ts',
@@ -61,8 +69,32 @@ export async function checkSourcePolicy(root: string): Promise<string[]> {
       errors.push(`${entry.file} contains a TypeScript or ESLint suppression directive`);
     }
   }
+  errors.push(...(await pageStyleColorErrors(root)));
   errors.push(...(await projectCoverageErrors(root, files)));
   return errors.sort((left, right) => left.localeCompare(right));
+}
+
+async function pageStyleColorErrors(root: string): Promise<string[]> {
+  const errors: string[] = [];
+  for (const fileName of PAGE_STYLES) {
+    const file = path.posix.join('frontend/pages', fileName);
+    let source: string;
+    try {
+      source = await readFile(path.join(root, file), 'utf8');
+    } catch {
+      continue;
+    }
+    const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, '');
+    const ownsColor =
+      /#[\da-f]{3,8}\b/i.test(withoutComments) ||
+      /\b(?:rgb|rgba|hsl|hsla|lab|lch|oklab|oklch|color)\(/i.test(withoutComments) ||
+      /(?<![-\w])(?:white|black|transparent)(?![-\w])/i.test(withoutComments) ||
+      /--(?:home|pm|re|co|sp|storage|dev)-(?:primary|navy|gold|blue|muted|tint|border)\b/.test(
+        withoutComments,
+      );
+    if (ownsColor) errors.push(`${file} contains page-owned color values or aliases`);
+  }
+  return errors;
 }
 
 async function sourceFiles(root: string, relative = ''): Promise<string[]> {

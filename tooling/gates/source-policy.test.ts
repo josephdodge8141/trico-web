@@ -49,6 +49,20 @@ test('rejects incomplete TypeScript project coverage', async () => {
   ]);
 });
 
+test('rejects page-owned color values and aliases', async () => {
+  const root = await fixture({
+    'frontend/pages/home.css': [
+      '.literal { color: #00128a; }',
+      '.function { background: rgb(0 18 138 / 10%); }',
+      '.named { border-color: transparent; }',
+      ':root { --home-primary: var(--trico-color-dark); }',
+    ].join('\n'),
+  });
+  assert.deepEqual(await checkSourcePolicy(root), [
+    'frontend/pages/home.css contains page-owned color values or aliases',
+  ]);
+});
+
 async function fixture(files: Readonly<Record<string, string>> = {}): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'source-policy-'));
   const baseline: Record<string, string> = {

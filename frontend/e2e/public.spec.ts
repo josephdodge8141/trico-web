@@ -567,7 +567,7 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
   expect(contrastRatio([255, 255, 255], [0, 18, 138])).toBeGreaterThanOrEqual(4.5);
 
   await primary.hover();
-  await expect(primary).toHaveCSS('background-color', 'rgb(111, 81, 37)');
+  await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
   await secondary.hover();
   await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
   await primary.focus();
