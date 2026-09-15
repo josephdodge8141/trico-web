@@ -26,6 +26,15 @@ export function AuthPage({ mode }: { readonly mode: AuthMode }): React.JSX.Eleme
       ? candidate
       : '/';
   }, [location.state]);
+  const resumeEditMode = useMemo(() => {
+    const state = location.state;
+    return (
+      typeof state === 'object' &&
+      state !== null &&
+      'resumeEditMode' in state &&
+      state.resumeEditMode === true
+    );
+  }, [location.state]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -40,7 +49,10 @@ export function AuthPage({ mode }: { readonly mode: AuthMode }): React.JSX.Eleme
         ? register(email, password).then(() => 'Check Mailpit or your inbox to verify your email.')
         : mode === 'login'
           ? login(email, password).then(() => {
-              navigate(returnTo, { replace: true });
+              navigate(returnTo, {
+                replace: true,
+                state: resumeEditMode ? { resumeEditMode: true } : null,
+              });
               return 'Signed in.';
             })
           : mode === 'request-reset'

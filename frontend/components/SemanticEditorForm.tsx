@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 import {
   editableValueSchema,
@@ -9,6 +9,7 @@ import {
 } from '@app/schemas';
 
 import { fieldKey, isEditableRecord, readEditorValue, writeEditorValue } from './editorValue.js';
+import { ContentIcon } from './ContentIcon.js';
 
 export interface EditorMediaChoice {
   readonly label: string;
@@ -57,6 +58,76 @@ function writeMediaChoice(
     next = writeEditorValue(next, field.control.altTextPath, choice.altText);
   }
   return next;
+}
+
+function IconPicker({
+  field,
+  inputId,
+  value,
+  onChange,
+}: {
+  readonly field: EditorField | LeafEditorField;
+  readonly inputId: string;
+  readonly value: EditableValue;
+  readonly onChange: (value: EditableValue) => void;
+}): React.JSX.Element {
+  const [query, setQuery] = useState('');
+  if (field.control.type !== 'icon-picker') {
+    throw new Error('The icon picker received a non-icon field.');
+  }
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const matchingChoices = field.control.choices.filter(({ label, value: choiceValue }) =>
+    `${label} ${choiceValue}`.toLocaleLowerCase().includes(normalizedQuery),
+  );
+  const selectedChoice = field.control.choices.find(
+    ({ value: choiceValue }) => value === choiceValue,
+  );
+  const initialChoices = matchingChoices.slice(0, 120);
+  const visibleChoices =
+    normalizedQuery !== '' ||
+    selectedChoice === undefined ||
+    initialChoices.some(({ value: choiceValue }) => choiceValue === selectedChoice.value)
+      ? normalizedQuery === ''
+        ? initialChoices
+        : matchingChoices
+      : [...initialChoices, selectedChoice];
+  return (
+    <div className="editor-icon-picker" id={inputId}>
+      <label className="editor-icon-search">
+        <span>Search icons</span>
+        <input
+          type="search"
+          aria-label="Search icons"
+          value={query}
+          placeholder="Try building, people, or tractor"
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </label>
+      <p className="editor-icon-count" aria-live="polite">
+        {query === ''
+          ? `${String(field.control.choices.length)} icons available. Search to narrow the list.`
+          : `${String(matchingChoices.length)} matching icons.`}
+      </p>
+      <div className="editor-icon-grid" role="radiogroup" aria-label={field.label}>
+        {visibleChoices.map((choice) => (
+          <label key={choice.value} title={choice.helpText}>
+            <input
+              type="radio"
+              name={inputId}
+              value={choice.value}
+              checked={value === choice.value}
+              onChange={() => onChange(choice.value)}
+            />
+            <span aria-hidden="true">
+              <ContentIcon name={choice.value} />
+            </span>
+            <strong>{choice.label}</strong>
+          </label>
+        ))}
+      </div>
+      {matchingChoices.length === 0 ? <p>No icons match that search.</p> : null}
+    </div>
+  );
 }
 
 function EditorFieldControl({
@@ -171,23 +242,7 @@ function EditorFieldControl({
     );
   }
   if (control.type === 'icon-picker') {
-    return (
-      <div className="editor-icon-grid" id={inputId} role="radiogroup" aria-label={field.label}>
-        {control.choices.map((choice) => (
-          <label key={choice.value} title={choice.helpText}>
-            <input
-              type="radio"
-              name={inputId}
-              value={choice.value}
-              checked={value === choice.value}
-              onChange={() => onChange(choice.value)}
-            />
-            <span aria-hidden="true">◇</span>
-            <strong>{choice.label}</strong>
-          </label>
-        ))}
-      </div>
-    );
+    return <IconPicker field={field} inputId={inputId} value={value} onChange={onChange} />;
   }
   if (control.type === 'media-picker') {
     const selected = mediaChoices.find(

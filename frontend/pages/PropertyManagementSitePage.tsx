@@ -91,6 +91,7 @@ import townSquarePhoto from '../assets/images/town-square.jpg';
 import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
@@ -105,6 +106,7 @@ import './property-management.css';
 type PmEntityId = (typeof propertyManagementEntityDefinitions)[number]['id'];
 
 const icons: Readonly<Record<string, LucideIcon>> = {
+  ...contentIconComponents,
   BarChart3,
   Building,
   Building2,

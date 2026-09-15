@@ -10,6 +10,7 @@ import {
   type EntityViewCatalogEntry,
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
+import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
 
 export const REAL_ESTATE_CONTENT_SCHEMA_VERSION = 2 as const;
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -18,15 +19,7 @@ const id = z.uuid();
 const image = z.strictObject({ kind: z.literal('managed'), key: text(1024) });
 const optionalExternalUrl = z.union([z.literal(''), z.url().max(1000)]);
 const destination = z.enum(['services', 'process', 'team', 'about', 'faq', 'reviews', 'contact']);
-const icon = z.enum([
-  'TrendingUp',
-  'MapPin',
-  'Handshake',
-  'FileText',
-  'ShoppingBag',
-  'Home',
-  'Building2',
-]);
+const icon = lucideIconNameSchema;
 const heading = z.strictObject({ eyebrow: text(120), heading: text(200), description: text(2000) });
 export const realEstateAnniversaryBannerSchema = z.strictObject({ message: text(120) });
 export const realEstateHeaderSchema = z.strictObject({
@@ -244,10 +237,7 @@ const externalLink = (): Extract<EditorControl, { type: 'link-builder' }> => ({
 });
 const iconPicker = (): EditorControl => ({
   type: 'icon-picker',
-  choices: icon.options.map((value) => ({
-    value,
-    label: value.replace(/([a-z])([A-Z])/g, '$1 $2'),
-  })),
+  choices: lucideIconChoices,
 });
 const destinationPicker = (): EditorControl => ({
   type: 'enum',

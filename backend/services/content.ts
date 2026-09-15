@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
 
 import { GetObjectCommand, PutObjectCommand, type S3Client } from '@aws-sdk/client-s3';
 import {
@@ -56,7 +57,7 @@ export interface ContentService {
     userId: string,
     expectedRevision: number,
     replacementValue: EditableValue,
-  ): Promise<PendingChange>;
+  ): Promise<PendingChange | undefined>;
   discardChange(entityId: EntityId, userId: string, expectedRevision: number): Promise<void>;
   setPreviewDisabled(userId: string, disabledEntityIds: readonly EntityId[]): Promise<void>;
   togglePreview(userId: string, entityId: EntityId, disabled: boolean): Promise<void>;
@@ -498,6 +499,65 @@ export function createContentService(
           'PENDING_CHANGE_CONFLICT',
           'The pending change is missing, stale, or owned by another editor',
         );
+      }
+      if (isDeepStrictEqual(parsedValue, current.beforeValue)) {
+        const preference = await database.send(
+          new GetCommand({
+            TableName: tableName,
+            Key: { pk: `PREF#${userId}`, sk: 'PREVIEW' },
+            ConsistentRead: true,
+          }),
+        );
+        const disabledEntityIds = Array.isArray(preference.Item?.['disabledEntityIds'])
+          ? preference.Item['disabledEntityIds'].map((id) => requireEntityDefinition(String(id)).id)
+          : [];
+        const remainingDisabledEntityIds = disabledEntityIds.filter((id) => id !== entityId);
+        const preferenceChanged = remainingDisabledEntityIds.length !== disabledEntityIds.length;
+        try {
+          await database.send(
+            new TransactWriteCommand({
+              TransactItems: [
+                {
+                  Delete: {
+                    TableName: tableName,
+                    Key: { pk: `CHANGE#${entityId}`, sk: 'PENDING' },
+                    ConditionExpression: 'authorId = :author AND revision = :revision',
+                    ExpressionAttributeValues: {
+                      ':author': userId,
+                      ':revision': expectedRevision,
+                    },
+                  },
+                },
+                ...(preferenceChanged
+                  ? [
+                      {
+                        Put: {
+                          TableName: tableName,
+                          Item: {
+                            pk: `PREF#${userId}`,
+                            sk: 'PREVIEW',
+                            userId,
+                            disabledEntityIds: remainingDisabledEntityIds,
+                            updatedAt: isoNow(),
+                          },
+                          ConditionExpression: 'disabledEntityIds = :disabledEntityIds',
+                          ExpressionAttributeValues: {
+                            ':disabledEntityIds': disabledEntityIds,
+                          },
+                        },
+                      },
+                    ]
+                  : []),
+              ],
+            }),
+          );
+        } catch {
+          throw new ServiceError(
+            'PENDING_CHANGE_CONFLICT',
+            'The pending change changed before this save',
+          );
+        }
+        return undefined;
       }
       const next = pendingChangeSchema.parse({
         ...current,

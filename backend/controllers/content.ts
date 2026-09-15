@@ -100,16 +100,17 @@ export function updateChangeController(service: ContentService): RequestHandler 
     try {
       const entityId = entityIdSchema.parse(request.params['entityId']);
       const input = updatePendingChangeRequestSchema.parse(request.body);
-      response
-        .status(200)
-        .json(
-          await service.updateChange(
-            entityId,
-            requireUser(request.auth?.userId),
-            input.expectedRevision,
-            input.replacementValue,
-          ),
-        );
+      const change = await service.updateChange(
+        entityId,
+        requireUser(request.auth?.userId),
+        input.expectedRevision,
+        input.replacementValue,
+      );
+      if (change === undefined) {
+        response.status(204).end();
+        return;
+      }
+      response.status(200).json(change);
     } catch (error: unknown) {
       forward(next, error);
     }

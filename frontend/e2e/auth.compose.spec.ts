@@ -9,7 +9,7 @@ const mailpitAuthorization = `Basic ${Buffer.from(
   `${process.env.MAILPIT_USERNAME ?? 'local-editor'}:${process.env.MAILPIT_PASSWORD ?? 'local-mailpit-password'}`,
 ).toString('base64')}`;
 
-test('entering edit mode while signed out requires login and restores the page', async ({
+test('entering edit mode while signed out requires login and resumes edit mode', async ({
   page,
 }) => {
   await page.goto('/property-management');
@@ -22,6 +22,22 @@ test('entering edit mode while signed out requires login and restores the page',
   await page.getByRole('button', { name: 'Continue' }).click();
 
   await expect(page).toHaveURL(/\/property-management$/);
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+  await expect(page.getByText('Edit mode is active')).toBeVisible();
+});
+
+test('reloading an authenticated edit page restores a usable editor state', async ({ page }) => {
+  await login(page, editorEmail, editorPassword);
+  await page.goto('/property-management');
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Enter edit mode' })).toHaveCount(0);
+  await expect(page.locator('.editor-sheet-layer')).toHaveCount(0);
+  await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
 });
 
 test('the seeded reviewer can authenticate, edit in-page, and end the opaque session', async ({

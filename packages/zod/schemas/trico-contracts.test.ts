@@ -298,6 +298,33 @@ test('the extracted seed preserves source cardinality and approved cleanup', () 
   }
 });
 
+test('every semantic icon field uses the complete strict public icon catalog', () => {
+  assert.equal(iconNameSchema.safeParse('Tractor').success, true);
+  assert.equal(iconNameSchema.safeParse('NotARealLucideIcon').success, false);
+
+  const iconControls = entityDefinitions.flatMap(({ editor }) =>
+    editor === undefined
+      ? []
+      : editor.groups.flatMap(({ fields }) =>
+          fields.flatMap(({ control }) => [
+            ...(control.type === 'icon-picker' ? [control] : []),
+            ...(control.type === 'nested-collection'
+              ? control.itemFields
+                  .filter(({ control: itemControl }) => itemControl.type === 'icon-picker')
+                  .map(({ control: itemControl }) => itemControl)
+              : []),
+          ]),
+        ),
+  );
+  assert.ok(iconControls.length > 0);
+  for (const control of iconControls) {
+    assert.equal(control.type, 'icon-picker');
+    if (control.type !== 'icon-picker') continue;
+    assert.ok(control.choices.length > 1_500);
+    assert.ok(control.choices.some(({ value }) => value === 'Tractor'));
+  }
+});
+
 test('seed pages fit the conservative publication ceiling and omit migration metadata', () => {
   for (const page of pageDefinitions) {
     const pageSeed = Object.fromEntries(

@@ -79,6 +79,13 @@ export {
 } from './schemas/error.js';
 export { healthResponseSchema, type HealthResponse } from './schemas/health.js';
 export {
+  lucideIconChoices,
+  lucideIconLabel,
+  lucideIconNames,
+  lucideIconNameSchema,
+  type LucideIconName,
+} from './schemas/lucide-icons.js';
+export {
   aggregateEntityModules,
   defineEntityModule,
   defineSemanticEntity,

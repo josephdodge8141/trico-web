@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { editableValueSchema, type EditableValue } from '@app/schemas';
 
@@ -23,6 +23,25 @@ import {
 } from '../services/cms.js';
 import { EditModeContext, type EditModeValue } from './editMode.js';
 
+const editModeIntentKey = (pageId: PageId): string => `trico.edit-mode.${pageId}`;
+
+function rememberEditModeIntent(pageId: PageId, active: boolean): void {
+  try {
+    if (active) window.sessionStorage.setItem(editModeIntentKey(pageId), 'active');
+    else window.sessionStorage.removeItem(editModeIntentKey(pageId));
+  } catch {
+    // Edit mode still works when tab storage is unavailable; only reload restoration is skipped.
+  }
+}
+
+function hasEditModeIntent(pageId: PageId): boolean {
+  try {
+    return window.sessionStorage.getItem(editModeIntentKey(pageId)) === 'active';
+  } catch {
+    return false;
+  }
+}
+
 export function EditModeProvider({
   pageId,
   children,
@@ -41,6 +60,7 @@ export function EditModeProvider({
   const [message, setMessage] = useState<string>();
   const [mediaOpen, setMediaOpen] = useState(false);
   const mediaSelection = useRef<((asset: MediaAsset) => void) | undefined>(undefined);
+  const restoringEditMode = useRef(false);
 
   const getCsrfToken = useCallback(async (): Promise<string> => {
     if (csrfToken !== undefined) return csrfToken;
@@ -77,6 +97,7 @@ export function EditModeProvider({
   }, []);
 
   const enter = useCallback(async (): Promise<void> => {
+    rememberEditModeIntent(pageId, true);
     try {
       await perform(async () => {
         const [changes, disabledIds, session] = await Promise.all([
@@ -94,7 +115,10 @@ export function EditModeProvider({
     } catch (error) {
       if (error instanceof CmsRequestError && error.status === 401) {
         navigate('/login', {
-          state: { returnTo: `${location.pathname}${location.search}${location.hash}` },
+          state: {
+            returnTo: `${location.pathname}${location.search}${location.hash}`,
+            resumeEditMode: true,
+          },
         });
         return;
       }
@@ -102,10 +126,47 @@ export function EditModeProvider({
     }
   }, [location.hash, location.pathname, location.search, navigate, pageId, perform]);
 
+  useEffect(() => {
+    const state = location.state;
+    const shouldResume =
+      typeof state === 'object' &&
+      state !== null &&
+      'resumeEditMode' in state &&
+      state.resumeEditMode === true;
+    if (!shouldResume) return;
+
+    restoringEditMode.current = true;
+    navigate(`${location.pathname}${location.search}${location.hash}`, {
+      replace: true,
+      state: null,
+    });
+    void enter().finally(() => {
+      restoringEditMode.current = false;
+    });
+  }, [enter, location.hash, location.pathname, location.search, location.state, navigate]);
+
+  useEffect(() => {
+    const navigationState = location.state;
+    const resumingAfterLogin =
+      typeof navigationState === 'object' &&
+      navigationState !== null &&
+      'resumeEditMode' in navigationState &&
+      navigationState.resumeEditMode === true;
+    if (resumingAfterLogin) return;
+    if (active || restoringEditMode.current || !hasEditModeIntent(pageId)) return;
+    restoringEditMode.current = true;
+    void enter()
+      .catch(() => undefined)
+      .finally(() => {
+        restoringEditMode.current = false;
+      });
+  }, [active, enter, location.state, pageId]);
+
   const leave = useCallback((): void => {
+    rememberEditModeIntent(pageId, false);
     setActive(false);
     setMessage(undefined);
-  }, []);
+  }, [pageId]);
 
   const save = useCallback(
     async (entityId: string, value: unknown): Promise<void> => {
@@ -114,6 +175,16 @@ export function EditModeProvider({
         const saved = await saveEntityChange(entityId, value, current?.revision, {
           csrfToken: token,
         });
+        if (saved === undefined) {
+          setPending((changes) => changes.filter((change) => change.entityId !== entityId));
+          setDisabledEntityIds((currentDisabled) => {
+            const next = new Set(currentDisabled);
+            next.delete(entityId);
+            return next;
+          });
+          setMessage('Your change matched the published version, so it was undone.');
+          return;
+        }
         setPending((changes) => [
           ...changes.filter((change) => change.entityId !== entityId),
           saved,

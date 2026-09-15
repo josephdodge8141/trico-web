@@ -12,6 +12,7 @@ import {
   type LeafEditorField,
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
+import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
 
 export const DEVELOPMENT_CONTENT_SCHEMA_VERSION = 2 as const;
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -19,19 +20,7 @@ const optionalText = (max: number) => z.string().trim().max(max);
 const id = z.uuid();
 const image = z.strictObject({ kind: z.literal('managed'), key: text(1_024) });
 const destination = z.enum(['services', 'projects', 'team', 'about', 'reviews', 'contact']);
-const icon = z.enum([
-  'Map',
-  'MapPin',
-  'FileText',
-  'Building2',
-  'Home',
-  'Landmark',
-  'Mountain',
-  'TrendingUp',
-  'Compass',
-  'Target',
-  'Shield',
-]);
+const icon = lucideIconNameSchema;
 const sectionHeading = z.strictObject({
   eyebrow: text(120),
   heading: text(200),
@@ -235,10 +224,7 @@ const long = (rows: number, maxLength: number): EditorControl => ({
 const system = (): EditorControl => ({ type: 'system', immutable: true });
 const iconPicker = (): EditorControl => ({
   type: 'icon-picker',
-  choices: icon.options.map((value) => ({
-    value,
-    label: value.replace(/([a-z])([A-Z0-9])/g, '$1 $2'),
-  })),
+  choices: lucideIconChoices,
 });
 const media = (altTextPath: string): EditorControl => ({
   type: 'media-picker',

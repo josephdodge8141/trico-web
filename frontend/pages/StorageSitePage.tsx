@@ -68,6 +68,7 @@ import storageHeroImage from '../assets/images/storage-hero.png';
 import storageLogo from '../assets/images/trico-storage-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
@@ -78,6 +79,7 @@ import './storage.css';
 
 type StorageEntityId = (typeof storageEntityDefinitions)[number]['id'];
 const icons: Readonly<Record<string, LucideIcon>> = {
+  ...contentIconComponents,
   TrendingUp,
   Warehouse,
   BarChart3,

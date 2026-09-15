@@ -12,6 +12,7 @@ import {
   type LeafEditorField,
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
+import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
 
 export const CONSTRUCTION_CONTENT_SCHEMA_VERSION = 2 as const;
 export const constructionCategoryIds = [
@@ -37,28 +38,7 @@ const optionalEmail = z.union([z.literal(''), z.email()]);
 const optionalExternalUrl = z.union([z.literal(''), z.url()]);
 const id = z.uuid();
 const managedImage = z.strictObject({ kind: z.literal('managed'), key: text(1_024) });
-const icon = z.enum([
-  'ArrowRight',
-  'Award',
-  'Boxes',
-  'Building',
-  'Building2',
-  'Calendar',
-  'CheckCircle2',
-  'Clock',
-  'FileText',
-  'FolderOpen',
-  'HardHat',
-  'Home',
-  'Lock',
-  'PenLine',
-  'Shield',
-  'Shovel',
-  'TrendingUp',
-  'Users',
-  'Warehouse',
-  'Wrench',
-]);
+const icon = lucideIconNameSchema;
 const destination = z.enum([
   'services',
   'projects',
@@ -321,10 +301,7 @@ const media = (altTextPath: string): LeafEditorControl => ({
 });
 const iconPicker = (): LeafEditorControl => ({
   type: 'icon-picker',
-  choices: icon.options.map((value) => ({
-    value,
-    label: value.replace(/([a-z])([A-Z])/g, '$1 $2'),
-  })),
+  choices: lucideIconChoices,
 });
 const destinationPicker = (): LeafEditorControl => ({
   type: 'enum',

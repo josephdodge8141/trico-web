@@ -82,6 +82,7 @@ import stevePhoto from '../assets/images/steve-tripp.png';
 import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
@@ -92,6 +93,7 @@ import './development.css';
 
 type DevelopmentEntityId = (typeof developmentEntityDefinitions)[number]['id'];
 const icons: Readonly<Record<string, LucideIcon>> = {
+  ...contentIconComponents,
   Map,
   MapPin,
   FileText,

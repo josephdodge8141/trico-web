@@ -25,6 +25,8 @@ export function EditorToolbar(): React.JSX.Element {
   const [failedOperationId, setFailedOperationId] = useState<string>();
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const actionsId = useId();
+  const reviewHeadingId = useId();
+  const reviewDescriptionId = useId();
 
   useEffect(() => {
     if (!editing.active) return;
@@ -75,6 +77,7 @@ export function EditorToolbar(): React.JSX.Element {
             ? '1 unpublished change'
             : `${String(editing.pending.length)} unpublished changes`}
         </span>
+        {editing.message === undefined ? null : <p role="status">{editing.message}</p>}
       </div>
       <button
         type="button"
@@ -128,15 +131,18 @@ export function EditorToolbar(): React.JSX.Element {
           Exit edit mode
         </button>
       </div>
-      {editing.message === undefined ? null : <p role="status">{editing.message}</p>}
       {panel === 'review' ? (
-        <div className="toolbar-panel">
+        <div className="toolbar-panel review-panel" role="dialog" aria-labelledby={reviewHeadingId}>
           <div className="panel-heading">
-            <strong>Review unpublished changes</strong>
+            <strong id={reviewHeadingId}>Review unpublished changes</strong>
             <button type="button" onClick={() => setPanel('none')}>
               Close
             </button>
           </div>
+          <p id={reviewDescriptionId} className="review-panel-description">
+            Publishing makes {editing.pending.length === 1 ? 'this change' : 'these changes'}{' '}
+            visible on the public website.
+          </p>
           <ul>
             {editing.pending.map((change) => (
               <li key={change.entityId}>
@@ -152,6 +158,8 @@ export function EditorToolbar(): React.JSX.Element {
           </ul>
           <button
             type="button"
+            className="publish-primary-action"
+            aria-describedby={reviewDescriptionId}
             onClick={() =>
               void editing
                 .publishAll()

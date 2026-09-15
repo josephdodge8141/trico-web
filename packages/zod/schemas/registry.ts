@@ -26,52 +26,11 @@ import { constructionEntityModule } from './construction.js';
 import { constructionV2SeedData } from '../seeds/construction.js';
 import { developmentEntityModule } from './development.js';
 import { developmentV2SeedData } from '../seeds/development.js';
+import { lucideIconNameSchema } from './lucide-icons.js';
 
 export const entityKindSchema = z.enum(['object', 'list']);
 
-export const iconNameSchema = z.enum([
-  'Award',
-  'BarChart3',
-  'Boxes',
-  'Building',
-  'Building2',
-  'Calculator',
-  'ClipboardCheck',
-  'Clock',
-  'Compass',
-  'CreditCard',
-  'DollarSign',
-  'Facebook',
-  'FileCheck',
-  'FileText',
-  'Handshake',
-  'HardHat',
-  'Heart',
-  'Home',
-  'Instagram',
-  'Key',
-  'Landmark',
-  'LineChart',
-  'Linkedin',
-  'Lock',
-  'Map',
-  'MapPin',
-  'MessageSquare',
-  'Monitor',
-  'Mountain',
-  'Search',
-  'Settings',
-  'Shield',
-  'ShoppingBag',
-  'Shovel',
-  'Target',
-  'TrendingUp',
-  'Twitter',
-  'Users',
-  'Wallet',
-  'Warehouse',
-  'Wrench',
-]);
+export const iconNameSchema = lucideIconNameSchema;
 
 export const managedImageReferenceSchema = z.strictObject({
   kind: z.literal('managed'),

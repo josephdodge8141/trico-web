@@ -12,6 +12,7 @@ import {
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
 import type { EditableValue } from './content.js';
+import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
 
 export const HOME_CONTENT_SCHEMA_VERSION = 2 as const;
 
@@ -52,7 +53,7 @@ export const homeDivisionItemSchema = z.strictObject({
   id: uuid,
   title: requiredText(120),
   description: requiredText(1_000),
-  icon: z.enum(['Home', 'Building2', 'HardHat', 'Warehouse', 'Mountain']),
+  icon: lucideIconNameSchema,
   destination: pageDestinationSchema,
 });
 export const homeDivisionsItemsSchema = z.array(homeDivisionItemSchema);
@@ -64,7 +65,7 @@ export const homeCoreValueItemSchema = z.strictObject({
   id: uuid,
   title: requiredText(120),
   description: requiredText(1_000),
-  icon: z.enum(['Shield', 'Target', 'Heart', 'Users']),
+  icon: lucideIconNameSchema,
 });
 export const homeCoreValuesItemsSchema = z.array(homeCoreValueItemSchema);
 export const homeJourneyHeaderSchema = z.strictObject({
@@ -211,9 +212,9 @@ const image = (altTextPath: readonly string[]): LeafEditorControl => ({
   supportsFocalPoint: false,
   altTextPath: [...altTextPath],
 });
-const icon = (values: readonly string[]): LeafEditorControl => ({
+const icon = (): LeafEditorControl => ({
   type: 'icon-picker',
-  choices: values.map((value) => ({ value, label: value.replace(/([a-z])([A-Z0-9])/g, '$1 $2') })),
+  choices: lucideIconChoices,
 });
 const choice = (values: readonly string[]): LeafEditorControl => ({
   type: 'enum',
@@ -336,7 +337,7 @@ export const homeEntityDefinitions = [
         field(['id'], 'Item identity', 0, identity()),
         field(['title'], 'Division name', 1, short(120)),
         field(['description'], 'Description', 2, long(5, 1_000)),
-        field(['icon'], 'Icon', 3, icon(['Home', 'Building2', 'HardHat', 'Warehouse', 'Mountain'])),
+        field(['icon'], 'Icon', 3, icon()),
         field(['destination'], 'Destination', 4, {
           type: 'link-builder',
           allowedDestinations: ['page'],
@@ -369,7 +370,7 @@ export const homeEntityDefinitions = [
         field(['id'], 'Item identity', 0, identity()),
         field(['title'], 'Value name', 1, short(120)),
         field(['description'], 'Description', 2, long(5, 1_000)),
-        field(['icon'], 'Icon', 3, icon(['Shield', 'Target', 'Heart', 'Users'])),
+        field(['icon'], 'Icon', 3, icon()),
       ],
     ),
   }),

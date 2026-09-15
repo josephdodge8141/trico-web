@@ -51,6 +51,41 @@ test('Property Management cards and team portraits retain responsive geometry', 
   }
 });
 
+test('home division cards retain the approved blue visual treatment', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const cards = page.locator('.home-division-card');
+  await expect(cards).toHaveCount(5);
+
+  for (let index = 0; index < (await cards.count()); index += 1) {
+    const card = cards.nth(index);
+    await expect
+      .poll(async () => {
+        await card.hover();
+        return card.evaluate((element) => {
+          const heading = element.querySelector('h3');
+          const icon = element.querySelector('.home-card-icon');
+          const action = element.querySelector('.home-card-link');
+          if (heading === null || icon === null || action === null) return null;
+          return {
+            hovered: element.matches(':hover'),
+            heading: window.getComputedStyle(heading).color,
+            icon: window.getComputedStyle(icon).color,
+            action: window.getComputedStyle(action).color,
+            border: window.getComputedStyle(element).borderColor,
+          };
+        });
+      })
+      .toEqual({
+        hovered: true,
+        heading: 'rgb(94, 133, 186)',
+        icon: 'rgb(94, 133, 186)',
+        action: 'rgb(94, 133, 186)',
+        border: 'rgba(94, 133, 186, 0.5)',
+      });
+  }
+});
+
 test('friendly component form saves, previews, updates, and discards without exposing JSON', async ({
   page,
 }) => {
@@ -87,10 +122,42 @@ test('friendly component form saves, previews, updates, and discards without exp
   await expect(heading).toHaveText(secondHeading);
 
   await page.getByRole('button', { name: 'Review and publish' }).click();
-  const review = page.getByText('Review unpublished changes').locator('..').locator('..');
-  await expect(review.getByText('Hero', { exact: true })).toBeVisible();
-  await review.getByRole('button', { name: 'Discard' }).click();
+  const review = page.getByRole('dialog', { name: 'Review unpublished changes' });
+  const heroChange = review.getByText('Hero', { exact: true }).locator('xpath=ancestor::li');
+  await expect(heroChange).toBeVisible();
+  await heroChange.getByRole('button', { name: 'Discard' }).click();
   await expect(heading).toHaveText(publishedHeading);
+});
+
+test('icon fields search the complete Lucide library and render the selected icon', async ({
+  page,
+}) => {
+  await login(page);
+  await discardOwned(page, 'home.core-values.items');
+  try {
+    await enterHomeEditMode(page);
+    const item = page
+      .getByRole('heading', { name: 'Integrity' })
+      .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    await item.hover();
+    await item.getByRole('button', { name: 'Edit Integrity' }).click();
+    const editor = page.getByRole('dialog', { name: 'Edit Integrity' });
+    const search = editor.getByRole('searchbox', { name: 'Search icons' });
+    await expect(search).toBeVisible();
+    await search.fill('tractor');
+    const tractor = editor.getByRole('radio', { name: 'Tractor' });
+    await expect(tractor).toBeVisible();
+    await expect(editor.locator('svg[data-lucide-icon="Tractor"]')).toBeVisible();
+    await tractor.check();
+    await editor.getByRole('button', { name: 'Save changes' }).click();
+    const updated = page
+      .getByRole('heading', { name: 'Integrity' })
+      .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    await expect(updated.locator('.home-value-icon svg.lucide-tractor')).toBeVisible();
+    await expect(updated.getByText('◇', { exact: true })).toHaveCount(0);
+  } finally {
+    await discardOwned(page, 'home.core-values.items');
+  }
 });
 
 test('edit mode publishes a reviewed change and restores it from publication history', async ({
@@ -133,7 +200,7 @@ test('edit mode publishes a reviewed change and restores it from publication his
     await expect(heading).toHaveText(publishedHeading);
 
     await page.getByRole('button', { name: 'Review and publish' }).click();
-    const review = page.getByText('Review unpublished changes').locator('..').locator('..');
+    const review = page.getByRole('dialog', { name: 'Review unpublished changes' });
     await expect(review.getByText('Hero', { exact: true })).toBeVisible();
     const publishResponse = page.waitForResponse(
       (response) =>
@@ -197,6 +264,13 @@ test('keeps desktop and mobile active editor toolbars at exactly 64px', async ({
   expect((await toolbar.boundingBox())?.height).toBe(64);
   await expect(toolbar.getByText('Edit mode', { exact: true })).toBeVisible();
   await expect(toolbar.getByText(/unpublished change/)).toBeVisible();
+  const feedback = toolbar.getByRole('status');
+  await expect(feedback).toBeVisible();
+  const feedbackBox = await feedback.boundingBox();
+  const actionsBox = await toolbar.locator('.toolbar-actions').boundingBox();
+  expect(feedbackBox).not.toBeNull();
+  expect(actionsBox).not.toBeNull();
+  expect((feedbackBox?.x ?? 0) + (feedbackBox?.width ?? 0)).toBeLessThanOrEqual(actionsBox?.x ?? 0);
   for (const actionName of ['View public', 'Review and publish', 'History', 'Exit edit mode']) {
     const action = toolbar.getByRole('button', { name: actionName });
     await expect(action).toBeVisible();

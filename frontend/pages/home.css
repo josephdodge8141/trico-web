@@ -8,6 +8,7 @@
   --home-navy: #000a4d;
   --home-gold: #86622d;
   --home-slate-blue: #5e85ba;
+  --home-division-accent: var(--home-slate-blue);
   --home-muted: #6b7280;
   --home-tint: #f3f4f6;
   --home-border: #e5e7eb;
@@ -206,12 +207,17 @@
 }
 
 .home-division-card:hover {
-  border-color: rgb(134 98 45 / 45%);
+  border-color: rgb(94 133 186 / 50%);
   box-shadow: 0 12px 30px rgb(15 23 41 / 8%);
   transform: translateY(-2px);
 }
 
-.home-card-icon,
+.home-card-icon {
+  display: grid;
+  place-items: center;
+  color: var(--home-division-accent);
+}
+
 .home-value-icon {
   display: grid;
   place-items: center;
@@ -250,6 +256,11 @@
 .home-division-card h3 {
   margin: 0 0 0.7rem;
   font-size: 1.5rem;
+  transition: color 220ms ease;
+}
+
+.home-division-card:hover h3 {
+  color: var(--home-division-accent);
 }
 
 .home-division-card p {
@@ -263,7 +274,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--home-gold);
+  color: var(--home-division-accent);
   font-size: 0.9rem;
   font-weight: 700;
 }

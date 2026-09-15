@@ -34,6 +34,13 @@ Feature: Published TriCo website
     And all 18 Home entities have an editable visual boundary
     And the Home resume form validates locally without creating a CMS entity
 
+  @id:public.home-division-blue-treatment @backend-noop
+  Scenario: Preserve the approved blue treatment on Home division cards
+    backend-noop: Home division-card color and hover presentation are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/"
+    Then every Home division card uses the approved blue text border icon and action treatment
+
   @id:public.property-management-mounted-composition @backend-noop
   Scenario: Render the complete mounted Property Management composition
     backend-noop: Property Management composition, responsive presentation, and its two client-only forms are browser-owned behavior.

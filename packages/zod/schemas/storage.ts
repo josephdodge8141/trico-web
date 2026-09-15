@@ -10,28 +10,14 @@ import {
   type EntityViewCatalogEntry,
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
+import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
 
 export const STORAGE_CONTENT_SCHEMA_VERSION = 2 as const;
 const text = (max: number) => z.string().trim().min(1).max(max);
 const optionalText = (max: number) => z.string().trim().max(max);
 const image = z.strictObject({ kind: z.literal('managed'), key: text(1_024) });
 const destination = z.enum(['services', 'team', 'features', 'about', 'reviews', 'contact']);
-const icon = z.enum([
-  'TrendingUp',
-  'Warehouse',
-  'BarChart3',
-  'Settings',
-  'Shield',
-  'Target',
-  'Users',
-  'DollarSign',
-  'Building',
-  'Handshake',
-  'ClipboardCheck',
-  'MessageSquare',
-  'Monitor',
-  'FileText',
-]);
+const icon = lucideIconNameSchema;
 const heading = z.strictObject({
   eyebrow: text(120),
   heading: text(200),
@@ -166,10 +152,7 @@ const long = (rows: number, maxLength: number): EditorControl => ({
 const system = (): EditorControl => ({ type: 'system', immutable: true });
 const iconPicker = (): EditorControl => ({
   type: 'icon-picker',
-  choices: icon.options.map((value) => ({
-    value,
-    label: value.replace(/([a-z])([A-Z])/g, '$1 $2'),
-  })),
+  choices: lucideIconChoices,
 });
 const media = (alt: string): EditorControl => ({
   type: 'media-picker',

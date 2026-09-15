@@ -18,6 +18,25 @@ Feature: TriCo editor authentication
     Then I am sent to editor sign in
     And successful sign in returns me to the property management page
 
+  @id:auth.edit-mode-login-resume @backend-noop
+  Scenario: Resume edit mode after signing in
+    backend-noop: Preserving an edit-mode request across browser authentication is frontend navigation state.
+    Given I have no authenticated editor session
+    And I opened the property management page
+    When I enter edit mode
+    Then I am sent to editor sign in
+    And successful sign in returns me to the property management page
+    And edit mode is already active
+
+  @id:auth.edit-mode-reload-resume @backend-noop
+  Scenario: Keep edit mode available after reloading an authenticated page
+    backend-noop: Remembering the current tab's edit-mode intent across a browser reload is frontend session behavior.
+    Given I sign in as the preview editor
+    And I opened the property management page
+    When I enter edit mode and reload that page
+    Then the content editor returns without a blank side bar
+    And the edit mode launcher does not disappear between states
+
   @id:auth.register @frontend-noop
   Scenario: Register a TriCo editor
     frontend-noop: The full registration and Mailpit verification journey is exercised by the Compose Playwright suite; token persistence is exercised by the backend adapter.

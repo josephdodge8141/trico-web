@@ -66,6 +66,7 @@ import whisper119Photo from '../assets/images/whisper-hollow-lot-119.jpg';
 import whisperBoxwoodPhoto from '../assets/images/whisper-hollow-lot-boxwood.jpg';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
@@ -75,6 +76,7 @@ import { mergeFilteredRealEstateCollection, parseRealEstateValue } from './realE
 import './real-estate.css';
 
 const iconByName: Readonly<Record<string, LucideIcon>> = {
+  ...contentIconComponents,
   TrendingUp,
   MapPin,
   Handshake,

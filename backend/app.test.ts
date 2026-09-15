@@ -276,6 +276,7 @@ test('preview consistently renders saved revisions and honors hide/show preferen
   assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), first);
 
   const updated = await content.updateChange(entityId, userId, created.revision, second);
+  assert.ok(updated !== undefined);
   assert.deepEqual(pageEntity(await content.preview('home', userId), entityId), second);
 
   await content.togglePreview(userId, entityId, true);

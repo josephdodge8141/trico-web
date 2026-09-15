@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from 'node:util';
+
 import type { S3Client } from '@aws-sdk/client-s3';
 import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
@@ -160,10 +162,12 @@ export class MemoryDynamo {
       'attribute_not_exists(version) OR version = :version',
     );
     const equalityFailed = [
-      ...condition.matchAll(/\b(id|authorId|revision|version|blockedOperationId)\s*=\s*(:\w+)/g),
+      ...condition.matchAll(
+        /\b(id|authorId|revision|version|blockedOperationId|disabledEntityIds)\s*=\s*(:\w+)/g,
+      ),
     ].some((match) => {
       if (match[1] === 'version' && versionCreateOrMatch && existing === undefined) return false;
-      return existing?.[match[1] ?? ''] !== values[match[2] ?? ''];
+      return !isDeepStrictEqual(existing?.[match[1] ?? ''], values[match[2] ?? '']);
     });
     const fails =
       (condition.includes('attribute_not_exists(pk)') && existing !== undefined) ||

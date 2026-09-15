@@ -132,6 +132,15 @@ Feature: In-page content editing and preview
     And the complete replacement list passes its registered schema
     And no item UUID is shown to me
 
+  @id:content.collection-reorder-undo
+  Scenario: Remove a collection change when its published order is restored
+    Given I own a pending Home collection reorder
+    And that reorder is hidden from my persisted preview
+    When I save the collection in its original published order at the expected revision
+    Then the JSON-equivalent pending change is removed
+    And its persisted preview exclusion is removed
+    And the published collection remains unchanged
+
   @id:content.empty-list-add @backend-noop
   Scenario: Add the first item to an empty collection
     backend-noop: The empty-list affordance and semantic item sheet are browser presentation behavior; persistence uses the existing complete-replacement API.
@@ -243,3 +252,28 @@ Feature: In-page content editing and preview
     When I enter edit mode from the desktop launcher
     Then the desktop editor toolbar is exactly 64 pixels tall
     And every desktop editor action remains visible and available actions are keyboard reachable
+
+  @id:content.review-publish-prominence @backend-noop
+  Scenario: Make publishing the obvious final action when reviewing changes
+    backend-noop: Visual hierarchy and accessible action context in the review panel are browser presentation concerns.
+    Given I have one unpublished Home change to review
+    When I open the review and publish panel
+    Then the publish action is the panel's visually prominent primary action
+    And the publish action explains that it makes the reviewed change public
+
+  @id:content.editor-feedback-placement @backend-noop
+  Scenario: Keep editor feedback before the edit-mode actions
+    backend-noop: Toolbar feedback placement is browser presentation behavior.
+    Given I am signed in on Home at a 1425 by 1100 desktop viewport
+    When I enter edit mode from the desktop launcher
+    Then editor feedback does not appear to the right of the edit-mode buttons
+
+  @id:content.searchable-icon-library @backend-noop
+  Scenario: Choose any supported icon from a searchable visual library
+    backend-noop: The backend validates the shared icon contract through normal content replacement; searching and visual selection are browser presentation behavior.
+    Given I am signed in and editing a Home collection with icon fields
+    When I open an item's icon chooser
+    Then the chooser offers the complete public icon library with graphical previews
+    And I can search the icon library by its friendly name
+    When I choose the "Tractor" icon and save the item
+    Then the selected "Tractor" icon renders in my private preview without a fallback symbol

@@ -12,6 +12,7 @@ import {
   type LeafEditorField,
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
+import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
 
 export const PROPERTY_MANAGEMENT_CONTENT_SCHEMA_VERSION = 2 as const;
 
@@ -37,25 +38,7 @@ const sectionDestinationSchema = z.enum([
   'reviews',
   'contact',
 ]);
-const iconSchema = z.enum([
-  'BarChart3',
-  'Building',
-  'Building2',
-  'Calculator',
-  'ClipboardCheck',
-  'CreditCard',
-  'FileText',
-  'Heart',
-  'Home',
-  'HomeIcon',
-  'LineChart',
-  'PenLine',
-  'Settings',
-  'Users',
-  'Users2',
-  'Wallet',
-  'Wrench',
-]);
+const iconSchema = lucideIconNameSchema;
 
 const headerCopySchema = z.strictObject({
   eyebrow: text(120),
@@ -282,9 +265,9 @@ const media = (altTextPath: readonly string[], aspectRatio?: string): LeafEditor
   altTextPath: [...altTextPath],
   ...(aspectRatio === undefined ? {} : { aspectRatio }),
 });
-const icons = (values: readonly string[]): LeafEditorControl => ({
+const icons = (): LeafEditorControl => ({
   type: 'icon-picker',
-  choices: values.map((value) => ({ value, label: value.replace(/([a-z])([A-Z0-9])/g, '$1 $2') })),
+  choices: lucideIconChoices,
 });
 const sectionChoice = (): LeafEditorControl => ({
   type: 'enum',
@@ -338,13 +321,13 @@ const iconItemFields = [
   field(['id'], 'Item identity', 0, system()),
   field(['title'], 'Title', 1, short(160)),
   field(['description'], 'Description', 2, long(5, 2_000)),
-  field(['icon'], 'Icon', 3, icons(iconSchema.options)),
+  field(['icon'], 'Icon', 3, icons()),
 ] as const;
 const statFields = [
   field(['id'], 'Item identity', 0, system()),
   field(['value'], 'Value', 1, short(40)),
   field(['label'], 'Label', 2, short(120)),
-  field(['icon'], 'Icon', 3, icons(iconSchema.options)),
+  field(['icon'], 'Icon', 3, icons()),
 ] as const;
 const propertyFields = [
   field(['id'], 'Item identity', 0, system()),
@@ -477,7 +460,7 @@ export const propertyManagementEntityDefinitions = [
         field(['number'], 'Step number', 1, short(10)),
         field(['title'], 'Title', 2, short(160)),
         field(['description'], 'Description', 3, long(5, 2_000)),
-        field(['icon'], 'Icon', 4, icons(iconSchema.options)),
+        field(['icon'], 'Icon', 4, icons()),
       ],
     ),
   }),

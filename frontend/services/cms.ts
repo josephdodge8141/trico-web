@@ -101,17 +101,17 @@ export const saveEntityChange = async (
   replacementValue: unknown,
   existingRevision: number | undefined,
   options: CmsRequestOptions,
-): Promise<PendingChange> =>
-  pendingChangeResponseSchema.parse(
-    await request(
-      `/api/v1/entities/${encodeURIComponent(entityId)}/changes`,
-      existingRevision === undefined ? 'POST' : 'PUT',
-      existingRevision === undefined
-        ? { replacementValue }
-        : { replacementValue, expectedRevision: existingRevision },
-      options,
-    ),
+): Promise<PendingChange | undefined> => {
+  const response = await request(
+    `/api/v1/entities/${encodeURIComponent(entityId)}/changes`,
+    existingRevision === undefined ? 'POST' : 'PUT',
+    existingRevision === undefined
+      ? { replacementValue }
+      : { replacementValue, expectedRevision: existingRevision },
+    options,
   );
+  return response === undefined ? undefined : pendingChangeResponseSchema.parse(response);
+};
 
 export const discardEntityChange = async (
   entityId: string,

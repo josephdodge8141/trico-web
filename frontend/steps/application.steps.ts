@@ -19,6 +19,7 @@ import {
   homeNewsItemsSchema,
   homeV2SeedData,
   pendingChangesResponseSchema,
+  previewPreferencesResponseSchema,
   type EditableValue,
   type PendingChange,
 } from '@app/schemas';
@@ -83,11 +84,80 @@ class FrontendWorld extends World {
   remainingDivisionValue = '';
   mediaFriendlyName = '';
   mediaAltText = '';
+  reorderedItemLabel = '';
+  iconEditorItemLabel = '';
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
   }
 }
+
+Given(
+  'I am signed in and editing a Home collection with icon fields',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await discardPendingOwnedByCurrentUser(page, 'home.core-values.items');
+    this.cleanup.push({ page, entityId: 'home.core-values.items' });
+    await enterHomeEditMode(page);
+    this.iconEditorItemLabel = 'Integrity';
+  },
+);
+
+When("I open an item's icon chooser", async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const item = page
+    .getByRole('heading', { name: this.iconEditorItemLabel, exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+  await item.hover();
+  await item.getByRole('button', { name: `Edit ${this.iconEditorItemLabel}` }).click();
+});
+
+Then(
+  'the chooser offers the complete public icon library with graphical previews',
+  async function (this: FrontendWorld) {
+    const dialog = this.currentPage().getByRole('dialog', {
+      name: `Edit ${this.iconEditorItemLabel}`,
+    });
+    const search = dialog.getByRole('searchbox', { name: 'Search icons' });
+    await expect(search).toBeVisible();
+    await search.fill('tractor');
+    const tractor = dialog.getByRole('radio', { name: 'Tractor' });
+    await expect(tractor).toBeVisible();
+    await expect(dialog.locator('svg[data-lucide-icon="Tractor"]')).toBeVisible();
+  },
+);
+
+Then('I can search the icon library by its friendly name', async function (this: FrontendWorld) {
+  const dialog = this.currentPage().getByRole('dialog', {
+    name: `Edit ${this.iconEditorItemLabel}`,
+  });
+  await expect(dialog.getByRole('radio', { name: 'Tractor' })).toHaveCount(1);
+  await expect(dialog.getByRole('radio', { name: 'Heart' })).toHaveCount(0);
+});
+
+When(
+  'I choose the {string} icon and save the item',
+  async function (this: FrontendWorld, iconName: string) {
+    const dialog = this.currentPage().getByRole('dialog', {
+      name: `Edit ${this.iconEditorItemLabel}`,
+    });
+    await dialog.getByRole('radio', { name: iconName, exact: true }).check();
+    await dialog.getByRole('button', { name: 'Save changes' }).click();
+  },
+);
+
+Then(
+  'the selected {string} icon renders in my private preview without a fallback symbol',
+  async function (this: FrontendWorld, iconName: string) {
+    const item = this.currentPage()
+      .getByRole('heading', { name: this.iconEditorItemLabel, exact: true })
+      .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    await expect(item.locator(`svg.lucide-${iconName.toLocaleLowerCase()}`)).toBeVisible();
+    await expect(item.getByText('◇', { exact: true })).toHaveCount(0);
+  },
+);
 setWorldConstructor(FrontendWorld);
 
 Before(async function (this: FrontendWorld, { pickle }) {
@@ -254,11 +324,20 @@ async function createVerifiedEditor(world: FrontendWorld): Promise<Page> {
 Given('I have no authenticated editor session', async function (this: FrontendWorld) {
   await this.context?.clearCookies();
 });
+Given('I sign in as the preview editor', async function (this: FrontendWorld) {
+  await loginEditor(this.currentPage());
+});
 Given('I opened the property management page', async function (this: FrontendWorld) {
   await this.currentPage().goto('/property-management');
 });
 When('I enter edit mode', async function (this: FrontendWorld) {
   await this.currentPage().getByRole('button', { name: 'Enter edit mode' }).click();
+});
+When('I enter edit mode and reload that page', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+  await page.reload();
 });
 Then('I am sent to editor sign in', async function (this: FrontendWorld) {
   await expect(this.currentPage()).toHaveURL(/\/login$/);
@@ -271,6 +350,27 @@ Then(
     await this.currentPage().getByLabel('Password').fill(editorPassword);
     await this.currentPage().getByRole('button', { name: 'Continue' }).click();
     await expect(this.currentPage()).toHaveURL(/\/property-management$/);
+  },
+);
+Then('edit mode is already active', async function (this: FrontendWorld) {
+  await expect(
+    this.currentPage().getByRole('complementary', { name: 'Content editor' }),
+  ).toBeVisible();
+  await expect(this.currentPage().getByText('Edit mode is active')).toBeVisible();
+});
+Then('the content editor returns without a blank side bar', async function (this: FrontendWorld) {
+  await expect(
+    this.currentPage().getByRole('complementary', { name: 'Content editor' }),
+  ).toBeVisible();
+  await expect(this.currentPage().locator('.editor-sheet-layer')).toHaveCount(0);
+  await expect(this.currentPage().locator('body')).not.toHaveCSS('overflow', 'hidden');
+});
+Then(
+  'the edit mode launcher does not disappear between states',
+  async function (this: FrontendWorld) {
+    await expect(this.currentPage().getByRole('button', { name: 'Enter edit mode' })).toHaveCount(
+      0,
+    );
   },
 );
 When('I open the TriCo site', async function (this: FrontendWorld) {
@@ -372,6 +472,42 @@ Then(
     await expect(this.currentPage().locator('[data-home-entity-boundary="true"]')).toHaveCount(
       count,
     );
+  },
+);
+Then(
+  'every Home division card uses the approved blue text border icon and action treatment',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const cards = page.locator('.home-division-card');
+    await expect(cards).toHaveCount(5);
+    for (let index = 0; index < (await cards.count()); index += 1) {
+      const card = cards.nth(index);
+      await expect
+        .poll(async () => {
+          await card.hover();
+          return card.evaluate((element) => {
+            const heading = element.querySelector('h3');
+            const icon = element.querySelector('.home-card-icon');
+            const action = element.querySelector('.home-card-link');
+            if (heading === null || icon === null || action === null) return null;
+            return {
+              hovered: element.matches(':hover'),
+              heading: window.getComputedStyle(heading).color,
+              icon: window.getComputedStyle(icon).color,
+              action: window.getComputedStyle(action).color,
+              border: window.getComputedStyle(element).borderColor,
+            };
+          });
+        })
+        .toEqual({
+          hovered: true,
+          heading: 'rgb(94, 133, 186)',
+          icon: 'rgb(94, 133, 186)',
+          action: 'rgb(94, 133, 186)',
+          border: 'rgba(94, 133, 186, 0.5)',
+        });
+    }
   },
 );
 Then(
@@ -1111,6 +1247,108 @@ Given(
     this.originalItemIds = value.map(({ id }) => id);
   },
 );
+
+Given('I own a pending Home collection reorder', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const entityId = 'home.core-values.items';
+  await loginEditor(page);
+  await discardPendingOwnedByCurrentUser(page, entityId);
+  this.cleanup.push({ page, entityId });
+  await enterHomeEditMode(page);
+  const value = homeCoreValuesItemsSchema.parse(
+    (
+      (await (await page.request.get('/api/v1/pages/home/preview')).json()) as Record<
+        string,
+        unknown
+      >
+    )[entityId] ?? homeV2SeedData[entityId],
+  );
+  const first = value[0];
+  assert.ok(first !== undefined);
+  this.originalItemIds = value.map(({ id }) => id);
+  this.reorderedItemLabel = first.title;
+  const item = page
+    .getByRole('heading', { name: first.title, exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+  await item.hover();
+  const saved = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      response.url().includes(`/api/v1/entities/${entityId}/changes`),
+  );
+  await item.getByRole('button', { name: `Move ${first.title} down` }).click();
+  assert.equal((await saved).status(), 201);
+  assert.ok(await pendingFor(page, entityId));
+});
+
+Given('that reorder is hidden from my persisted preview', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const entityId = 'home.core-values.items';
+  const response = await page.request.put(
+    `/api/v1/preview/disabled/${encodeURIComponent(entityId)}`,
+    { headers: await csrfHeaders(page) },
+  );
+  assert.equal(response.status(), 204);
+  const preferences = await page.request.get('/api/v1/preview/preferences');
+  assert.equal(preferences.status(), 200);
+  assert.ok(
+    previewPreferencesResponseSchema
+      .parse(await preferences.json())
+      .disabledEntityIds.includes(entityId),
+  );
+});
+
+When(
+  'I save the collection in its original published order at the expected revision',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const entityId = 'home.core-values.items';
+    const item = page
+      .getByRole('heading', { name: this.reorderedItemLabel, exact: true })
+      .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+    await item.hover();
+    const saved = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`/api/v1/entities/${entityId}/changes`),
+    );
+    await item.getByRole('button', { name: `Move ${this.reorderedItemLabel} up` }).click();
+    const response = await saved;
+    assert.ok(response.status() === 200 || response.status() === 204);
+  },
+);
+
+Then('the JSON-equivalent pending change is removed', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  assert.equal(await pendingFor(page, 'home.core-values.items'), undefined);
+  await expect(page.locator('.home-values .collection-pending')).toHaveCount(0);
+});
+
+Then('its persisted preview exclusion is removed', async function (this: FrontendWorld) {
+  const preferences = await this.currentPage().request.get('/api/v1/preview/preferences');
+  assert.equal(preferences.status(), 200);
+  assert.equal(
+    previewPreferencesResponseSchema
+      .parse(await preferences.json())
+      .disabledEntityIds.includes('home.core-values.items'),
+    false,
+  );
+});
+
+Then('the published collection remains unchanged', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const publicPage = (await (await page.request.get('/api/v1/pages/home')).json()) as Record<
+    string,
+    unknown
+  >;
+  const published = homeCoreValuesItemsSchema.parse(publicPage['home.core-values.items']);
+  assert.deepEqual(
+    published.map(({ id }) => id),
+    this.originalItemIds,
+  );
+});
 When('I add and edit an item with friendly fields', async function (this: FrontendWorld) {
   const page = this.currentPage();
   await page.getByRole('button', { name: '+ Add core value' }).click();
@@ -1178,20 +1416,21 @@ When('I delete and undo the deletion', async function (this: FrontendWorld) {
   await deleteButton.click();
   const deletionResponse = await deletion;
   const operationErrors = await page.locator('.home-values .editor-error').allTextContents();
-  assert.equal(deletionResponse?.status(), 200, operationErrors.join(' '));
+  assert.equal(deletionResponse?.status(), 204, operationErrors.join(' '));
+  assert.equal(await pendingFor(page, 'home.core-values.items'), undefined);
   await expect(
     page.getByRole('status').filter({ hasText: 'Browser-edited value deleted.' }),
   ).toBeVisible();
   const undo = page.waitForResponse(
     (candidate) =>
-      candidate.request().method() === 'PUT' &&
+      candidate.request().method() === 'POST' &&
       candidate.url().includes('/api/v1/entities/home.core-values.items/changes'),
   );
   const undoPreview = page.waitForResponse((candidate) =>
     candidate.url().includes('/api/v1/pages/home/preview'),
   );
   await page.getByRole('button', { name: 'Undo' }).click();
-  assert.equal((await undo).status(), 200);
+  assert.equal((await undo).status(), 201);
   assert.equal((await undoPreview).status(), 200);
   await expect(page.getByRole('heading', { name: 'Browser-edited value' })).toBeVisible();
   const pending = await pendingFor(page, 'home.core-values.items');
@@ -1590,6 +1829,84 @@ Then(
         await expect(action).toBeFocused();
       }
     }
+  },
+);
+
+Given('I have one unpublished Home change to review', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await loginEditor(page);
+  await discardPendingOwnedByCurrentUser(page, 'home.hero');
+  const replacement = {
+    ...(homeV2SeedData['home.hero'] as Record<string, EditableValue>),
+    heading: `Review-ready heading ${String(Date.now())}`,
+  };
+  await saveReplacement(page, 'home.hero', replacement);
+  this.cleanup.push({ page, entityId: 'home.hero' });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+});
+
+When('I open the review and publish panel', async function (this: FrontendWorld) {
+  await this.currentPage().getByRole('button', { name: 'Review and publish' }).click();
+});
+
+Then(
+  "the publish action is the panel's visually prominent primary action",
+  async function (this: FrontendWorld) {
+    const panel = this.currentPage().getByRole('dialog', { name: 'Review unpublished changes' });
+    const publish = panel.getByRole('button', { name: 'Publish change' });
+    await expect(publish).toBeVisible();
+    await expect(publish).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+    await expect(publish).toHaveCSS('color', 'rgb(255, 255, 255)');
+    const panelBox = await panel.boundingBox();
+    const publishBox = await publish.boundingBox();
+    assert.ok(panelBox);
+    assert.ok(publishBox);
+    const panelInsets = await panel.evaluate((element) => {
+      const style = window.getComputedStyle(element);
+      return (
+        Number.parseFloat(style.paddingLeft) +
+        Number.parseFloat(style.paddingRight) +
+        Number.parseFloat(style.borderLeftWidth) +
+        Number.parseFloat(style.borderRightWidth)
+      );
+    });
+    assert.ok(publishBox.height >= 48, 'The final publish action is smaller than 48px.');
+    assert.ok(
+      publishBox.width >= panelBox.width - panelInsets,
+      'The final publish action does not span the review panel.',
+    );
+  },
+);
+
+Then(
+  'the publish action explains that it makes the reviewed change public',
+  async function (this: FrontendWorld) {
+    const panel = this.currentPage().getByRole('dialog', { name: 'Review unpublished changes' });
+    const publish = panel.getByRole('button', { name: 'Publish change' });
+    const descriptionId = await publish.getAttribute('aria-describedby');
+    assert.ok(descriptionId, 'The publish action has no accessible description.');
+    await expect(panel.locator(`#${descriptionId}`)).toContainText(
+      /makes (?:this change|these changes) visible on the public website/,
+    );
+  },
+);
+
+Then(
+  'editor feedback does not appear to the right of the edit-mode buttons',
+  async function (this: FrontendWorld) {
+    const toolbar = this.currentPage().getByRole('complementary', { name: 'Content editor' });
+    const actions = toolbar.locator('.toolbar-actions');
+    const feedback = toolbar.getByRole('status');
+    await expect(feedback).toBeVisible();
+    const actionsBox = await actions.boundingBox();
+    const feedbackBox = await feedback.boundingBox();
+    assert.ok(actionsBox);
+    assert.ok(feedbackBox);
+    assert.ok(
+      feedbackBox.x + feedbackBox.width <= actionsBox.x,
+      'Editor feedback rendered after the edit-mode action buttons.',
+    );
   },
 );
 

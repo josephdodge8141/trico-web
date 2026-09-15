@@ -11,6 +11,7 @@ import {
   constructionV2SeedData,
   developmentEntityModule,
   developmentV2SeedData,
+  editableValueSchema,
   entityEditorDefinitionSchema,
   entityDefinitions,
   entityRegistry,
@@ -61,6 +62,7 @@ const EDITOR = '00000000-0000-4000-8000-000000000101';
 const OTHER_EDITOR = '00000000-0000-4000-8000-000000000102';
 const PASSWORD = 'correct horse battery staple';
 const HERO = 'home.hero' as EntityId;
+const HOME_LIST = 'home.core-values.items' as EntityId;
 const LIST = 'real-estate.listings.items' as EntityId;
 
 class BackendWorld extends World {
@@ -218,12 +220,14 @@ const createRevision = async (
 ): Promise<PendingChange> => {
   let change = await world.content.createChange(entityId, owner, changed(seedValue(entityId)));
   while (change.revision < revision) {
-    change = await world.content.updateChange(
+    const updated = await world.content.updateChange(
       entityId,
       owner,
       change.revision,
       changed(change.replacementValue, ` ${String(change.revision + 1)}`),
     );
+    assert.ok(updated !== undefined);
+    change = updated;
   }
   return change;
 };
@@ -664,6 +668,46 @@ When('I add, remove, and reorder list items before saving', function (this: Back
     'new items receive UUIDs',
     'the complete replacement list passes its registered schema',
   );
+});
+
+Given('I own a pending Home collection reorder', async function (this: BackendWorld) {
+  const published = seedValue(HOME_LIST);
+  assert.ok(Array.isArray(published) && published.length > 1);
+  this.listBefore = published;
+  const reordered = [...published];
+  [reordered[0], reordered[1]] = [reordered[1] ?? null, reordered[0] ?? null];
+  this.change = await this.content.createChange(HOME_LIST, EDITOR, reordered);
+  assert.equal((await this.content.pending('home')).length, 1);
+});
+
+Given('that reorder is hidden from my persisted preview', async function (this: BackendWorld) {
+  await this.content.togglePreview(EDITOR, HOME_LIST, true);
+  assert.deepEqual(await this.content.previewDisabled(EDITOR), [HOME_LIST]);
+});
+
+When(
+  'I save the collection in its original published order at the expected revision',
+  async function (this: BackendWorld) {
+    assert.ok(this.change !== undefined);
+    await this.content.updateChange(
+      HOME_LIST,
+      EDITOR,
+      this.change.revision,
+      editableValueSchema.parse(this.listBefore),
+    );
+  },
+);
+
+Then('the JSON-equivalent pending change is removed', async function (this: BackendWorld) {
+  assert.equal((await this.content.pending('home')).length, 0);
+});
+
+Then('its persisted preview exclusion is removed', async function (this: BackendWorld) {
+  assert.deepEqual(await this.content.previewDisabled(EDITOR), []);
+});
+
+Then('the published collection remains unchanged', async function (this: BackendWorld) {
+  assert.deepEqual(pageEntities(await this.content.page('home'))[HOME_LIST], this.listBefore);
 });
 
 factThen([
