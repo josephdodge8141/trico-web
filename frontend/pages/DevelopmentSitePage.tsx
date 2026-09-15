@@ -88,7 +88,6 @@ import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
 import { DevelopmentContactForm } from './DevelopmentContactForm.js';
 import { parseDevelopmentValue } from './developmentContent.js';
-import './development.css';
 
 type DevelopmentEntityId = (typeof developmentEntityDefinitions)[number]['id'];
 const icons: Readonly<Record<string, LucideIcon>> = {
@@ -148,7 +147,7 @@ function ObjectBoundary({
   const editing = useEditMode();
   return (
     <div
-      className={`dev-entity-slot${id === 'development.hero' ? ' dev-hero-entity-slot' : ''}`}
+      className={`dev-entity-slot ui-entity-slot${id === 'development.hero' ? ' dev-hero-entity-slot ui-hero-entity-slot' : ''}`}
       data-development-entity-boundary="true"
     >
       <EditableBoundary
@@ -176,7 +175,10 @@ function CollectionBoundary({
 }): React.JSX.Element {
   const editing = useEditMode();
   return (
-    <div className="dev-entity-slot dev-collection-slot" data-development-entity-boundary="true">
+    <div
+      className="dev-entity-slot ui-entity-slot dev-collection-slot ui-collection-slot"
+      data-development-entity-boundary="true"
+    >
       <EditableCollection
         active={editing.active}
         definition={definition(id)}
@@ -253,12 +255,12 @@ function DevelopmentBody(): React.JSX.Element {
   );
   const footerLegal = value('development.footer.legal', developmentFooterLegalSchema);
   return (
-    <div className="dev-page">
+    <div className="dev-page ui-page">
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
       <ObjectBoundary id="development.anniversary-banner" value={banner}>
-        <div className="dev-anniversary">
+        <div className="dev-anniversary ui-anniversary">
           <i />
           <strong>{banner.message}</strong>
           <span>•</span>
@@ -267,9 +269,9 @@ function DevelopmentBody(): React.JSX.Element {
         </div>
       </ObjectBoundary>
       <ObjectBoundary id="development.header" value={header}>
-        <header className="dev-header">
-          <div className="dev-container dev-header-inner">
-            <Link className="dev-brand" to="/">
+        <header className="dev-header ui-header">
+          <div className="dev-container ui-container dev-header-inner ui-header-inner">
+            <Link className="dev-brand ui-brand" to="/">
               <img src={managedImage(header.logo.key, tricoLogo)} alt={header.logoAltText} />
               <strong>{header.divisionLabel}</strong>
             </Link>
@@ -280,16 +282,16 @@ function DevelopmentBody(): React.JSX.Element {
                 </a>
               ))}
             </nav>
-            <div className="dev-header-actions">
+            <div className="dev-header-actions ui-header-actions">
               <a href={`tel:${header.phone.replace(/\D/g, '')}`}>
                 <Phone /> {header.phone}
               </a>
-              <a className="dev-button dev-primary" href="#contact">
+              <a className="dev-button ui-button dev-primary ui-primary" href="#contact">
                 {header.actionLabel}
               </a>
             </div>
             <button
-              className="dev-menu-button"
+              className="dev-menu-button ui-menu-button"
               aria-expanded={menuOpen}
               aria-label="Toggle menu"
               onClick={() => setMenuOpen((value) => !value)}
@@ -298,7 +300,7 @@ function DevelopmentBody(): React.JSX.Element {
             </button>
           </div>
           {menuOpen ? (
-            <nav className="dev-mobile-menu">
+            <nav className="dev-mobile-menu ui-mobile-menu">
               {header.navLinks.map((link) => (
                 <a href={anchor(link.destination)} key={link.id} onClick={() => setMenuOpen(false)}>
                   {link.label}
@@ -315,24 +317,24 @@ function DevelopmentBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="development.hero" value={hero}>
-          <section className="dev-hero">
-            <div className="dev-container dev-hero-inner">
-              <span className="dev-pill">
+          <section className="dev-hero ui-hero">
+            <div className="dev-container ui-container dev-hero-inner ui-hero-inner">
+              <span className="dev-pill ui-pill">
                 <Mountain /> {hero.eyebrow}
               </span>
-              <h1>
+              <h1 className="type-display">
                 {hero.heading} <em>{hero.highlightedWord}</em>
               </h1>
               <p>{hero.description}</p>
-              <div className="dev-actions">
-                <a className="dev-button dev-primary" href="#projects">
+              <div className="dev-actions ui-actions">
+                <a className="dev-button ui-button dev-primary ui-primary" href="#projects">
                   {hero.primaryActionLabel} <ArrowRight />
                 </a>
-                <a className="dev-button dev-outline" href="#contact">
+                <a className="dev-button ui-button dev-outline ui-outline" href="#contact">
                   {hero.secondaryActionLabel}
                 </a>
               </div>
-              <div className="dev-stats">
+              <div className="dev-stats ui-stats">
                 <CollectionBoundary
                   id="development.hero.stats"
                   value={heroStats}
@@ -353,18 +355,18 @@ function DevelopmentBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
 
-        <section id="services" className="dev-section dev-tint">
-          <div className="dev-container">
+        <section id="services" className="dev-section ui-section dev-tint ui-tint">
+          <div className="dev-container ui-container">
             <ObjectBoundary id="development.land-experts.header" value={landHeader}>
-              <header className="dev-heading">
-                <span className="dev-pill">
+              <header className="dev-heading ui-heading">
+                <span className="dev-pill ui-pill">
                   <Mountain /> {landHeader.eyebrow}
                 </span>
-                <h2>{landHeader.heading}</h2>
+                <h2 className="type-section-title">{landHeader.heading}</h2>
                 <p>{landHeader.description}</p>
               </header>
             </ObjectBoundary>
-            <div className="dev-land-grid">
+            <div className="dev-land-grid ui-land-grid">
               <CollectionBoundary
                 id="development.land-experts.services"
                 value={landServices}
@@ -372,16 +374,16 @@ function DevelopmentBody(): React.JSX.Element {
                   const service = developmentLandServiceSchema.parse(item);
                   const Icon = icons[service.icon] ?? MapPin;
                   return (
-                    <article className="dev-land-card">
+                    <article className="dev-land-card ui-land-card">
                       <Icon />
-                      <h3>{service.title}</h3>
+                      <h3 className="type-card-title">{service.title}</h3>
                       <p>{service.description}</p>
                     </article>
                   );
                 }}
               />
             </div>
-            <div className="dev-trust">
+            <div className="dev-trust ui-trust">
               <CollectionBoundary
                 id="development.land-experts.stats"
                 value={landStats}
@@ -401,16 +403,16 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section id="projects" className="dev-section">
-          <div className="dev-container">
+        <section id="projects" className="dev-section ui-section">
+          <div className="dev-container ui-container">
             <ObjectBoundary id="development.services.header" value={servicesHeader}>
-              <header className="dev-heading">
-                <span className="dev-pill">{servicesHeader.eyebrow}</span>
-                <h2>{servicesHeader.heading}</h2>
+              <header className="dev-heading ui-heading">
+                <span className="dev-pill ui-pill">{servicesHeader.eyebrow}</span>
+                <h2 className="type-section-title">{servicesHeader.heading}</h2>
                 <p>{servicesHeader.description}</p>
               </header>
             </ObjectBoundary>
-            <div className="dev-service-grid">
+            <div className="dev-service-grid ui-service-grid">
               <CollectionBoundary
                 id="development.services.items"
                 value={services}
@@ -418,17 +420,17 @@ function DevelopmentBody(): React.JSX.Element {
                   const service = developmentServiceSchema.parse(item);
                   const Icon = icons[service.icon] ?? Building2;
                   return (
-                    <article className="dev-card">
+                    <article className="dev-card ui-card">
                       <Icon />
-                      <h3>{service.title}</h3>
+                      <h3 className="type-card-title">{service.title}</h3>
                       <p>{service.description}</p>
                     </article>
                   );
                 }}
               />
             </div>
-            <h3 className="dev-subheading">{servicesHeader.projectsHeading}</h3>
-            <div className="dev-category-grid">
+            <h3 className="dev-subheading ui-subheading">{servicesHeader.projectsHeading}</h3>
+            <div className="dev-category-grid ui-category-grid">
               <CollectionBoundary
                 id="development.projects.categories"
                 value={categories}
@@ -436,12 +438,12 @@ function DevelopmentBody(): React.JSX.Element {
                   const category = developmentProjectCategorySchema.parse(item);
                   const Icon = icons[category.icon] ?? Building2;
                   return (
-                    <article className="dev-category">
+                    <article className="dev-category ui-category">
                       <Icon />
                       <strong>{category.count}</strong>
-                      <h3>{category.title}</h3>
+                      <h3 className="type-card-title">{category.title}</h3>
                       <p>{category.description}</p>
-                      <button className="dev-button dev-outline-gold">
+                      <button className="dev-button ui-button dev-outline-gold ui-outline-gold">
                         {category.buttonLabel}
                       </button>
                     </article>
@@ -449,8 +451,8 @@ function DevelopmentBody(): React.JSX.Element {
                 }}
               />
             </div>
-            <h3 className="dev-subheading">{servicesHeader.featuredHeading}</h3>
-            <div className="dev-featured-grid">
+            <h3 className="dev-subheading ui-subheading">{servicesHeader.featuredHeading}</h3>
+            <div className="dev-featured-grid ui-featured-grid">
               <CollectionBoundary
                 id="development.projects.featured"
                 value={featured}
@@ -464,7 +466,7 @@ function DevelopmentBody(): React.JSX.Element {
                       />
                       <div>
                         <span>{project.type}</span>
-                        <h3>{project.title}</h3>
+                        <h3 className="type-card-title">{project.title}</h3>
                         <p>{project.location}</p>
                       </div>
                     </article>
@@ -475,18 +477,18 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="dev-section dev-partners">
-          <div className="dev-container">
+        <section className="dev-section ui-section dev-partners ui-partners">
+          <div className="dev-container ui-container">
             <ObjectBoundary id="development.partners.header" value={partnersHeader}>
-              <header className="dev-heading">
-                <span className="dev-pill dev-pill-blue">
+              <header className="dev-heading ui-heading">
+                <span className="dev-pill ui-pill dev-pill-blue ui-pill-blue">
                   <Handshake /> {partnersHeader.eyebrow}
                 </span>
-                <h2>{partnersHeader.heading}</h2>
+                <h2 className="type-section-title">{partnersHeader.heading}</h2>
                 <p>{partnersHeader.description}</p>
               </header>
             </ObjectBoundary>
-            <div className="dev-partner-grid">
+            <div className="dev-partner-grid ui-partner-grid">
               <CollectionBoundary
                 id="development.partners.items"
                 value={partners}
@@ -494,23 +496,23 @@ function DevelopmentBody(): React.JSX.Element {
               />
             </div>
             <ObjectBoundary id="development.partners.footer" value={partnersFooter}>
-              <p className="dev-partner-footer">
+              <p className="dev-partner-footer ui-partner-footer">
                 {partnersFooter.message} <a href="#contact">{partnersFooter.actionLabel}</a>.
               </p>
             </ObjectBoundary>
           </div>
         </section>
 
-        <section id="team" className="dev-section dev-tint">
-          <div className="dev-container">
+        <section id="team" className="dev-section ui-section dev-tint ui-tint">
+          <div className="dev-container ui-container">
             <ObjectBoundary id="development.team.header" value={teamHeader}>
-              <header className="dev-heading">
-                <span className="dev-pill">{teamHeader.eyebrow}</span>
-                <h2>{teamHeader.heading}</h2>
+              <header className="dev-heading ui-heading">
+                <span className="dev-pill ui-pill">{teamHeader.eyebrow}</span>
+                <h2 className="type-section-title">{teamHeader.heading}</h2>
                 <p>{teamHeader.description}</p>
               </header>
             </ObjectBoundary>
-            <div className="dev-team-grid">
+            <div className="dev-team-grid ui-team-grid">
               <CollectionBoundary
                 id="development.team.members"
                 value={team}
@@ -531,16 +533,20 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section id="about" className="dev-section">
-          <div className="dev-container dev-about-grid">
+        <section id="about" className="dev-section ui-section">
+          <div className="dev-container ui-container dev-about-grid ui-about-grid">
             <div>
               <ObjectBoundary id="development.about" value={about}>
-                <span className="dev-pill">{about.eyebrow}</span>
-                <h2>{about.heading}</h2>
+                <span className="dev-pill ui-pill">{about.eyebrow}</span>
+                <h2 className="type-section-title">{about.heading}</h2>
                 <p>{about.introduction}</p>
                 <p>{about.detail}</p>
               </ObjectBoundary>
-              <div className="dev-highlights" role="list" aria-label="Development highlights">
+              <div
+                className="dev-highlights ui-highlights"
+                role="list"
+                aria-label="Development highlights"
+              >
                 <CollectionBoundary
                   id="development.about.highlights"
                   value={highlights}
@@ -555,7 +561,7 @@ function DevelopmentBody(): React.JSX.Element {
                 />
               </div>
             </div>
-            <div className="dev-values">
+            <div className="dev-values ui-values">
               <CollectionBoundary
                 id="development.about.values"
                 value={values}
@@ -566,7 +572,7 @@ function DevelopmentBody(): React.JSX.Element {
                     <article>
                       <Icon />
                       <div>
-                        <h3>{companyValue.title}</h3>
+                        <h3 className="type-card-title">{companyValue.title}</h3>
                         <p>{companyValue.description}</p>
                       </div>
                     </article>
@@ -577,17 +583,17 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section id="reviews" className="dev-section dev-reviews">
-          <div className="dev-container">
+        <section id="reviews" className="dev-section ui-section dev-reviews ui-reviews">
+          <div className="dev-container ui-container">
             <ObjectBoundary id="development.reviews.header" value={reviewsHeader}>
-              <header className="dev-heading">
-                <span className="dev-pill">{reviewsHeader.eyebrow}</span>
-                <h2>{reviewsHeader.heading}</h2>
+              <header className="dev-heading ui-heading">
+                <span className="dev-pill ui-pill">{reviewsHeader.eyebrow}</span>
+                <h2 className="type-section-title">{reviewsHeader.heading}</h2>
                 <p>{reviewsHeader.description}</p>
                 <ReviewRating />
               </header>
             </ObjectBoundary>
-            <div className="dev-review-grid">
+            <div className="dev-review-grid ui-review-grid">
               <CollectionBoundary
                 id="development.reviews.platforms"
                 value={reviews}
@@ -606,7 +612,7 @@ function DevelopmentBody(): React.JSX.Element {
               />
             </div>
             <ObjectBoundary id="development.reviews.footer" value={reviewsFooter}>
-              <p className="dev-review-footer">
+              <p className="dev-review-footer ui-review-footer">
                 {reviewsFooter.message}{' '}
                 <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a>.
               </p>
@@ -614,16 +620,16 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section id="contact" className="dev-section dev-contact">
-          <div className="dev-container dev-contact-grid">
+        <section id="contact" className="dev-section ui-section dev-contact ui-contact">
+          <div className="dev-container ui-container dev-contact-grid ui-contact-grid">
             <div>
               <ObjectBoundary id="development.contact.header" value={contactHeader}>
-                <span className="dev-pill">{contactHeader.eyebrow}</span>
-                <h2>{contactHeader.heading}</h2>
+                <span className="dev-pill ui-pill">{contactHeader.eyebrow}</span>
+                <h2 className="type-section-title">{contactHeader.heading}</h2>
                 <p>{contactHeader.description}</p>
               </ObjectBoundary>
               <ObjectBoundary id="development.contact.details" value={contact}>
-                <div className="dev-contact-list">
+                <div className="dev-contact-list ui-contact-list">
                   <div>
                     <MapPin />
                     <p>
@@ -663,8 +669,8 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="dev-footer">
-        <div className="dev-container dev-footer-grid">
+      <footer className="dev-footer ui-footer">
+        <div className="dev-container ui-container dev-footer-grid ui-footer-grid">
           <ObjectBoundary id="development.footer.brand" value={footerBrand}>
             <div>
               <img
@@ -685,7 +691,7 @@ function DevelopmentBody(): React.JSX.Element {
             </div>
           </ObjectBoundary>
           <div>
-            <h3>{footerBrand.linksHeading}</h3>
+            <h3 className="type-card-title">{footerBrand.linksHeading}</h3>
             <CollectionBoundary
               id="development.footer.links"
               value={footerLinks}
@@ -696,7 +702,7 @@ function DevelopmentBody(): React.JSX.Element {
             />
           </div>
           <div>
-            <h3>{footerBrand.serviceAreasHeading}</h3>
+            <h3 className="type-card-title">{footerBrand.serviceAreasHeading}</h3>
             <CollectionBoundary
               id="development.footer.service-areas"
               value={serviceAreas}
@@ -707,7 +713,7 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </div>
         <ObjectBoundary id="development.footer.legal" value={footerLegal}>
-          <p className="dev-copyright">
+          <p className="dev-copyright ui-copyright">
             © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>
         </ObjectBoundary>

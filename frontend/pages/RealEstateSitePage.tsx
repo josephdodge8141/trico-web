@@ -75,7 +75,6 @@ import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
 import { RealEstateContactForm, RealEstateNewClientForm } from './RealEstateForms.js';
 import { mergeFilteredRealEstateCollection, parseRealEstateValue } from './realEstateContent.js';
-import './real-estate.css';
 
 const iconByName: Readonly<Record<string, LucideIcon>> = {
   ...contentIconComponents,
@@ -340,7 +339,7 @@ function Boundary({
   const value = parseRealEstateValue(document, id, currentDefinition.schema);
   return (
     <div
-      className={`re-entity-slot${id === 'real-estate.hero' ? ' re-hero-entity-slot' : ''}`}
+      className={`re-entity-slot ui-entity-slot${id === 'real-estate.hero' ? ' re-hero-entity-slot ui-hero-entity-slot' : ''}`}
       data-real-estate-entity-boundary="true"
     >
       <EditableBoundary
@@ -400,13 +399,13 @@ function CollectionBoundary({
   };
   return (
     <div
-      className={`re-collection-slot ${className}`}
+      className={`re-collection-slot ui-collection-slot ${className}`}
       data-real-estate-entity-boundary="true"
       role={semanticList ? 'list' : undefined}
     >
       {displayedValue.length === 0 ? (
-        <div className="re-empty-state">
-          <h3>No {currentDefinition.label.toLowerCase()} yet</h3>
+        <div className="re-empty-state ui-empty-state">
+          <h3 className="type-card-title">No {currentDefinition.label.toLowerCase()} yet</h3>
           <p>
             Add the first {currentDefinition.editor.itemLabel.toLowerCase()} when you are ready.
           </p>
@@ -448,9 +447,9 @@ function PersonCard({ item }: { readonly item: S.EditableValue }): React.JSX.Ele
 function SemanticHeading({ item }: { readonly item: S.EditableValue }): React.JSX.Element {
   const heading = S.realEstateServicesHeaderSchema.parse(item);
   return (
-    <header className="re-section-heading">
-      <span className="re-pill">{heading.eyebrow}</span>
-      <h2>{heading.heading}</h2>
+    <header className="re-section-heading ui-section-heading">
+      <span className="re-pill ui-pill">{heading.eyebrow}</span>
+      <h2 className="type-section-title">{heading.heading}</h2>
       <p>{heading.description}</p>
     </header>
   );
@@ -489,7 +488,7 @@ function RealEstateBody(): React.JSX.Element {
   }, [editing.active, editing.disabledEntityIds, editing.pending]);
   return (
     <DocumentContext.Provider value={document}>
-      <div className="re-page">
+      <div className="re-page ui-page">
         <a className="skip-link" href="#main-content">
           Skip to main content
         </a>
@@ -497,7 +496,7 @@ function RealEstateBody(): React.JSX.Element {
           {(item) => {
             const banner = S.realEstateAnniversaryBannerSchema.parse(item);
             return (
-              <div className="re-anniversary">
+              <div className="re-anniversary ui-anniversary">
                 <Sparkles aria-hidden="true" /> {banner.message} <Sparkles aria-hidden="true" />
               </div>
             );
@@ -507,9 +506,9 @@ function RealEstateBody(): React.JSX.Element {
           {(item) => {
             const header = S.realEstateHeaderSchema.parse(item);
             return (
-              <header className="re-header">
-                <div className="re-container re-header-inner">
-                  <Link to="/" className="re-brand">
+              <header className="re-header ui-header">
+                <div className="re-container ui-container re-header-inner ui-header-inner">
+                  <Link to="/" className="re-brand ui-brand">
                     <img src={imageSource(header.logo.key, tricoLogo)} alt={header.logoAltText} />
                     <strong>{header.divisionLabel}</strong>
                   </Link>
@@ -520,16 +519,19 @@ function RealEstateBody(): React.JSX.Element {
                       </a>
                     ))}
                   </nav>
-                  <div className="re-header-actions">
+                  <div className="re-header-actions ui-header-actions">
                     <a href={`tel:${header.phone.replace(/[^\d+]/g, '')}`}>
                       <Phone aria-hidden="true" /> {header.phone}
                     </a>
-                    <a href="#contact" className="re-button re-button-primary">
+                    <a
+                      href="#contact"
+                      className="re-button ui-button re-button-primary ui-button-primary"
+                    >
                       {header.actionLabel}
                     </a>
                   </div>
                   <button
-                    className="re-menu-button"
+                    className="re-menu-button ui-menu-button"
                     aria-expanded={menuOpen}
                     aria-label="Toggle menu"
                     onClick={() => setMenuOpen((value) => !value)}
@@ -538,7 +540,7 @@ function RealEstateBody(): React.JSX.Element {
                   </button>
                 </div>
                 {menuOpen ? (
-                  <nav className="re-mobile-menu">
+                  <nav className="re-mobile-menu ui-mobile-menu">
                     {header.navLinks.map((link) => (
                       <a
                         href={`#${link.destination}`}
@@ -564,24 +566,30 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const hero = S.realEstateHeroSchema.parse(item);
               return (
-                <section className="re-hero">
-                  <div className="re-container re-hero-grid">
-                    <div className="re-hero-copy">
-                      <span className="re-pill re-pill-gold">
+                <section className="re-hero ui-hero">
+                  <div className="re-container ui-container re-hero-grid ui-hero-grid">
+                    <div className="re-hero-copy ui-hero-copy">
+                      <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
                         <MapPin aria-hidden="true" /> {hero.badge}
                       </span>
-                      <h1>{hero.heading}</h1>
+                      <h1 className="type-display">{hero.heading}</h1>
                       <p>{hero.description}</p>
-                      <div className="re-actions">
-                        <a className="re-button re-button-light" href="#contact">
+                      <div className="re-actions ui-actions">
+                        <a
+                          className="re-button ui-button re-button-light ui-button-light"
+                          href="#contact"
+                        >
                           {hero.primaryActionLabel} <ArrowRight />
                         </a>
-                        <a className="re-button re-button-outline" href="#services">
+                        <a
+                          className="re-button ui-button re-button-outline ui-button-outline"
+                          href="#services"
+                        >
                           {hero.secondaryActionLabel}
                         </a>
                       </div>
                       <CollectionBoundary
-                        className="re-hero-stats"
+                        className="re-hero-stats ui-hero-stats"
                         id="real-estate.hero.stats"
                         renderItem={(item) => {
                           const stat = S.realEstateHeroStatSchema.parse(item);
@@ -597,7 +605,7 @@ function RealEstateBody(): React.JSX.Element {
                       />
                     </div>
                     <div
-                      className="re-hero-visual division-hero-media"
+                      className="re-hero-visual ui-hero-visual division-hero-media"
                       data-division-hero-media="true"
                       data-media-state="unavailable"
                     >
@@ -616,17 +624,21 @@ function RealEstateBody(): React.JSX.Element {
             }}
           </Boundary>
 
-          <section id="listings" className="re-section">
-            <div className="re-container">
+          <section id="listings" className="re-section ui-section">
+            <div className="re-container ui-container">
               <Boundary id="real-estate.listings.header">
                 {(item) => <SemanticHeading item={item} />}
               </Boundary>
-              <div className="re-listings-gallery">
+              <div className="re-listings-gallery ui-listings-gallery">
                 <Boundary id="real-estate.listings.actions">
                   {(item) => {
                     const actions = S.realEstateListingsActionsSchema.parse(item);
                     return (
-                      <div className="re-tabs" role="tablist" aria-label="Property listing status">
+                      <div
+                        className="re-tabs ui-tabs"
+                        role="tablist"
+                        aria-label="Property listing status"
+                      >
                         <button
                           role="tab"
                           aria-selected={listingTab === 'active'}
@@ -646,35 +658,37 @@ function RealEstateBody(): React.JSX.Element {
                   }}
                 </Boundary>
                 <CollectionBoundary
-                  className="re-listing-grid"
+                  className="re-listing-grid ui-listing-grid"
                   id="real-estate.listings.items"
                   filterItem={(item) => S.realEstateListingSchema.parse(item).status === listingTab}
                   blankItemPatch={{ status: listingTab }}
                   renderItem={(item) => {
                     const listing = S.realEstateListingSchema.parse(item);
                     return (
-                      <article className="re-listing" key={listing.address}>
-                        <div className="re-listing-photo">
+                      <article className="re-listing ui-listing" key={listing.address}>
+                        <div className="re-listing-photo ui-listing-photo">
                           <img
                             src={imageSource(listing.image.key, placeholderPhoto)}
                             alt={listing.imageAltText}
                           />
-                          <span className={`re-badge ${listing.status === 'sold' ? 'sold' : ''}`}>
+                          <span
+                            className={`re-badge ui-badge ${listing.status === 'sold' ? 'sold' : ''}`}
+                          >
                             {listing.status === 'sold'
                               ? interfaceCopy.soldStatus
                               : interfaceCopy.activeStatus}
                           </span>
-                          <span className="re-badge re-type">{listing.type}</span>
+                          <span className="re-badge ui-badge re-type ui-type">{listing.type}</span>
                         </div>
-                        <div className="re-listing-body">
-                          <strong className="re-price">{listing.price}</strong>
+                        <div className="re-listing-body ui-listing-body">
+                          <strong className="re-price ui-price">{listing.price}</strong>
                           <p>
                             <MapPin /> {listing.address}, {listing.city}
                           </p>
                           <span>
                             <Ruler /> {listing.detail}
                           </span>
-                          <div className="re-listing-foot">
+                          <div className="re-listing-foot ui-listing-foot">
                             <img src={realEstateLogo} alt="TriCo Real Estate" />
                             {listing.actionLabel && listing.externalUrl ? (
                               <a
@@ -689,7 +703,7 @@ function RealEstateBody(): React.JSX.Element {
                           </div>
                           {listing.gallery.length > 0 ? (
                             <div
-                              className="re-listing-gallery"
+                              className="re-listing-gallery ui-listing-gallery"
                               aria-label={`${listing.address} gallery`}
                             >
                               {listing.gallery.map((photo) => (
@@ -710,21 +724,21 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
 
-          <section id="services" className="re-section re-tint">
-            <div className="re-container">
+          <section id="services" className="re-section ui-section re-tint ui-tint">
+            <div className="re-container ui-container">
               <Boundary id="real-estate.services.header">
                 {(item) => <SemanticHeading item={item} />}
               </Boundary>
               <CollectionBoundary
-                className="re-service-grid"
+                className="re-service-grid ui-service-grid"
                 id="real-estate.services.items"
                 renderItem={(item) => {
                   const service = S.realEstateServiceSchema.parse(item);
                   const Icon = iconByName[service.icon] ?? Building2;
                   return (
-                    <article className="re-card" key={service.title}>
+                    <article className="re-card ui-card" key={service.title}>
                       <Icon />
-                      <h3>{service.title}</h3>
+                      <h3 className="type-card-title">{service.title}</h3>
                       <p>{service.description}</p>
                     </article>
                   );
@@ -733,13 +747,13 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
 
-          <section id="process" className="re-section">
-            <div className="re-container re-process-container">
+          <section id="process" className="re-section ui-section">
+            <div className="re-container ui-container re-process-container ui-process-container">
               <Boundary id="real-estate.process.header">
                 {(item) => <SemanticHeading item={item} />}
               </Boundary>
               <CollectionBoundary
-                className="re-process"
+                className="re-process ui-process"
                 id="real-estate.process.steps"
                 renderItem={(item, index) => {
                   const step = S.realEstateProcessStepSchema.parse(item);
@@ -747,7 +761,7 @@ function RealEstateBody(): React.JSX.Element {
                     <article className={index % 2 === 0 ? '' : 'reverse'} key={step.number}>
                       <div>
                         <span>{step.number}</span>
-                        <h3>{step.title}</h3>
+                        <h3 className="type-card-title">{step.title}</h3>
                         <p>{step.description}</p>
                       </div>
                     </article>
@@ -761,9 +775,9 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const about = S.realEstateAboutSchema.parse(item);
               return (
-                <section id="about" className="re-section re-dark">
-                  <div className="re-container re-about-grid">
-                    <div className="re-about-visual">
+                <section id="about" className="re-section ui-section re-dark ui-dark">
+                  <div className="re-container ui-container re-about-grid ui-about-grid">
+                    <div className="re-about-visual ui-about-visual">
                       <strong>{about.brandLabel}</strong>
                       <span>{about.eyebrow}</span>
                       <b>
@@ -773,16 +787,21 @@ function RealEstateBody(): React.JSX.Element {
                     </div>
                     <div>
                       <>
-                        <span className="re-pill re-pill-gold">{about.eyebrow}</span>
-                        <h2>{about.heading}</h2>
+                        <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
+                          {about.eyebrow}
+                        </span>
+                        <h2 className="type-section-title">{about.heading}</h2>
                         <p>{about.introduction}</p>
                         <p>{about.detail}</p>
-                        <a className="re-button re-button-light" href="#contact">
+                        <a
+                          className="re-button ui-button re-button-light ui-button-light"
+                          href="#contact"
+                        >
                           {about.actionLabel}
                         </a>
                       </>
                       <CollectionBoundary
-                        className="re-check-grid"
+                        className="re-check-grid ui-check-grid"
                         id="real-estate.about.features"
                         semanticList
                         renderItem={(featureItem) => {
@@ -805,28 +824,28 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const heading = S.realEstateTeamHeaderSchema.parse(item);
               return (
-                <section id="team" className="re-section re-tint">
-                  <div className="re-container">
-                    <header className="re-section-heading">
-                      <span className="re-pill">{heading.eyebrow}</span>
-                      <h2>{heading.heading}</h2>
+                <section id="team" className="re-section ui-section re-tint ui-tint">
+                  <div className="re-container ui-container">
+                    <header className="re-section-heading ui-section-heading">
+                      <span className="re-pill ui-pill">{heading.eyebrow}</span>
+                      <h2 className="type-section-title">{heading.heading}</h2>
                       <p>{heading.description}</p>
                     </header>
-                    <h3 className="re-group-title">{heading.leadershipLabel}</h3>
+                    <h3 className="re-group-title ui-group-title">{heading.leadershipLabel}</h3>
                     <CollectionBoundary
-                      className="re-person-grid"
+                      className="re-person-grid ui-person-grid"
                       id="real-estate.team.leadership"
                       renderItem={(personItem) => <PersonCard item={personItem} />}
                     />
-                    <h3 className="re-group-title">{heading.staffLabel}</h3>
+                    <h3 className="re-group-title ui-group-title">{heading.staffLabel}</h3>
                     <CollectionBoundary
-                      className="re-person-grid"
+                      className="re-person-grid ui-person-grid"
                       id="real-estate.team.staff"
                       renderItem={(personItem) => <PersonCard item={personItem} />}
                     />
-                    <h3 className="re-group-title">{heading.agentsLabel}</h3>
+                    <h3 className="re-group-title ui-group-title">{heading.agentsLabel}</h3>
                     <CollectionBoundary
-                      className="re-person-grid"
+                      className="re-person-grid ui-person-grid"
                       id="real-estate.team.agents"
                       renderItem={(personItem) => <PersonCard item={personItem} />}
                     />
@@ -840,11 +859,13 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const careers = S.realEstateCareersSchema.parse(item);
               return (
-                <section className="re-section re-careers">
-                  <div className="re-container re-careers-grid">
+                <section className="re-section ui-section re-careers ui-careers">
+                  <div className="re-container ui-container re-careers-grid ui-careers-grid">
                     <div>
-                      <span className="re-pill re-pill-gold">{careers.eyebrow}</span>
-                      <h2>{careers.heading}</h2>
+                      <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
+                        {careers.eyebrow}
+                      </span>
+                      <h2 className="type-section-title">{careers.heading}</h2>
                       <p>{careers.description}</p>
                       <ul>
                         {careers.benefits.map((benefit) => (
@@ -853,13 +874,16 @@ function RealEstateBody(): React.JSX.Element {
                           </li>
                         ))}
                       </ul>
-                      <a className="re-button re-button-gold" href={`mailto:${careers.email}`}>
+                      <a
+                        className="re-button ui-button re-button-gold ui-button-gold"
+                        href={`mailto:${careers.email}`}
+                      >
                         {careers.actionLabel} <ArrowRight />
                       </a>
                     </div>
                     <aside>
                       <BriefcaseBusiness />
-                      <h3>{careers.cardHeading}</h3>
+                      <h3 className="type-card-title">{careers.cardHeading}</h3>
                       <p>{careers.cardDescription}</p>
                       <a href={`mailto:${careers.email}`}>{careers.email}</a>
                     </aside>
@@ -869,20 +893,20 @@ function RealEstateBody(): React.JSX.Element {
             }}
           </Boundary>
 
-          <section className="re-section re-testimonials">
-            <div className="re-container">
+          <section className="re-section ui-section re-testimonials ui-testimonials">
+            <div className="re-container ui-container">
               <Boundary id="real-estate.testimonials.header">
                 {(item) => <SemanticHeading item={item} />}
               </Boundary>
               <CollectionBoundary
-                className="re-testimonial-grid"
+                className="re-testimonial-grid ui-testimonial-grid"
                 id="real-estate.testimonials.items"
                 renderItem={(item) => {
                   const testimonial = S.realEstateTestimonialSchema.parse(item);
                   return (
-                    <article className="re-card">
-                      <Quote className="re-quote" />{' '}
-                      <div className="re-stars">
+                    <article className="re-card ui-card">
+                      <Quote className="re-quote ui-quote" />{' '}
+                      <div className="re-stars ui-stars">
                         {Array.from({ length: testimonial.rating }).map((_, index) => (
                           <Star key={index} />
                         ))}
@@ -897,13 +921,13 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
 
-          <section id="faq" className="re-section">
-            <div className="re-container re-faq-container">
+          <section id="faq" className="re-section ui-section">
+            <div className="re-container ui-container re-faq-container ui-faq-container">
               <Boundary id="real-estate.faq.header">
                 {(item) => <SemanticHeading item={item} />}
               </Boundary>
               <CollectionBoundary
-                className="re-faqs"
+                className="re-faqs ui-faqs"
                 id="real-estate.faq.items"
                 renderItem={(item) => {
                   const faq = S.realEstateFaqItemSchema.parse(item);
@@ -923,15 +947,15 @@ function RealEstateBody(): React.JSX.Element {
 
           <RealEstateNewClientForm />
 
-          <section id="reviews" className="re-section re-reviews">
-            <div className="re-container">
+          <section id="reviews" className="re-section ui-section re-reviews ui-reviews">
+            <div className="re-container ui-container">
               <Boundary id="real-estate.reviews.header">
                 {(item) => {
                   const heading = S.realEstateReviewsHeaderSchema.parse(item);
                   return (
-                    <header className="re-section-heading">
-                      <span className="re-pill">{heading.eyebrow}</span>
-                      <h2>{heading.heading}</h2>
+                    <header className="re-section-heading ui-section-heading">
+                      <span className="re-pill ui-pill">{heading.eyebrow}</span>
+                      <h2 className="type-section-title">{heading.heading}</h2>
                       <p>{heading.description}</p>
                       <ReviewRating />
                     </header>
@@ -939,7 +963,7 @@ function RealEstateBody(): React.JSX.Element {
                 }}
               </Boundary>
               <CollectionBoundary
-                className="re-review-grid"
+                className="re-review-grid ui-review-grid"
                 id="real-estate.reviews.platforms"
                 renderItem={(item) => {
                   const platform = S.realEstateReviewPlatformSchema.parse(item);
@@ -958,7 +982,7 @@ function RealEstateBody(): React.JSX.Element {
                 {(item) => {
                   const footer = S.realEstateReviewsFooterSchema.parse(item);
                   return (
-                    <p className="re-review-footer">
+                    <p className="re-review-footer ui-review-footer">
                       {footer.message} Email <a href={`mailto:${footer.email}`}>{footer.email}</a>.
                     </p>
                   );
@@ -967,16 +991,16 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
 
-          <section id="contact" className="re-section re-contact">
-            <div className="re-container re-contact-grid">
+          <section id="contact" className="re-section ui-section re-contact ui-contact">
+            <div className="re-container ui-container re-contact-grid ui-contact-grid">
               <div>
                 <Boundary id="real-estate.contact.header">
                   {(item) => {
                     const heading = S.realEstateContactHeaderSchema.parse(item);
                     return (
                       <>
-                        <span className="re-pill">{heading.eyebrow}</span>
-                        <h2>{heading.heading}</h2>
+                        <span className="re-pill ui-pill">{heading.eyebrow}</span>
+                        <h2 className="type-section-title">{heading.heading}</h2>
                         <p>{heading.description}</p>
                       </>
                     );
@@ -986,7 +1010,7 @@ function RealEstateBody(): React.JSX.Element {
                   {(item) => {
                     const contact = S.realEstateContactDetailsSchema.parse(item);
                     return (
-                      <div className="re-contact-list">
+                      <div className="re-contact-list ui-contact-list">
                         <div>
                           <MapPin />
                           <p>
@@ -1028,8 +1052,8 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
         </main>
-        <footer className="re-footer">
-          <div className="re-container re-footer-grid">
+        <footer className="re-footer ui-footer">
+          <div className="re-container ui-container re-footer-grid ui-footer-grid">
             <Boundary id="real-estate.footer.brand">
               {(item) => {
                 const brand = S.realEstateFooterBrandSchema.parse(item);
@@ -1051,13 +1075,15 @@ function RealEstateBody(): React.JSX.Element {
               }}
             </Boundary>
             <CollectionBoundary
-              className="re-footer-links"
+              className="re-footer-links ui-footer-links"
               id="real-estate.footer.links"
               renderItem={(item, index) => {
                 const link = S.realEstateFooterLinkSchema.parse(item);
                 return (
                   <>
-                    {index === 0 ? <h3>{interfaceCopy.footerNavigation}</h3> : null}
+                    {index === 0 ? (
+                      <h3 className="type-card-title">{interfaceCopy.footerNavigation}</h3>
+                    ) : null}
                     <a href={`#${link.destination}`}>{link.label}</a>
                   </>
                 );
@@ -1068,7 +1094,7 @@ function RealEstateBody(): React.JSX.Element {
                 const license = S.realEstateFooterLicenseSchema.parse(item);
                 return (
                   <div>
-                    <h3>{license.heading}</h3>
+                    <h3 className="type-card-title">{license.heading}</h3>
                     <p>{license.license}</p>
                   </div>
                 );
@@ -1079,7 +1105,7 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const legal = S.realEstateFooterLegalSchema.parse(item);
               return (
-                <p className="re-copyright">
+                <p className="re-copyright ui-copyright">
                   © {new Date().getFullYear()} {legal.organizationName}. {legal.rightsNotice}
                 </p>
               );

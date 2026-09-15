@@ -30,7 +30,7 @@ function FieldError({
   readonly name: string;
 }): React.JSX.Element | null {
   const message = errors[name];
-  return message === undefined ? null : <p className="pm-form-error">{message}</p>;
+  return message === undefined ? null : <p className="pm-form-error ui-form-error">{message}</p>;
 }
 
 export function PropertyManagementNewClientForm(): React.JSX.Element {
@@ -51,9 +51,12 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
     }
   };
   return (
-    <section className="pm-section pm-tint pm-new-client" id="new-client">
-      <div className="pm-container pm-narrow">
-        <header className="pm-section-heading">
+    <section
+      className="pm-section ui-section pm-tint ui-tint pm-new-client ui-new-client"
+      id="new-client"
+    >
+      <div className="pm-container ui-container pm-narrow ui-narrow">
+        <header className="pm-section-heading ui-section-heading">
           <span>New Clients</span>
           <h2>New Client Inquiry</h2>
           <p>
@@ -61,9 +64,9 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
             up within one business day.
           </p>
         </header>
-        <div className="pm-form-card">
+        <div className="pm-form-card ui-form-card">
           {submitted ? (
-            <div className="pm-form-success" role="status">
+            <div className="pm-form-success ui-form-success" role="status">
               <h3>Thanks for reaching out!</h3>
               <p>Your inquiry is ready for our property management team.</p>
               <button type="button" onClick={() => setSubmitted(false)}>
@@ -72,7 +75,7 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
             </div>
           ) : (
             <form aria-label="New client inquiry" noValidate onSubmit={submit}>
-              <div className="pm-form-grid">
+              <div className="pm-form-grid ui-form-grid">
                 <label>
                   Full Name *<input name="name" maxLength={100} placeholder="Jane Smith" />
                   <FieldError errors={errors} name="name" />
@@ -83,7 +86,7 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
                   <FieldError errors={errors} name="email" />
                 </label>
               </div>
-              <div className="pm-form-grid">
+              <div className="pm-form-grid ui-form-grid">
                 <label>
                   Phone
                   <input name="phone" type="tel" maxLength={30} placeholder="(801) 555-1234" />
@@ -119,10 +122,13 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
                   placeholder="Tell us a little about your property or goals..."
                 />
               </label>
-              <button className="pm-button pm-button-primary" type="submit">
+              <button
+                className="pm-button ui-button pm-button-primary ui-button-primary"
+                type="submit"
+              >
                 Submit Inquiry
               </button>
-              <p className="pm-form-note">
+              <p className="pm-form-note ui-form-note">
                 Your information stays on this page until you choose to submit it.
               </p>
             </form>
@@ -152,10 +158,10 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
     }
   };
   return (
-    <div className="pm-form-card pm-analysis-form">
+    <div className="pm-form-card ui-form-card pm-analysis-form ui-analysis-form">
       <h3>Request Your Free Analysis</h3>
       {submitted ? (
-        <div className="pm-form-success" role="status">
+        <div className="pm-form-success ui-form-success" role="status">
           <h4>Thank you for your inquiry!</h4>
           <p>We'll be in touch within 24 hours.</p>
           <button type="button" onClick={() => setSubmitted(false)}>
@@ -164,7 +170,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
         </div>
       ) : (
         <form aria-label="Free property analysis" noValidate onSubmit={submit}>
-          <div className="pm-form-grid">
+          <div className="pm-form-grid ui-form-grid">
             <label>
               First Name *<input name="firstName" placeholder="John" />
               <FieldError errors={errors} name="firstName" />
@@ -174,7 +180,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
               <FieldError errors={errors} name="lastName" />
             </label>
           </div>
-          <div className="pm-form-grid">
+          <div className="pm-form-grid ui-form-grid">
             <label>
               Email *<input name="email" type="email" placeholder="john@example.com" />
               <FieldError errors={errors} name="email" />
@@ -199,7 +205,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
               placeholder="Tell us about your property and what you're looking for..."
             />
           </label>
-          <button className="pm-button pm-button-primary" type="submit">
+          <button className="pm-button ui-button pm-button-primary ui-button-primary" type="submit">
             Get Free Analysis
           </button>
         </form>

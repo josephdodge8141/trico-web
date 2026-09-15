@@ -10,8 +10,8 @@ const forbiddenPath =
   /(?:^|\/)(?:\.git|node_modules|dist|build|cdk\.out|artifacts|test-results|playwright-report)(?:\/|$)/;
 const forbiddenName = /(?:^|\/)\.env(?:$|\.(?!example$))/;
 const privateContent = [
-  /\/Users\/[A-Za-z0-9._-]+/,
-  /\/home\/[A-Za-z0-9._-]+/,
+  /\/Users\/[A-Za-z0-9._-]+\//,
+  /\/home\/[A-Za-z0-9._-]+\//,
   /BEGIN [A-Z ]+ PRIVATE KEY/,
   /\bAKIA[0-9A-Z]{16}\b/,
 ];

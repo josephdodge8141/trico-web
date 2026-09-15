@@ -30,7 +30,6 @@ import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
 import { parseConstructionValue } from './constructionContent.js';
 import { constructionCategories } from './pageContent.js';
-import './construction.css';
 
 const categoryImages: Readonly<Record<string, string>> = {
   'media/seed/trico-logo.png': tricoLogo,
@@ -144,23 +143,23 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
     </EditableBoundary>
   );
   return (
-    <div className="co-page co-category">
+    <div className="co-page ui-page co-category ui-category">
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
       {sharedBoundary(
         'construction.anniversary-banner',
         editableValueSchema.parse(banner),
-        <div className="co-anniversary">
+        <div className="co-anniversary ui-anniversary">
           ✦ <strong>{banner.message}</strong> ✦
         </div>,
       )}
       {sharedBoundary(
         'construction.header',
         editableValueSchema.parse(siteHeader),
-        <header className="co-header">
-          <div className="co-container co-header-inner">
-            <Link className="co-brand" to="/">
+        <header className="co-header ui-header">
+          <div className="co-container ui-container co-header-inner ui-header-inner">
+            <Link className="co-brand ui-brand" to="/">
               <img
                 src={constructionImage(siteHeader.logo.key, tricoLogo)}
                 alt={siteHeader.logoAltText}
@@ -174,16 +173,19 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
                 </Link>
               ))}
             </nav>
-            <div className="co-header-actions">
+            <div className="co-header-actions ui-header-actions">
               <a href={`tel:${siteHeader.phone.replace(/[^\d+]/g, '')}`}>
                 <Phone /> {siteHeader.phone}
               </a>
-              <Link className="co-button co-button-blue" to="/construction#contact">
+              <Link
+                className="co-button ui-button co-button-blue ui-button-blue"
+                to="/construction#contact"
+              >
                 {siteHeader.actionLabel}
               </Link>
             </div>
             <button
-              className="co-menu"
+              className="co-menu ui-menu"
               type="button"
               aria-expanded={menuOpen}
               aria-label="Toggle menu"
@@ -193,7 +195,7 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
             </button>
           </div>
           {menuOpen ? (
-            <nav className="co-mobile-nav" aria-label="Mobile navigation">
+            <nav className="co-mobile-nav ui-mobile-nav" aria-label="Mobile navigation">
               {siteHeader.navLinks.map((item) => (
                 <Link
                   key={item.id}
@@ -209,8 +211,8 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
         </header>,
       )}
       <main id="main-content">
-        <div className="co-container">
-          <Link className="co-category-back" to="/construction#projects">
+        <div className="co-container ui-container">
+          <Link className="co-category-back ui-category-back" to="/construction#projects">
             <ArrowLeft /> Back to Construction
           </Link>
           <EditableBoundary
@@ -222,13 +224,13 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
             onSave={(next) => editing.save(categoryEntityId, next)}
             onReloadLatest={() => editing.reload(categoryEntityId)}
           >
-            <header className="co-heading">
+            <header className="co-heading ui-heading">
               <span>{sectionHeader.eyebrow}</span>
-              <h1>{categoryValue.label}</h1>
+              <h1 className="type-display">{categoryValue.label}</h1>
               <p>{categoryValue.blurb}</p>
             </header>
           </EditableBoundary>
-          <nav className="co-category-tabs" aria-label="Project categories">
+          <nav className="co-category-tabs ui-category-tabs" aria-label="Project categories">
             {constructionCategories.map((item) => (
               <Link
                 className={item === category ? 'active' : ''}
@@ -257,19 +259,22 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
                 onSave={(next) => editing.save(projectEntityId, next)}
                 onReloadLatest={() => editing.reload(projectEntityId)}
               />
-              <div className="co-project-empty">
+              <div className="co-project-empty ui-project-empty">
                 <ImageIcon aria-hidden="true" />
-                <h2>No projects are published in this category.</h2>
+                <h2 className="type-section-title">No projects are published in this category.</h2>
                 <p>
                   Contact our construction team for current capabilities and project references.
                 </p>
-                <Link className="co-button co-button-blue" to="/construction#contact">
+                <Link
+                  className="co-button ui-button co-button-blue ui-button-blue"
+                  to="/construction#contact"
+                >
                   Contact construction
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="co-project-grid">
+            <div className="co-project-grid ui-project-grid">
               <EditableCollection
                 active={editing.active}
                 definition={projectDefinition}
@@ -277,18 +282,18 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
                 renderItem={(item: EditableValue) => {
                   const project = constructionProjectsSchema.element.parse(item);
                   return (
-                    <article className="co-project-card">
+                    <article className="co-project-card ui-project-card">
                       <img
-                        className="co-project-photo"
+                        className="co-project-photo ui-project-photo"
                         src={constructionImage(project.photo.key, placeholderImage)}
                         alt={project.photoAltText}
                       />
                       <div>
                         <span>{project.dateLabel}</span>
-                        <h2>{project.name}</h2>
+                        <h2 className="type-section-title">{project.name}</h2>
                         <p>{project.description}</p>
                         {project.address === '' ? null : <p>{project.address}</p>}
-                        <dl className="co-project-details">
+                        <dl className="co-project-details ui-project-details">
                           {[
                             ['Owner', project.owner],
                             ['Architect', project.architect],
@@ -316,8 +321,8 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
           )}
         </div>
       </main>
-      <footer className="co-footer">
-        <div className="co-container co-footer-grid">
+      <footer className="co-footer ui-footer">
+        <div className="co-container ui-container co-footer-grid ui-footer-grid">
           {sharedBoundary(
             'construction.footer.brand',
             editableValueSchema.parse(footerBrand),
@@ -337,7 +342,7 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
             </div>,
           )}
           <nav aria-label="Quick links">
-            <h3>Quick Links</h3>
+            <h3 className="type-card-title">Quick Links</h3>
             <EditableCollection
               active={editing.active}
               definition={definition('construction.footer.links')}
@@ -356,7 +361,7 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
             'construction.footer.licenses',
             editableValueSchema.parse(footerLicenses),
             <div>
-              <h3>{footerLicenses.heading}</h3>
+              <h3 className="type-card-title">{footerLicenses.heading}</h3>
               {footerLicenses.licenses.map((license) => (
                 <p key={license.id}>{license.label}</p>
               ))}
@@ -366,7 +371,7 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
         {sharedBoundary(
           'construction.footer.legal',
           editableValueSchema.parse(footerLegal),
-          <p className="co-legal">
+          <p className="co-legal ui-legal">
             © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>,
         )}

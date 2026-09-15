@@ -36,6 +36,6 @@ test('Development page uses semantic labels and valid editable highlight markup'
   assert.equal(source.includes('<strong>Office Location</strong>'), false);
   assert.equal(source.includes('<h3>Quick Links</h3>'), false);
   assert.equal(source.includes('<ul className="dev-highlights">'), false);
-  assert.match(source, /className="dev-highlights" role="list"/);
+  assert.match(source, /className="dev-highlights ui-highlights"\s+role="list"/);
   assert.match(source, /<div role="listitem">/);
 });

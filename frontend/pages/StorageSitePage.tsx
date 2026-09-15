@@ -73,7 +73,6 @@ import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
 import { StorageContactForm } from './StorageContactForm.js';
 import { parseStorageValue } from './storageContent.js';
-import './storage.css';
 
 type StorageEntityId = (typeof storageEntityDefinitions)[number]['id'];
 const icons: Readonly<Record<string, LucideIcon>> = {
@@ -131,7 +130,7 @@ function ObjectBoundary({
   const editing = useEditMode();
   return (
     <div
-      className={`storage-entity-slot${id === 'storage.hero' ? ' storage-hero-entity-slot' : ''}`}
+      className={`storage-entity-slot ui-entity-slot${id === 'storage.hero' ? ' storage-hero-entity-slot ui-hero-entity-slot' : ''}`}
       data-storage-entity-boundary="true"
     >
       <EditableBoundary
@@ -159,7 +158,7 @@ function CollectionBoundary({
 }): React.JSX.Element {
   const editing = useEditMode();
   return (
-    <div className="storage-entity-slot" data-storage-entity-boundary="true">
+    <div className="storage-entity-slot ui-entity-slot" data-storage-entity-boundary="true">
       <EditableCollection
         active={editing.active}
         layout="fill"
@@ -184,9 +183,9 @@ function SectionHeading({
   };
 }): React.JSX.Element {
   return (
-    <header className="storage-section-heading">
+    <header className="storage-section-heading ui-section-heading">
       <span>{value.eyebrow}</span>
-      <h2>{value.heading}</h2>
+      <h2 className="type-section-title">{value.heading}</h2>
       <p>{value.description}</p>
     </header>
   );
@@ -238,19 +237,19 @@ function StorageBody(): React.JSX.Element {
   const branding = value('storage.footer.branding-options', storageFooterBrandingOptionsSchema);
   const legal = value('storage.footer.legal', storageFooterLegalSchema);
   return (
-    <div className="storage-page">
+    <div className="storage-page ui-page">
       <a className="skip-link" href="#storage-main">
         Skip to main content
       </a>
       <ObjectBoundary id="storage.anniversary-banner" value={banner}>
-        <div className="storage-banner">
+        <div className="storage-banner ui-banner">
           <Sparkles aria-hidden="true" />
           <strong>{banner.message}</strong>
           <Sparkles aria-hidden="true" />
         </div>
       </ObjectBoundary>
       <ObjectBoundary id="storage.header" value={header}>
-        <header className="storage-header">
+        <header className="storage-header ui-header">
           <Link to="/" aria-label="TriCo home">
             <img src={managedImage(header.logo.key, storageLogo)} alt={header.logoAltText} />
           </Link>
@@ -271,7 +270,7 @@ function StorageBody(): React.JSX.Element {
           </button>
         </header>
         {menuOpen ? (
-          <nav className="storage-mobile-nav" aria-label="Mobile storage navigation">
+          <nav className="storage-mobile-nav ui-mobile-nav" aria-label="Mobile storage navigation">
             {header.navLinks.map((item) => (
               <a key={item.id} href={anchor(item.destination)} onClick={() => setMenuOpen(false)}>
                 {item.label}
@@ -281,25 +280,25 @@ function StorageBody(): React.JSX.Element {
         ) : null}
       </ObjectBoundary>
       {fallback ? (
-        <p className="storage-notice" role="status">
+        <p className="storage-notice ui-notice" role="status">
           Showing the checked-in site content while published Storage content is unavailable.
         </p>
       ) : null}
       <main id="storage-main">
         <ObjectBoundary id="storage.hero" value={hero}>
-          <section className="storage-hero">
-            <div className="storage-hero-copy">
-              <div className="storage-badges">
+          <section className="storage-hero ui-hero">
+            <div className="storage-hero-copy ui-hero-copy">
+              <div className="storage-badges ui-badges">
                 <span>
                   <Warehouse />
                   {hero.primaryBadge}
                 </span>
                 <span>{hero.serviceAreaBadge}</span>
               </div>
-              <h1>{hero.heading}</h1>
-              <p className="storage-promise">{hero.subheading}</p>
+              <h1 className="type-display">{hero.heading}</h1>
+              <p className="storage-promise ui-promise">{hero.subheading}</p>
               <p>{hero.description}</p>
-              <div className="storage-actions">
+              <div className="storage-actions ui-actions">
                 <a href="#contact">
                   {hero.primaryActionLabel}
                   <ArrowRight />
@@ -313,7 +312,7 @@ function StorageBody(): React.JSX.Element {
                   const stat = storageHeroStatSchema.parse(item);
                   const Icon = icons[stat.icon] ?? TrendingUp;
                   return (
-                    <article className="storage-stat">
+                    <article className="storage-stat ui-stat">
                       <Icon />
                       <strong>{stat.value}</strong>
                       <span>{stat.label}</span>
@@ -332,7 +331,7 @@ function StorageBody(): React.JSX.Element {
             </figure>
           </section>
         </ObjectBoundary>
-        <section id="services" className="storage-section storage-services">
+        <section id="services" className="storage-section ui-section storage-services ui-services">
           <ObjectBoundary id="storage.services.header" value={servicesHeader}>
             <SectionHeading value={servicesHeader} />
           </ObjectBoundary>
@@ -343,18 +342,18 @@ function StorageBody(): React.JSX.Element {
               const service = storageServiceSchema.parse(item);
               const Icon = icons[service.icon] ?? Building;
               return (
-                <article className="storage-service-card">
+                <article className="storage-service-card ui-service-card">
                   <span>
                     <Icon />
                   </span>
-                  <h3>{service.title}</h3>
+                  <h3 className="type-card-title">{service.title}</h3>
                   <p>{service.description}</p>
                 </article>
               );
             }}
           />
         </section>
-        <section id="team" className="storage-section storage-team">
+        <section id="team" className="storage-section ui-section storage-team ui-team">
           <ObjectBoundary id="storage.team.header" value={teamHeader}>
             <SectionHeading value={teamHeader} />
           </ObjectBoundary>
@@ -364,13 +363,13 @@ function StorageBody(): React.JSX.Element {
             renderItem={(item) => {
               const member = storageTeamMemberSchema.parse(item);
               return (
-                <article className="storage-team-card">
+                <article className="storage-team-card ui-team-card">
                   <img
                     src={managedImage(member.image.key, storageLogo)}
                     alt={member.imageAltText}
                   />
                   <div>
-                    <h3>{member.name}</h3>
+                    <h3 className="type-card-title">{member.name}</h3>
                     <strong>{member.role}</strong>
                     <p>{member.bio}</p>
                   </div>
@@ -380,8 +379,8 @@ function StorageBody(): React.JSX.Element {
           />
         </section>
         <ObjectBoundary id="storage.about" value={about}>
-          <section id="about" className="storage-about">
-            <div className="storage-about-mark">
+          <section id="about" className="storage-about ui-about">
+            <div className="storage-about-mark ui-about-mark">
               <strong>TriCo</strong>
               <span>Storage Management</span>
               <aside>
@@ -390,17 +389,17 @@ function StorageBody(): React.JSX.Element {
               </aside>
             </div>
             <div>
-              <span className="storage-pill">{about.eyebrow}</span>
-              <h2>{about.heading}</h2>
+              <span className="storage-pill ui-pill">{about.eyebrow}</span>
+              <h2 className="type-section-title">{about.heading}</h2>
               <p>{about.introduction}</p>
-              <p className="storage-bridge">{about.bridge}</p>
+              <p className="storage-bridge ui-bridge">{about.bridge}</p>
               <p>{about.detail}</p>
               <p>{about.conclusion}</p>
               <a href="#contact">{about.actionLabel}</a>
             </div>
           </section>
         </ObjectBoundary>
-        <section id="reviews" className="storage-section storage-reviews">
+        <section id="reviews" className="storage-section ui-section storage-reviews ui-reviews">
           <ObjectBoundary id="storage.reviews.header" value={reviewsHeader}>
             <SectionHeading value={reviewsHeader} />
             <ReviewRating />
@@ -422,20 +421,20 @@ function StorageBody(): React.JSX.Element {
             }}
           />
           <ObjectBoundary id="storage.reviews.footer" value={reviewsFooter}>
-            <p className="storage-review-footer">
+            <p className="storage-review-footer ui-review-footer">
               {reviewsFooter.message}{' '}
               <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a> — we read every
               message.
             </p>
           </ObjectBoundary>
         </section>
-        <section id="contact" className="storage-section storage-contact">
+        <section id="contact" className="storage-section ui-section storage-contact ui-contact">
           <div>
             <ObjectBoundary id="storage.contact.header" value={contactHeader}>
               <SectionHeading value={contactHeader} />
             </ObjectBoundary>
             <ObjectBoundary id="storage.contact.details" value={contact}>
-              <div className="storage-contact-details">
+              <div className="storage-contact-details ui-contact-details">
                 <div>
                   <MapPin />
                   <p>
@@ -471,8 +470,8 @@ function StorageBody(): React.JSX.Element {
           <StorageContactForm />
         </section>
       </main>
-      <footer className="storage-footer">
-        <div className="storage-footer-grid">
+      <footer className="storage-footer ui-footer">
+        <div className="storage-footer-grid ui-footer-grid">
           <ObjectBoundary id="storage.footer.brand" value={footerBrand}>
             <div>
               <img
@@ -488,14 +487,14 @@ function StorageBody(): React.JSX.Element {
             </div>
           </ObjectBoundary>
           <div>
-            <h3>Quick Links</h3>
+            <h3 className="type-card-title">Quick Links</h3>
             <CollectionBoundary
               id="storage.footer.links"
               value={footerLinks}
               renderItem={(item) => {
                 const link = storageFooterLinkSchema.parse(item);
                 return (
-                  <a className="storage-footer-link" href={anchor(link.destination)}>
+                  <a className="storage-footer-link ui-footer-link" href={anchor(link.destination)}>
                     {link.label}
                   </a>
                 );
@@ -503,12 +502,12 @@ function StorageBody(): React.JSX.Element {
             />
           </div>
           <div id="features">
-            <h3>Branding Options</h3>
+            <h3 className="type-card-title">Branding Options</h3>
             <CollectionBoundary
               id="storage.footer.branding-options"
               value={branding}
               renderItem={(item) => (
-                <span className="storage-branding-option">
+                <span className="storage-branding-option ui-branding-option">
                   {storageFooterBrandingOptionsSchema.element.parse(item).label}
                 </span>
               )}

@@ -8,4 +8,4 @@ Feature: Ordinary source boundaries
     browser-noop: Static source-policy failures have no public preview page interaction.
     Given the known application source directories and TypeScript projects
     When the source policy examines authored source
-    Then it rejects unknown source placement backend import inversions frontend transport outside services and suppression directives
+    Then it rejects unknown source placement backend import inversions frontend transport outside services suppression directives and visual styling outside the shared design system

@@ -5,7 +5,7 @@ export function StorageContactForm(): React.JSX.Element {
   const [submitted, setSubmitted] = useState(false);
   return (
     <form
-      className="storage-contact-form"
+      className="storage-contact-form ui-contact-form"
       aria-label="Request a storage management consultation"
       onSubmit={(event) => {
         event.preventDefault();
@@ -15,7 +15,7 @@ export function StorageContactForm(): React.JSX.Element {
       }}
     >
       <h3>Request a Consultation</h3>
-      <div className="storage-form-row">
+      <div className="storage-form-row ui-form-row">
         <label>
           First Name *<input name="firstName" required placeholder="John" />
         </label>
@@ -23,7 +23,7 @@ export function StorageContactForm(): React.JSX.Element {
           Last Name *<input name="lastName" required placeholder="Doe" />
         </label>
       </div>
-      <div className="storage-form-row">
+      <div className="storage-form-row ui-form-row">
         <label>
           Email *<input name="email" type="email" required placeholder="john@example.com" />
         </label>

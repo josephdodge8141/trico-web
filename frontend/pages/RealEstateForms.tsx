@@ -16,26 +16,26 @@ function useLocalFormSuccess(): readonly [boolean, (event: FormEvent<HTMLFormEle
 export function RealEstateNewClientForm(): React.JSX.Element {
   const [submitted, submit] = useLocalFormSuccess();
   return (
-    <section id="new-client" className="re-section re-new-client">
-      <div className="re-container re-form-narrow">
-        <header className="re-section-heading">
-          <span className="re-pill">New Clients</span>
+    <section id="new-client" className="re-section ui-section re-new-client ui-new-client">
+      <div className="re-container ui-container re-form-narrow ui-form-narrow">
+        <header className="re-section-heading ui-section-heading">
+          <span className="re-pill ui-pill">New Clients</span>
           <h2>New Client Inquiry</h2>
           <p>
             Buying, selling, or investing? Tell us a bit about your goals and one of our agents will
             reach out within one business day.
           </p>
         </header>
-        <div className="re-form-card">
+        <div className="re-form-card ui-form-card">
           {submitted ? (
-            <div className="re-form-success" role="status">
+            <div className="re-form-success ui-form-success" role="status">
               <CheckCircle2 aria-hidden="true" />
               <h3>Thanks for reaching out!</h3>
               <p>Your inquiry is ready for our team to review.</p>
             </div>
           ) : (
             <form onSubmit={submit}>
-              <div className="re-field-grid">
+              <div className="re-field-grid ui-field-grid">
                 <label>
                   Full Name *
                   <input name="name" required placeholder="Jane Smith" />
@@ -75,7 +75,10 @@ export function RealEstateNewClientForm(): React.JSX.Element {
                   placeholder="Tell us about your property or goals…"
                 />
               </label>
-              <button className="re-button re-button-primary re-button-wide" type="submit">
+              <button
+                className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide"
+                type="submit"
+              >
                 Submit Inquiry <Send aria-hidden="true" />
               </button>
             </form>
@@ -90,7 +93,7 @@ export function RealEstateContactForm(): React.JSX.Element {
   const [submitted, submit] = useLocalFormSuccess();
   if (submitted) {
     return (
-      <div className="re-form-card re-form-success" role="status">
+      <div className="re-form-card ui-form-card re-form-success ui-form-success" role="status">
         <CheckCircle2 aria-hidden="true" />
         <h3>Thank you for your inquiry!</h3>
         <p>A real estate specialist will contact you within 24 hours.</p>
@@ -98,10 +101,10 @@ export function RealEstateContactForm(): React.JSX.Element {
     );
   }
   return (
-    <div className="re-form-card">
+    <div className="re-form-card ui-form-card">
       <h3>Start Your Real Estate Journey</h3>
       <form onSubmit={submit}>
-        <div className="re-field-grid">
+        <div className="re-field-grid ui-field-grid">
           <label>
             First Name *
             <input name="firstName" required placeholder="John" />
@@ -131,7 +134,10 @@ export function RealEstateContactForm(): React.JSX.Element {
             placeholder="Share details about your real estate needs…"
           />
         </label>
-        <button className="re-button re-button-primary re-button-wide" type="submit">
+        <button
+          className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide"
+          type="submit"
+        >
           Get Started <Send aria-hidden="true" />
         </button>
       </form>

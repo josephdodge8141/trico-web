@@ -82,7 +82,7 @@ export function HomeResumeForm(): React.JSX.Element {
 
   if (submittedName !== undefined) {
     return (
-      <div className="home-resume-success" role="status">
+      <div className="home-resume-success ui-resume-success" role="status">
         <CheckCircle2 aria-hidden="true" />
         <h4>Thank you, {submittedName}!</h4>
         <p>
@@ -103,8 +103,8 @@ export function HomeResumeForm(): React.JSX.Element {
   }
 
   return (
-    <form className="home-resume-form" noValidate onSubmit={submit}>
-      <div className="home-form-grid">
+    <form className="home-resume-form ui-resume-form" noValidate onSubmit={submit}>
+      <div className="home-form-grid ui-form-grid">
         <label>
           <span>Full Name *</span>
           <input
@@ -117,7 +117,7 @@ export function HomeResumeForm(): React.JSX.Element {
             aria-describedby={errors.name === undefined ? undefined : 'home-resume-name-error'}
           />
           {errors.name === undefined ? null : (
-            <small id="home-resume-name-error" className="home-form-error">
+            <small id="home-resume-name-error" className="home-form-error ui-form-error">
               {errors.name}
             </small>
           )}
@@ -135,7 +135,7 @@ export function HomeResumeForm(): React.JSX.Element {
             aria-describedby={errors.email === undefined ? undefined : 'home-resume-email-error'}
           />
           {errors.email === undefined ? null : (
-            <small id="home-resume-email-error" className="home-form-error">
+            <small id="home-resume-email-error" className="home-form-error ui-form-error">
               {errors.email}
             </small>
           )}
@@ -153,7 +153,7 @@ export function HomeResumeForm(): React.JSX.Element {
             aria-describedby={errors.phone === undefined ? undefined : 'home-resume-phone-error'}
           />
           {errors.phone === undefined ? null : (
-            <small id="home-resume-phone-error" className="home-form-error">
+            <small id="home-resume-phone-error" className="home-form-error ui-form-error">
               {errors.phone}
             </small>
           )}
@@ -177,7 +177,7 @@ export function HomeResumeForm(): React.JSX.Element {
             ))}
           </select>
           {errors.division === undefined ? null : (
-            <small id="home-resume-division-error" className="home-form-error">
+            <small id="home-resume-division-error" className="home-form-error ui-form-error">
               {errors.division}
             </small>
           )}
@@ -208,7 +208,7 @@ export function HomeResumeForm(): React.JSX.Element {
         <span>
           Resume * <small>(PDF or Word, max 10MB)</small>
         </span>
-        <span className="home-file-control">
+        <span className="home-file-control ui-file-control">
           <Upload aria-hidden="true" />
           <span>{value.resumeName === '' ? 'Click to upload your resume' : value.resumeName}</span>
           <input
@@ -223,16 +223,18 @@ export function HomeResumeForm(): React.JSX.Element {
           />
         </span>
         {errors.resumeName === undefined ? null : (
-          <small id="home-resume-file-error" className="home-form-error">
+          <small id="home-resume-file-error" className="home-form-error ui-form-error">
             {errors.resumeName}
           </small>
         )}
       </label>
-      <button className="home-submit-button" type="submit">
+      <button className="home-submit-button ui-submit-button" type="submit">
         <Send aria-hidden="true" />
         Submit Resume
       </button>
-      <p className="home-form-note">Your information is prepared locally in this browser.</p>
+      <p className="home-form-note ui-form-note">
+        Your information is prepared locally in this browser.
+      </p>
     </form>
   );
 }

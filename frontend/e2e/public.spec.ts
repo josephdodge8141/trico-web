@@ -113,7 +113,7 @@ test('self-hosts the single public-site typeface and every used weight', async (
   expect([...new Set(registeredFaces.map(({ family }) => family))]).toEqual(['Open Sans']);
   expect(
     [...new Set(registeredFaces.map(({ weight }) => weight))].sort((left, right) => left - right),
-  ).toEqual([300, 400, 500, 600, 700, 800]);
+  ).toEqual([400, 600, 700, 800]);
   await expect(page.locator('.pm-page')).toHaveCSS('font-family', /Open Sans/);
   await expect(page.getByRole('heading', { name: 'What to Expect with TriCo' })).toHaveCSS(
     'font-family',
@@ -553,9 +553,9 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
     expect(secondaryBox?.x).toBeGreaterThan((primaryBox?.x ?? 0) + (primaryBox?.width ?? 0));
     expect(secondaryBox?.y).toBe(primaryBox?.y);
     await expect(primary).toHaveCSS('border-radius', '6px');
-    await expect(primary).toHaveCSS('font-weight', '500');
+    await expect(primary).toHaveCSS('font-weight', '600');
     await expect(secondary).toHaveCSS('border-radius', '6px');
-    await expect(secondary).toHaveCSS('font-weight', '500');
+    await expect(secondary).toHaveCSS('font-weight', '600');
   }
 
   await page.setViewportSize({ width: 1440, height: 1100 });

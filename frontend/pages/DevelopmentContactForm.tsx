@@ -10,7 +10,7 @@ export function DevelopmentContactForm(): React.JSX.Element {
   };
   if (submitted) {
     return (
-      <div className="dev-form-card dev-form-success" role="status">
+      <div className="dev-form-card ui-form-card dev-form-success ui-form-success" role="status">
         <CheckCircle2 aria-hidden="true" />
         <h3>Thank you for your inquiry!</h3>
         <p>A development specialist will contact you within 24 hours.</p>
@@ -18,10 +18,10 @@ export function DevelopmentContactForm(): React.JSX.Element {
     );
   }
   return (
-    <div className="dev-form-card">
+    <div className="dev-form-card ui-form-card">
       <h3>Start Your Development Project</h3>
       <form onSubmit={submit}>
-        <div className="dev-field-grid">
+        <div className="dev-field-grid ui-field-grid">
           <label>
             First Name *<input name="firstName" required placeholder="John" />
           </label>
@@ -47,7 +47,10 @@ export function DevelopmentContactForm(): React.JSX.Element {
             placeholder="Share details about your development vision…"
           />
         </label>
-        <button className="dev-button dev-primary dev-wide" type="submit">
+        <button
+          className="dev-button ui-button dev-primary ui-primary dev-wide ui-wide"
+          type="submit"
+        >
           Get Started <Send aria-hidden="true" />
         </button>
       </form>

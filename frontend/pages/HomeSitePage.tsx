@@ -54,7 +54,6 @@ import {
   parseHomePageDocument,
   type HomePageDocument,
 } from './homeContent.js';
-import './home.css';
 
 const iconByName: Readonly<Record<string, LucideIcon>> = {
   ...contentIconComponents,
@@ -137,7 +136,7 @@ function ObjectBoundary({
         ? 'mine'
         : 'other';
   return (
-    <div className="home-entity-slot" data-home-entity-boundary="true">
+    <div className="home-entity-slot ui-entity-slot" data-home-entity-boundary="true">
       <EditableBoundary
         active={editing.active}
         definition={requireHomeDefinition(entityId)}
@@ -165,7 +164,7 @@ function CollectionBoundary({
   const editing = useEditMode();
   const pending = editing.pending.find((change) => change.entityId === entityId);
   return (
-    <div className="home-entity-slot" data-home-entity-boundary="true">
+    <div className="home-entity-slot ui-entity-slot" data-home-entity-boundary="true">
       <EditableCollection
         active={editing.active}
         definition={requireHomeDefinition(entityId)}
@@ -189,14 +188,16 @@ function CollectionBoundary({
 function DivisionCard({ item }: { readonly item: HomeDivisionItem }): React.JSX.Element {
   const Icon = iconFor(item.icon);
   return (
-    <Link className="home-division-link" to={routeByPage[item.destination.pageId]}>
-      <article className={`home-division-card home-division-${item.destination.pageId}`}>
-        <span className="home-card-icon">
+    <Link className="home-division-link ui-division-link" to={routeByPage[item.destination.pageId]}>
+      <article
+        className={`home-division-card ui-division-card home-division-${item.destination.pageId}`}
+      >
+        <span className="home-card-icon ui-card-icon">
           <Icon aria-hidden="true" />
         </span>
-        <h3>{item.title}</h3>
+        <h3 className="type-card-title">{item.title}</h3>
         <p>{item.description}</p>
-        <span className="home-card-link">
+        <span className="home-card-link ui-card-link">
           Learn More <ArrowRight aria-hidden="true" />
         </span>
       </article>
@@ -207,11 +208,11 @@ function DivisionCard({ item }: { readonly item: HomeDivisionItem }): React.JSX.
 function CoreValue({ item }: { readonly item: HomeCoreValueItem }): React.JSX.Element {
   const Icon = iconFor(item.icon);
   return (
-    <article className="home-value">
-      <span className="home-value-icon">
+    <article className="home-value ui-value">
+      <span className="home-value-icon ui-value-icon">
         <Icon aria-hidden="true" />
       </span>
-      <h3>{item.title}</h3>
+      <h3 className="type-card-title">{item.title}</h3>
       <p>{item.description}</p>
     </article>
   );
@@ -219,8 +220,8 @@ function CoreValue({ item }: { readonly item: HomeCoreValueItem }): React.JSX.El
 
 function TimelineCard({ item }: { readonly item: HomeTimelineItem }): React.JSX.Element {
   return (
-    <article className="home-timeline-card">
-      <span className="home-timeline-dot" aria-hidden="true" />
+    <article className="home-timeline-card ui-timeline-card">
+      <span className="home-timeline-dot ui-timeline-dot" aria-hidden="true" />
       <strong>{item.year}</strong>
       <p>{item.event}</p>
     </article>
@@ -229,8 +230,8 @@ function TimelineCard({ item }: { readonly item: HomeTimelineItem }): React.JSX.
 
 function LeaderCard({ item }: { readonly item: HomeLeadershipMember }): React.JSX.Element {
   return (
-    <article className="home-leader-card">
-      <div className="home-leader-photo">
+    <article className="home-leader-card ui-leader-card">
+      <div className="home-leader-photo ui-leader-photo">
         <img
           src={managedImage(item.photo.key, tricoLogo)}
           alt={item.photoAltText}
@@ -239,7 +240,7 @@ function LeaderCard({ item }: { readonly item: HomeLeadershipMember }): React.JS
         />
       </div>
       <div>
-        <h3>{item.name}</h3>
+        <h3 className="type-card-title">{item.name}</h3>
         <p>{item.role}</p>
       </div>
     </article>
@@ -248,11 +249,11 @@ function LeaderCard({ item }: { readonly item: HomeLeadershipMember }): React.JS
 
 function NewsCard({ item }: { readonly item: HomeNewsItem }): React.JSX.Element {
   return (
-    <article className="home-news-card">
-      <p className="home-news-date">
+    <article className="home-news-card ui-news-card">
+      <p className="home-news-date ui-news-date">
         <CalendarDays aria-hidden="true" /> {formatNewsDate(item.date)}
       </p>
-      <h3>{item.title}</h3>
+      <h3 className="type-card-title">{item.title}</h3>
       <p>{item.description}</p>
     </article>
   );
@@ -260,9 +261,9 @@ function NewsCard({ item }: { readonly item: HomeNewsItem }): React.JSX.Element 
 
 function CareerCard({ item }: { readonly item: HomeCareerPosition }): React.JSX.Element {
   return (
-    <article className="home-career-card">
+    <article className="home-career-card ui-career-card">
       <div>
-        <h3>
+        <h3 className="type-card-title">
           <Briefcase aria-hidden="true" /> {item.title}
         </h3>
         <p>
@@ -306,22 +307,22 @@ function HomePageBody(): React.JSX.Element {
 
   const logo = managedImage(content.headerBrand.logo.key, tricoLogo);
   return (
-    <div className="home-page">
+    <div className="home-page ui-page">
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
-      <div className="home-anniversary-shell">
+      <div className="home-anniversary-shell ui-anniversary-shell">
         <ObjectBoundary entityId="home.anniversary-banner" value={content.anniversaryBanner}>
-          <div className="home-anniversary">
+          <div className="home-anniversary ui-anniversary">
             <span aria-hidden="true" />
             <strong>{content.anniversaryBanner.message}</strong>
             <span aria-hidden="true" />
           </div>
         </ObjectBoundary>
       </div>
-      <div className="home-header-shell">
+      <div className="home-header-shell ui-header-shell">
         <ObjectBoundary entityId="home.header.brand" value={content.headerBrand}>
-          <header className="home-header">
+          <header className="home-header ui-header">
             <Link to="/" aria-label="TriCo home">
               <img src={logo} alt={content.headerBrand.altText} width="282" height="82" />
             </Link>
@@ -337,20 +338,22 @@ function HomePageBody(): React.JSX.Element {
 
       <main id="main-content">
         <ObjectBoundary entityId="home.hero" value={content.hero}>
-          <section className="home-hero" aria-labelledby="home-heading">
-            <div className="home-container">
-              <h1 id="home-heading">{content.hero.heading}</h1>
+          <section className="home-hero ui-hero" aria-labelledby="home-heading">
+            <div className="home-container ui-container">
+              <h1 id="home-heading" className="type-display">
+                {content.hero.heading}
+              </h1>
               <p>{content.hero.description}</p>
-              <span className="home-accent-rule" aria-hidden="true" />
+              <span className="home-accent-rule ui-accent-rule" aria-hidden="true" />
             </div>
           </section>
         </ObjectBoundary>
 
-        <section className="home-section home-divisions" id="divisions">
-          <div className="home-container">
+        <section className="home-section ui-section home-divisions ui-divisions" id="divisions">
+          <div className="home-container ui-container">
             <ObjectBoundary entityId="home.divisions.header" value={content.divisionsHeader}>
-              <header className="home-section-heading">
-                <h2>{content.divisionsHeader.heading}</h2>
+              <header className="home-section-heading ui-section-heading">
+                <h2 className="type-section-title">{content.divisionsHeader.heading}</h2>
                 <p>{content.divisionsHeader.description}</p>
               </header>
             </ObjectBoundary>
@@ -362,11 +365,14 @@ function HomePageBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="home-section home-tint home-values" id="values">
-          <div className="home-container">
+        <section
+          className="home-section ui-section home-tint ui-tint home-values ui-values"
+          id="values"
+        >
+          <div className="home-container ui-container">
             <ObjectBoundary entityId="home.core-values.header" value={content.coreValuesHeader}>
-              <header className="home-section-heading">
-                <h2>{content.coreValuesHeader.heading}</h2>
+              <header className="home-section-heading ui-section-heading">
+                <h2 className="type-section-title">{content.coreValuesHeader.heading}</h2>
                 <p>{content.coreValuesHeader.description}</p>
               </header>
             </ObjectBoundary>
@@ -378,14 +384,14 @@ function HomePageBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="home-section home-journey" id="journey">
-          <div className="home-container">
+        <section className="home-section ui-section home-journey ui-journey" id="journey">
+          <div className="home-container ui-container">
             <ObjectBoundary entityId="home.journey.header" value={content.journeyHeader}>
-              <header className="home-section-heading">
-                <span className="home-eyebrow">{content.journeyHeader.eyebrow}</span>
-                <h2>{content.journeyHeader.heading}</h2>
+              <header className="home-section-heading ui-section-heading">
+                <span className="home-eyebrow ui-eyebrow">{content.journeyHeader.eyebrow}</span>
+                <h2 className="type-section-title">{content.journeyHeader.heading}</h2>
                 <p>{content.journeyHeader.description}</p>
-                <p className="home-history">{content.journeyHeader.history}</p>
+                <p className="home-history ui-history">{content.journeyHeader.history}</p>
               </header>
             </ObjectBoundary>
             <CollectionBoundary
@@ -396,11 +402,14 @@ function HomePageBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="home-section home-tint home-leadership" id="leadership">
-          <div className="home-container">
+        <section
+          className="home-section ui-section home-tint ui-tint home-leadership ui-leadership"
+          id="leadership"
+        >
+          <div className="home-container ui-container">
             <ObjectBoundary entityId="home.leadership.header" value={content.leadershipHeader}>
-              <header className="home-section-heading">
-                <h2>{content.leadershipHeader.heading}</h2>
+              <header className="home-section-heading ui-section-heading">
+                <h2 className="type-section-title">{content.leadershipHeader.heading}</h2>
                 <p>{content.leadershipHeader.description}</p>
               </header>
             </ObjectBoundary>
@@ -409,15 +418,15 @@ function HomePageBody(): React.JSX.Element {
               value={content.leaders}
               renderItem={(value) => <LeaderCard item={homeLeadershipMemberSchema.parse(value)} />}
             />
-            <p className="home-section-note">{content.leadershipHeader.note}</p>
+            <p className="home-section-note ui-section-note">{content.leadershipHeader.note}</p>
           </div>
         </section>
 
-        <section className="home-section home-news" id="news">
-          <div className="home-container">
+        <section className="home-section ui-section home-news ui-news" id="news">
+          <div className="home-container ui-container">
             <ObjectBoundary entityId="home.news.header" value={content.newsHeader}>
-              <header className="home-section-heading">
-                <h2>{content.newsHeader.heading}</h2>
+              <header className="home-section-heading ui-section-heading">
+                <h2 className="type-section-title">{content.newsHeader.heading}</h2>
                 <p>{content.newsHeader.description}</p>
               </header>
             </ObjectBoundary>
@@ -429,11 +438,14 @@ function HomePageBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="home-section home-tint home-careers" id="careers">
-          <div className="home-container home-careers-container">
+        <section
+          className="home-section ui-section home-tint ui-tint home-careers ui-careers"
+          id="careers"
+        >
+          <div className="home-container ui-container home-careers-container ui-careers-container">
             <ObjectBoundary entityId="home.careers.header" value={content.careersHeader}>
-              <header className="home-section-heading">
-                <h2>{content.careersHeader.heading}</h2>
+              <header className="home-section-heading ui-section-heading">
+                <h2 className="type-section-title">{content.careersHeader.heading}</h2>
                 <p>{content.careersHeader.description}</p>
               </header>
             </ObjectBoundary>
@@ -443,8 +455,8 @@ function HomePageBody(): React.JSX.Element {
               renderItem={(value) => <CareerCard item={parseCareerPosition(value)} />}
             />
             <ObjectBoundary entityId="home.careers.resume-intro" value={content.resumeIntro}>
-              <header className="home-resume-heading" id="resume-form">
-                <h3>{content.resumeIntro.heading}</h3>
+              <header className="home-resume-heading ui-resume-heading" id="resume-form">
+                <h3 className="type-card-title">{content.resumeIntro.heading}</h3>
                 <p>{content.resumeIntro.description}</p>
               </header>
             </ObjectBoundary>
@@ -453,13 +465,13 @@ function HomePageBody(): React.JSX.Element {
         </section>
 
         <ObjectBoundary entityId="home.contact" value={content.contact}>
-          <section className="home-section home-contact" id="contact">
-            <div className="home-container">
-              <h2>{content.contact.heading}</h2>
+          <section className="home-section ui-section home-contact ui-contact" id="contact">
+            <div className="home-container ui-container">
+              <h2 className="type-section-title">{content.contact.heading}</h2>
               <p>{content.contact.description}</p>
               <address>
                 <span>{content.contact.address}</span>
-                <span className="home-contact-row">
+                <span className="home-contact-row ui-contact-row">
                   <a href={`mailto:${content.contact.email}`}>{content.contact.email}</a>
                   <i aria-hidden="true">|</i>
                   <a href={`tel:${content.contact.phone.replace(/[^\d+]/g, '')}`}>
@@ -468,7 +480,7 @@ function HomePageBody(): React.JSX.Element {
                   <i aria-hidden="true">|</i>
                   <span>Fax: {content.contact.fax}</span>
                 </span>
-                <span className="home-license-row">
+                <span className="home-license-row ui-license-row">
                   {content.contact.licenses.map((license) => (
                     <span key={license.id}>{license.label}</span>
                   ))}
@@ -480,7 +492,7 @@ function HomePageBody(): React.JSX.Element {
       </main>
 
       <ObjectBoundary entityId="home.footer" value={content.footer}>
-        <footer className="home-footer">
+        <footer className="home-footer ui-footer">
           <img
             src={managedImage(content.footer.logo.key, tricoLogo)}
             alt={content.footer.altText}

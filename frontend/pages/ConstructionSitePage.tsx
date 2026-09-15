@@ -85,7 +85,6 @@ import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
 import { parseConstructionValue } from './constructionContent.js';
-import './construction.css';
 
 type ConstructionEntityId = (typeof constructionEntityDefinitions)[number]['id'];
 const categorySlugs = [
@@ -160,7 +159,7 @@ function ObjectBoundary({
   const editing = useEditMode();
   return (
     <div
-      className={`co-entity-slot${id === 'construction.hero' ? ' co-hero-entity-slot' : ''}`}
+      className={`co-entity-slot ui-entity-slot${id === 'construction.hero' ? ' co-hero-entity-slot ui-hero-entity-slot' : ''}`}
       data-construction-entity-boundary="true"
     >
       <EditableBoundary
@@ -190,7 +189,7 @@ function CollectionBoundary({
   const editing = useEditMode();
   return (
     <div
-      className="co-entity-slot"
+      className="co-entity-slot ui-entity-slot"
       data-construction-entity-boundary="true"
       data-entity-boundary="true"
     >
@@ -219,9 +218,9 @@ function Heading({
   readonly copy: string;
 }): React.JSX.Element {
   return (
-    <header className="co-heading">
+    <header className="co-heading ui-heading">
       <span>{eyebrow}</span>
-      <h2>{title}</h2>
+      <h2 className="type-section-title">{title}</h2>
       <p>{copy}</p>
     </header>
   );
@@ -232,14 +231,14 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
   const isBid = variant === 'bid';
   return (
     <form
-      className="co-form"
+      className="co-form ui-form"
       onSubmit={(event) => {
         event.preventDefault();
         event.currentTarget.reset();
         setSent(true);
       }}
     >
-      <div className="co-form-row">
+      <div className="co-form-row ui-form-row">
         <label>
           {isBid ? 'Your Name' : 'First Name'} *
           <input required name="firstName" placeholder={isBid ? 'John Smith' : 'John'} />
@@ -254,7 +253,7 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
           />
         </label>
       </div>
-      <div className="co-form-row">
+      <div className="co-form-row ui-form-row">
         <label>
           Email *<input required type="email" name="email" placeholder="john@example.com" />
         </label>
@@ -298,11 +297,11 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
           placeholder="Tell us about your construction project..."
         />
       </label>
-      <button className="co-button co-button-gold" type="submit">
+      <button className="co-button ui-button co-button-gold ui-button-gold" type="submit">
         {isBid ? 'Request Your Bid' : 'Get Quote'} <ArrowRight aria-hidden="true" />
       </button>
       {sent ? (
-        <p className="co-form-success" role="status">
+        <p className="co-form-success ui-form-success" role="status">
           Thank you. A construction specialist will contact you soon.
         </p>
       ) : null}
@@ -383,19 +382,19 @@ function ConstructionBody(): React.JSX.Element {
   const footerLicenses = value('construction.footer.licenses', constructionFooterLicensesSchema);
   const footerLegal = value('construction.footer.legal', constructionFooterLegalSchema);
   return (
-    <div className="co-page">
+    <div className="co-page ui-page">
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
       <ObjectBoundary id="construction.anniversary-banner" value={banner}>
-        <div className="co-anniversary">
+        <div className="co-anniversary ui-anniversary">
           ✦ <strong>{banner.message}</strong> ✦
         </div>
       </ObjectBoundary>
       <ObjectBoundary id="construction.header" value={header}>
-        <header className="co-header">
-          <div className="co-container co-header-inner">
-            <Link className="co-brand" to="/">
+        <header className="co-header ui-header">
+          <div className="co-container ui-container co-header-inner ui-header-inner">
+            <Link className="co-brand ui-brand" to="/">
               <img src={constructionImage(header.logo.key, tricoLogo)} alt={header.logoAltText} />
               <strong>{header.divisionLabel}</strong>
             </Link>
@@ -406,16 +405,16 @@ function ConstructionBody(): React.JSX.Element {
                 </a>
               ))}
             </nav>
-            <div className="co-header-actions">
+            <div className="co-header-actions ui-header-actions">
               <a href={`tel:${header.phone.replace(/[^\d+]/g, '')}`}>
                 <Phone /> {header.phone}
               </a>
-              <a className="co-button co-button-blue" href="#contact">
+              <a className="co-button ui-button co-button-blue ui-button-blue" href="#contact">
                 {header.actionLabel}
               </a>
             </div>
             <button
-              className="co-menu"
+              className="co-menu ui-menu"
               type="button"
               aria-expanded={menuOpen}
               aria-label="Toggle menu"
@@ -425,7 +424,7 @@ function ConstructionBody(): React.JSX.Element {
             </button>
           </div>
           {menuOpen ? (
-            <nav className="co-mobile-nav" aria-label="Mobile navigation">
+            <nav className="co-mobile-nav ui-mobile-nav" aria-label="Mobile navigation">
               {header.navLinks.map((item) => (
                 <a key={item.id} href={`#${item.destination}`} onClick={() => setMenuOpen(false)}>
                   {item.label}
@@ -443,28 +442,31 @@ function ConstructionBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="construction.hero" value={hero}>
-          <section className="co-hero">
-            <div className="co-container co-hero-grid">
+          <section className="co-hero ui-hero">
+            <div className="co-container ui-container co-hero-grid ui-hero-grid">
               <div>
-                <div className="co-pills">
+                <div className="co-pills ui-pills">
                   <span>
                     <HardHat /> {hero.primaryBadge}
                   </span>
                   <span>{hero.serviceAreaBadge}</span>
                 </div>
-                <h1>{hero.heading}</h1>
-                <h2>{hero.locationHeading}</h2>
-                <h3>{hero.promise}</h3>
+                <h1 className="type-display">{hero.heading}</h1>
+                <h2 className="type-section-title">{hero.locationHeading}</h2>
+                <h3 className="type-card-title">{hero.promise}</h3>
                 <p>{hero.description}</p>
-                <div className="co-actions">
-                  <a className="co-button co-button-gold" href="#contact">
+                <div className="co-actions ui-actions">
+                  <a className="co-button ui-button co-button-gold ui-button-gold" href="#contact">
                     {hero.primaryActionLabel} <ArrowRight />
                   </a>
-                  <a className="co-button co-button-outline" href="#services">
+                  <a
+                    className="co-button ui-button co-button-outline ui-button-outline"
+                    href="#services"
+                  >
                     {hero.secondaryActionLabel}
                   </a>
                 </div>
-                <div className="co-hero-stats">
+                <div className="co-hero-stats ui-hero-stats">
                   <CollectionBoundary
                     id="construction.hero.stats"
                     value={heroStats}
@@ -495,8 +497,8 @@ function ConstructionBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
 
-        <section className="co-section co-tint" id="services">
-          <div className="co-container">
+        <section className="co-section ui-section co-tint ui-tint" id="services">
+          <div className="co-container ui-container">
             <ObjectBoundary id="construction.services.header" value={servicesHeader}>
               <Heading
                 eyebrow={servicesHeader.eyebrow}
@@ -504,7 +506,7 @@ function ConstructionBody(): React.JSX.Element {
                 copy={servicesHeader.description}
               />
             </ObjectBoundary>
-            <div className="co-card-grid">
+            <div className="co-card-grid ui-card-grid">
               <CollectionBoundary
                 id="construction.services.items"
                 value={services}
@@ -512,11 +514,11 @@ function ConstructionBody(): React.JSX.Element {
                   const service = constructionServicesItemsSchema.element.parse(item);
                   const Icon = icons[service.icon] ?? Building2;
                   return (
-                    <article className="co-card">
+                    <article className="co-card ui-card">
                       <i>
                         <Icon />
                       </i>
-                      <h3>{service.title}</h3>
+                      <h3 className="type-card-title">{service.title}</h3>
                       <p>{service.description}</p>
                     </article>
                   );
@@ -532,11 +534,11 @@ function ConstructionBody(): React.JSX.Element {
           const sectionHeader = status === 'current' ? currentHeader : completedHeader;
           return (
             <section
-              className={`co-section ${status === 'completed' ? 'co-soft' : ''}`}
+              className={`co-section ui-section ${status === 'completed' ? 'co-soft ui-soft' : ''}`}
               id={status === 'current' ? 'projects' : 'completed-projects'}
               key={status}
             >
-              <div className="co-container">
+              <div className="co-container ui-container">
                 <ObjectBoundary id={`${prefix}.header`} value={sectionHeader}>
                   <Heading
                     eyebrow={sectionHeader.eyebrow}
@@ -544,14 +546,17 @@ function ConstructionBody(): React.JSX.Element {
                     copy={sectionHeader.description}
                   />
                 </ObjectBoundary>
-                <div className="co-sector-grid">
+                <div className="co-sector-grid ui-sector-grid">
                   {categorySlugs.map((slug) => {
                     const entityId = `${prefix}.category.${slug}` as ConstructionEntityId;
                     const category = value(entityId, constructionProjectCategorySchema);
                     return (
                       <ObjectBoundary key={slug} id={entityId} value={category}>
-                        <Link className="co-sector" to={`/construction/${status}/${slug}`}>
-                          <h3>{category.label}</h3>
+                        <Link
+                          className="co-sector ui-sector"
+                          to={`/construction/${status}/${slug}`}
+                        >
+                          <h3 className="type-card-title">{category.label}</h3>
                           <p>{category.blurb}</p>
                           <span>
                             {sectionHeader.cardActionLabel} <ArrowRight />
@@ -566,8 +571,8 @@ function ConstructionBody(): React.JSX.Element {
           );
         })}
 
-        <section className="co-section co-tint" id="plan-room">
-          <div className="co-container">
+        <section className="co-section ui-section co-tint ui-tint" id="plan-room">
+          <div className="co-container ui-container">
             <ObjectBoundary id="construction.plan-room.header" value={planHeader}>
               <Heading
                 eyebrow={planHeader.eyebrow}
@@ -576,34 +581,34 @@ function ConstructionBody(): React.JSX.Element {
               />
             </ObjectBoundary>
             <ObjectBoundary id="construction.plan-room.access-notice" value={planAccess}>
-              <div className="co-notice">
+              <div className="co-notice ui-notice">
                 {(() => {
                   const Icon = icons[planAccess.icon] ?? Lock;
                   return <Icon />;
                 })()}
                 <div>
-                  <h3>{planAccess.heading}</h3>
+                  <h3 className="type-card-title">{planAccess.heading}</h3>
                   <p>{planAccess.description}</p>
                 </div>
               </div>
             </ObjectBoundary>
-            <h3 className="co-subheading">
+            <h3 className="co-subheading ui-subheading">
               <FolderOpen /> {planHeader.planListHeading}
             </h3>
-            <div className="co-plan-grid">
+            <div className="co-plan-grid ui-plan-grid">
               <CollectionBoundary
                 id="construction.plan-room.plan-sets"
                 value={plans}
                 renderItem={(item) => {
                   const plan = constructionPlanSetsSchema.element.parse(item);
                   return (
-                    <article className="co-plan">
+                    <article className="co-plan ui-plan">
                       <header>
                         <i>
                           <FileText />
                         </i>
                         <div>
-                          <h3>{plan.name}</h3>
+                          <h3 className="type-card-title">{plan.name}</h3>
                           <small>{plan.projectNumber}</small>
                         </div>
                         <b>{plan.latestRevision}</b>
@@ -623,11 +628,11 @@ function ConstructionBody(): React.JSX.Element {
               />
             </div>
             <ObjectBoundary id="construction.plan-room.request-access" value={planRequest}>
-              <div className="co-plan-access">
-                <h3>{planRequest.heading}</h3>
+              <div className="co-plan-access ui-plan-access">
+                <h3 className="type-card-title">{planRequest.heading}</h3>
                 <p>{planRequest.description}</p>
                 <a
-                  className="co-button co-button-blue"
+                  className="co-button ui-button co-button-blue ui-button-blue"
                   href={`mailto:${planRequest.email}?subject=Plan%20Room%20Access%20Request`}
                 >
                   {planRequest.actionLabel} <ArrowRight />
@@ -637,8 +642,8 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section" id="pros">
-          <div className="co-container">
+        <section className="co-section ui-section" id="pros">
+          <div className="co-container ui-container">
             <ObjectBoundary id="construction.pros.header" value={prosHeader}>
               <Heading
                 eyebrow={prosHeader.eyebrow}
@@ -646,7 +651,7 @@ function ConstructionBody(): React.JSX.Element {
                 copy={prosHeader.description}
               />
             </ObjectBoundary>
-            <div className="co-card-grid">
+            <div className="co-card-grid ui-card-grid">
               <CollectionBoundary
                 id="construction.pros.items"
                 value={pros}
@@ -654,18 +659,18 @@ function ConstructionBody(): React.JSX.Element {
                   const pro = constructionProsItemsSchema.element.parse(item);
                   const Icon = icons[pro.icon] ?? Award;
                   return (
-                    <article className="co-card">
-                      <i className="co-blue-icon">
+                    <article className="co-card ui-card">
+                      <i className="co-blue-icon ui-blue-icon">
                         <Icon />
                       </i>
-                      <h3>{pro.title}</h3>
+                      <h3 className="type-card-title">{pro.title}</h3>
                       <p>{pro.description}</p>
                     </article>
                   );
                 }}
               />
             </div>
-            <div className="co-pro-stats">
+            <div className="co-pro-stats ui-pro-stats">
               <CollectionBoundary
                 id="construction.pros.stats"
                 value={proStats}
@@ -683,8 +688,8 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section co-soft" id="team">
-          <div className="co-container">
+        <section className="co-section ui-section co-soft ui-soft" id="team">
+          <div className="co-container ui-container">
             <ObjectBoundary id="construction.team.header" value={teamHeader}>
               <Heading
                 eyebrow={teamHeader.eyebrow}
@@ -692,19 +697,19 @@ function ConstructionBody(): React.JSX.Element {
                 copy={teamHeader.description}
               />
             </ObjectBoundary>
-            <div className="co-team-grid">
+            <div className="co-team-grid ui-team-grid">
               <CollectionBoundary
                 id="construction.team.members"
                 value={team}
                 renderItem={(item) => {
                   const member = constructionTeamMembersSchema.element.parse(item);
                   return (
-                    <article className="co-team-card">
+                    <article className="co-team-card ui-team-card">
                       <img
                         src={constructionImage(member.photo.key, tricoLogo)}
                         alt={member.photoAltText}
                       />
-                      <h3>{member.name}</h3>
+                      <h3 className="type-card-title">{member.name}</h3>
                       <strong>{member.title}</strong>
                       {member.email === '' ? null : (
                         <a href={`mailto:${member.email}`}>
@@ -727,8 +732,8 @@ function ConstructionBody(): React.JSX.Element {
         </section>
 
         <ObjectBoundary id="construction.workers" value={workers}>
-          <section className="co-section co-workers">
-            <div className="co-container">
+          <section className="co-section ui-section co-workers ui-workers">
+            <div className="co-container ui-container">
               <Heading
                 eyebrow={workers.eyebrow}
                 title={workers.heading}
@@ -740,9 +745,9 @@ function ConstructionBody(): React.JSX.Element {
         </ObjectBoundary>
 
         <ObjectBoundary id="construction.about" value={about}>
-          <section className="co-section co-about" id="about">
-            <div className="co-container co-about-grid">
-              <div className="co-about-art">
+          <section className="co-section ui-section co-about ui-about" id="about">
+            <div className="co-container ui-container co-about-grid ui-about-grid">
+              <div className="co-about-art ui-about-art">
                 <span>{about.brandLabel}</span>
                 <small>{about.brandDescription}</small>
                 <aside>
@@ -751,11 +756,11 @@ function ConstructionBody(): React.JSX.Element {
                 </aside>
               </div>
               <div>
-                <span className="co-about-pill">{about.eyebrow}</span>
-                <h2>{about.heading}</h2>
+                <span className="co-about-pill ui-about-pill">{about.eyebrow}</span>
+                <h2 className="type-section-title">{about.heading}</h2>
                 <p>{about.introduction}</p>
                 <p>{about.detail}</p>
-                <div className="co-checks">
+                <div className="co-checks ui-checks">
                   <CollectionBoundary
                     id="construction.about.features"
                     value={aboutFeatures}
@@ -770,7 +775,7 @@ function ConstructionBody(): React.JSX.Element {
                     }}
                   />
                 </div>
-                <a className="co-button co-button-gold" href="#contact">
+                <a className="co-button ui-button co-button-gold ui-button-gold" href="#contact">
                   {about.actionLabel}
                 </a>
               </div>
@@ -778,8 +783,8 @@ function ConstructionBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
 
-        <section className="co-section co-bid" id="bid">
-          <div className="co-container co-narrow">
+        <section className="co-section ui-section co-bid ui-bid" id="bid">
+          <div className="co-container ui-container co-narrow ui-narrow">
             <ObjectBoundary id="construction.bid.header" value={bidHeader}>
               <Heading
                 eyebrow={bidHeader.eyebrow}
@@ -791,8 +796,8 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section co-careers" id="careers">
-          <div className="co-container co-career-grid">
+        <section className="co-section ui-section co-careers ui-careers" id="careers">
+          <div className="co-container ui-container co-career-grid ui-career-grid">
             <div>
               <ObjectBoundary id="construction.careers.header" value={careersHeader}>
                 <Heading
@@ -801,7 +806,7 @@ function ConstructionBody(): React.JSX.Element {
                   copy={careersHeader.description}
                 />
               </ObjectBoundary>
-              <div className="co-benefits">
+              <div className="co-benefits ui-benefits">
                 <CollectionBoundary
                   id="construction.careers.benefits"
                   value={benefits}
@@ -822,12 +827,15 @@ function ConstructionBody(): React.JSX.Element {
                   }}
                 />
               </div>
-              <a className="co-button co-button-blue" href={`mailto:${careersHeader.email}`}>
+              <a
+                className="co-button ui-button co-button-blue ui-button-blue"
+                href={`mailto:${careersHeader.email}`}
+              >
                 {careersHeader.actionLabel} <ArrowRight />
               </a>
             </div>
-            <aside className="co-positions">
-              <h3>{careersHeader.positionsHeading}</h3>
+            <aside className="co-positions ui-positions">
+              <h3 className="type-card-title">{careersHeader.positionsHeading}</h3>
               <CollectionBoundary
                 id="construction.careers.open-positions"
                 value={positions}
@@ -845,8 +853,8 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section co-reviews" id="reviews">
-          <div className="co-container">
+        <section className="co-section ui-section co-reviews" id="reviews">
+          <div className="co-container ui-container">
             <ObjectBoundary id="construction.reviews.header" value={reviewsHeader}>
               <Heading
                 eyebrow={reviewsHeader.eyebrow}
@@ -855,7 +863,7 @@ function ConstructionBody(): React.JSX.Element {
               />
             </ObjectBoundary>
             <ReviewRating />
-            <div className="co-review-grid">
+            <div className="co-review-grid ui-review-grid">
               <CollectionBoundary
                 id="construction.reviews.platforms"
                 value={reviews}
@@ -874,7 +882,7 @@ function ConstructionBody(): React.JSX.Element {
               />
             </div>
             <ObjectBoundary id="construction.reviews.footer" value={reviewsFooter}>
-              <p className="co-review-footer">
+              <p className="co-review-footer ui-review-footer">
                 {reviewsFooter.message}{' '}
                 <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a>.
               </p>
@@ -882,8 +890,8 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section co-contact" id="contact">
-          <div className="co-container co-contact-grid">
+        <section className="co-section ui-section co-contact ui-contact" id="contact">
+          <div className="co-container ui-container co-contact-grid ui-contact-grid">
             <div>
               <ObjectBoundary id="construction.contact.header" value={contactHeader}>
                 <Heading
@@ -893,7 +901,7 @@ function ConstructionBody(): React.JSX.Element {
                 />
               </ObjectBoundary>
               <ObjectBoundary id="construction.contact.details" value={contact}>
-                <div className="co-contact-list">
+                <div className="co-contact-list ui-contact-list">
                   <p>
                     <i>
                       <MapPin />
@@ -941,15 +949,15 @@ function ConstructionBody(): React.JSX.Element {
                 </div>
               </ObjectBoundary>
             </div>
-            <div className="co-contact-form">
-              <h3>Request a Quote</h3>
+            <div className="co-contact-form ui-contact-form">
+              <h3 className="type-card-title">Request a Quote</h3>
               <ClientForm variant="contact" />
             </div>
           </div>
         </section>
       </main>
-      <footer className="co-footer">
-        <div className="co-container co-footer-grid">
+      <footer className="co-footer ui-footer">
+        <div className="co-container ui-container co-footer-grid ui-footer-grid">
           <ObjectBoundary id="construction.footer.brand" value={footerBrand}>
             <div>
               <img
@@ -967,7 +975,7 @@ function ConstructionBody(): React.JSX.Element {
             </div>
           </ObjectBoundary>
           <nav aria-label="Quick links">
-            <h3>Quick Links</h3>
+            <h3 className="type-card-title">Quick Links</h3>
             <CollectionBoundary
               id="construction.footer.links"
               value={footerLinks}
@@ -979,7 +987,7 @@ function ConstructionBody(): React.JSX.Element {
           </nav>
           <ObjectBoundary id="construction.footer.licenses" value={footerLicenses}>
             <div>
-              <h3>{footerLicenses.heading}</h3>
+              <h3 className="type-card-title">{footerLicenses.heading}</h3>
               {footerLicenses.licenses.map((license) => (
                 <p key={license.id}>{license.label}</p>
               ))}
@@ -987,7 +995,7 @@ function ConstructionBody(): React.JSX.Element {
           </ObjectBoundary>
         </div>
         <ObjectBoundary id="construction.footer.legal" value={footerLegal}>
-          <p className="co-legal">
+          <p className="co-legal ui-legal">
             © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>
         </ObjectBoundary>

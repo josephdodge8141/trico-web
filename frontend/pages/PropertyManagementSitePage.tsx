@@ -103,7 +103,6 @@ import {
   PropertyManagementNewClientForm,
 } from './PropertyManagementForms.js';
 import { parsePropertyManagementValue } from './propertyManagementContent.js';
-import './property-management.css';
 
 type PmEntityId = (typeof propertyManagementEntityDefinitions)[number]['id'];
 
@@ -196,7 +195,7 @@ function ObjectBoundary({
         : '';
   return (
     <div
-      className={`pm-entity-slot${placementClass}`}
+      className={`pm-entity-slot ui-entity-slot${placementClass}`}
       data-property-management-entity-boundary="true"
     >
       <EditableBoundary
@@ -224,7 +223,7 @@ function CollectionBoundary({
 }): React.JSX.Element {
   const editing = useEditMode();
   return (
-    <div className="pm-entity-slot" data-property-management-entity-boundary="true">
+    <div className="pm-entity-slot ui-entity-slot" data-property-management-entity-boundary="true">
       <EditableCollection
         active={editing.active}
         definition={definition(id)}
@@ -248,9 +247,9 @@ function Heading({
   };
 }): React.JSX.Element {
   return (
-    <header className="pm-section-heading">
+    <header className="pm-section-heading ui-section-heading">
       <span>{value.eyebrow}</span>
-      <h2>{value.heading}</h2>
+      <h2 className="type-section-title">{value.heading}</h2>
       <p>{value.description}</p>
     </header>
   );
@@ -398,11 +397,11 @@ function PropertyManagementBody(): React.JSX.Element {
     const item = propertyManagementServicesItemsSchema.element.parse(value);
     const Icon = icon(item.icon);
     return (
-      <article className="pm-card">
-        <span className="pm-icon">
+      <article className="pm-card ui-card">
+        <span className="pm-icon ui-icon">
           <Icon aria-hidden="true" />
         </span>
-        <h3>{item.title}</h3>
+        <h3 className="type-card-title">{item.title}</h3>
         <p>{item.description}</p>
       </article>
     );
@@ -411,10 +410,13 @@ function PropertyManagementBody(): React.JSX.Element {
     const item = propertyManagementPortfolioItemsSchema.element.parse(value);
     const source = asset(item.photo.key);
     return (
-      <article className="pm-property-card">
-        <div className="pm-property-image">
+      <article className="pm-property-card ui-property-card">
+        <div className="pm-property-image ui-property-image">
           {source === undefined ? (
-            <div className="pm-neutral-placeholder" data-neutral-placeholder="true">
+            <div
+              className="pm-neutral-placeholder ui-neutral-placeholder"
+              data-neutral-placeholder="true"
+            >
               <ImageIcon aria-hidden="true" />
               <span>Photo coming soon</span>
             </div>
@@ -423,7 +425,7 @@ function PropertyManagementBody(): React.JSX.Element {
           )}
         </div>
         <div>
-          <h3>{item.name}</h3>
+          <h3 className="type-card-title">{item.name}</h3>
           <p>{item.description}</p>
         </div>
       </article>
@@ -431,19 +433,19 @@ function PropertyManagementBody(): React.JSX.Element {
   };
 
   return (
-    <div className="pm-page">
+    <div className="pm-page ui-page">
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
       <ObjectBoundary id="property-management.anniversary-banner" value={banner}>
-        <div className="pm-anniversary">
+        <div className="pm-anniversary ui-anniversary">
           ✦ <strong>{banner.message}</strong> ✦
         </div>
       </ObjectBoundary>
       <ObjectBoundary id="property-management.header" value={header}>
-        <header className="pm-header">
-          <div className="pm-container pm-header-inner">
-            <Link className="pm-brand" to="/">
+        <header className="pm-header ui-header">
+          <div className="pm-container ui-container pm-header-inner ui-header-inner">
+            <Link className="pm-brand ui-brand" to="/">
               <img src={headerAsset(header.logo.key)} alt={header.logoAltText} />
               <strong>{header.divisionLabel}</strong>
             </Link>
@@ -454,17 +456,20 @@ function PropertyManagementBody(): React.JSX.Element {
                 </a>
               ))}
             </nav>
-            <div className="pm-header-actions">
+            <div className="pm-header-actions ui-header-actions">
               <a href={`tel:${header.phone.replace(/\D/g, '')}`}>
                 <Phone aria-hidden="true" />
                 {header.phone}
               </a>
-              <a className="pm-button pm-button-primary" href="#contact">
+              <a
+                className="pm-button ui-button pm-button-primary ui-button-primary"
+                href="#contact"
+              >
                 {header.actionLabel}
               </a>
             </div>
             <button
-              className="pm-menu-button"
+              className="pm-menu-button ui-menu-button"
               type="button"
               aria-expanded={menuOpen}
               aria-controls="pm-mobile-menu"
@@ -475,14 +480,21 @@ function PropertyManagementBody(): React.JSX.Element {
             </button>
           </div>
           {menuOpen ? (
-            <nav id="pm-mobile-menu" className="pm-mobile-menu" aria-label="Mobile navigation">
+            <nav
+              id="pm-mobile-menu"
+              className="pm-mobile-menu ui-mobile-menu"
+              aria-label="Mobile navigation"
+            >
               {header.navLinks.map((link) => (
                 <a key={link.id} href={`#${link.destination}`} onClick={() => setMenuOpen(false)}>
                   {link.label}
                 </a>
               ))}
               <a href={`tel:${header.phone.replace(/\D/g, '')}`}>{header.phone}</a>
-              <a className="pm-button pm-button-primary" href="#contact">
+              <a
+                className="pm-button ui-button pm-button-primary ui-button-primary"
+                href="#contact"
+              >
                 Free Property Analysis
               </a>
             </nav>
@@ -496,21 +508,27 @@ function PropertyManagementBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="property-management.hero" value={hero}>
-          <section className="pm-hero">
-            <div className="pm-container pm-hero-grid">
+          <section className="pm-hero ui-hero">
+            <div className="pm-container ui-container pm-hero-grid ui-hero-grid">
               <div>
-                <span className="pm-pill pm-pill-gold">
+                <span className="pm-pill ui-pill pm-pill-gold ui-pill-gold">
                   <Building2 />
                   {hero.eyebrow}
                 </span>
-                <h1>{hero.heading}</h1>
+                <h1 className="type-display">{hero.heading}</h1>
                 <p>{hero.description}</p>
-                <div className="pm-actions">
-                  <a className="pm-button pm-button-light" href="#contact">
+                <div className="pm-actions ui-actions">
+                  <a
+                    className="pm-button ui-button pm-button-gold ui-button-accent"
+                    href="#contact"
+                  >
                     {hero.primaryActionLabel}
                     <ArrowRight aria-hidden="true" />
                   </a>
-                  <a className="pm-button pm-button-outline" href="#services">
+                  <a
+                    className="pm-button ui-button pm-button-outline ui-button-outline"
+                    href="#services"
+                  >
                     {hero.secondaryActionLabel}
                   </a>
                 </div>
@@ -521,7 +539,7 @@ function PropertyManagementBody(): React.JSX.Element {
                     const stat = propertyManagementHeroStatsSchema.element.parse(value);
                     const Icon = icon(stat.icon);
                     return (
-                      <div className="pm-stat">
+                      <div className="pm-stat ui-stat">
                         <Icon />
                         <strong>{stat.value}</strong>
                         <span>{stat.label}</span>
@@ -531,13 +549,13 @@ function PropertyManagementBody(): React.JSX.Element {
                 />
               </div>
               <div
-                className="pm-hero-image division-hero-media"
+                className="pm-hero-image ui-hero-image division-hero-media"
                 data-division-hero-media="true"
                 data-media-state={asset(hero.image.key) === undefined ? 'unavailable' : 'available'}
               >
                 {asset(hero.image.key) === undefined ? (
                   <div
-                    className="pm-neutral-placeholder division-hero-media-placeholder"
+                    className="pm-neutral-placeholder ui-neutral-placeholder division-hero-media-placeholder"
                     data-neutral-placeholder="true"
                     role="img"
                     aria-label={hero.imageAltText}
@@ -552,8 +570,8 @@ function PropertyManagementBody(): React.JSX.Element {
             </div>
           </section>
         </ObjectBoundary>
-        <section className="pm-section pm-tint" id="services">
-          <div className="pm-container">
+        <section className="pm-section ui-section pm-tint ui-tint" id="services">
+          <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.services.header" value={servicesHeader}>
               <Heading value={servicesHeader} />
             </ObjectBoundary>
@@ -564,8 +582,8 @@ function PropertyManagementBody(): React.JSX.Element {
             />
           </div>
         </section>
-        <section className="pm-section pm-process" id="process">
-          <div className="pm-container">
+        <section className="pm-section ui-section pm-process ui-process" id="process">
+          <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.process.header" value={processHeader}>
               <Heading value={processHeader} />
             </ObjectBoundary>
@@ -577,14 +595,14 @@ function PropertyManagementBody(): React.JSX.Element {
                 const Icon = icon(step.icon);
                 return (
                   <article
-                    className={`pm-process-step ${index % 2 === 0 ? 'pm-process-left' : 'pm-process-right'}`}
+                    className={`pm-process-step ui-process-step ${index % 2 === 0 ? 'pm-process-left' : 'pm-process-right'}`}
                   >
                     <div>
-                      <span className="pm-step-number">{step.number}</span>
-                      <span className="pm-icon">
+                      <span className="pm-step-number ui-step-number">{step.number}</span>
+                      <span className="pm-icon ui-icon">
                         <Icon />
                       </span>
-                      <h3>{step.title}</h3>
+                      <h3 className="type-card-title">{step.title}</h3>
                       <p>{step.description}</p>
                     </div>
                   </article>
@@ -593,8 +611,8 @@ function PropertyManagementBody(): React.JSX.Element {
             />
           </div>
         </section>
-        <section className="pm-section pm-tint" id="managed-properties">
-          <div className="pm-container">
+        <section className="pm-section ui-section pm-tint ui-tint" id="managed-properties">
+          <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.portfolio.managed.header" value={managedHeader}>
               <Heading value={managedHeader} />
             </ObjectBoundary>
@@ -621,8 +639,8 @@ function PropertyManagementBody(): React.JSX.Element {
             />
           </div>
         </section>
-        <section className="pm-section pm-portal" id="tenant-portal">
-          <div className="pm-container pm-narrow">
+        <section className="pm-section ui-section pm-portal ui-portal" id="tenant-portal">
+          <div className="pm-container ui-container pm-narrow ui-narrow">
             <ObjectBoundary id="property-management.tenant-portal" value={portal}>
               <>
                 <Heading value={portal} />
@@ -631,9 +649,9 @@ function PropertyManagementBody(): React.JSX.Element {
                   value={portalFeatures}
                   renderItem={renderIconItem}
                 />
-                <div className="pm-portal-action">
+                <div className="pm-portal-action ui-portal-action">
                   <a
-                    className="pm-button pm-button-primary"
+                    className="pm-button ui-button pm-button-primary ui-button-primary"
                     href={portal.externalUrl}
                     target="_blank"
                     rel="noreferrer"
@@ -646,8 +664,8 @@ function PropertyManagementBody(): React.JSX.Element {
             </ObjectBoundary>
           </div>
         </section>
-        <section className="pm-section pm-team" id="team">
-          <div className="pm-container">
+        <section className="pm-section ui-section pm-team ui-team" id="team">
+          <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.team.header" value={teamHeader}>
               <Heading value={teamHeader} />
             </ObjectBoundary>
@@ -674,9 +692,9 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
         <ObjectBoundary id="property-management.about" value={about}>
-          <section className="pm-section pm-about" id="about">
-            <div className="pm-container pm-about-grid">
-              <div className="pm-about-image">
+          <section className="pm-section ui-section pm-about ui-about" id="about">
+            <div className="pm-container ui-container pm-about-grid ui-about-grid">
+              <div className="pm-about-image ui-about-image">
                 <img src={asset(about.image.key) ?? aboutPhoto} alt={about.imageAltText} />
                 <aside>
                   <strong>{about.statValue}</strong>
@@ -684,8 +702,8 @@ function PropertyManagementBody(): React.JSX.Element {
                 </aside>
               </div>
               <div>
-                <span className="pm-pill pm-pill-gold">{about.eyebrow}</span>
-                <h2>{about.heading}</h2>
+                <span className="pm-pill ui-pill pm-pill-gold ui-pill-gold">{about.eyebrow}</span>
+                <h2 className="type-section-title">{about.heading}</h2>
                 <p>{about.introduction}</p>
                 <p>{about.detail}</p>
                 <CollectionBoundary
@@ -694,22 +712,22 @@ function PropertyManagementBody(): React.JSX.Element {
                   renderItem={(value) => {
                     const item = propertyManagementAboutFeaturesSchema.element.parse(value);
                     return (
-                      <span className="pm-check">
+                      <span className="pm-check ui-check">
                         <CheckCircle2 />
                         {item.title}
                       </span>
                     );
                   }}
                 />
-                <a className="pm-button pm-button-light" href="#contact">
+                <a className="pm-button ui-button pm-button-light ui-button-light" href="#contact">
                   {about.actionLabel}
                 </a>
               </div>
             </div>
           </section>
         </ObjectBoundary>
-        <section className="pm-section pm-tint pm-testimonials">
-          <div className="pm-container">
+        <section className="pm-section ui-section pm-tint ui-tint pm-testimonials ui-testimonials">
+          <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.testimonials.header" value={testimonialsHeader}>
               <Heading value={testimonialsHeader} />
             </ObjectBoundary>
@@ -721,16 +739,16 @@ function PropertyManagementBody(): React.JSX.Element {
                 const source =
                   item.image.kind === 'external' ? item.image.url : asset(item.image.key);
                 return (
-                  <article className="pm-quote-card">
+                  <article className="pm-quote-card ui-quote-card">
                     <Quote />
                     <header>
                       {source === undefined ? null : <img src={source} alt={item.imageAltText} />}
                       <div>
-                        <h3>{item.name}</h3>
+                        <h3 className="type-card-title">{item.name}</h3>
                         <span>{item.role}</span>
                       </div>
                     </header>
-                    <div className="pm-stars" aria-label={`${item.rating} out of 5 stars`}>
+                    <div className="pm-stars ui-stars" aria-label={`${item.rating} out of 5 stars`}>
                       {Array.from({ length: item.rating }, (_, index) => (
                         <Star key={index} />
                       ))}
@@ -746,7 +764,7 @@ function PropertyManagementBody(): React.JSX.Element {
               renderItem={(value) => {
                 const stat = propertyManagementTestimonialsStatsSchema.element.parse(value);
                 return (
-                  <div className="pm-trust-stat">
+                  <div className="pm-trust-stat ui-trust-stat">
                     <strong>{stat.value}</strong>
                     <span>{stat.label}</span>
                   </div>
@@ -755,8 +773,8 @@ function PropertyManagementBody(): React.JSX.Element {
             />
           </div>
         </section>
-        <section className="pm-section pm-faq" id="faq">
-          <div className="pm-container pm-narrow">
+        <section className="pm-section ui-section pm-faq ui-faq" id="faq">
+          <div className="pm-container ui-container pm-narrow ui-narrow">
             <ObjectBoundary id="property-management.faq.header" value={faqHeader}>
               <Heading value={faqHeader} />
             </ObjectBoundary>
@@ -766,7 +784,7 @@ function PropertyManagementBody(): React.JSX.Element {
               renderItem={(value) => {
                 const item = propertyManagementFaqItemsSchema.element.parse(value);
                 return (
-                  <details className="pm-faq-item">
+                  <details className="pm-faq-item ui-faq-item">
                     <summary>{item.question}</summary>
                     <p>{item.answer}</p>
                   </details>
@@ -776,15 +794,21 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
         <ObjectBoundary id="property-management.careers" value={careers}>
-          <section className="pm-section pm-tint pm-careers" id="careers">
-            <div className="pm-container pm-narrow">
-              <span className="pm-career-icon">◆</span>
-              <h2>{careers.heading}</h2>
+          <section
+            className="pm-section ui-section pm-tint ui-tint pm-careers ui-careers"
+            id="careers"
+          >
+            <div className="pm-container ui-container pm-narrow ui-narrow">
+              <span className="pm-career-icon ui-career-icon">◆</span>
+              <h2 className="type-section-title">{careers.heading}</h2>
               <p>{careers.description}</p>
-              <div className="pm-career-card">
-                <h3>{careers.cardHeading}</h3>
+              <div className="pm-career-card ui-career-card">
+                <h3 className="type-card-title">{careers.cardHeading}</h3>
                 <p>{careers.cardDescription}</p>
-                <a className="pm-button pm-button-primary" href={`mailto:${careers.email}`}>
+                <a
+                  className="pm-button ui-button pm-button-primary ui-button-primary"
+                  href={`mailto:${careers.email}`}
+                >
                   {careers.email}
                 </a>
               </div>
@@ -792,8 +816,8 @@ function PropertyManagementBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
         <PropertyManagementNewClientForm />
-        <section className="pm-section pm-reviews" id="reviews">
-          <div className="pm-container">
+        <section className="pm-section ui-section pm-reviews ui-reviews" id="reviews">
+          <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.reviews.header" value={reviewsHeader}>
               <Heading value={reviewsHeader} />
             </ObjectBoundary>
@@ -815,7 +839,7 @@ function PropertyManagementBody(): React.JSX.Element {
               }}
             />
             <ObjectBoundary id="property-management.reviews.footer" value={reviewsFooter}>
-              <p className="pm-reviews-footer">
+              <p className="pm-reviews-footer ui-reviews-footer">
                 {reviewsFooter.privateFeedbackLabel}{' '}
                 <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a> — we read every
                 message.
@@ -823,65 +847,68 @@ function PropertyManagementBody(): React.JSX.Element {
             </ObjectBoundary>
           </div>
         </section>
-        <section className="pm-section pm-contact" id="contact">
-          <div className="pm-container pm-contact-grid">
+        <section className="pm-section ui-section pm-contact ui-contact" id="contact">
+          <div className="pm-container ui-container pm-contact-grid ui-contact-grid">
             <div>
               <ObjectBoundary id="property-management.contact.header" value={contactHeader}>
                 <Heading value={contactHeader} />
               </ObjectBoundary>
               <ObjectBoundary id="property-management.contact.details" value={contact}>
-                <div className="pm-contact-details">
-                  <a className="pm-google" href={contact.reviewUrl}>
+                <div className="pm-contact-details ui-contact-details">
+                  <a className="pm-google ui-google" href={contact.reviewUrl}>
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.22-1.83 4.23-1.48 1.48-3.78 2.93-6.01 2.93-4.97 0-9-4.03-9-9s4.03-9 9-9c4.17 0 7.38 2.91 8.35 6.65h-2.35c-.8-2.4-2.62-4.05-6-4.05a6.4 6.4 0 1 0 0 12.8c2.54 0 4.22-1.06 5.36-2.36.9-.9 1.5-2.18 1.72-3.73h-7.08Z" />
                     </svg>
                     {contact.reviewLabel}
                   </a>
-                  <div className="pm-contact-detail">
-                    <span className="pm-contact-icon" aria-hidden="true">
+                  <div className="pm-contact-detail ui-contact-detail">
+                    <span className="pm-contact-icon ui-contact-icon" aria-hidden="true">
                       <MapPin />
                     </span>
                     <div>
-                      <h3>Office Location</h3>
+                      <h3 className="type-card-title">Office Location</h3>
                       <address>{contact.address}</address>
                     </div>
                   </div>
-                  <div className="pm-contact-detail">
-                    <span className="pm-contact-icon" aria-hidden="true">
+                  <div className="pm-contact-detail ui-contact-detail">
+                    <span className="pm-contact-icon ui-contact-icon" aria-hidden="true">
                       <Phone />
                     </span>
                     <div>
-                      <h3>Phone</h3>
+                      <h3 className="type-card-title">Phone</h3>
                       <a href={`tel:${contact.phone.replace(/\D/g, '')}`}>{contact.phone}</a>
                       <p>Fax: {contact.fax}</p>
                     </div>
                   </div>
-                  <div className="pm-contact-detail">
-                    <span className="pm-contact-icon" aria-hidden="true">
+                  <div className="pm-contact-detail ui-contact-detail">
+                    <span className="pm-contact-icon ui-contact-icon" aria-hidden="true">
                       <Mail />
                     </span>
                     <div>
-                      <h3>Email</h3>
+                      <h3 className="type-card-title">Email</h3>
                       <a href={`mailto:${contact.email}`}>{contact.email}</a>
                     </div>
                   </div>
-                  <div className="pm-contact-detail">
-                    <span className="pm-contact-icon pm-contact-license-icon" aria-hidden="true">
+                  <div className="pm-contact-detail ui-contact-detail">
+                    <span
+                      className="pm-contact-icon ui-contact-icon pm-contact-license-icon"
+                      aria-hidden="true"
+                    >
                       <Award />
                     </span>
                     <div>
-                      <h3>Licenses</h3>
+                      <h3 className="type-card-title">Licenses</h3>
                       {contact.licenses.map((license) => (
                         <p key={license.id}>{license.label}</p>
                       ))}
                     </div>
                   </div>
-                  <div className="pm-contact-detail">
-                    <span className="pm-contact-icon" aria-hidden="true">
+                  <div className="pm-contact-detail ui-contact-detail">
+                    <span className="pm-contact-icon ui-contact-icon" aria-hidden="true">
                       <Clock />
                     </span>
                     <div>
-                      <h3>Office Hours</h3>
+                      <h3 className="type-card-title">Office Hours</h3>
                       <p>{contact.officeHours}</p>
                     </div>
                   </div>
@@ -892,10 +919,10 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="pm-footer">
-        <div className="pm-container pm-footer-grid">
+      <footer className="pm-footer ui-footer">
+        <div className="pm-container ui-container pm-footer-grid ui-footer-grid">
           <ObjectBoundary id="property-management.footer.brand" value={footerBrand}>
-            <div className="pm-footer-brand">
+            <div className="pm-footer-brand ui-footer-brand">
               <img
                 src={asset(footerBrand.logo.key) ?? propertyLogo}
                 alt={footerBrand.logoAltText}
@@ -923,7 +950,7 @@ function PropertyManagementBody(): React.JSX.Element {
               const item = propertyManagementFooterLinksSchema.element.parse(value);
               const previous = footerLinks[index - 1];
               return (
-                <div className="pm-footer-link">
+                <div className="pm-footer-link ui-footer-link">
                   {previous === undefined || previous.group !== item.group ? (
                     <strong>{item.group}</strong>
                   ) : null}
@@ -934,7 +961,7 @@ function PropertyManagementBody(): React.JSX.Element {
           />
         </div>
         <ObjectBoundary id="property-management.footer.legal" value={footerLegal}>
-          <div className="pm-container pm-footer-legal">
+          <div className="pm-container ui-container pm-footer-legal ui-footer-legal">
             <span>
               © {new Date().getFullYear()} {footerLegal.organizationName}.{' '}
               {footerLegal.rightsNotice}
