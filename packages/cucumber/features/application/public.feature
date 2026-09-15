@@ -57,6 +57,14 @@ Feature: Published TriCo website
     And the Property Management contact details use labeled icon rows and remain visible after anchor navigation
     And the Property Management license decoration has no visible or accessible text fallback
 
+  @id:public.real-estate-card-geometry @backend-noop
+  Scenario: Keep Real Estate card collections centered at their intended desktop width
+    backend-noop: Real Estate card layout and editor-wrapper transparency are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/real-estate"
+    Then Real Estate services team and testimonials use centered three-column desktop grids
+    And entering edit mode preserves the Real Estate card grid geometry
+
   @id:public.storage-mounted-composition @backend-noop
   Scenario: Render the complete mounted Storage Management composition
     backend-noop: Storage composition, responsive presentation, and its client-only consultation form are browser-owned behavior.

@@ -277,3 +277,13 @@ Feature: In-page content editing and preview
     And I can search the icon library by its friendly name
     When I choose the "Tractor" icon and save the item
     Then the selected "Tractor" icon renders in my private preview without a fallback symbol
+
+  @id:content.home-opening-center-stability @backend-noop
+  Scenario: Keep the canonical Home opening message centered in public and edit views
+    backend-noop: Text geometry and editor-wrapper layout isolation are browser presentation behavior.
+    Given I have canonical Home opening content with no saved draft
+    When I open the public Home page at desktop width
+    Then the canonical Home opening heading is horizontally centered
+    When I enter edit mode with the canonical Home opening content
+    Then the canonical Home opening heading remains horizontally centered
+    And the editor wrapper does not change the Home opening geometry

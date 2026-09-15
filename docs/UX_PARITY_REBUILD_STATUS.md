@@ -221,7 +221,7 @@ Last updated: 2026-09-14
   labels and uses valid accessible collection semantics.
 - Canonical browser behavior now opens and saves real friendly Hero forms on
   Real Estate, Construction, Storage, and Development and exercises shared
-  managed-media selection/upload. Exact behavior accounting is 132 cases.
+  managed-media selection/upload. Exact behavior accounting is 134 cases.
 - Compose Playwright now covers the complete user-facing publication loop:
   edit through a friendly form, verify public/private preview isolation, review
   and publish the exact pending change, inspect publication history, restore the
@@ -231,6 +231,10 @@ Last updated: 2026-09-14
   semantic collection undo with persisted-preview cleanup, prominent publishing,
   left-contained editor feedback, searchable full-library Lucide icons, and the
   approved blue Home division-card treatment.
+- A follow-up geometry wave keeps every Real Estate card collection at its
+  intended centered desktop width in public and edit views. It also keeps the
+  canonical Home opening message centered without editor-wrapper drift and
+  prevents the Home editing scenario from leaking saved test content.
 
 Focused verification at this checkpoint:
 
@@ -239,13 +243,13 @@ Focused verification at this checkpoint:
 - Backend build passed.
 - Backend Cucumber passed: 49/49 scenarios and 315/315 steps.
 - Root `npm run check` passes after the semantic/editor integration wave,
-  validating 132 canonical cases.
+  validating 134 canonical cases.
 - Frontend unit tests passed after integration: 41/41.
 - Frontend browser tests passed after integration: 27/27, including registered
   self-hosted fonts, dedicated division compositions, CTA contrast, and launcher
   clearance.
-- Compose frontend Cucumber passed after integration: 40/40 scenarios and
-  278/278 steps, accounting for 132 canonical cases.
+- Compose frontend Cucumber passed after integration: 42/42 scenarios and
+  292/292 steps, accounting for 134 canonical cases.
 - Compose Playwright passed: 17/17, including publish/history/rollback and the
   edit-mode regression wave.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,

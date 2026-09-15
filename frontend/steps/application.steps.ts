@@ -86,6 +86,13 @@ class FrontendWorld extends World {
   mediaAltText = '';
   reorderedItemLabel = '';
   iconEditorItemLabel = '';
+  homePublicHeroGeometry:
+    | {
+        readonly sectionX: number;
+        readonly sectionWidth: number;
+        readonly textCenterX: number;
+      }
+    | undefined;
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
@@ -650,6 +657,77 @@ Then(
   },
 );
 Then(
+  'Real Estate services team and testimonials use centered three-column desktop grids',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.reload();
+
+    const assertThreeColumnGeometry = async (
+      collectionSelector: string,
+      cardSelector: string,
+      expectedCount: number,
+      expectedMinimumWidth: number,
+      expectedMaximumWidth: number,
+    ): Promise<void> => {
+      const collection = page.locator(collectionSelector).first();
+      const items = collection.locator(':scope > div > .editable-collection-items');
+      const collectionBox = await collection.boundingBox();
+      const itemsBox = await items.boundingBox();
+      assert.ok(collectionBox);
+      assert.ok(itemsBox);
+      assert.ok(collectionBox.width >= expectedMinimumWidth);
+      assert.ok(collectionBox.width <= expectedMaximumWidth);
+      assert.ok(Math.abs(itemsBox.x - collectionBox.x) <= 1);
+      assert.ok(Math.abs(itemsBox.width - collectionBox.width) <= 1);
+
+      const cards = items.locator(cardSelector);
+      await expect(cards).toHaveCount(expectedCount);
+      const boxes = await Promise.all(
+        (await cards.all()).map(async (card) => {
+          const box = await card.boundingBox();
+          assert.ok(box);
+          return box;
+        }),
+      );
+      assert.ok(boxes.every((box) => box.width >= expectedMinimumWidth / 3 - 25));
+      const [first, second, third] = boxes;
+      assert.ok(first);
+      assert.ok(second);
+      assert.ok(third);
+      assert.ok(second.x > first.x + first.width);
+      assert.ok(third.x > second.x + second.width);
+    };
+
+    await assertThreeColumnGeometry('.re-service-grid', '.re-card', 5, 1392, 1394);
+    await assertThreeColumnGeometry('.re-person-grid', '.re-person', 3, 1151, 1153);
+    await assertThreeColumnGeometry('.re-testimonial-grid', '.re-card', 3, 1392, 1394);
+  },
+);
+Then(
+  'entering edit mode preserves the Real Estate card grid geometry',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await page.goto('/real-estate');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+
+    for (const selector of ['.re-service-grid', '.re-person-grid', '.re-testimonial-grid']) {
+      const collection = page.locator(selector).first();
+      const items = collection.locator(
+        ':scope > .editable-collection > .editable-collection-items',
+      );
+      const collectionBox = await collection.boundingBox();
+      const itemsBox = await items.boundingBox();
+      assert.ok(collectionBox);
+      assert.ok(itemsBox);
+      assert.ok(Math.abs(itemsBox.x - collectionBox.x) <= 1);
+      assert.ok(Math.abs(itemsBox.width - collectionBox.width) <= 1);
+    }
+  },
+);
+Then(
   'the Property Management hero uses the approved neutral unavailable-image treatment',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
@@ -905,6 +983,8 @@ Given(
     await page.getByLabel('Password').fill(editorPassword);
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page).toHaveURL(/\/$/);
+    await discardPendingOwnedByCurrentUser(page, 'home.hero');
+    this.cleanup.push({ page, entityId: 'home.hero' });
     const previewResponse = page.waitForResponse(
       (response) =>
         response.request().method() === 'GET' &&
@@ -1993,6 +2073,92 @@ Then(
     assert.equal(focusRemainsInside, true);
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
+  },
+);
+
+async function homeOpeningGeometry(page: Page): Promise<{
+  readonly sectionX: number;
+  readonly sectionWidth: number;
+  readonly textCenterX: number;
+}> {
+  return page.locator('.home-hero').evaluate((section) => {
+    const heading = section.querySelector('h1');
+    if (heading === null) throw new Error('The Home opening heading was missing.');
+    const text = heading.firstChild;
+    if (text === null) throw new Error('The Home opening heading text was missing.');
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    const sectionRect = section.getBoundingClientRect();
+    const textRect = range.getBoundingClientRect();
+    return {
+      sectionX: sectionRect.x,
+      sectionWidth: sectionRect.width,
+      textCenterX: textRect.x + textRect.width / 2,
+    };
+  });
+}
+
+Given(
+  'I have canonical Home opening content with no saved draft',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await loginEditor(page);
+    await discardPendingOwnedByCurrentUser(page, 'home.hero');
+    this.cleanup.push({ page, entityId: 'home.hero' });
+  },
+);
+
+When('I open the public Home page at desktop width', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.goto('/');
+  const heading = page.getByRole('heading', { level: 1 });
+  await expect(heading).toHaveText(homeV2SeedData['home.hero'].heading);
+  this.homePublicHeroGeometry = await homeOpeningGeometry(page);
+});
+
+Then(
+  'the canonical Home opening heading is horizontally centered',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const geometry = await homeOpeningGeometry(page);
+    const viewportCenter = 1425 / 2;
+    assert.ok(
+      Math.abs(geometry.textCenterX - viewportCenter) <= 2,
+      `Home opening text center ${String(geometry.textCenterX)} differed from viewport center ${String(viewportCenter)}.`,
+    );
+    await expect(page.locator('.home-hero h1')).toHaveCSS('text-align', 'center');
+  },
+);
+
+When(
+  'I enter edit mode with the canonical Home opening content',
+  async function (this: FrontendWorld) {
+    await enterHomeEditMode(this.currentPage());
+  },
+);
+
+Then(
+  'the canonical Home opening heading remains horizontally centered',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      homeV2SeedData['home.hero'].heading,
+    );
+    const geometry = await homeOpeningGeometry(page);
+    assert.ok(Math.abs(geometry.textCenterX - 1425 / 2) <= 2);
+  },
+);
+
+Then(
+  'the editor wrapper does not change the Home opening geometry',
+  async function (this: FrontendWorld) {
+    const publicGeometry = this.homePublicHeroGeometry;
+    assert.ok(publicGeometry);
+    const editGeometry = await homeOpeningGeometry(this.currentPage());
+    assert.ok(Math.abs(editGeometry.sectionX - publicGeometry.sectionX) <= 2);
+    assert.ok(Math.abs(editGeometry.sectionWidth - publicGeometry.sectionWidth) <= 2);
+    assert.ok(Math.abs(editGeometry.textCenterX - publicGeometry.textCenterX) <= 2);
   },
 );
 

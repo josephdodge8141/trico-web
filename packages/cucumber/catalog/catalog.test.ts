@@ -64,6 +64,7 @@ test('canonical feature files are the catalog source rather than copied text', a
       'public.home-mounted-composition',
       'public.home-division-blue-treatment',
       'public.property-management-mounted-composition',
+      'public.real-estate-card-geometry',
       'public.storage-mounted-composition',
       'public.dedicated-division-composition::real-estate',
       'public.dedicated-division-composition::construction',

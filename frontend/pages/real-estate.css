@@ -49,6 +49,13 @@
 .re-collection-slot {
   display: block;
 }
+.re-collection-slot.re-listing-grid,
+.re-collection-slot.re-service-grid,
+.re-collection-slot.re-person-grid,
+.re-collection-slot.re-testimonial-grid,
+.re-collection-slot.re-review-grid {
+  display: block;
+}
 .re-collection-slot .editable-collection-items {
   display: grid;
 }
