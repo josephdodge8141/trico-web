@@ -235,9 +235,33 @@ Last updated: 2026-09-14
   intended centered desktop width in public and edit views. It also keeps the
   canonical Home opening message centered without editor-wrapper drift and
   prevents the Home editing scenario from leaking saved test content.
+- The September 15 broad-parity wave resolves audit findings `UX-001` through
+  `UX-007` at their shared roots. It adds an opt-in full-width collection
+  contract; one semantic blue-led palette; shared hero-media, review-platform,
+  and profile-card primitives; shared cross-page section/card rhythm; and a
+  feature-owned Real Estate listing-gallery shell. These contracts are used by
+  three to five production page families where the behavior is genuinely
+  shared, while page composition and the unique listing feature remain locally
+  owned. Seven canonical browser scenarios capture the original failures and
+  verify desktop, compact, public, and edit-mode behavior without hiding
+  intentional gold branding or removing valid hero imagery.
 
 Focused verification at this checkpoint:
 
+- The integrated September 15 root `npm run check` passes with 141 canonical
+  cases, 27/27 frontend browser tests, 41/41 frontend unit tests, 26/26
+  infrastructure tests, and successful synthesis of the preview foundation,
+  development, and production stacks.
+- The rebuilt local Compose application passes 49/49 frontend Cucumber
+  scenarios and 344/344 steps with exact accounting for all 141 cases.
+- Compose Playwright passes 17/17, including authentication, edit-mode resume,
+  friendly forms, icon selection, publication/history/rollback, responsive
+  editor controls, collection operations, ownership, conflicts, and restored
+  pending previews.
+- A final browser-only inspection covered all six page tops plus the repaired
+  Construction services grid and Real Estate listing gallery. The shared hero
+  media, blue-led emphasis, centered grids, counted tabs, and neutral fallbacks
+  render as intended with no visible editor leakage while signed out.
 - Schemas build passed.
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.

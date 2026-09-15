@@ -25,6 +25,7 @@ interface UndoState {
 
 export interface EditableCollectionProps {
   readonly active: boolean;
+  readonly layout?: 'natural' | 'fill';
   readonly definition: SemanticEntityDefinition;
   readonly value: readonly EditableValue[];
   readonly renderItem: (item: EditableValue, index: number) => React.ReactNode;
@@ -44,6 +45,7 @@ function withFreshIdentity(value: EditableValue, createItemId: () => string): Ed
 
 export function EditableCollection({
   active,
+  layout = 'natural',
   definition,
   value,
   renderItem,
@@ -135,7 +137,8 @@ export function EditableCollection({
 
   return (
     <div
-      className={active ? 'editable-collection' : undefined}
+      className={active || layout === 'fill' ? 'editable-collection' : undefined}
+      data-collection-layout={layout === 'fill' ? 'fill' : undefined}
       data-editor-state={active ? ownership : undefined}
     >
       {ownership === 'mine' && active ? (

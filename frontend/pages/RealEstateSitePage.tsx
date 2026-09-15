@@ -10,10 +10,10 @@ import {
   FileText,
   Handshake,
   Home,
+  ImageIcon,
   Mail,
   MapPin,
   Menu,
-  PenLine,
   Phone,
   Quote,
   Ruler,
@@ -68,6 +68,8 @@ import { EditableBoundary, type EditorOwnership } from '../components/EditableBo
 import { EditableCollection } from '../components/EditableCollection.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
+import { ProfileCard } from '../components/ProfileCard.js';
+import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -120,6 +122,11 @@ const imageByKey: Readonly<Record<string, string>> = {
 const imageSource = (key: string, fallback: string): string =>
   imageByKey[key] ??
   (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : fallback);
+const profileImageSource = (key: string): string | undefined =>
+  key === 'media/seed/placeholder-neutral.svg'
+    ? undefined
+    : (imageByKey[key] ??
+      (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : undefined));
 // Generic interaction/navigation words are code-owned; business names and page copy stay in content.
 const interfaceCopy = {
   activeStatus: 'Active',
@@ -407,6 +414,7 @@ function CollectionBoundary({
       ) : null}
       <EditableCollection
         active={editing.active}
+        layout="fill"
         definition={effectiveDefinition}
         value={displayedValue}
         renderItem={renderItem}
@@ -425,20 +433,16 @@ function CollectionBoundary({
 function PersonCard({ item }: { readonly item: S.EditableValue }): React.JSX.Element {
   const person = S.realEstateTeamMemberSchema.parse(item);
   return (
-    <article className="re-person">
-      <img src={imageSource(person.image.key, placeholderPhoto)} alt={person.imageAltText} />
-      <div>
-        <h4>{person.name}</h4>
-        <p>{person.role}</p>
-        <p className="re-person-bio">{person.bio}</p>
-        <a href={`tel:${person.phone.replace(/[^\d+]/g, '')}`}>
-          <Phone aria-hidden="true" /> {person.phone}
-        </a>
-        <a href={`mailto:${person.email}`}>
-          <Mail aria-hidden="true" /> {interfaceCopy.emailAction}
-        </a>
-      </div>
-    </article>
+    <ProfileCard
+      description={person.bio}
+      email={person.email}
+      emailLabel={interfaceCopy.emailAction}
+      imageAltText={person.imageAltText}
+      imageSource={profileImageSource(person.image.key)}
+      name={person.name}
+      phone={person.phone}
+      role={person.role}
+    />
   );
 }
 function SemanticHeading({ item }: { readonly item: S.EditableValue }): React.JSX.Element {
@@ -458,6 +462,13 @@ function RealEstateBody(): React.JSX.Element {
   const [fallback, setFallback] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [listingTab, setListingTab] = useState<'active' | 'sold'>('active');
+  const listingItems = parseRealEstateValue(
+    document,
+    'real-estate.listings.items',
+    S.realEstateListingsItemsSchema,
+  );
+  const activeListingCount = listingItems.filter(({ status }) => status === 'active').length;
+  const soldListingCount = listingItems.filter(({ status }) => status === 'sold').length;
   useEffect(() => {
     const controller = new AbortController();
     const loader = editing.active ? fetchPreviewPageDocument : fetchPublicPageDocument;
@@ -585,9 +596,19 @@ function RealEstateBody(): React.JSX.Element {
                         }}
                       />
                     </div>
-                    <div className="re-hero-visual">
-                      <MapPin aria-hidden="true" />
-                      <span>{hero.heading}</span>
+                    <div
+                      className="re-hero-visual division-hero-media"
+                      data-division-hero-media="true"
+                      data-media-state="unavailable"
+                    >
+                      <div
+                        className="division-hero-media-placeholder"
+                        role="img"
+                        aria-label={hero.heading}
+                      >
+                        <ImageIcon aria-hidden="true" />
+                        <span>Photo coming soon</span>
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -600,85 +621,92 @@ function RealEstateBody(): React.JSX.Element {
               <Boundary id="real-estate.listings.header">
                 {(item) => <SemanticHeading item={item} />}
               </Boundary>
-              <Boundary id="real-estate.listings.actions">
-                {(item) => {
-                  const actions = S.realEstateListingsActionsSchema.parse(item);
-                  return (
-                    <div className="re-tabs" role="tablist">
-                      <button
-                        role="tab"
-                        aria-selected={listingTab === 'active'}
-                        onClick={() => setListingTab('active')}
-                      >
-                        {actions.activeLabel}
-                      </button>
-                      <button
-                        role="tab"
-                        aria-selected={listingTab === 'sold'}
-                        onClick={() => setListingTab('sold')}
-                      >
-                        {actions.soldLabel}
-                      </button>
-                    </div>
-                  );
-                }}
-              </Boundary>
-              <CollectionBoundary
-                className="re-listing-grid"
-                id="real-estate.listings.items"
-                filterItem={(item) => S.realEstateListingSchema.parse(item).status === listingTab}
-                blankItemPatch={{ status: listingTab }}
-                renderItem={(item) => {
-                  const listing = S.realEstateListingSchema.parse(item);
-                  return (
-                    <article className="re-listing" key={listing.address}>
-                      <div className="re-listing-photo">
-                        <img
-                          src={imageSource(listing.image.key, placeholderPhoto)}
-                          alt={listing.imageAltText}
-                        />
-                        <span className={`re-badge ${listing.status === 'sold' ? 'sold' : ''}`}>
-                          {listing.status === 'sold'
-                            ? interfaceCopy.soldStatus
-                            : interfaceCopy.activeStatus}
-                        </span>
-                        <span className="re-badge re-type">{listing.type}</span>
+              <div className="re-listings-gallery">
+                <Boundary id="real-estate.listings.actions">
+                  {(item) => {
+                    const actions = S.realEstateListingsActionsSchema.parse(item);
+                    return (
+                      <div className="re-tabs" role="tablist" aria-label="Property listing status">
+                        <button
+                          role="tab"
+                          aria-selected={listingTab === 'active'}
+                          onClick={() => setListingTab('active')}
+                        >
+                          {actions.activeLabel} <span>({activeListingCount})</span>
+                        </button>
+                        <button
+                          role="tab"
+                          aria-selected={listingTab === 'sold'}
+                          onClick={() => setListingTab('sold')}
+                        >
+                          {actions.soldLabel} <span>({soldListingCount})</span>
+                        </button>
                       </div>
-                      <div className="re-listing-body">
-                        <strong className="re-price">{listing.price}</strong>
-                        <p>
-                          <MapPin /> {listing.address}, {listing.city}
-                        </p>
-                        <span>
-                          <Ruler /> {listing.detail}
-                        </span>
-                        <div className="re-listing-foot">
-                          <img src={realEstateLogo} alt="TriCo Real Estate" />
-                          {listing.actionLabel && listing.externalUrl ? (
-                            <a href={listing.externalUrl} target="_blank" rel="noreferrer">
-                              {listing.actionLabel} <ExternalLink />
-                            </a>
+                    );
+                  }}
+                </Boundary>
+                <CollectionBoundary
+                  className="re-listing-grid"
+                  id="real-estate.listings.items"
+                  filterItem={(item) => S.realEstateListingSchema.parse(item).status === listingTab}
+                  blankItemPatch={{ status: listingTab }}
+                  renderItem={(item) => {
+                    const listing = S.realEstateListingSchema.parse(item);
+                    return (
+                      <article className="re-listing" key={listing.address}>
+                        <div className="re-listing-photo">
+                          <img
+                            src={imageSource(listing.image.key, placeholderPhoto)}
+                            alt={listing.imageAltText}
+                          />
+                          <span className={`re-badge ${listing.status === 'sold' ? 'sold' : ''}`}>
+                            {listing.status === 'sold'
+                              ? interfaceCopy.soldStatus
+                              : interfaceCopy.activeStatus}
+                          </span>
+                          <span className="re-badge re-type">{listing.type}</span>
+                        </div>
+                        <div className="re-listing-body">
+                          <strong className="re-price">{listing.price}</strong>
+                          <p>
+                            <MapPin /> {listing.address}, {listing.city}
+                          </p>
+                          <span>
+                            <Ruler /> {listing.detail}
+                          </span>
+                          <div className="re-listing-foot">
+                            <img src={realEstateLogo} alt="TriCo Real Estate" />
+                            {listing.actionLabel && listing.externalUrl ? (
+                              <a
+                                className="re-listing-action"
+                                href={listing.externalUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {listing.actionLabel} <ExternalLink />
+                              </a>
+                            ) : null}
+                          </div>
+                          {listing.gallery.length > 0 ? (
+                            <div
+                              className="re-listing-gallery"
+                              aria-label={`${listing.address} gallery`}
+                            >
+                              {listing.gallery.map((photo) => (
+                                <img
+                                  key={photo.id}
+                                  src={imageSource(photo.image.key, placeholderPhoto)}
+                                  alt={photo.imageAltText}
+                                />
+                              ))}
+                            </div>
                           ) : null}
                         </div>
-                        {listing.gallery.length > 0 ? (
-                          <div
-                            className="re-listing-gallery"
-                            aria-label={`${listing.address} gallery`}
-                          >
-                            {listing.gallery.map((photo) => (
-                              <img
-                                key={photo.id}
-                                src={imageSource(photo.image.key, placeholderPhoto)}
-                                alt={photo.imageAltText}
-                              />
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    </article>
-                  );
-                }}
-              />
+                      </article>
+                    );
+                  }}
+                />
+              </div>
             </div>
           </section>
 
@@ -905,11 +933,7 @@ function RealEstateBody(): React.JSX.Element {
                       <span className="re-pill">{heading.eyebrow}</span>
                       <h2>{heading.heading}</h2>
                       <p>{heading.description}</p>
-                      <div className="re-large-stars">
-                        {Array.from({ length: 5 }).map((_, index) => (
-                          <Star key={index} />
-                        ))}
-                      </div>
+                      <ReviewRating />
                     </header>
                   );
                 }}
@@ -920,17 +944,13 @@ function RealEstateBody(): React.JSX.Element {
                 renderItem={(item) => {
                   const platform = S.realEstateReviewPlatformSchema.parse(item);
                   return (
-                    <article className="re-card">
-                      <PenLine />
-                      <h3>{platform.name}</h3>
-                      <p>{platform.description}</p>
-                      <a
-                        className="re-button re-button-quiet"
-                        href={platform.externalUrl || '#contact'}
-                      >
-                        {interfaceCopy.reviewAction} {platform.name} <ExternalLink />
-                      </a>
-                    </article>
+                    <ReviewPlatformCard
+                      actionLabel={interfaceCopy.reviewAction}
+                      description={platform.description}
+                      externalUrl={platform.externalUrl}
+                      name={platform.name}
+                      unavailableLabel="Review link coming soon"
+                    />
                   );
                 }}
               />

@@ -41,6 +41,52 @@ Feature: Published TriCo website
     When I open "/"
     Then every Home division card uses the approved blue text border icon and action treatment
 
+  @id:public.semantic-highlight-colors @backend-noop
+  Scenario: Use one blue-led semantic highlight contract across the TriCo family
+    backend-noop: Cross-site color roles and their rendered presentation are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/"
+    Then one shared semantic palette defines action highlight stat rating and brand accent roles
+    And Home Property Management Real Estate Construction Storage and Development use the shared blue highlight role
+    And division statistics use the shared blue stat role while intentional brand accents remain gold
+
+  @id:public.division-hero-media-contract @backend-noop
+  Scenario: Keep division hero media consistent across content states and breakpoints
+    backend-noop: Hero media geometry, image cropping, fallback presentation, and responsive visibility are browser-owned behavior.
+    Given the current content manifest is available
+    When I open "/property-management"
+    Then Property Management Real Estate Construction and Storage expose one shared hero media contract
+    And available division hero images crop consistently while missing images use one neutral fallback
+    And division hero media remains visible at desktop width and yields to the content below 1024 pixels
+
+  @id:public.shared-section-rhythm @backend-noop
+  Scenario: Keep supporting sections readable with one shared vertical rhythm
+    backend-noop: Section spacing, card density, and responsive line measure are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/real-estate"
+    Then Real Estate Property Management and Development use one shared section rhythm contract
+    And representative service cards use the shared vertical density and readable copy measure
+    And shared section rhythm remains balanced at desktop and tablet widths
+
+  @id:public.review-platform-contract @backend-noop
+  Scenario: Present review destinations with one accessible platform contract
+    backend-noop: Review-platform branding, rating color, card geometry, and responsive presentation are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/real-estate"
+    Then Real Estate Property Management Construction Storage and Development use one review platform card contract
+    And Google Facebook and Yelp use accessible platform-specific brand treatments
+    And review ratings use the shared blue rating role
+    And review platform cards remain balanced at desktop and compact on mobile
+
+  @id:public.profile-card-contract @backend-noop
+  Scenario: Present people with one resilient profile card contract
+    backend-noop: Profile-card geometry, portrait cropping, unavailable-media presentation, and responsive editor-wrapper behavior are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/real-estate"
+    Then Real Estate Property Management and Development expose one shared profile card contract
+    And available portraits crop consistently while unavailable portraits use one neutral accessible fallback
+    And profile cards remain balanced at desktop and mobile widths and retain their geometry in edit mode
+
   @id:public.property-management-mounted-composition @backend-noop
   Scenario: Render the complete mounted Property Management composition
     backend-noop: Property Management composition, responsive presentation, and its two client-only forms are browser-owned behavior.
@@ -64,6 +110,26 @@ Feature: Published TriCo website
     When I open "/real-estate"
     Then Real Estate services team and testimonials use centered three-column desktop grids
     And entering edit mode preserves the Real Estate card grid geometry
+
+  @id:public.real-estate-listing-gallery @backend-noop
+  Scenario: Keep Featured Properties a curated and accessible listing gallery
+    backend-noop: Listing-gallery geometry, status tabs, and external-action hierarchy are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/real-estate"
+    Then the Real Estate listing gallery is centered and constrained at desktop width
+    And listing cards preserve their intended image ratio at desktop and mobile widths
+    And listing tabs show the active and sold counts in a light segmented control
+    And each available external listing action remains accessible but visually subordinate
+
+  @id:public.construction-collection-geometry @backend-noop
+  Scenario: Keep editable collection grids structurally transparent
+    backend-noop: Collection wrapper sizing and responsive grid presentation are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/construction"
+    Then Construction services plans pros and reviews fill their centered desktop grids
+    And Construction collection grids retain their responsive column templates
+    And entering edit mode preserves the Construction collection grid geometry
+    And shared collection sizing preserves Real Estate and Property Management service grids
 
   @id:public.storage-mounted-composition @backend-noop
   Scenario: Render the complete mounted Storage Management composition

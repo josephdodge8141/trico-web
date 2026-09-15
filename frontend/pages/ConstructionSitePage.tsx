@@ -17,11 +17,9 @@ import {
   Mail,
   MapPin,
   Menu,
-  PenLine,
   Phone,
   Shield,
   Shovel,
-  Star,
   TrendingUp,
   Users,
   Warehouse,
@@ -82,6 +80,7 @@ import { EditableBoundary, type EditorOwnership } from '../components/EditableBo
 import { EditableCollection } from '../components/EditableCollection.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
+import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -197,6 +196,7 @@ function CollectionBoundary({
     >
       <EditableCollection
         active={editing.active}
+        layout="fill"
         definition={definition(id)}
         value={value}
         renderItem={renderItem}
@@ -484,7 +484,13 @@ function ConstructionBody(): React.JSX.Element {
                   />
                 </div>
               </div>
-              <img src={constructionImage(hero.image.key, crewOne)} alt={hero.imageAltText} />
+              <div
+                className="division-hero-media"
+                data-division-hero-media="true"
+                data-media-state="available"
+              >
+                <img src={constructionImage(hero.image.key, crewOne)} alt={hero.imageAltText} />
+              </div>
             </div>
           </section>
         </ObjectBoundary>
@@ -848,11 +854,7 @@ function ConstructionBody(): React.JSX.Element {
                 copy={reviewsHeader.description}
               />
             </ObjectBoundary>
-            <div className="co-stars" aria-label="5 out of 5 stars">
-              {Array.from({ length: 5 }, (_, index) => (
-                <Star key={index} />
-              ))}
-            </div>
+            <ReviewRating />
             <div className="co-review-grid">
               <CollectionBoundary
                 id="construction.reviews.platforms"
@@ -860,16 +862,13 @@ function ConstructionBody(): React.JSX.Element {
                 renderItem={(item) => {
                   const review = constructionReviewPlatformsSchema.element.parse(item);
                   return (
-                    <article>
-                      <i>
-                        <PenLine />
-                      </i>
-                      <h3>{review.name}</h3>
-                      <p>{review.description}</p>
-                      <a href={review.externalUrl === '' ? '#reviews' : review.externalUrl}>
-                        Review on {review.name} <ExternalLink />
-                      </a>
-                    </article>
+                    <ReviewPlatformCard
+                      actionLabel="Review on"
+                      description={review.description}
+                      externalUrl={review.externalUrl}
+                      name={review.name}
+                      unavailableLabel="Review link coming soon"
+                    />
                   );
                 }}
               />

@@ -518,6 +518,497 @@ Then(
   },
 );
 Then(
+  'one shared semantic palette defines action highlight stat rating and brand accent roles',
+  async function (this: FrontendWorld) {
+    const roles = await this.currentPage().evaluate(() => {
+      const styles = window.getComputedStyle(document.documentElement);
+      return {
+        action: styles.getPropertyValue('--trico-color-action').trim(),
+        highlight: styles.getPropertyValue('--trico-color-highlight').trim(),
+        stat: styles.getPropertyValue('--trico-color-stat').trim(),
+        rating: styles.getPropertyValue('--trico-color-rating').trim(),
+        brandAccent: styles.getPropertyValue('--trico-color-brand-accent').trim(),
+      };
+    });
+    assert.deepEqual(roles, {
+      action: '#00128a',
+      highlight: '#5e85ba',
+      stat: '#5e85ba',
+      rating: '#5e85ba',
+      brandAccent: '#86622d',
+    });
+  },
+);
+Then(
+  'Home Property Management Real Estate Construction Storage and Development use the shared blue highlight role',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const samples = [
+      { route: '/', selector: '.home-card-icon' },
+      { route: '/property-management', selector: '.pm-section-heading > span' },
+      { route: '/real-estate', selector: '.re-service-grid .re-card > svg:first-child' },
+      { route: '/construction', selector: '.co-heading > span' },
+      { route: '/storage', selector: '.storage-section-heading > span' },
+      { route: '/development', selector: '.dev-pill' },
+    ] as const;
+    for (const sample of samples) {
+      await page.goto(sample.route);
+      const target = page.locator(sample.selector).first();
+      await expect(target).toBeAttached();
+      await expect(target).toHaveCSS('color', 'rgb(94, 133, 186)');
+    }
+  },
+);
+Then(
+  'division statistics use the shared blue stat role while intentional brand accents remain gold',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const statSamples = [
+      { route: '/property-management', selector: '.pm-stat strong' },
+      { route: '/real-estate', selector: '.re-hero-stats strong' },
+      { route: '/construction', selector: '.co-pro-stats strong' },
+      { route: '/storage', selector: '.storage-stat strong' },
+      { route: '/development', selector: '.dev-stats strong' },
+    ] as const;
+    for (const sample of statSamples) {
+      await page.goto(sample.route);
+      const target = page.locator(sample.selector).first();
+      await expect(target).toBeAttached();
+      await expect(target).toHaveCSS('color', 'rgb(94, 133, 186)');
+    }
+
+    await page.goto('/property-management');
+    await expect(page.locator('.pm-stars svg').first()).toHaveCSS('color', 'rgb(94, 133, 186)');
+
+    for (const action of [
+      { route: '/real-estate', selector: '.re-careers .re-button-gold' },
+      { route: '/construction', selector: '.co-button-gold' },
+    ] as const) {
+      await page.goto(action.route);
+      await expect(page.locator(action.selector).first()).toHaveCSS(
+        'background-color',
+        'rgb(0, 18, 138)',
+      );
+    }
+
+    await page.goto('/development');
+    await expect(page.locator('.dev-brand strong')).toHaveCSS('color', 'rgb(134, 98, 45)');
+  },
+);
+
+const reviewPlatformSamples = [
+  { route: '/real-estate', grid: '.re-review-grid' },
+  { route: '/property-management', grid: '.pm-reviews' },
+  { route: '/construction', grid: '.co-review-grid' },
+  { route: '/storage', grid: '.storage-reviews' },
+  { route: '/development', grid: '.dev-review-grid' },
+] as const;
+
+Then(
+  'Real Estate Property Management Construction Storage and Development use one review platform card contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const sample of reviewPlatformSamples) {
+      await page.goto(sample.route);
+      const grid = page.locator(sample.grid);
+      await expect(grid).toBeVisible();
+      const cards = grid.locator('[data-review-platform-card="true"]');
+      await expect(cards).toHaveCount(3);
+      for (const card of await cards.all()) {
+        await expect(card).toHaveCSS('display', 'flex');
+        await expect(card).toHaveCSS('text-align', 'center');
+      }
+    }
+  },
+);
+
+Then(
+  'Google Facebook and Yelp use accessible platform-specific brand treatments',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const expected = {
+      google: 'rgb(66, 133, 244)',
+      facebook: 'rgb(24, 119, 242)',
+      yelp: 'rgb(211, 35, 35)',
+    } as const;
+    for (const sample of reviewPlatformSamples) {
+      await page.goto(sample.route);
+      for (const [platform, color] of Object.entries(expected)) {
+        const mark = page.locator(
+          `${sample.grid} [data-review-platform="${platform}"] [data-review-platform-mark="true"]`,
+        );
+        await expect(mark).toHaveCount(1);
+        await expect(mark).toHaveCSS('color', color);
+        await expect(mark).toHaveAttribute('aria-hidden', 'true');
+      }
+    }
+  },
+);
+
+Then('review ratings use the shared blue rating role', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const expectedColor = 'rgb(94, 133, 186)';
+  for (const sample of reviewPlatformSamples) {
+    await page.goto(sample.route);
+    const rating = page.locator('[data-review-rating="true"]').first();
+    await expect(rating).toBeVisible();
+    await expect(rating).toHaveCSS('color', expectedColor);
+    await expect(rating).toHaveAttribute('aria-label', '5 out of 5 stars');
+  }
+});
+
+Then(
+  'review platform cards remain balanced at desktop and compact on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const sample of reviewPlatformSamples) {
+      await page.setViewportSize({ width: 1440, height: 1100 });
+      await page.goto(sample.route);
+      const desktopCards = page.locator(`${sample.grid} [data-review-platform-card="true"]`);
+      const heights = await desktopCards.evaluateAll((cards) =>
+        cards.map((card) => card.getBoundingClientRect().height),
+      );
+      assert.equal(heights.length, 3);
+      assert.ok(Math.max(...heights) - Math.min(...heights) <= 1);
+      assert.ok(Math.min(...heights) >= 240);
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(sample.route);
+      const mobileCard = page.locator(`${sample.grid} [data-review-platform-card="true"]`).first();
+      await expect(mobileCard).toBeVisible();
+      const mobileBox = await mobileCard.boundingBox();
+      assert.ok(mobileBox);
+      assert.ok(mobileBox.width >= 330);
+      assert.ok(mobileBox.height < 320);
+    }
+  },
+);
+
+const profileCardSamples = [
+  { route: '/real-estate', count: 9, available: 6, unavailable: 3 },
+  { route: '/property-management', count: 4, available: 2, unavailable: 2 },
+  { route: '/development', count: 3, available: 3, unavailable: 0 },
+] as const;
+
+Then(
+  'Real Estate Property Management and Development expose one shared profile card contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    for (const sample of profileCardSamples) {
+      await page.goto(sample.route);
+      const cards = page.locator('[data-profile-card="true"]');
+      await expect(cards).toHaveCount(sample.count);
+      for (const card of await cards.all()) {
+        await expect(card).toHaveCSS('display', 'flex');
+        await expect(card).toHaveCSS('flex-direction', 'column');
+      }
+    }
+  },
+);
+
+Then(
+  'available portraits crop consistently while unavailable portraits use one neutral accessible fallback',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const sample of profileCardSamples) {
+      await page.goto(sample.route);
+      const available = page.locator(
+        '[data-profile-card="true"] [data-profile-media-state="available"]',
+      );
+      const unavailable = page.locator(
+        '[data-profile-card="true"] [data-profile-media-state="unavailable"]',
+      );
+      await expect(available).toHaveCount(sample.available);
+      await expect(unavailable).toHaveCount(sample.unavailable);
+      for (const media of await available.all()) {
+        const box = await media.boundingBox();
+        assert.ok(box);
+        assert.ok(Math.abs(box.width - box.height) <= 1);
+        const portrait = media.locator('img');
+        await expect(portrait).toHaveCSS('object-fit', 'cover');
+        assert.ok(
+          (await portrait.evaluate((element) =>
+            element instanceof HTMLImageElement ? element.naturalWidth : 0,
+          )) > 0,
+        );
+      }
+      for (const media of await unavailable.all()) {
+        await expect(media).toHaveAttribute('role', 'img');
+        await expect(media).toHaveAttribute('aria-label', /Portrait unavailable for .+/);
+        await expect(media.locator('img')).toHaveCount(0);
+        await expect(media).not.toContainText('media/');
+      }
+    }
+  },
+);
+
+Then(
+  'profile cards remain balanced at desktop and mobile widths and retain their geometry in edit mode',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const sample of profileCardSamples) {
+      await page.setViewportSize({ width: 1425, height: 1100 });
+      await page.goto(sample.route);
+      const desktopCards = page.locator('[data-profile-card="true"]');
+      const firstRow = await desktopCards.evaluateAll((cards) => {
+        const firstTop = cards[0]?.getBoundingClientRect().top;
+        return cards
+          .map((card) => card.getBoundingClientRect())
+          .filter((box) => firstTop !== undefined && Math.abs(box.top - firstTop) <= 1)
+          .map((box) => ({ width: box.width, height: box.height }));
+      });
+      assert.ok(firstRow.length >= 2);
+      assert.ok(firstRow.every(({ width }) => width >= 300));
+      assert.ok(
+        Math.max(...firstRow.map(({ height }) => height)) -
+          Math.min(...firstRow.map(({ height }) => height)) <=
+          1,
+      );
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(sample.route);
+      const mobileCards = page.locator('[data-profile-card="true"]');
+      const firstMobileBox = await mobileCards.first().boundingBox();
+      assert.ok(firstMobileBox);
+      assert.ok(firstMobileBox.width >= 350);
+      const mobileColumns = await mobileCards.evaluateAll(
+        (cards) => new Set(cards.map((card) => Math.round(card.getBoundingClientRect().left))).size,
+      );
+      assert.equal(mobileColumns, 1);
+    }
+
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await loginEditor(page);
+    await page.goto('/real-estate');
+    const publicWidth = await page
+      .locator('[data-profile-card="true"]')
+      .first()
+      .evaluate((card) => card.getBoundingClientRect().width);
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    const editWidth = await page
+      .locator('[data-profile-card="true"]')
+      .first()
+      .evaluate((card) => card.getBoundingClientRect().width);
+    assert.ok(Math.abs(editWidth - publicWidth) <= 2);
+  },
+);
+
+const divisionHeroMediaSamples = [
+  { route: '/property-management', state: 'unavailable' },
+  { route: '/real-estate', state: 'unavailable' },
+  { route: '/construction', state: 'available' },
+  { route: '/storage', state: 'available' },
+] as const;
+
+Then(
+  'Property Management Real Estate Construction and Storage expose one shared hero media contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    for (const sample of divisionHeroMediaSamples) {
+      await page.goto(sample.route);
+      const media = page.locator('[data-division-hero-media="true"]');
+      await expect(media).toHaveCount(1);
+      await expect(media).toBeVisible();
+      await expect(media).toHaveAttribute('data-media-state', sample.state);
+      await expect(media).toHaveCSS('border-radius', '16px');
+      await expect(media).toHaveCSS('overflow', 'hidden');
+      await expect(media).toHaveCSS('box-shadow', 'rgba(15, 23, 41, 0.18) 0px 24px 55px 0px');
+      const box = await media.boundingBox();
+      assert.ok(box);
+      assert.ok(Math.abs(box.width / box.height - 4 / 3) <= 0.01);
+      assert.ok(box.x >= 720);
+    }
+  },
+);
+
+Then(
+  'Real Estate Property Management and Development use one shared section rhythm contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const expectations = [
+      {
+        route: '/real-estate',
+        page: '.re-page',
+        section: '.re-section',
+        heading: '.re-section-heading',
+      },
+      {
+        route: '/property-management',
+        page: '.pm-page',
+        section: '.pm-section',
+        heading: '.pm-section-heading',
+      },
+      {
+        route: '/development',
+        page: '.dev-page',
+        section: '.dev-section',
+        heading: '.dev-heading',
+      },
+    ] as const;
+
+    for (const expectation of expectations) {
+      await page.goto(expectation.route);
+      const contract = await page.locator(expectation.page).evaluate((element) => {
+        const styles = getComputedStyle(element);
+        return {
+          sectionSpacing: styles.getPropertyValue('--trico-section-spacing').trim(),
+          headingGap: styles.getPropertyValue('--trico-section-heading-gap').trim(),
+          cardPadding: styles.getPropertyValue('--trico-card-padding').trim(),
+          cardMinHeight: styles.getPropertyValue('--trico-card-min-height').trim(),
+          copyMeasure: styles.getPropertyValue('--trico-card-copy-measure').trim(),
+        };
+      });
+      assert.deepEqual(contract, {
+        sectionSpacing: '6rem',
+        headingGap: '4rem',
+        cardPadding: '2rem',
+        cardMinHeight: '15rem',
+        copyMeasure: '42ch',
+      });
+
+      const section = page.locator(expectation.section).first();
+      const heading = page.locator(expectation.heading).first();
+      await expect(section).toBeVisible();
+      await expect(heading).toBeVisible();
+      const sectionStyles = await section.evaluate((element) => getComputedStyle(element));
+      const headingStyles = await heading.evaluate((element) => getComputedStyle(element));
+      assert.equal(sectionStyles.paddingTop, '96px');
+      assert.equal(sectionStyles.paddingBottom, '96px');
+      assert.equal(headingStyles.marginBottom, '64px');
+    }
+  },
+);
+
+Then(
+  'representative service cards use the shared vertical density and readable copy measure',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const expectations = [
+      { route: '/real-estate', card: '#services .re-card' },
+      { route: '/property-management', card: '#services .pm-card' },
+      { route: '/development', card: '#projects .dev-card' },
+    ] as const;
+
+    for (const expectation of expectations) {
+      await page.goto(expectation.route);
+      await page.setViewportSize({ width: 1440, height: 1100 });
+      const card = page.locator(expectation.card).first();
+      await expect(card).toBeVisible();
+      const geometry = await card.evaluate((element) => {
+        const cardStyles = getComputedStyle(element);
+        const copy = element.querySelector('p');
+        if (!(copy instanceof HTMLElement)) return null;
+        const copyStyles = getComputedStyle(copy);
+        return {
+          minHeight: cardStyles.minHeight,
+          paddingTop: cardStyles.paddingTop,
+          paddingRight: cardStyles.paddingRight,
+          paddingBottom: cardStyles.paddingBottom,
+          paddingLeft: cardStyles.paddingLeft,
+          copyMaxWidth: copyStyles.maxWidth,
+          copyLineHeight: Number.parseFloat(copyStyles.lineHeight),
+        };
+      });
+      assert.ok(geometry);
+      assert.deepEqual(
+        {
+          minHeight: geometry.minHeight,
+          paddingTop: geometry.paddingTop,
+          paddingRight: geometry.paddingRight,
+          paddingBottom: geometry.paddingBottom,
+          paddingLeft: geometry.paddingLeft,
+        },
+        {
+          minHeight: '240px',
+          paddingTop: '32px',
+          paddingRight: '32px',
+          paddingBottom: '32px',
+          paddingLeft: '32px',
+        },
+      );
+      const copyMaxWidth = Number.parseFloat(geometry.copyMaxWidth);
+      assert.ok(copyMaxWidth >= 300 && copyMaxWidth <= 390);
+      assert.ok(geometry.copyLineHeight >= 24);
+    }
+  },
+);
+
+Then(
+  'shared section rhythm remains balanced at desktop and tablet widths',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const viewport of [
+      { width: 1440, height: 1100, expectedPadding: '96px', expectedHeadingGap: '64px' },
+      { width: 767, height: 1024, expectedPadding: '72px', expectedHeadingGap: '40px' },
+    ] as const) {
+      await page.setViewportSize(viewport);
+      for (const expectation of [
+        { route: '/real-estate', section: '.re-section', heading: '.re-section-heading' },
+        { route: '/property-management', section: '.pm-section', heading: '.pm-section-heading' },
+        { route: '/development', section: '.dev-section', heading: '.dev-heading' },
+      ] as const) {
+        await page.goto(expectation.route);
+        const sectionStyles = await page
+          .locator(expectation.section)
+          .first()
+          .evaluate((element) => getComputedStyle(element));
+        const headingStyles = await page
+          .locator(expectation.heading)
+          .first()
+          .evaluate((element) => getComputedStyle(element));
+        assert.equal(sectionStyles.paddingTop, viewport.expectedPadding);
+        assert.equal(sectionStyles.paddingBottom, viewport.expectedPadding);
+        assert.equal(headingStyles.marginBottom, viewport.expectedHeadingGap);
+      }
+    }
+  },
+);
+
+Then(
+  'available division hero images crop consistently while missing images use one neutral fallback',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const sample of divisionHeroMediaSamples) {
+      await page.goto(sample.route);
+      const media = page.locator('[data-division-hero-media="true"]');
+      if (sample.state === 'available') {
+        const image = media.locator('img');
+        await expect(image).toHaveCount(1);
+        await expect(image).toHaveCSS('object-fit', 'cover');
+        const mediaBox = await media.boundingBox();
+        const imageBox = await image.boundingBox();
+        assert.ok(mediaBox);
+        assert.ok(imageBox);
+        assert.ok(Math.abs(mediaBox.width - imageBox.width) <= 2);
+        assert.ok(Math.abs(mediaBox.height - imageBox.height) <= 2);
+      } else {
+        await expect(media.locator('img')).toHaveCount(0);
+        const fallback = media.locator('.division-hero-media-placeholder');
+        await expect(fallback).toBeVisible();
+        await expect(fallback).toContainText('Photo coming soon');
+        await expect(fallback).not.toContainText('media/');
+      }
+    }
+  },
+);
+
+Then(
+  'division hero media remains visible at desktop width and yields to the content below {int} pixels',
+  async function (this: FrontendWorld, breakpoint: number) {
+    const page = this.currentPage();
+    for (const sample of divisionHeroMediaSamples) {
+      await page.setViewportSize({ width: breakpoint, height: 1100 });
+      await page.goto(sample.route);
+      await expect(page.locator('[data-division-hero-media="true"]')).toBeVisible();
+      await page.setViewportSize({ width: breakpoint - 1, height: 1100 });
+      await expect(page.locator('[data-division-hero-media="true"]')).toBeHidden();
+    }
+  },
+);
+Then(
   'the Home resume form validates locally without creating a CMS entity',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
@@ -630,7 +1121,7 @@ Then(
     const page = this.currentPage();
     await page.setViewportSize({ width: 1425, height: 1100 });
     await page.goto('/property-management');
-    const desktopPortraits = page.locator('.pm-team-photo img');
+    const desktopPortraits = page.locator('.pm-team [data-profile-media-state="available"] img');
     await expect(desktopPortraits).toHaveCount(2);
     for (const portrait of await desktopPortraits.all()) {
       const box = await portrait.boundingBox();
@@ -647,7 +1138,7 @@ Then(
       .first()
       .evaluate((element) => element.clientWidth);
     assert.ok(mobileServiceCardContentWidth >= 355 && mobileServiceCardContentWidth <= 357);
-    const mobilePortraits = page.locator('.pm-team-photo img');
+    const mobilePortraits = page.locator('.pm-team [data-profile-media-state="available"] img');
     for (const portrait of await mobilePortraits.all()) {
       const box = await portrait.boundingBox();
       assert.ok(box);
@@ -700,7 +1191,7 @@ Then(
     };
 
     await assertThreeColumnGeometry('.re-service-grid', '.re-card', 5, 1392, 1394);
-    await assertThreeColumnGeometry('.re-person-grid', '.re-person', 3, 1151, 1153);
+    await assertThreeColumnGeometry('.re-person-grid', '[data-profile-card="true"]', 3, 1151, 1153);
     await assertThreeColumnGeometry('.re-testimonial-grid', '.re-card', 3, 1392, 1394);
   },
 );
@@ -955,6 +1446,234 @@ Then(
     ).toBeVisible();
     await expect(page.locator(expectation.selector)).toHaveCount(entityCount);
     for (const selector of expectation.sections) await expect(page.locator(selector)).toBeVisible();
+  },
+);
+
+interface CollectionGridExpectation {
+  readonly container: string;
+  readonly items: string;
+  readonly columns: number;
+  readonly index?: number;
+}
+
+const constructionCollectionGrids: readonly CollectionGridExpectation[] = [
+  {
+    container: '.co-card-grid',
+    items: '.co-card-grid .editable-collection-items',
+    columns: 3,
+  },
+  {
+    container: '.co-plan-grid',
+    items: '.co-plan-grid .editable-collection-items',
+    columns: 2,
+  },
+  {
+    container: '.co-card-grid',
+    items: '.co-card-grid .editable-collection-items',
+    columns: 3,
+    index: 1,
+  },
+  {
+    container: '.co-review-grid',
+    items: '.co-review-grid .editable-collection-items',
+    columns: 3,
+  },
+];
+
+async function expectCollectionGridGeometry(
+  page: Page,
+  expectation: CollectionGridExpectation,
+): Promise<void> {
+  const index = expectation.index ?? 0;
+  const container = page.locator(expectation.container).nth(index);
+  const items = page.locator(expectation.items).nth(index);
+  await expect(container).toBeVisible();
+  await expect(items).toBeVisible();
+  const containerBox = await container.boundingBox();
+  const itemsBox = await items.boundingBox();
+  assert.ok(containerBox);
+  assert.ok(itemsBox);
+  const columns = await items.evaluate(
+    (element) => getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length,
+  );
+  assert.ok(
+    Math.abs(itemsBox.x - containerBox.x) <= 1,
+    `${expectation.items} must align with its collection container`,
+  );
+  assert.ok(
+    Math.abs(itemsBox.width - containerBox.width) <= 1,
+    `${expectation.items} must fill its ${String(containerBox.width)}px collection container; received ${String(itemsBox.width)}px`,
+  );
+  assert.equal(columns, expectation.columns);
+}
+
+async function expectAllConstructionCollectionGrids(page: Page): Promise<void> {
+  for (const expectation of constructionCollectionGrids)
+    await expectCollectionGridGeometry(page, expectation);
+}
+
+Then(
+  'Construction services plans pros and reviews fill their centered desktop grids',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const width of [1425, 1440]) {
+      await page.setViewportSize({ width, height: 1100 });
+      await expectAllConstructionCollectionGrids(page);
+    }
+  },
+);
+
+Then(
+  'Construction collection grids retain their responsive column templates',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const breakpoint of [
+      { width: 1023, columns: [2, 2, 2, 3] },
+      { width: 767, columns: [1, 1, 1, 1] },
+    ]) {
+      await page.setViewportSize({ width: breakpoint.width, height: 1100 });
+      for (const [index, expectation] of constructionCollectionGrids.entries()) {
+        const expectedColumns = breakpoint.columns[index];
+        assert.ok(expectedColumns !== undefined);
+        await expectCollectionGridGeometry(page, { ...expectation, columns: expectedColumns });
+      }
+    }
+  },
+);
+
+Then(
+  'entering edit mode preserves the Construction collection grid geometry',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await page.goto('/construction');
+    const preview = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        response.url().includes('/api/v1/pages/construction/preview'),
+    );
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await preview;
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    for (const width of [1425, 1440]) {
+      await page.setViewportSize({ width, height: 1100 });
+      await expectAllConstructionCollectionGrids(page);
+    }
+  },
+);
+
+Then(
+  'shared collection sizing preserves Real Estate and Property Management service grids',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.goto('/real-estate');
+    await expectCollectionGridGeometry(page, {
+      container: '.re-service-grid',
+      items: '.re-service-grid .editable-collection-items',
+      columns: 3,
+    });
+    await page.goto('/property-management');
+    const propertyServices = page.locator('#services .editable-collection-items');
+    await expect(propertyServices).toBeVisible();
+    const propertyBox = await propertyServices.boundingBox();
+    assert.ok(propertyBox);
+    assert.ok(propertyBox.width >= 1300);
+    assert.ok(Math.abs(propertyBox.x + propertyBox.width / 2 - 720) <= 1);
+    assert.equal(
+      await propertyServices.evaluate(
+        (element) =>
+          getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length,
+      ),
+      3,
+    );
+  },
+);
+
+Then(
+  'the Real Estate listing gallery is centered and constrained at desktop width',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    const gallery = page.locator('.re-listings-gallery');
+    const items = gallery.locator('.editable-collection-items');
+    await expect(gallery).toBeVisible();
+    await expect(items).toBeVisible();
+    const galleryBox = await gallery.boundingBox();
+    const itemsBox = await items.boundingBox();
+    assert.ok(galleryBox);
+    assert.ok(itemsBox);
+    assert.ok(galleryBox.width >= 960 && galleryBox.width <= 1152);
+    assert.ok(Math.abs(galleryBox.x + galleryBox.width / 2 - 720) <= 1);
+    assert.ok(Math.abs(itemsBox.x - galleryBox.x) <= 1);
+    assert.ok(Math.abs(itemsBox.width - galleryBox.width) <= 1);
+    assert.equal(
+      await items.evaluate(
+        (element) =>
+          getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length,
+      ),
+      3,
+    );
+  },
+);
+
+Then(
+  'listing cards preserve their intended image ratio at desktop and mobile widths',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const viewport of [
+      { width: 1440, height: 1100 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const photo = page.locator('.re-listing-photo').first();
+      await expect(photo).toBeVisible();
+      const box = await photo.boundingBox();
+      assert.ok(box);
+      assert.ok(Math.abs(box.width / box.height - 4 / 3) <= 0.02);
+    }
+  },
+);
+
+Then(
+  'listing tabs show the active and sold counts in a light segmented control',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const tabs = page.getByRole('tablist', { name: 'Property listing status' });
+    await expect(tabs.getByRole('tab', { name: 'Active Listings (5)', exact: true })).toBeVisible();
+    await expect(tabs.getByRole('tab', { name: 'Sold (5)', exact: true })).toBeVisible();
+    const presentation = await tabs.evaluate((element) => {
+      const selected = element.querySelector('[role="tab"][aria-selected="true"]');
+      if (!(selected instanceof HTMLElement)) throw new Error('Selected listing tab is missing.');
+      return {
+        width: element.getBoundingClientRect().width,
+        background: getComputedStyle(element).backgroundColor,
+        selectedBackground: getComputedStyle(selected).backgroundColor,
+        selectedColor: getComputedStyle(selected).color,
+      };
+    });
+    assert.ok(presentation.width < 400);
+    assert.equal(presentation.background, 'rgb(243, 244, 246)');
+    assert.equal(presentation.selectedBackground, 'rgb(255, 255, 255)');
+    assert.equal(presentation.selectedColor, 'rgb(0, 18, 138)');
+  },
+);
+
+Then(
+  'each available external listing action remains accessible but visually subordinate',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const actions = page.locator('.re-listing-action');
+    await expect(actions).toHaveCount(5);
+    for (const action of await actions.all()) {
+      await expect(action).toHaveAttribute('target', '_blank');
+      await expect(action).toHaveAttribute('rel', 'noreferrer');
+      const presentation = await action.evaluate((element) => ({
+        fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
+        background: getComputedStyle(element).backgroundColor,
+      }));
+      assert.ok(presentation.fontSize <= 14);
+      assert.equal(presentation.background, 'rgba(0, 0, 0, 0)');
+    }
   },
 );
 

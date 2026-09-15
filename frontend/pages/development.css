@@ -4,10 +4,10 @@
   background: #fff;
   font-family: 'Open Sans', Arial, sans-serif;
   line-height: 1.55;
-  --dev-primary: #00128a;
+  --dev-primary: var(--trico-color-action);
   --dev-navy: #000a4d;
-  --dev-gold: #86622d;
-  --dev-blue: #5e85ba;
+  --dev-gold: var(--trico-color-brand-accent);
+  --dev-blue: var(--trico-color-highlight);
   --dev-muted: #6b7280;
   --dev-tint: #f3f4f6;
   --dev-border: #e5e7eb;
@@ -197,10 +197,10 @@
   gap: 0.45rem;
   margin-bottom: 1rem;
   padding: 0.45rem 1rem;
-  border: 1px solid rgb(134 98 45 / 28%);
+  border: 1px solid rgb(var(--trico-color-highlight-rgb) / 28%);
   border-radius: 999px;
-  color: var(--dev-gold);
-  background: rgb(134 98 45 / 9%);
+  color: var(--trico-color-highlight);
+  background: rgb(var(--trico-color-highlight-rgb) / 9%);
   font-size: 0.86rem;
   font-weight: 600;
 }
@@ -225,7 +225,7 @@
   font-size: clamp(3rem, 5vw, 4rem);
 }
 .dev-hero h1 em {
-  color: var(--dev-gold);
+  color: var(--trico-color-highlight);
   font-style: normal;
 }
 .dev-hero-inner > p {
@@ -253,10 +253,10 @@
 }
 .dev-stats svg {
   width: 1.3rem;
-  color: var(--dev-gold);
+  color: var(--trico-color-stat);
 }
 .dev-stats strong {
-  color: var(--dev-gold);
+  color: var(--trico-color-stat);
   font:
     700 1.8rem Lato,
     sans-serif;
@@ -266,7 +266,7 @@
   font-size: 0.82rem;
 }
 .dev-section {
-  padding: 96px 0;
+  padding: var(--trico-section-spacing) 0;
 }
 .dev-tint {
   background: linear-gradient(
@@ -278,7 +278,7 @@
 }
 .dev-heading {
   max-width: 780px;
-  margin: 0 auto 64px;
+  margin: 0 auto var(--trico-section-heading-gap);
   text-align: center;
 }
 .dev-heading h2 {
@@ -298,7 +298,8 @@
 }
 .dev-land-card,
 .dev-card {
-  padding: 2rem;
+  min-height: var(--trico-card-min-height);
+  padding: var(--trico-card-padding);
   border: 1px solid rgb(229 231 235 / 70%);
   border-radius: 12px;
   background: rgb(255 255 255 / 72%);
@@ -311,10 +312,14 @@
   width: 64px;
   height: 64px;
   padding: 16px;
-  border: 1px solid rgb(134 98 45 / 26%);
+  border: 1px solid rgb(var(--trico-color-highlight-rgb) / 26%);
   border-radius: 50%;
-  color: var(--dev-gold);
-  background: linear-gradient(135deg, rgb(134 98 45 / 18%), rgb(37 99 235 / 8%));
+  color: var(--trico-color-highlight);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--trico-color-highlight-rgb) / 18%),
+    rgb(37 99 235 / 8%)
+  );
 }
 .dev-land-card h3,
 .dev-card h3 {
@@ -323,6 +328,7 @@
 }
 .dev-land-card p,
 .dev-card p {
+  max-width: var(--trico-card-copy-measure);
   margin: 0.75rem 0 0;
   color: var(--dev-muted);
 }
@@ -343,10 +349,10 @@
 }
 .dev-trust svg {
   width: 1.2rem;
-  color: var(--dev-gold);
+  color: var(--trico-color-stat);
 }
 .dev-trust strong {
-  color: var(--dev-gold);
+  color: var(--trico-color-stat);
   font:
     700 1.75rem Lato,
     sans-serif;
@@ -367,8 +373,8 @@
   height: 48px;
   padding: 12px;
   border-radius: 8px;
-  color: var(--dev-gold);
-  background: rgb(134 98 45 / 10%);
+  color: var(--trico-color-highlight);
+  background: rgb(var(--trico-color-highlight-rgb) / 10%);
 }
 .dev-subheading {
   margin: 3.5rem 0 2rem !important;
@@ -486,35 +492,6 @@
   gap: 2rem;
   margin-inline: auto;
 }
-.dev-team-grid article {
-  overflow: hidden;
-  border: 1px solid var(--dev-border);
-  border-radius: 12px;
-  background: rgb(255 255 255 / 70%);
-}
-.dev-team-grid img {
-  width: 100%;
-  aspect-ratio: 1;
-  display: block;
-  object-fit: cover;
-  object-position: top;
-}
-.dev-team-grid article > div {
-  padding: 1.5rem;
-}
-.dev-team-grid h3 {
-  font-size: 1.25rem;
-}
-.dev-team-grid strong {
-  display: block;
-  margin: 0.25rem 0 0.75rem;
-  color: var(--dev-gold);
-  font-size: 0.88rem;
-}
-.dev-team-grid p {
-  color: var(--dev-muted);
-  font-size: 0.88rem;
-}
 .dev-about-grid {
   max-width: 1152px;
   display: grid;
@@ -543,7 +520,7 @@
 }
 .dev-highlights svg {
   width: 1.15rem;
-  color: var(--dev-gold);
+  color: var(--trico-color-highlight);
 }
 .dev-values {
   display: grid;
@@ -563,8 +540,8 @@
   flex: 0 0 48px;
   padding: 12px;
   border-radius: 8px;
-  color: var(--dev-gold);
-  background: rgb(134 98 45 / 10%);
+  color: var(--trico-color-highlight);
+  background: rgb(var(--trico-color-highlight-rgb) / 10%);
 }
 .dev-values h3 {
   font-size: 1.1rem;
@@ -576,32 +553,12 @@
 .dev-reviews {
   background: #fff;
 }
-.dev-stars {
-  display: flex;
-  justify-content: center;
-  gap: 0.25rem;
-  margin-top: 1.5rem;
-  color: #b18437;
-}
-.dev-stars svg {
-  width: 28px;
-  fill: currentColor;
-}
 .dev-review-grid {
   max-width: 1024px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-inline: auto;
-}
-.dev-review-grid .dev-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-.dev-review-grid .dev-card p {
-  flex: 1;
 }
 .dev-contact {
   background: linear-gradient(
@@ -636,8 +593,8 @@
   flex: 0 0 48px;
   padding: 14px;
   border-radius: 8px;
-  color: var(--dev-gold);
-  background: rgb(134 98 45 / 10%);
+  color: var(--trico-color-highlight);
+  background: rgb(var(--trico-color-highlight-rgb) / 10%);
 }
 .dev-contact-list p {
   color: var(--dev-muted);
@@ -822,10 +779,10 @@
     font-size: 1.35rem;
   }
   .dev-section {
-    padding: 72px 0;
+    padding: var(--trico-section-spacing-compact) 0;
   }
   .dev-heading {
-    margin-bottom: 48px;
+    margin-bottom: var(--trico-section-heading-gap-compact);
   }
   .dev-heading h2 {
     font-size: 2.25rem;
@@ -849,6 +806,11 @@
   }
   .dev-about-grid {
     gap: 3rem;
+  }
+  .dev-land-card,
+  .dev-card {
+    min-height: 0;
+    padding: var(--trico-card-padding-compact);
   }
   .dev-form-card {
     padding: 1.25rem;

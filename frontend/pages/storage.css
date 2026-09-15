@@ -4,9 +4,9 @@
   background: #fff;
   font-family: 'Open Sans', Arial, sans-serif;
   line-height: 1.55;
-  --sp-blue: #00128a;
+  --sp-blue: var(--trico-color-action);
   --sp-navy: #000a4d;
-  --sp-gold: #d2aa69;
+  --sp-gold: var(--trico-color-brand-accent);
   --sp-green: #10b981;
   --sp-muted: #6b7280;
   --sp-tint: #f3f4f6;
@@ -172,18 +172,7 @@
   width: 1rem;
 }
 .storage-hero figure {
-  position: relative;
-  align-self: center;
   margin: 4rem clamp(1.25rem, 5vw, 5rem);
-  overflow: hidden;
-  border-radius: 16px;
-  box-shadow: 0 24px 60px #0003;
-}
-.storage-hero figure img {
-  width: 100%;
-  aspect-ratio: 4/3;
-  display: block;
-  object-fit: cover;
 }
 .storage-hero figcaption {
   position: absolute;
@@ -210,10 +199,10 @@
 .storage-stat svg {
   grid-row: span 2;
   width: 1.3rem;
-  color: #f2d6a7;
+  color: var(--trico-color-stat);
 }
 .storage-stat strong {
-  color: #f2d6a7;
+  color: var(--trico-color-stat);
   font: 700 2rem Lato;
 }
 .storage-stat span {
@@ -233,7 +222,7 @@
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
   background: #00128a12;
-  color: #2563eb;
+  color: var(--trico-color-highlight);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -274,8 +263,14 @@
   display: grid;
   place-items: center;
   border-radius: 8px;
-  background: #10b98116;
+}
+.storage-service-card > span {
+  color: var(--trico-color-highlight);
+  background: rgb(var(--trico-color-highlight-rgb) / 10%);
+}
+.storage-review-card > span:first-child {
   color: #10b981;
+  background: #10b98116;
 }
 .storage-service-card svg {
   width: 24px;
@@ -350,7 +345,7 @@
   background: linear-gradient(135deg, #2563eb33, #10b98124, #1e40af55);
 }
 .storage-about-mark > strong {
-  color: var(--sp-gold);
+  color: var(--trico-color-stat);
   font: 700 clamp(3rem, 6vw, 5rem) Lato;
 }
 .storage-about-mark > span {
@@ -392,47 +387,6 @@
   gap: 1.5rem;
   max-width: 1100px;
   margin: auto;
-}
-.storage-stars {
-  display: flex;
-  justify-content: center;
-  color: #d2aa69;
-}
-.storage-stars svg {
-  fill: currentColor;
-}
-.storage-review-card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  text-align: center;
-}
-.storage-review-card h3 {
-  margin: 1rem 0 0.4rem;
-}
-.storage-review-card p {
-  flex: 1;
-  color: var(--sp-muted);
-}
-.storage-review-card a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.65rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  text-decoration: none;
-}
-.storage-review-unavailable {
-  width: auto;
-  height: auto;
-  display: inline;
-  font-size: 0.85rem;
-  color: #6b7280;
 }
 .storage-review-footer {
   text-align: center;
@@ -590,9 +544,6 @@
     grid-template-columns: 1fr;
     padding-top: 148px;
     background: var(--sp-navy);
-  }
-  .storage-hero figure {
-    display: none;
   }
   .storage-services .editable-collection-items {
     grid-template-columns: repeat(2, 1fr);

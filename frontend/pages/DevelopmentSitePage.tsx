@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Clock,
   Compass,
-  ExternalLink,
   FileText,
   Handshake,
   Home,
@@ -15,10 +14,8 @@ import {
   MapPin,
   Menu,
   Mountain,
-  PenLine,
   Phone,
   Shield,
-  Star,
   Target,
   TrendingUp,
   X,
@@ -84,6 +81,8 @@ import { EditableBoundary, type EditorOwnership } from '../components/EditableBo
 import { EditableCollection } from '../components/EditableCollection.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
+import { ProfileCard } from '../components/ProfileCard.js';
+import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -117,6 +116,9 @@ const images: Readonly<Record<string, string>> = {
 const managedImage = (key: string, fallback: string): string =>
   images[key] ??
   (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : fallback);
+const profileImageSource = (key: string): string | undefined =>
+  images[key] ??
+  (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : undefined);
 const anchor = (destination: string) => `#${destination}`;
 function definition(id: DevelopmentEntityId): SemanticEntityDefinition {
   const found = developmentEntityDefinitions.find((candidate) => candidate.id === id);
@@ -515,17 +517,13 @@ function DevelopmentBody(): React.JSX.Element {
                 renderItem={(item) => {
                   const member = developmentTeamMemberSchema.parse(item);
                   return (
-                    <article>
-                      <img
-                        src={managedImage(member.image.key, tricoLogo)}
-                        alt={member.imageAltText}
-                      />
-                      <div>
-                        <h3>{member.name}</h3>
-                        <strong>{member.role}</strong>
-                        <p>{member.bio}</p>
-                      </div>
-                    </article>
+                    <ProfileCard
+                      description={member.bio}
+                      imageAltText={member.imageAltText}
+                      imageSource={profileImageSource(member.image.key)}
+                      name={member.name}
+                      role={member.role}
+                    />
                   );
                 }}
               />
@@ -586,11 +584,7 @@ function DevelopmentBody(): React.JSX.Element {
                 <span className="dev-pill">{reviewsHeader.eyebrow}</span>
                 <h2>{reviewsHeader.heading}</h2>
                 <p>{reviewsHeader.description}</p>
-                <div className="dev-stars">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <Star key={index} />
-                  ))}
-                </div>
+                <ReviewRating />
               </header>
             </ObjectBoundary>
             <div className="dev-review-grid">
@@ -600,23 +594,13 @@ function DevelopmentBody(): React.JSX.Element {
                 renderItem={(item) => {
                   const review = developmentReviewPlatformSchema.parse(item);
                   return (
-                    <article className="dev-card">
-                      <PenLine />
-                      <h3>{review.name}</h3>
-                      <p>{review.description}</p>
-                      {review.externalUrl === '' ? (
-                        <span>{reviewsHeader.unavailableLinkLabel}</span>
-                      ) : (
-                        <a
-                          className="dev-button dev-outline"
-                          href={review.externalUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {reviewsHeader.actionLabel} {review.name} <ExternalLink />
-                        </a>
-                      )}
-                    </article>
+                    <ReviewPlatformCard
+                      actionLabel={reviewsHeader.actionLabel}
+                      description={review.description}
+                      externalUrl={review.externalUrl}
+                      name={review.name}
+                      unavailableLabel={reviewsHeader.unavailableLinkLabel}
+                    />
                   );
                 }}
               />

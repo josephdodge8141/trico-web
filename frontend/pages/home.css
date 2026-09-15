@@ -4,11 +4,11 @@
   background: #fff;
   font-family: 'Open Sans', Arial, sans-serif;
   line-height: 1.5;
-  --home-primary: #00128a;
+  --home-primary: var(--trico-color-action);
   --home-navy: #000a4d;
-  --home-gold: #86622d;
-  --home-slate-blue: #5e85ba;
-  --home-division-accent: var(--home-slate-blue);
+  --home-gold: var(--trico-color-brand-accent);
+  --home-slate-blue: var(--trico-color-highlight);
+  --home-division-accent: var(--trico-color-highlight);
   --home-muted: #6b7280;
   --home-tint: #f3f4f6;
   --home-border: #e5e7eb;
@@ -223,7 +223,7 @@
 .home-value-icon {
   display: grid;
   place-items: center;
-  color: var(--home-gold);
+  color: var(--trico-color-highlight);
 }
 
 .home-card-icon {
@@ -325,7 +325,7 @@
 .home-eyebrow {
   display: block;
   margin-bottom: 0.75rem;
-  color: var(--home-gold);
+  color: var(--trico-color-highlight);
   font-family: Lato, Arial, sans-serif;
   font-size: 0.72rem;
   font-weight: 800;

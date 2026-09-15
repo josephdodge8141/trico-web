@@ -494,7 +494,7 @@ test('preserves square Property Management team portraits and mobile content wid
 }) => {
   await page.setViewportSize({ width: 1425, height: 1100 });
   await page.goto('/property-management');
-  const desktopPortraits = page.locator('.pm-team-photo img');
+  const desktopPortraits = page.locator('.pm-team [data-profile-media-state="available"] img');
   await expect(desktopPortraits).toHaveCount(2);
   for (const portrait of await desktopPortraits.all()) {
     const box = await portrait.boundingBox();
@@ -512,7 +512,7 @@ test('preserves square Property Management team portraits and mobile content wid
     .evaluate((element) => element.clientWidth);
   expect(mobileServiceCardContentWidth).toBeGreaterThanOrEqual(355);
   expect(mobileServiceCardContentWidth).toBeLessThanOrEqual(357);
-  const mobilePortraits = page.locator('.pm-team-photo img');
+  const mobilePortraits = page.locator('.pm-team [data-profile-media-state="available"] img');
   for (const portrait of await mobilePortraits.all()) {
     const box = await portrait.boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(355);

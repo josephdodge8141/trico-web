@@ -93,6 +93,8 @@ import { EditableBoundary, type EditorOwnership } from '../components/EditableBo
 import { EditableCollection } from '../components/EditableCollection.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
+import { ProfileCard } from '../components/ProfileCard.js';
+import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -528,10 +530,14 @@ function PropertyManagementBody(): React.JSX.Element {
                   }}
                 />
               </div>
-              <div className="pm-hero-image">
+              <div
+                className="pm-hero-image division-hero-media"
+                data-division-hero-media="true"
+                data-media-state={asset(hero.image.key) === undefined ? 'unavailable' : 'available'}
+              >
                 {asset(hero.image.key) === undefined ? (
                   <div
-                    className="pm-neutral-placeholder"
+                    className="pm-neutral-placeholder division-hero-media-placeholder"
                     data-neutral-placeholder="true"
                     role="img"
                     aria-label={hero.imageAltText}
@@ -652,22 +658,16 @@ function PropertyManagementBody(): React.JSX.Element {
                 const member = propertyManagementTeamMembersSchema.element.parse(value);
                 const source = asset(member.photo.key);
                 return (
-                  <article className="pm-team-card">
-                    <div className="pm-team-photo">
-                      {source === undefined ? (
-                        <Users />
-                      ) : (
-                        <img src={source} alt={member.photoAltText} />
-                      )}
-                    </div>
-                    <div>
-                      <h3>{member.name}</h3>
-                      <strong>{member.title}</strong>
-                      <p>{member.description}</p>
-                      <a href={`mailto:${member.email}`}>{member.email}</a>
-                      <a href={`tel:${member.phone.replace(/\D/g, '')}`}>{member.phone}</a>
-                    </div>
-                  </article>
+                  <ProfileCard
+                    description={member.description}
+                    email={member.email}
+                    emailLabel={member.email}
+                    imageAltText={member.photoAltText}
+                    imageSource={source}
+                    name={member.name}
+                    phone={member.phone}
+                    role={member.title}
+                  />
                 );
               }}
             />
@@ -797,28 +797,20 @@ function PropertyManagementBody(): React.JSX.Element {
             <ObjectBoundary id="property-management.reviews.header" value={reviewsHeader}>
               <Heading value={reviewsHeader} />
             </ObjectBoundary>
-            <div className="pm-review-stars" aria-label="Five stars">
-              ★★★★★
-            </div>
+            <ReviewRating />
             <CollectionBoundary
               id="property-management.reviews.platforms"
               value={reviewPlatforms}
               renderItem={(value) => {
                 const item = propertyManagementReviewsPlatformsSchema.element.parse(value);
                 return (
-                  <article className="pm-review-card">
-                    <span>
-                      <PenLine />
-                    </span>
-                    <h3>{item.name}</h3>
-                    <p>{item.description}</p>
-                    <a
-                      className="pm-button pm-button-outline-dark"
-                      href={item.externalUrl || '#reviews'}
-                    >
-                      Review on {item.name}
-                    </a>
-                  </article>
+                  <ReviewPlatformCard
+                    actionLabel="Review on"
+                    description={item.description}
+                    externalUrl={item.externalUrl}
+                    name={item.name}
+                    unavailableLabel="Review link coming soon"
+                  />
                 );
               }}
             />

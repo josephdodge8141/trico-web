@@ -4,10 +4,10 @@
   background: #fff;
   font-family: 'Open Sans', Arial, sans-serif;
   line-height: 1.55;
-  --re-primary: #00128a;
+  --re-primary: var(--trico-color-action);
   --re-navy: #000a4d;
-  --re-gold: #86622d;
-  --re-blue: #2563eb;
+  --re-gold: var(--trico-color-brand-accent);
+  --re-blue: var(--trico-color-highlight);
   --re-muted: #6b7280;
   --re-tint: #f3f4f6;
   --re-border: #e5e7eb;
@@ -234,7 +234,7 @@
 }
 .re-page .re-button-gold {
   color: #fff;
-  background: var(--re-gold);
+  background: var(--trico-color-action);
 }
 .re-page .re-button-quiet {
   color: var(--re-navy);
@@ -252,7 +252,7 @@
   padding: 0.45rem 1rem;
   border-radius: 999px;
   color: var(--re-blue);
-  background: rgb(37 99 235 / 10%);
+  background: rgb(var(--trico-color-highlight-rgb) / 10%);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -311,10 +311,10 @@
 }
 .re-hero-stats svg {
   width: 1.2rem;
-  color: #d7b16d;
+  color: var(--trico-color-stat);
 }
 .re-hero-stats strong {
-  color: #d7b16d;
+  color: var(--trico-color-stat);
   font-family: Lato, sans-serif;
   font-size: 1.8rem;
 }
@@ -324,31 +324,10 @@
   font-size: 0.78rem;
 }
 .re-hero-visual {
-  aspect-ratio: 4 / 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  border: 1px solid rgb(37 99 235 / 20%);
-  border-radius: 16px;
-  color: #475569;
-  background: linear-gradient(
-    135deg,
-    rgb(37 99 235 / 12%),
-    rgb(134 98 45 / 18%),
-    rgb(30 64 175 / 14%)
-  );
-  box-shadow: 0 24px 55px rgb(15 23 41 / 16%);
-  text-align: center;
-}
-.re-hero-visual svg {
-  width: 96px;
-  height: 96px;
-  color: var(--re-gold);
+  margin: 0;
 }
 .re-section {
-  padding: 96px 0;
+  padding: var(--trico-section-spacing) 0;
 }
 .re-tint {
   background: linear-gradient(
@@ -360,7 +339,7 @@
 }
 .re-section-heading {
   max-width: 780px;
-  margin: 0 auto 64px;
+  margin: 0 auto var(--trico-section-heading-gap);
   text-align: center;
 }
 .re-section-heading h2 {
@@ -374,22 +353,35 @@
 .re-tabs {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  width: fit-content;
+  gap: 0.25rem;
   margin: -24px auto 40px;
+  padding: 0.3rem;
+  border: 1px solid var(--re-border);
+  border-radius: 10px;
+  background: var(--re-tint);
 }
 .re-tabs button {
-  min-width: 150px;
+  min-width: 132px;
   padding: 0.7rem 1rem;
   border: 0;
-  border-radius: 8px;
+  border-radius: 7px;
   color: var(--re-muted);
   background: transparent;
   font-weight: 700;
   cursor: pointer;
 }
+.re-tabs button span {
+  font-weight: 600;
+}
 .re-tabs button[aria-selected='true'] {
-  color: #fff;
-  background: var(--re-primary);
+  color: var(--re-primary);
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(15 23 41 / 12%);
+}
+.re-listings-gallery {
+  width: min(100%, 1120px);
+  margin-inline: auto;
 }
 .re-listing-grid {
   display: grid;
@@ -472,6 +464,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  color: var(--re-primary);
   font-size: 0.78rem;
   font-weight: 700;
   text-decoration: none;
@@ -495,7 +488,8 @@
 }
 .re-card {
   position: relative;
-  padding: 2rem;
+  min-height: var(--trico-card-min-height);
+  padding: var(--trico-card-padding);
   border: 1px solid var(--re-border);
   border-radius: 12px;
   background: #fff;
@@ -506,14 +500,15 @@
   height: 48px;
   padding: 12px;
   border-radius: 8px;
-  color: var(--re-primary);
-  background: rgb(0 18 138 / 9%);
+  color: var(--trico-color-highlight);
+  background: rgb(var(--trico-color-highlight-rgb) / 10%);
 }
 .re-card h3 {
   margin-top: 1.25rem;
   font-size: 1.25rem;
 }
 .re-card p {
+  max-width: var(--trico-card-copy-measure);
   margin: 0.8rem 0 0;
   color: var(--re-muted);
 }
@@ -667,56 +662,13 @@
   gap: 2rem;
   margin-inline: auto;
 }
-.re-person {
-  overflow: hidden;
-  border: 1px solid var(--re-border);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 3px 14px rgb(15 23 41 / 5%);
-}
-.re-person > img {
-  width: 100%;
-  aspect-ratio: 1;
-  display: block;
-  object-fit: cover;
-  object-position: top;
-  background: #e8ebef;
-}
-.re-person > div {
-  padding: 1.5rem;
-  text-align: center;
-}
-.re-person h4 {
-  font-size: 1.2rem;
-}
-.re-person p {
-  margin: 0.25rem 0 1rem;
-  color: var(--re-primary);
-  font-size: 0.86rem;
-  font-weight: 600;
-}
-.re-person .re-person-bio {
-  min-height: 4.1em;
-  color: var(--re-muted);
-  font-weight: 400;
-  line-height: 1.45;
-}
-.re-person a + a {
-  margin-left: 0.8rem;
-}
-.re-person a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--re-muted);
-  font-size: 0.8rem;
-  text-decoration: none;
-}
-.re-person svg {
-  width: 0.95rem;
-}
 .re-careers {
-  background: linear-gradient(135deg, rgb(134 98 45 / 6%), #fff, rgb(0 18 138 / 5%));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--trico-color-highlight-rgb) / 8%),
+    #fff,
+    rgb(0 18 138 / 5%)
+  );
 }
 .re-careers-grid {
   max-width: 960px;
@@ -746,13 +698,13 @@
 }
 .re-careers li svg {
   width: 1.1rem;
-  color: var(--re-gold);
+  color: var(--trico-color-highlight);
 }
 .re-careers aside {
   padding: 2.5rem;
-  border: 2px solid rgb(134 98 45 / 20%);
+  border: 2px solid rgb(var(--trico-color-highlight-rgb) / 20%);
   border-radius: 12px;
-  background: linear-gradient(135deg, #fff, rgb(134 98 45 / 6%));
+  background: linear-gradient(135deg, #fff, rgb(var(--trico-color-highlight-rgb) / 6%));
   text-align: center;
 }
 .re-careers aside > svg {
@@ -760,15 +712,15 @@
   height: 72px;
   padding: 17px;
   border-radius: 50%;
-  color: var(--re-gold);
-  background: rgb(134 98 45 / 10%);
+  color: var(--trico-color-highlight);
+  background: rgb(var(--trico-color-highlight-rgb) / 10%);
 }
 .re-careers aside h3 {
   margin-top: 1.25rem;
   font-size: 1.5rem;
 }
 .re-careers aside a {
-  color: var(--re-gold);
+  color: var(--trico-color-highlight);
   font-weight: 700;
 }
 .re-testimonials {
@@ -790,11 +742,12 @@
   color: rgb(0 18 138 / 10%);
   background: none;
 }
-.re-stars,
-.re-large-stars {
+.re-stars {
   display: flex;
   gap: 0.25rem;
-  color: #b18437;
+}
+.re-stars {
+  color: var(--trico-color-rating);
 }
 .re-stars svg {
   width: 1rem;
@@ -911,26 +864,9 @@
 .re-reviews {
   background: #fff;
 }
-.re-large-stars {
-  justify-content: center;
-  margin-top: 1.5rem;
-}
-.re-large-stars svg {
-  width: 28px;
-  fill: currentColor;
-}
 .re-review-grid {
   max-width: 1024px;
   margin-inline: auto;
-}
-.re-review-grid .re-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-.re-review-grid .re-card p {
-  flex: 1;
 }
 .re-review-footer {
   margin: 2.5rem auto 0;
@@ -1063,9 +999,6 @@
   .re-hero-copy {
     padding: 0;
   }
-  .re-hero-visual {
-    display: none;
-  }
   .re-listing-grid,
   .re-service-grid,
   .re-testimonial-grid,
@@ -1124,10 +1057,10 @@
     font-size: 1.35rem;
   }
   .re-section {
-    padding: 72px 0;
+    padding: var(--trico-section-spacing-compact) 0;
   }
   .re-section-heading {
-    margin-bottom: 48px;
+    margin-bottom: var(--trico-section-heading-gap-compact);
   }
   .re-section-heading h2 {
     font-size: 2.25rem;
@@ -1150,8 +1083,16 @@
   .re-check-grid .editable-collection-items {
     grid-template-columns: 1fr;
   }
+  .re-tabs {
+    width: 100%;
+  }
+  .re-tabs button {
+    min-width: 0;
+    flex: 1;
+  }
   .re-service-grid .re-card {
-    padding: 1.5rem;
+    min-height: 0;
+    padding: var(--trico-card-padding-compact);
   }
   .re-process::before {
     left: 23px;
@@ -1178,10 +1119,6 @@
   }
   .re-person-grid {
     grid-template-columns: 1fr;
-  }
-  .re-person {
-    max-width: 420px;
-    margin-inline: auto;
   }
   .re-careers aside {
     padding: 2rem 1.25rem;

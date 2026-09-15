@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   Clock,
   DollarSign,
-  ExternalLink,
   FileText,
   Handshake,
   Mail,
@@ -14,12 +13,10 @@ import {
   Menu,
   MessageSquare,
   Monitor,
-  PenLine,
   Phone,
   Settings,
   Shield,
   Sparkles,
-  Star,
   Target,
   TrendingUp,
   Users,
@@ -70,6 +67,7 @@ import { EditableBoundary, type EditorOwnership } from '../components/EditableBo
 import { EditableCollection } from '../components/EditableCollection.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
+import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -164,6 +162,7 @@ function CollectionBoundary({
     <div className="storage-entity-slot" data-storage-entity-boundary="true">
       <EditableCollection
         active={editing.active}
+        layout="fill"
         definition={definition(id)}
         value={value}
         renderItem={renderItem}
@@ -323,7 +322,11 @@ function StorageBody(): React.JSX.Element {
                 }}
               />
             </div>
-            <figure>
+            <figure
+              className="division-hero-media"
+              data-division-hero-media="true"
+              data-media-state="available"
+            >
               <img src={managedImage(hero.image.key, storageHeroImage)} alt={hero.imageAltText} />
               <figcaption>{hero.imageCaption}</figcaption>
             </figure>
@@ -400,11 +403,7 @@ function StorageBody(): React.JSX.Element {
         <section id="reviews" className="storage-section storage-reviews">
           <ObjectBoundary id="storage.reviews.header" value={reviewsHeader}>
             <SectionHeading value={reviewsHeader} />
-            <div className="storage-stars" aria-label="Five stars">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <Star key={n} />
-              ))}
-            </div>
+            <ReviewRating />
           </ObjectBoundary>
           <CollectionBoundary
             id="storage.reviews.platforms"
@@ -412,21 +411,13 @@ function StorageBody(): React.JSX.Element {
             renderItem={(item) => {
               const review = storageReviewPlatformSchema.parse(item);
               return (
-                <article className="storage-review-card">
-                  <span>
-                    <PenLine />
-                  </span>
-                  <h3>{review.name}</h3>
-                  <p>{review.description}</p>
-                  {review.externalUrl === '' ? (
-                    <span className="storage-review-unavailable">Review link coming soon</span>
-                  ) : (
-                    <a href={review.externalUrl} target="_blank" rel="noreferrer">
-                      Review on {review.name}
-                      <ExternalLink />
-                    </a>
-                  )}
-                </article>
+                <ReviewPlatformCard
+                  actionLabel="Review on"
+                  description={review.description}
+                  externalUrl={review.externalUrl}
+                  name={review.name}
+                  unavailableLabel="Review link coming soon"
+                />
               );
             }}
           />
