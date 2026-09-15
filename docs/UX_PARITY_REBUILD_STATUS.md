@@ -1,6 +1,6 @@
 # UX parity rebuild status
 
-Last updated: 2026-09-11
+Last updated: 2026-09-14
 
 ## Completed checkpoints
 
@@ -220,24 +220,28 @@ Last updated: 2026-09-11
   all 16 category routes. Development now data-drives its remaining business
   labels and uses valid accessible collection semantics.
 - Canonical browser behavior now opens and saves real friendly Hero forms on
-  Real Estate, Construction, and Development and exercises shared managed-media
-  selection/upload. Exact behavior accounting is 124 cases.
+  Real Estate, Construction, Storage, and Development and exercises shared
+  managed-media selection/upload. Exact behavior accounting is 125 cases.
+- Compose Playwright now covers the complete user-facing publication loop:
+  edit through a friendly form, verify public/private preview isolation, review
+  and publish the exact pending change, inspect publication history, restore the
+  previous publication, and verify the public page is restored.
 
 Focused verification at this checkpoint:
 
 - Schemas build passed.
 - Home contract and migration tests passed: 18/18.
 - Backend build passed.
-- Backend Cucumber passed: 45/45 scenarios and 283/283 steps.
+- Backend Cucumber passed: 48/48 scenarios and 307/307 steps.
 - Root `npm run check` passes after the semantic/editor integration wave,
-  validating 124 canonical cases.
+  validating 125 canonical cases.
 - Frontend unit tests passed after integration: 41/41.
 - Frontend browser tests passed after integration: 27/27, including registered
   self-hosted fonts, dedicated division compositions, CTA contrast, and launcher
   clearance.
-- Compose frontend Cucumber passed after integration: 32/32 scenarios and
-  224/224 steps, accounting for 124 canonical cases.
-- Compose Playwright passed: 13/13.
+- Compose frontend Cucumber passed after integration: 33/33 scenarios and
+  231/231 steps, accounting for 125 canonical cases.
+- Compose Playwright passed: 14/14, including publish/history/rollback.
 - All 51 visual captures are uniquely cataloged, checksum-valid, decodable,
   nonzero, and covered by the frozen visual-baseline harness.
 - The route-scoped visual capture/comparison harness passed 7/7 tests; its

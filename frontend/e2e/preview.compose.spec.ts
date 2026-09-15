@@ -1,12 +1,14 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import {
   homeCoreValuesItemsSchema,
+  homeHeroSchema,
   homeJourneyTimelineSchema,
   homeNewsItemsSchema,
   homeV2SeedData,
   pendingChangesResponseSchema,
   type EditableValue,
   type PendingChange,
+  type Publication,
 } from '@app/schemas';
 
 const editorEmail = process.env.PREVIEW_EDITOR_EMAIL ?? 'editor@tricoinc.com';
@@ -89,6 +91,101 @@ test('friendly component form saves, previews, updates, and discards without exp
   await expect(review.getByText('Hero', { exact: true })).toBeVisible();
   await review.getByRole('button', { name: 'Discard' }).click();
   await expect(heading).toHaveText(publishedHeading);
+});
+
+test('edit mode publishes a reviewed change and restores it from publication history', async ({
+  page,
+}) => {
+  const entityId = 'home.hero';
+  await login(page);
+  await discardOwned(page, entityId);
+  const initialHistory = (await (await page.request.get('/api/v1/publications/home')).json()) as {
+    publications: readonly Publication[];
+  };
+  const baselinePublication = initialHistory.publications[0];
+  expect(baselinePublication).toBeDefined();
+  const baselineHero = homeHeroSchema.parse(
+    baselinePublication?.snapshot.find(
+      ({ entityId: snapshotEntityId }) => snapshotEntityId === entityId,
+    )?.value,
+  );
+  let restored = false;
+
+  try {
+    await enterHomeEditMode(page);
+    const heading = page.getByRole('heading', { level: 1 });
+    const originalHeading = await heading.innerText();
+    expect(originalHeading).toBe(baselineHero.heading);
+    const publishedHeading = `Published through edit mode ${String(Date.now())}`;
+
+    await heading.hover();
+    await page.getByRole('button', { name: 'Edit Opening message' }).click();
+    await page
+      .getByRole('dialog', { name: 'Opening message' })
+      .getByLabel('Main heading')
+      .fill(publishedHeading);
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect(heading).toHaveText(publishedHeading);
+
+    await page.getByRole('button', { name: 'View public' }).click();
+    await expect(heading).toHaveText(originalHeading);
+    await page.getByRole('button', { name: 'View my changes' }).click();
+    await expect(heading).toHaveText(publishedHeading);
+
+    await page.getByRole('button', { name: 'Review and publish' }).click();
+    const review = page.getByText('Review unpublished changes').locator('..').locator('..');
+    await expect(review.getByText('Hero', { exact: true })).toBeVisible();
+    const publishResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' && response.url().endsWith('/api/v1/publish'),
+    );
+    await review.getByRole('button', { name: 'Publish change' }).click();
+    expect((await publishResponse).status()).toBe(202);
+    await expect(
+      page
+        .getByRole('complementary', { name: 'Content editor' })
+        .getByText('0 unpublished changes'),
+    ).toBeVisible();
+
+    await page.getByRole('button', { name: 'Exit edit mode' }).click();
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(publishedHeading);
+
+    await enterHomeEditMode(page);
+    await page.getByRole('button', { name: 'History' }).click();
+    const historyPanel = page.getByText('Publication history').locator('..').locator('..');
+    const updatedHistory = (await (await page.request.get('/api/v1/publications/home')).json()) as {
+      publications: readonly Publication[];
+    };
+    const baselineIndex = updatedHistory.publications.findIndex(
+      ({ id }) => id === baselinePublication?.id,
+    );
+    expect(baselineIndex).toBeGreaterThanOrEqual(1);
+    await expect(historyPanel.getByRole('button', { name: 'Restore' })).toHaveCount(
+      updatedHistory.publications.length,
+    );
+    page.once('dialog', (dialog) => void dialog.accept());
+    const rollbackResponse = page.waitForResponse(
+      (response) => response.request().method() === 'POST' && response.url().includes('/rollback'),
+    );
+    await historyPanel.getByRole('button', { name: 'Restore' }).nth(baselineIndex).click();
+    expect((await rollbackResponse).status()).toBe(202);
+    await historyPanel.getByRole('button', { name: 'Close' }).click();
+    await page.getByRole('button', { name: 'Exit edit mode' }).click();
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(originalHeading);
+    restored = true;
+  } finally {
+    await discardOwned(page, entityId).catch(() => undefined);
+    if (!restored && baselinePublication !== undefined) {
+      await page.request
+        .post(`/api/v1/publications/${encodeURIComponent(baselinePublication.id)}/rollback`, {
+          headers: await csrfHeaders(page),
+          data: { publicationId: baselinePublication.id },
+        })
+        .catch(() => undefined);
+    }
+  }
 });
 
 test('keeps desktop and mobile active editor toolbars at exactly 64px', async ({ page }) => {

@@ -213,6 +213,7 @@ Feature: In-page content editing and preview
       | case_id      | division    | editor | field   |
       | real-estate  | Real Estate | Hero   | Heading |
       | construction | Construction | Hero   | Heading |
+      | storage      | Storage      | Hero   | Heading |
       | development  | Development | Hero   | Heading |
 
   @id:content.touch-inline-controls @backend-noop @touch

@@ -130,7 +130,10 @@ function ObjectBoundary({
 }): React.JSX.Element {
   const editing = useEditMode();
   return (
-    <div className="storage-entity-slot" data-storage-entity-boundary="true">
+    <div
+      className={`storage-entity-slot${id === 'storage.hero' ? ' storage-hero-entity-slot' : ''}`}
+      data-storage-entity-boundary="true"
+    >
       <EditableBoundary
         active={editing.active}
         definition={definition(id)}

@@ -940,6 +940,11 @@ const remainingDivisionTargets: Readonly<
     pageId: 'construction',
     entityId: 'construction.hero',
   },
+  Storage: {
+    route: '/storage',
+    pageId: 'storage',
+    entityId: 'storage.hero',
+  },
   Development: {
     route: '/development',
     pageId: 'development',
