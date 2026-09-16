@@ -246,6 +246,8 @@
     flex: 1;
     margin: 0 0 1.25rem;
     color: #687282;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
   }
   .review-platform-action,
   .review-platform-unavailable {

@@ -88,6 +88,7 @@ Feature: Published TriCo website
     Then Real Estate Property Management Construction Storage and Development use one review platform card contract
     And Google Facebook and Yelp use accessible platform-specific brand treatments
     And review ratings use the shared blue rating role
+    And review platform descriptions use the shared compact copy role
     And review platform cards remain balanced at desktop and compact on mobile
 
   @id:public.profile-card-contract @backend-noop

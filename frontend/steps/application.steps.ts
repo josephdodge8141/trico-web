@@ -755,6 +755,22 @@ Then('review ratings use the shared blue rating role', async function (this: Fro
 });
 
 Then(
+  'review platform descriptions use the shared compact copy role',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const sample of reviewPlatformSamples) {
+      await page.goto(sample.route);
+      const descriptions = page.locator(`${sample.grid} [data-review-platform-card="true"] > p`);
+      await expect(descriptions).toHaveCount(3);
+      for (const description of await descriptions.all()) {
+        await expect(description).toHaveCSS('font-size', '14px');
+        await expect(description).toHaveCSS('line-height', '20px');
+      }
+    }
+  },
+);
+
+Then(
   'review platform cards remain balanced at desktop and compact on mobile',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
