@@ -236,7 +236,7 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
   const isBid = variant === 'bid';
   return (
     <form
-      className={`co-form ui-form ui-client-form ${isBid ? 'ui-form-layout--wide' : 'ui-form-layout--standard'}`}
+      className={`co-form ui-form ui-client-form ${isBid ? 'ui-form-layout--wide ui-form-density-spacious' : 'ui-form-layout--standard ui-form-density-compact'}`}
       onSubmit={(event) => {
         event.preventDefault();
         event.currentTarget.reset();
@@ -589,10 +589,11 @@ function ConstructionBody(): React.JSX.Element {
                 title={planHeader.heading}
                 copy={planHeader.description}
                 titleClassName="type-section-title-large"
+                headingClassName="ui-heading-gap-expanded"
               />
             </ObjectBoundary>
             <ObjectBoundary id="construction.plan-room.access-notice" value={planAccess}>
-              <div className="co-notice ui-notice">
+              <div className="co-notice ui-notice ui-notice-roomy">
                 {(() => {
                   const Icon = icons[planAccess.icon] ?? Lock;
                   return <Icon />;
@@ -639,7 +640,7 @@ function ConstructionBody(): React.JSX.Element {
               />
             </div>
             <ObjectBoundary id="construction.plan-room.request-access" value={planRequest}>
-              <div className="co-plan-access ui-plan-access">
+              <div className="co-plan-access ui-plan-access ui-callout-compact">
                 <h3 className="type-card-title">{planRequest.heading}</h3>
                 <p>{planRequest.description}</p>
                 <a
@@ -827,7 +828,7 @@ function ConstructionBody(): React.JSX.Element {
           className="co-section ui-section co-careers ui-careers ui-align-start"
           id="careers"
         >
-          <div className="co-container ui-container co-career-grid ui-career-grid">
+          <div className="co-container ui-container co-career-grid ui-career-grid ui-split-panel-roomy">
             <div>
               <ObjectBoundary id="construction.careers.header" value={careersHeader}>
                 <Heading
@@ -915,7 +916,7 @@ function ConstructionBody(): React.JSX.Element {
               />
             </div>
             <ObjectBoundary id="construction.reviews.footer" value={reviewsFooter}>
-              <p className="co-review-footer ui-review-footer">
+              <p className="co-review-footer ui-review-footer ui-feedback-gap-roomy">
                 {reviewsFooter.message}{' '}
                 <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a>.
               </p>

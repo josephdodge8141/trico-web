@@ -204,6 +204,13 @@ Feature: Published TriCo website
     And entering edit mode preserves the Construction collection grid geometry
     And shared collection sizing preserves Real Estate and Property Management service grids
 
+  @id:public.construction-residual-composition @backend-noop
+  Scenario: Preserve the remaining Construction desktop section rhythm
+    backend-noop: Plan Room, form, career, review, and contact geometry are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/construction"
+    Then Construction long-form sections preserve their frozen desktop height and density contracts
+
   @id:public.storage-mounted-composition @backend-noop
   Scenario: Render the complete mounted Storage Management composition
     backend-noop: Storage composition, responsive presentation, and its client-only consultation form are browser-owned behavior.

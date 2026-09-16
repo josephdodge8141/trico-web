@@ -4574,6 +4574,30 @@
       min-height: 564px;
       aspect-ratio: auto;
     }
+    .ui-heading-gap-expanded {
+      margin-bottom: 100px;
+    }
+    .ui-notice-roomy {
+      min-height: 114px;
+    }
+    .ui-callout-compact {
+      height: 206px;
+    }
+    .ui-form-density-spacious {
+      gap: 24px;
+    }
+    .ui-form-density-spacious .ui-submit-action {
+      margin-top: 22px;
+    }
+    .ui-form-density-compact {
+      gap: 15px;
+    }
+    .ui-split-panel-roomy {
+      min-height: 580px;
+    }
+    .ui-feedback-gap-roomy {
+      margin-top: 52px;
+    }
   }
   .ui-button-light {
     color: var(--trico-color-deep) !important;

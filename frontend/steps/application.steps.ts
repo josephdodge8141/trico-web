@@ -3413,6 +3413,78 @@ Then(
 );
 
 Then(
+  'Construction long-form sections preserve their frozen desktop height and density contracts',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.reload();
+
+    const sections = [
+      { label: 'Plan Room', selector: '#plan-room', target: 1360 },
+      { label: 'Bid', selector: '#bid', target: 1078 },
+      { label: 'Careers', selector: '#careers', target: 772 },
+      { label: 'Reviews', selector: '#reviews', target: 818 },
+      { label: 'Contact', selector: '#contact', target: 768 },
+    ];
+    for (const section of sections) {
+      const box = await page.locator(section.selector).boundingBox();
+      assert.ok(box, `${section.label} section was not rendered`);
+      assert.ok(
+        Math.abs(box.height - section.target) <= 2,
+        `${section.label} section height was ${box.height}`,
+      );
+    }
+
+    const [planDensity, bidDensity, careerGridBox, reviewFooterMargin, contactGap] =
+      await Promise.all([
+        page.locator('#plan-room').evaluate((element) => {
+          const heading = element.querySelector('.ui-heading');
+          const notice = element.querySelector('.ui-notice');
+          const access = element.querySelector('.ui-plan-access');
+          if (heading === null || notice === null || access === null) {
+            throw new Error('Plan Room composition is incomplete.');
+          }
+          return {
+            accessHeight: access.getBoundingClientRect().height,
+            headingMarginBottom: getComputedStyle(heading).marginBottom,
+            noticeHeight: notice.getBoundingClientRect().height,
+          };
+        }),
+        page.locator('#bid').evaluate((element) => {
+          const form = element.querySelector('.ui-client-form');
+          const submit = element.querySelector('.ui-submit-action');
+          if (form === null || submit === null) throw new Error('Bid form is incomplete.');
+          return {
+            formGap: getComputedStyle(form).gap,
+            submitMarginTop: getComputedStyle(submit).marginTop,
+          };
+        }),
+        page.locator('#careers .ui-career-grid').boundingBox(),
+        page
+          .locator('#reviews .ui-review-footer')
+          .evaluate((element) => getComputedStyle(element).marginTop),
+        page
+          .locator('#contact .ui-client-form')
+          .evaluate((element) => getComputedStyle(element).gap),
+      ]);
+
+    assert.deepEqual(planDensity, {
+      accessHeight: 206,
+      headingMarginBottom: '100px',
+      noticeHeight: 114,
+    });
+    assert.deepEqual(bidDensity, { formGap: '24px', submitMarginTop: '22px' });
+    assert.ok(careerGridBox);
+    assert.ok(
+      Math.abs(careerGridBox.height - 580) <= 1,
+      `Construction career grid height was ${careerGridBox.height}`,
+    );
+    assert.equal(reviewFooterMargin, '52px');
+    assert.equal(contactGap, '15px');
+  },
+);
+
+Then(
   'Construction collection grids retain their responsive column templates',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
