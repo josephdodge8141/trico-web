@@ -2864,6 +2864,133 @@ Then(
   },
 );
 Then(
+  'Real Estate About uses the mounted inverse gradient heading and prose roles',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+
+    const about = page.locator('#about');
+    const heading = about.getByRole('heading', {
+      name: 'Building Relationships, Delivering Results',
+    });
+    const prose = about.locator('.re-about-grid > div:last-child > p');
+    await expect(about).toHaveCSS(
+      'background-image',
+      'linear-gradient(to right bottom, rgb(30, 58, 138), rgb(0, 18, 138), rgb(30, 64, 175))',
+    );
+    await expect(heading).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(prose.nth(0)).toHaveCSS('color', 'rgba(255, 255, 255, 0.8)');
+    await expect(prose.nth(0)).toHaveCSS('font-size', '16px');
+    await expect(prose.nth(0)).toHaveCSS('line-height', '28px');
+    await expect(prose.nth(1)).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
+    await expect(prose.nth(1)).toHaveCSS('font-size', '16px');
+    await expect(prose.nth(1)).toHaveCSS('line-height', '24px');
+    await expect(about.getByRole('link', { name: 'Let’s Talk Real Estate' })).toHaveCSS(
+      'background-color',
+      'rgb(255, 255, 255)',
+    );
+  },
+);
+Then(
+  'the Real Estate footer uses the mounted inverse heading copy and link rhythm',
+  async function (this: FrontendWorld) {
+    const footer = this.currentPage().locator('.re-footer');
+    await expect(footer).toHaveCSS(
+      'background-image',
+      'linear-gradient(to right bottom, rgb(30, 58, 138), rgb(0, 18, 138), rgb(30, 64, 175))',
+    );
+    for (const title of ['Quick Links', 'Brokerage License']) {
+      const heading = footer.getByRole('heading', { name: title });
+      await expect(heading).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect(heading).toHaveCSS('font-weight', '600');
+    }
+    const link = footer.getByRole('link', { name: 'Listing Services' });
+    await expect(link).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
+    await expect(link).toHaveCSS('display', 'inline');
+    await expect(link).toHaveCSS('font-size', '14px');
+    await expect(link).toHaveCSS('line-height', '20px');
+    await expect(link).toHaveCSS('margin-top', '0px');
+    await expect(footer.getByText('REALTOR® License# 5472329-CN00')).toHaveCSS(
+      'color',
+      'rgba(255, 255, 255, 0.7)',
+    );
+  },
+);
+Then(
+  'Real Estate inverse surfaces preserve their geometry editor wrappers and mobile containment',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const readGeometry = async () => {
+      const about = await page.locator('#about').boundingBox();
+      const footer = await page.locator('.re-footer').boundingBox();
+      assert.ok(about && footer);
+      return {
+        about: {
+          x: Math.round(about.x),
+          width: Math.round(about.width),
+          height: Math.round(about.height),
+        },
+        footer: {
+          x: Math.round(footer.x),
+          width: Math.round(footer.width),
+          height: Math.round(footer.height),
+        },
+      };
+    };
+    const publicGeometry = await readGeometry();
+    assert.deepEqual(
+      {
+        about: { x: publicGeometry.about.x, width: publicGeometry.about.width },
+        footer: { x: publicGeometry.footer.x, width: publicGeometry.footer.width },
+      },
+      {
+        about: { x: 0, width: 1512 },
+        footer: { x: 0, width: 1512 },
+      },
+    );
+    assert.ok(Math.abs(publicGeometry.about.height - 784) <= 10);
+    assert.ok(Math.abs(publicGeometry.footer.height - 517) <= 5);
+
+    await loginEditor(page);
+    await page.goto('/real-estate');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const editGeometry = await readGeometry();
+    assert.deepEqual(
+      {
+        about: { x: editGeometry.about.x, width: editGeometry.about.width },
+        footer: { x: editGeometry.footer.x, width: editGeometry.footer.width },
+      },
+      {
+        about: { x: publicGeometry.about.x, width: publicGeometry.about.width },
+        footer: { x: publicGeometry.footer.x, width: publicGeometry.footer.width },
+      },
+    );
+    await expect(
+      page.locator('#about').locator('xpath=ancestor::*[@data-entity-boundary="true"][1]'),
+    ).toHaveCount(1);
+    await expect(page.locator('.re-footer [data-entity-boundary="true"]')).not.toHaveCount(0);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const selector of ['#about', '.re-footer']) {
+      const containment = await page.locator(selector).evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          left: rect.left,
+          right: rect.right,
+        };
+      });
+      assert.ok(containment.scrollWidth <= containment.clientWidth + 1);
+      assert.ok(containment.left >= -1 && containment.right <= 391);
+    }
+  },
+);
+Then(
   'the Property Management hero uses the approved neutral unavailable-image treatment',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

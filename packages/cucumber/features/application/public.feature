@@ -208,6 +208,15 @@ Feature: Published TriCo website
     And Real Estate listings process and FAQ match their mounted desktop contracts
     And listing directory actions and the contact call to action complete the gallery
 
+  @id:public.real-estate-inverse-surfaces @backend-noop
+  Scenario: Preserve the Real Estate inverse-surface presentation
+    backend-noop: Real Estate About and footer color, typography, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/real-estate"
+    Then Real Estate About uses the mounted inverse gradient heading and prose roles
+    And the Real Estate footer uses the mounted inverse heading copy and link rhythm
+    And Real Estate inverse surfaces preserve their geometry editor wrappers and mobile containment
+
   @id:public.construction-collection-geometry @backend-noop
   Scenario: Keep editable collection grids structurally transparent
     backend-noop: Collection wrapper sizing and responsive grid presentation are browser-owned visual behavior.

@@ -40,6 +40,10 @@
     --trico-color-rating: #5e85ba;
     --trico-color-brand-accent: #86622d;
     --trico-color-brand-accent-rgb: 134 98 45;
+    --trico-color-inverse-gradient-start: #1e3a8a;
+    --trico-color-inverse-gradient-end: #1e40af;
+    --trico-color-inverse-copy-strong: rgb(255 255 255 / 80%);
+    --trico-color-inverse-copy: rgb(255 255 255 / 70%);
     --trico-review-google: #4285f4;
     --trico-review-facebook: #1877f2;
     --trico-review-yelp: #d32323;
@@ -4757,5 +4761,51 @@
     padding: 0;
     margin: -1px;
     border: 0;
+  }
+  .ui-inverse-surface {
+    color: var(--trico-color-surface);
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-color-inverse-gradient-start),
+      var(--trico-color-dark),
+      var(--trico-color-inverse-gradient-end)
+    );
+  }
+  .ui-page .ui-inverse-surface .type-section-title,
+  .ui-page .ui-inverse-surface .type-footer-title {
+    color: var(--trico-color-surface);
+  }
+  .ui-inverse-surface .ui-inverse-prose-lead {
+    color: var(--trico-color-inverse-copy-strong);
+    font-size: 1rem;
+    line-height: 28px;
+  }
+  .ui-inverse-surface .ui-inverse-prose,
+  .ui-inverse-surface.ui-footer-copy-standard :is(p, address, a, span) {
+    color: var(--trico-color-inverse-copy);
+  }
+  .ui-inverse-surface .ui-inverse-prose {
+    font-size: 1rem;
+    line-height: 24px;
+  }
+  .ui-inverse-surface.ui-footer-copy-standard .type-footer-title {
+    font-weight: 600;
+  }
+  .ui-page .ui-inverse-footer-links .editable-collection-items {
+    display: grid;
+    gap: 16px;
+  }
+  .ui-page .ui-inverse-footer-links .editable-collection-items > div {
+    display: block;
+    line-height: 20px;
+  }
+  .ui-page .ui-inverse-footer-links .type-footer-title {
+    margin: 0 0 16px;
+  }
+  .ui-page .ui-inverse-footer-links a {
+    display: inline;
+    margin-top: 0;
+    font-size: 14px;
+    line-height: 20px;
   }
 }

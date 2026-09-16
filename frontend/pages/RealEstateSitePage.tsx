@@ -843,7 +843,10 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const about = S.realEstateAboutSchema.parse(item);
               return (
-                <section id="about" className="re-section ui-section re-dark ui-dark">
+                <section
+                  id="about"
+                  className="re-section ui-section re-dark ui-dark ui-on-dark ui-inverse-surface"
+                >
                   <div className="re-container ui-container re-about-grid ui-about-grid ui-content-frame-standard">
                     <div className="re-about-visual ui-about-visual">
                       <strong>{about.brandLabel}</strong>
@@ -859,8 +862,8 @@ function RealEstateBody(): React.JSX.Element {
                           {about.eyebrow}
                         </span>
                         <h2 className="type-section-title">{about.heading}</h2>
-                        <p>{about.introduction}</p>
-                        <p>{about.detail}</p>
+                        <p className="ui-inverse-prose-lead">{about.introduction}</p>
+                        <p className="ui-inverse-prose">{about.detail}</p>
                         <a
                           className="re-button ui-button re-button-light ui-button-light"
                           href="#contact"
@@ -1135,7 +1138,7 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
         </main>
-        <footer className="re-footer ui-footer ui-align-start ui-footer-rhythm">
+        <footer className="re-footer ui-footer ui-align-start ui-footer-rhythm ui-footer-copy-standard ui-inverse-surface">
           <div className="re-container ui-container re-footer-grid ui-footer-grid ui-footer-grid--standard">
             <Boundary id="real-estate.footer.brand">
               {(item) => {
@@ -1158,7 +1161,7 @@ function RealEstateBody(): React.JSX.Element {
               }}
             </Boundary>
             <CollectionBoundary
-              className="re-footer-links ui-footer-links"
+              className="re-footer-links ui-footer-links ui-inverse-footer-links"
               id="real-estate.footer.links"
               renderItem={(item, index) => {
                 const link = S.realEstateFooterLinkSchema.parse(item);
