@@ -136,6 +136,7 @@ Feature: Published TriCo website
     When I open "/real-estate"
     Then Real Estate services team and testimonials use centered three-column desktop grids
     And Real Estate services preserve the complete legacy descriptions and audited card rhythm
+    And Real Estate supporting content and selective desktop composition match the mounted reference
     And entering edit mode preserves the Real Estate card grid geometry
 
   @id:public.real-estate-listing-gallery @backend-noop

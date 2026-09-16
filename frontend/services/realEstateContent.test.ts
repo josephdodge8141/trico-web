@@ -25,6 +25,31 @@ test('Real Estate service seed preserves the complete legacy-visible description
   );
 });
 
+test('Real Estate supporting seeds preserve the complete mounted semantic content', () => {
+  assert.deepEqual(
+    [
+      realEstateV2SeedData['real-estate.about'].introduction,
+      realEstateV2SeedData['real-estate.about'].detail,
+    ],
+    [
+      "TriCo Real Estate is a full-service brokerage specializing in commercial real estate and land, while also serving residential clients. For over four decades, we've helped investors, businesses, homeowners, and developers navigate Utah's property market with confidence.",
+      'From commercial sales and leasing to land acquisitions, new construction homes in our subdivisions or custom builds on your lot, and traditional residential transactions — our experienced team delivers results across every property type.',
+    ],
+  );
+  assert.equal(
+    realEstateV2SeedData['real-estate.careers'].benefits.at(-1)?.label,
+    '40+ years of market reputation',
+  );
+  assert.deepEqual(
+    realEstateV2SeedData['real-estate.reviews.platforms'].map(({ description }) => description),
+    [
+      'Share your experience on Google Reviews — helps neighbors find us.',
+      'Recommend us on Facebook so your network can see it too.',
+      'Leave a Yelp review to help others make an informed decision.',
+    ],
+  );
+});
+
 test('Real Estate uses semantic seed values when content is absent or legacy', () => {
   assert.deepEqual(
     parseRealEstateValue({}, 'real-estate.hero', realEstateHeroSchema),

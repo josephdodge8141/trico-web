@@ -186,6 +186,22 @@
   .profile-card-contacts a:focus-visible {
     color: var(--trico-color-action);
   }
+  .ui-profile-grid-expanded .profile-card-body > p {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+  }
+  .ui-profile-grid-expanded .profile-card-body strong {
+    margin: 0.25rem 0 1rem;
+    line-height: 1.4;
+  }
+  .ui-profile-grid-expanded .profile-card-contacts {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+  .ui-profile-grid-expanded .profile-card-contacts a {
+    line-height: 1.5;
+  }
 
   /*
  * One review-platform contract shared by every division. Page compositions own
@@ -2292,6 +2308,9 @@
     color: var(--trico-surface-brand-subtle);
     background: none;
   }
+  .ui-testimonial-grid .ui-card > p {
+    font-style: italic;
+  }
   .ui-stars {
     color: var(--trico-color-rating);
   }
@@ -3576,6 +3595,11 @@
     padding: 1.875rem var(--trico-card-padding-compact);
   }
   @media (min-width: 1024px) {
+    .ui-content-frame-standard {
+      box-sizing: border-box;
+      width: min(calc(100% - 2rem), 1368px);
+      margin-inline: auto;
+    }
     .ui-contact-grid-standard {
       box-sizing: border-box;
       width: min(calc(100% - 2rem), 1368px);

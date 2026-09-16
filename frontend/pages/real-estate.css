@@ -298,6 +298,9 @@
   .re-service-grid .re-card h3 {
     margin-top: 0.7rem;
   }
+  .re-service-grid {
+    margin-bottom: 4rem;
+  }
   .re-process-container {
     max-width: 1040px;
   }
@@ -381,8 +384,11 @@
     gap: 2rem;
     margin-inline: auto;
   }
+  .re-agent-grid .editable-collection-items {
+    grid-template-columns: repeat(4, 1fr);
+  }
   .re-careers-grid {
-    max-width: 960px;
+    max-width: 896px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
@@ -432,6 +438,15 @@
     width: 32px;
     height: 32px;
     padding: 0;
+  }
+  .re-testimonial-grid .re-card {
+    padding: 2rem 1.5rem 1.5rem;
+  }
+  .re-testimonial-grid .re-stars {
+    margin-bottom: 1rem;
+  }
+  .re-testimonial-grid .re-card > p {
+    margin: 0 0 1.375rem;
   }
   .re-stars {
     display: flex;
@@ -509,7 +524,7 @@
     max-width: 1024px;
     margin-inline: auto;
   }
-  .re-review-footer {
+  .re-page .re-review-footer {
     margin: 2.5rem auto 0;
   }
   .re-contact-grid {
@@ -622,6 +637,9 @@
     .re-about-grid,
     .re-contact-grid {
       gap: 3rem;
+    }
+    .re-agent-grid .editable-collection-items {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
   @media (max-width: 767px) {

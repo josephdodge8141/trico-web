@@ -233,7 +233,7 @@ export const realEstateV2SeedData = {
   'real-estate.services.header': heading(
     'Real Estate',
     'Full-Service Real Estate Brokerage',
-    'Commercial, land, new construction, and residential expertise backed by four decades in Utah.',
+    'TriCo Real Estate is a full-service brokerage specializing in commercial real estate and land, with expertise in new construction and residential services. Whatever your real estate needs, we deliver results.',
   ),
   'real-estate.services.items': [
     [
@@ -289,9 +289,9 @@ export const realEstateV2SeedData = {
     eyebrow: 'About TriCo Real Estate',
     heading: 'Building Relationships, Delivering Results',
     introduction:
-      'TriCo Real Estate is a full-service brokerage specializing in commercial real estate and land while also serving residential clients.',
+      "TriCo Real Estate is a full-service brokerage specializing in commercial real estate and land, while also serving residential clients. For over four decades, we've helped investors, businesses, homeowners, and developers navigate Utah's property market with confidence.",
     detail:
-      'For over four decades, we have helped Utah clients navigate the property market with confidence.',
+      'From commercial sales and leasing to land acquisitions, new construction homes in our subdivisions or custom builds on your lot, and traditional residential transactions — our experienced team delivers results across every property type.',
     statValue: '$500M+',
     statLabel: 'In Transactions',
     actionLabel: 'Let’s Talk Real Estate',
@@ -308,32 +308,50 @@ export const realEstateV2SeedData = {
     ...heading(
       'Our Team',
       'Meet Our Real Estate Experts',
-      'Experienced professionals dedicated to exceptional results across Utah real estate.',
+      'Experienced professionals dedicated to delivering exceptional results across every aspect of Utah real estate.',
     ),
     leadershipLabel: 'Leadership',
     staffLabel: 'Our Team',
     agentsLabel: 'Our Agents',
   },
   'real-estate.team.leadership': [
-    ['Stephen Tripp', 'Managing Broker', 'steve-tripp.png'],
-    ['Randy Rimmer', 'Vice President', 'randy-rimmer.png'],
-    ['Brooke Moore', 'Director of Real Estate', 'brooke-moore.jpeg'],
-  ].map(([name, role, image], n) => ({
-    id: itemId('real-estate.team.leadership', n),
-    name: name ?? 'New team member',
-    role: role ?? 'Role',
-    bio: 'Dedicated to expert guidance and exceptional client service.',
-    email: 'realestate@tricoinc.com',
-    phone: '(801) 571-8833',
-    image: managed(`media/seed/${image ?? 'placeholder-neutral.svg'}`),
-    imageAltText: name ?? 'Team member portrait',
-  })),
+    {
+      id: itemId('real-estate.team.leadership', 0),
+      name: 'Stephen Tripp',
+      role: 'Managing Broker',
+      bio: 'With over 30 years of experience in Utah real estate, Steve brings unmatched expertise in residential and commercial transactions. As Managing Broker, he oversees all brokerage operations to deliver exceptional results for every client.',
+      email: 'stephenjr@tricoinc.com',
+      phone: '(801) 571-8833',
+      image: managed('media/seed/steve-tripp.png'),
+      imageAltText: 'Stephen Tripp',
+    },
+    {
+      id: itemId('real-estate.team.leadership', 1),
+      name: 'Randy Rimmer',
+      role: 'Vice President',
+      bio: 'Dedicated to providing exceptional service and expertise for all your real estate needs.',
+      email: 'Randy@tricoinc.com',
+      phone: '(801) 571-8833',
+      image: managed('media/seed/randy-rimmer.png'),
+      imageAltText: 'Randy Rimmer',
+    },
+    {
+      id: itemId('real-estate.team.leadership', 2),
+      name: 'Brooke Moore',
+      role: 'Director of Real Estate',
+      bio: 'With extensive experience in both real estate transactions and land development, Brooke leads our real estate division with a passion for helping clients achieve their property goals. She is dedicated to educating and leading agents to success.',
+      email: 'brooke@tricoinc.com',
+      phone: '(808) 292-4634',
+      image: managed('media/seed/brooke-moore.jpeg'),
+      imageAltText: 'Brooke Moore',
+    },
+  ],
   'real-estate.team.staff': [
     {
       id: itemId('real-estate.team.staff', 0),
       name: 'Mia Barlow',
       role: 'Transaction Coordinator',
-      bio: 'Ensures every transaction runs smoothly from contract to close.',
+      bio: 'Mia ensures every transaction runs smoothly from contract to close, bringing a detail-oriented approach and exceptional organizational skills to support our agents and clients.',
       email: 'mia@tricoinc.com',
       phone: '(801) 571-8833',
       image: managed('media/seed/mia-barlow-re.png'),
@@ -341,32 +359,56 @@ export const realEstateV2SeedData = {
     },
   ],
   'real-estate.team.agents': [
-    'Michael Thornton',
-    'Ben Beesley',
-    'Shauna Ayers',
-    'Robert Ayers',
-    'Stacie Papanikolas',
-  ].map((name, n) => ({
+    [
+      'Michael Thornton',
+      'Michael brings a client-focused approach to real estate, ensuring every transaction is handled with professionalism and care.',
+      'michael@tricoinc.com',
+      'michael-thornton.jpg',
+    ],
+    [
+      'Ben Beesley',
+      'Ben is dedicated to helping clients buy and sell with confidence, bringing a client-first approach and strong local market knowledge to every transaction.',
+      'ben@tricoinc.com',
+      'ben-beesley.jpg',
+    ],
+    [
+      'Shauna Ayers',
+      'Shauna brings a warm, client-first approach to real estate, helping buyers and sellers navigate every transaction with confidence and care.',
+      'shauna@tricoinc.com',
+      'placeholder-neutral.svg',
+    ],
+    [
+      'Robert Ayers',
+      'Robert brings strong local market knowledge and a client-first approach, helping buyers and sellers achieve their real estate goals with confidence.',
+      'robert@tricoinc.com',
+      'placeholder-neutral.svg',
+    ],
+    [
+      'Stacie Papanikolas',
+      'Stacie brings a warm, detail-oriented approach to real estate, guiding clients through every step of buying or selling with care and local expertise.',
+      'stacie@tricoinc.com',
+      'placeholder-neutral.svg',
+    ],
+  ].map(([name, bio, email, image], n) => ({
     id: itemId('real-estate.team.agents', n),
-    name,
+    name: name ?? 'New agent',
     role: 'Licensed Real Estate Agent',
-    bio: 'Client-focused service backed by strong local market knowledge.',
-    email: 'realestate@tricoinc.com',
+    bio: bio ?? 'Agent biography.',
+    email: email ?? 'realestate@tricoinc.com',
     phone: '(801) 571-8833',
-    image: managed(
-      `media/seed/${n === 0 ? 'michael-thornton.jpg' : n === 1 ? 'ben-beesley.jpg' : 'placeholder-neutral.svg'}`,
-    ),
-    imageAltText: name,
+    image: managed(`media/seed/${image ?? 'placeholder-neutral.svg'}`),
+    imageAltText: name ?? 'Agent portrait',
   })),
   'real-estate.careers': {
     eyebrow: 'Careers',
     heading: 'Join Our Growing Team',
     description:
-      'Take your real estate career to the next level with a company known for integrity and mentoring.',
+      'Are you a motivated real estate professional looking to take your career to the next level? TriCo Real Estate is seeking talented agents who share our commitment to excellence and client satisfaction.',
     benefits: [
       { id: itemId('real-estate.careers', 0), label: 'Competitive commission structure' },
       { id: itemId('real-estate.careers', 1), label: 'Comprehensive training and mentorship' },
       { id: itemId('real-estate.careers', 2), label: 'Access to exclusive listings and leads' },
+      { id: itemId('real-estate.careers', 3), label: '40+ years of market reputation' },
     ],
     actionLabel: 'Apply Now',
     email: 'apply@tricoinc.com',
@@ -376,16 +418,24 @@ export const realEstateV2SeedData = {
   'real-estate.testimonials.header': heading(
     'Client Success Stories',
     'Trusted by Property Owners & Investors',
-    'Our clients’ success is our greatest achievement.',
+    "Our clients' success is our greatest achievement. Here's what they have to say about working with TriCo Real Estate.",
   ),
   'real-estate.testimonials.items': [
     [
       'Michael Anderson',
       'Commercial Investor',
-      'TriCo’s expertise and market knowledge are invaluable.',
+      "TriCo's expertise in commercial real estate is unmatched. They helped us identify and acquire a retail property that exceeded our investment expectations. Their market knowledge is invaluable.",
     ],
-    ['Sarah Thompson', 'First-Time Homebuyer', 'TriCo made everything simple and stress-free.'],
-    ['David Mitchell', 'Land Developer', 'Their market understanding has been instrumental.'],
+    [
+      'Sarah Thompson',
+      'First-Time Homebuyer',
+      'As a first-time buyer, I was nervous about the process. TriCo made everything simple and stress-free. They found us the perfect home within our budget and timeline.',
+    ],
+    [
+      'David Mitchell',
+      'Land Developer',
+      "We've partnered with TriCo on multiple development projects. Their understanding of zoning, entitlements, and market dynamics has been instrumental in our success.",
+    ],
   ].map(([name, role, quote], n) => ({
     id: itemId('real-estate.testimonials.items', n),
     name: name ?? 'Client',
@@ -414,12 +464,16 @@ export const realEstateV2SeedData = {
   'real-estate.reviews.header': heading(
     'We’d Love Your Feedback',
     'Leave Us a Review',
-    'Your feedback helps others discover the TriCo difference.',
+    'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
   ),
-  'real-estate.reviews.platforms': ['Google', 'Facebook', 'Yelp'].map((name, n) => ({
+  'real-estate.reviews.platforms': [
+    ['Google', 'Share your experience on Google Reviews — helps neighbors find us.'],
+    ['Facebook', 'Recommend us on Facebook so your network can see it too.'],
+    ['Yelp', 'Leave a Yelp review to help others make an informed decision.'],
+  ].map(([name, description], n) => ({
     id: itemId('real-estate.reviews.platforms', n),
-    name,
-    description: 'Share your experience and help others make an informed decision.',
+    name: name ?? 'Review platform',
+    description: description ?? 'Share your experience.',
     externalUrl: '',
   })),
   'real-estate.reviews.footer': {

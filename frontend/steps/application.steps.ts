@@ -1805,7 +1805,7 @@ Then(
   'Real Estate services team and testimonials use centered three-column desktop grids',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.setViewportSize({ width: 1512, height: 1100 });
     await page.reload();
 
     const assertThreeColumnGeometry = async (
@@ -1844,9 +1844,9 @@ Then(
       assert.ok(third.x > second.x + second.width);
     };
 
-    await assertThreeColumnGeometry('.re-service-grid', '.re-card', 5, 1392, 1394);
+    await assertThreeColumnGeometry('.re-service-grid', '.re-card', 5, 1367, 1369);
     await assertThreeColumnGeometry('.re-person-grid', '[data-profile-card="true"]', 3, 1151, 1153);
-    await assertThreeColumnGeometry('.re-testimonial-grid', '.re-card', 3, 1392, 1394);
+    await assertThreeColumnGeometry('.re-testimonial-grid', '.re-card', 3, 1367, 1369);
   },
 );
 Then(
@@ -1882,6 +1882,145 @@ Then(
         gridHeight: 560,
       },
     );
+  },
+);
+Then(
+  'Real Estate supporting content and selective desktop composition match the mounted reference',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+
+    const expectedProfileBios = [
+      'With over 30 years of experience in Utah real estate, Steve brings unmatched expertise in residential and commercial transactions. As Managing Broker, he oversees all brokerage operations to deliver exceptional results for every client.',
+      'Dedicated to providing exceptional service and expertise for all your real estate needs.',
+      'With extensive experience in both real estate transactions and land development, Brooke leads our real estate division with a passion for helping clients achieve their property goals. She is dedicated to educating and leading agents to success.',
+      'Mia ensures every transaction runs smoothly from contract to close, bringing a detail-oriented approach and exceptional organizational skills to support our agents and clients.',
+      'Michael brings a client-focused approach to real estate, ensuring every transaction is handled with professionalism and care.',
+      'Ben is dedicated to helping clients buy and sell with confidence, bringing a client-first approach and strong local market knowledge to every transaction.',
+      'Shauna brings a warm, client-first approach to real estate, helping buyers and sellers navigate every transaction with confidence and care.',
+      'Robert brings strong local market knowledge and a client-first approach, helping buyers and sellers achieve their real estate goals with confidence.',
+      'Stacie brings a warm, detail-oriented approach to real estate, guiding clients through every step of buying or selling with care and local expertise.',
+    ] as const;
+    const expectedTestimonials = [
+      "“TriCo's expertise in commercial real estate is unmatched. They helped us identify and acquire a retail property that exceeded our investment expectations. Their market knowledge is invaluable.”",
+      '“As a first-time buyer, I was nervous about the process. TriCo made everything simple and stress-free. They found us the perfect home within our budget and timeline.”',
+      "“We've partnered with TriCo on multiple development projects. Their understanding of zoning, entitlements, and market dynamics has been instrumental in our success.”",
+    ] as const;
+
+    const actualContent = {
+      servicesIntroduction: await page.locator('#services .re-section-heading p').innerText(),
+      aboutParagraphs: await page
+        .locator('#about .re-about-grid > div:last-child > p')
+        .allTextContents(),
+      profileBios: await page.locator('#team .profile-card-body > p').allTextContents(),
+      careersDescription: await page.locator('.re-careers-grid > div > p').innerText(),
+      careerBenefits: (await page.locator('.re-careers-grid li').allTextContents()).map((value) =>
+        value.trim(),
+      ),
+      testimonialIntroduction: await page
+        .locator('.re-testimonials .re-section-heading p')
+        .innerText(),
+      testimonials: await page.locator('.re-testimonial-grid .re-card > p').allTextContents(),
+      reviewIntroduction: await page.locator('.re-reviews .re-section-heading p').innerText(),
+      reviewDescriptions: await page
+        .locator('.re-review-grid [data-review-platform-card="true"] > p')
+        .allTextContents(),
+    };
+    const expectedContent = {
+      servicesIntroduction:
+        'TriCo Real Estate is a full-service brokerage specializing in commercial real estate and land, with expertise in new construction and residential services. Whatever your real estate needs, we deliver results.',
+      aboutParagraphs: [
+        "TriCo Real Estate is a full-service brokerage specializing in commercial real estate and land, while also serving residential clients. For over four decades, we've helped investors, businesses, homeowners, and developers navigate Utah's property market with confidence.",
+        'From commercial sales and leasing to land acquisitions, new construction homes in our subdivisions or custom builds on your lot, and traditional residential transactions — our experienced team delivers results across every property type.',
+      ],
+      profileBios: expectedProfileBios,
+      careersDescription:
+        'Are you a motivated real estate professional looking to take your career to the next level? TriCo Real Estate is seeking talented agents who share our commitment to excellence and client satisfaction.',
+      careerBenefits: [
+        'Competitive commission structure',
+        'Comprehensive training and mentorship',
+        'Access to exclusive listings and leads',
+        '40+ years of market reputation',
+      ],
+      testimonialIntroduction:
+        "Our clients' success is our greatest achievement. Here's what they have to say about working with TriCo Real Estate.",
+      testimonials: expectedTestimonials,
+      reviewIntroduction:
+        'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
+      reviewDescriptions: [
+        'Share your experience on Google Reviews — helps neighbors find us.',
+        'Recommend us on Facebook so your network can see it too.',
+        'Leave a Yelp review to help others make an informed decision.',
+      ],
+    } as const;
+
+    const roundedBox = async (selector: string): Promise<{ x: number; width: number }> => {
+      const box = await page.locator(selector).first().boundingBox();
+      assert.ok(box);
+      return { x: Math.round(box.x), width: Math.round(box.width) };
+    };
+    const heights = await Promise.all(
+      [
+        '#services',
+        '#about',
+        '#team',
+        '.re-careers',
+        '.re-testimonials',
+        '.re-reviews',
+        '.re-footer',
+      ].map(async (selector) => {
+        const box = await page.locator(selector).boundingBox();
+        assert.ok(box);
+        return Math.round(box.height);
+      }),
+    );
+    const agentCards = await page
+      .locator('.re-agent-grid [data-profile-card="true"]')
+      .evaluateAll((elements) =>
+        elements.slice(0, 4).map((element) => {
+          const box = element.getBoundingClientRect();
+          return { x: Math.round(box.x), width: Math.round(box.width) };
+        }),
+      );
+
+    assert.deepEqual(
+      {
+        content: actualContent,
+        serviceGrid: await roundedBox('.re-service-grid'),
+        testimonialGrid: await roundedBox('.re-testimonial-grid'),
+        aboutGrid: await roundedBox('.re-about-grid'),
+        contactGrid: await roundedBox('.re-contact-grid'),
+        footerGrid: await roundedBox('.re-footer-grid'),
+        serviceHeading: await roundedBox('#services .re-section-heading'),
+        careersGrid: await roundedBox('.re-careers-grid'),
+        agentCards,
+      },
+      {
+        content: expectedContent,
+        serviceGrid: { x: 72, width: 1368 },
+        testimonialGrid: { x: 72, width: 1368 },
+        aboutGrid: { x: 72, width: 1368 },
+        contactGrid: { x: 72, width: 1368 },
+        footerGrid: { x: 72, width: 1368 },
+        serviceHeading: { x: 372, width: 768 },
+        careersGrid: { x: 308, width: 896 },
+        agentCards: [
+          { x: 180, width: 264 },
+          { x: 476, width: 264 },
+          { x: 772, width: 264 },
+          { x: 1068, width: 264 },
+        ],
+      },
+    );
+    const referenceHeights = [1160, 784, 3241, 632, 762, 818, 517] as const;
+    heights.forEach((height, index) => {
+      assert.ok(
+        Math.abs(height - referenceHeights[index]!) <= 10,
+        `Real Estate section ${index} height ${height}px differs from the mounted reference ${referenceHeights[index]}px by more than 10px`,
+      );
+    });
   },
 );
 Then(
