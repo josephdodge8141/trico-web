@@ -896,11 +896,12 @@ Then(
       await expect(media).toHaveAttribute('data-media-state', sample.state);
       await expect(media).toHaveCSS('border-radius', '16px');
       await expect(media).toHaveCSS('overflow', 'hidden');
-      await expect(media).toHaveCSS('box-shadow', 'rgba(15, 23, 41, 0.18) 0px 24px 55px 0px');
+      await expect(media).toHaveCSS('box-shadow', 'none');
       const box = await media.boundingBox();
       assert.ok(box);
-      assert.ok(Math.abs(box.width / box.height - 4 / 3) <= 0.01);
-      assert.ok(box.x >= 720);
+      assert.equal(box.width, 192);
+      assert.equal(box.height, 192);
+      assert.equal(box.x, 720);
     }
   },
 );
@@ -981,8 +982,10 @@ Then(
       const geometry = await card.evaluate((element) => {
         const cardStyles = getComputedStyle(element);
         const copy = element.querySelector('p');
-        if (!(copy instanceof HTMLElement)) return null;
+        const title = element.querySelector('h3');
+        if (!(copy instanceof HTMLElement) || !(title instanceof HTMLElement)) return null;
         const copyStyles = getComputedStyle(copy);
+        const titleStyles = getComputedStyle(title);
         return {
           minHeight: cardStyles.minHeight,
           paddingTop: cardStyles.paddingTop,
@@ -991,6 +994,7 @@ Then(
           paddingLeft: cardStyles.paddingLeft,
           copyMaxWidth: copyStyles.maxWidth,
           copyLineHeight: Number.parseFloat(copyStyles.lineHeight),
+          titleLetterSpacing: titleStyles.letterSpacing,
         };
       });
       assert.ok(geometry);
@@ -1013,6 +1017,89 @@ Then(
       const copyMaxWidth = Number.parseFloat(geometry.copyMaxWidth);
       assert.ok(copyMaxWidth >= 300 && copyMaxWidth <= 390);
       assert.ok(geometry.copyLineHeight >= 24);
+      assert.equal(geometry.titleLetterSpacing, '-0.5px');
+    }
+  },
+);
+
+Then(
+  'representative headings use the frozen 60 48 and 36 pixel roles',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const expectations = [
+      {
+        route: '/real-estate',
+        heading: 'Featured Properties',
+        fontSize: '60px',
+        lineHeight: '60px',
+      },
+      {
+        route: '/property-management',
+        heading: 'Meet Our Property Management Experts',
+        fontSize: '60px',
+        lineHeight: '60px',
+      },
+      {
+        route: '/construction',
+        heading: 'Get a Bid on Your Project',
+        fontSize: '36px',
+        lineHeight: '40px',
+      },
+      {
+        route: '/storage',
+        heading: 'Our Why',
+        fontSize: '48px',
+        lineHeight: '48px',
+      },
+      {
+        route: '/development',
+        heading: 'Builder & Investor Partners',
+        fontSize: '36px',
+        lineHeight: '40px',
+      },
+    ] as const;
+
+    await page.setViewportSize({ width: 1512, height: 827 });
+    for (const expectation of expectations) {
+      await page.goto(expectation.route);
+      const heading = page.getByRole('heading', { name: expectation.heading, exact: true });
+      await expect(heading).toHaveCSS('font-family', /Lato/);
+      await expect(heading).toHaveCSS('font-size', expectation.fontSize);
+      await expect(heading).toHaveCSS('line-height', expectation.lineHeight);
+      await expect(heading).toHaveCSS('font-weight', '700');
+    }
+  },
+);
+
+Then(
+  'shared navigation form labels and actions use the frozen medium weight and six-pixel corners',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+
+    for (const sample of [
+      { route: '/real-estate', label: 'Full Name *', action: 'Submit Inquiry' },
+      { route: '/property-management', label: 'Full Name *', action: 'Submit Inquiry' },
+      { route: '/construction', label: 'Your Name *', action: 'Request Your Bid' },
+      { route: '/storage', label: 'First Name *', action: 'Get Started' },
+      { route: '/development', label: 'First Name *', action: 'Get Started' },
+    ] as const) {
+      await page.goto(sample.route);
+      const label = page.getByText(sample.label, { exact: true }).last();
+      const input = label.locator('input');
+      const action = page.getByRole('button', { name: sample.action, exact: true }).last();
+      await expect(label).toHaveCSS('font-weight', '500');
+      await expect(input).toHaveCSS('border-radius', '6px');
+      await expect(action).toHaveCSS('font-weight', '500');
+      await expect(action).toHaveCSS('border-radius', '6px');
+    }
+
+    for (const route of ['/real-estate', '/property-management', '/construction', '/development']) {
+      await page.goto(route);
+      await expect(page.getByRole('navigation').first().getByRole('link').first()).toHaveCSS(
+        'font-weight',
+        '500',
+      );
     }
   },
 );

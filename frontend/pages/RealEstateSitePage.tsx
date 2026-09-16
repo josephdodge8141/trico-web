@@ -444,12 +444,18 @@ function PersonCard({ item }: { readonly item: S.EditableValue }): React.JSX.Ele
     />
   );
 }
-function SemanticHeading({ item }: { readonly item: S.EditableValue }): React.JSX.Element {
+function SemanticHeading({
+  item,
+  titleClassName = '',
+}: {
+  readonly item: S.EditableValue;
+  readonly titleClassName?: string;
+}): React.JSX.Element {
   const heading = S.realEstateServicesHeaderSchema.parse(item);
   return (
     <header className="re-section-heading ui-section-heading">
       <span className="re-pill ui-pill">{heading.eyebrow}</span>
-      <h2 className="type-section-title">{heading.heading}</h2>
+      <h2 className={`type-section-title ${titleClassName}`}>{heading.heading}</h2>
       <p>{heading.description}</p>
     </header>
   );
@@ -627,7 +633,9 @@ function RealEstateBody(): React.JSX.Element {
           <section id="listings" className="re-section ui-section">
             <div className="re-container ui-container">
               <Boundary id="real-estate.listings.header">
-                {(item) => <SemanticHeading item={item} />}
+                {(item) => (
+                  <SemanticHeading item={item} titleClassName="type-section-title-large" />
+                )}
               </Boundary>
               <div className="re-listings-gallery ui-listings-gallery">
                 <Boundary id="real-estate.listings.actions">
@@ -727,7 +735,9 @@ function RealEstateBody(): React.JSX.Element {
           <section id="services" className="re-section ui-section re-tint ui-tint">
             <div className="re-container ui-container">
               <Boundary id="real-estate.services.header">
-                {(item) => <SemanticHeading item={item} />}
+                {(item) => (
+                  <SemanticHeading item={item} titleClassName="type-section-title-large" />
+                )}
               </Boundary>
               <CollectionBoundary
                 className="re-service-grid ui-service-grid"
@@ -828,7 +838,9 @@ function RealEstateBody(): React.JSX.Element {
                   <div className="re-container ui-container">
                     <header className="re-section-heading ui-section-heading">
                       <span className="re-pill ui-pill">{heading.eyebrow}</span>
-                      <h2 className="type-section-title">{heading.heading}</h2>
+                      <h2 className="type-section-title type-section-title-large">
+                        {heading.heading}
+                      </h2>
                       <p>{heading.description}</p>
                     </header>
                     <h3 className="re-group-title ui-group-title">{heading.leadershipLabel}</h3>
@@ -865,7 +877,9 @@ function RealEstateBody(): React.JSX.Element {
                       <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
                         {careers.eyebrow}
                       </span>
-                      <h2 className="type-section-title">{careers.heading}</h2>
+                      <h2 className="type-section-title type-section-title-compact">
+                        {careers.heading}
+                      </h2>
                       <p>{careers.description}</p>
                       <ul>
                         {careers.benefits.map((benefit) => (

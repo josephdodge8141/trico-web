@@ -239,17 +239,19 @@ function CollectionBoundary({
 }
 function Heading({
   value,
+  titleClassName = '',
 }: {
   readonly value: {
     readonly eyebrow: string;
     readonly heading: string;
     readonly description: string;
   };
+  readonly titleClassName?: string;
 }): React.JSX.Element {
   return (
     <header className="pm-section-heading ui-section-heading">
       <span>{value.eyebrow}</span>
-      <h2 className="type-section-title">{value.heading}</h2>
+      <h2 className={`type-section-title ${titleClassName}`}>{value.heading}</h2>
       <p>{value.description}</p>
     </header>
   );
@@ -570,7 +572,7 @@ function PropertyManagementBody(): React.JSX.Element {
             </div>
           </section>
         </ObjectBoundary>
-        <section className="pm-section ui-section pm-tint ui-tint" id="services">
+        <section className="pm-section ui-section pm-tint ui-tint ui-services" id="services">
           <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.services.header" value={servicesHeader}>
               <Heading value={servicesHeader} />
@@ -622,7 +624,7 @@ function PropertyManagementBody(): React.JSX.Element {
               renderItem={renderProperty}
             />
             <ObjectBoundary id="property-management.portfolio.coas.header" value={coasHeader}>
-              <Heading value={coasHeader} />
+              <Heading value={coasHeader} titleClassName="type-section-title-compact" />
             </ObjectBoundary>
             <CollectionBoundary
               id="property-management.portfolio.coas.items"
@@ -630,7 +632,7 @@ function PropertyManagementBody(): React.JSX.Element {
               renderItem={renderProperty}
             />
             <ObjectBoundary id="property-management.portfolio.hoas.header" value={hoasHeader}>
-              <Heading value={hoasHeader} />
+              <Heading value={hoasHeader} titleClassName="type-section-title-compact" />
             </ObjectBoundary>
             <CollectionBoundary
               id="property-management.portfolio.hoas.items"
@@ -667,7 +669,7 @@ function PropertyManagementBody(): React.JSX.Element {
         <section className="pm-section ui-section pm-team ui-team" id="team">
           <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.team.header" value={teamHeader}>
-              <Heading value={teamHeader} />
+              <Heading value={teamHeader} titleClassName="type-section-title-large" />
             </ObjectBoundary>
             <CollectionBoundary
               id="property-management.team.members"
@@ -800,7 +802,7 @@ function PropertyManagementBody(): React.JSX.Element {
           >
             <div className="pm-container ui-container pm-narrow ui-narrow">
               <span className="pm-career-icon ui-career-icon">◆</span>
-              <h2 className="type-section-title">{careers.heading}</h2>
+              <h2 className="type-section-title type-section-title-compact">{careers.heading}</h2>
               <p>{careers.description}</p>
               <div className="pm-career-card ui-career-card">
                 <h3 className="type-card-title">{careers.cardHeading}</h3>

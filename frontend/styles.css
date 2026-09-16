@@ -3478,14 +3478,15 @@
     text-align: left;
   }
   .ui-split-hero .division-hero-media {
+    position: absolute;
+    left: 50%;
+    bottom: 3.375rem;
     width: 12rem;
-    height: 10rem;
+    height: 12rem;
     aspect-ratio: auto;
-    align-self: end;
-    justify-self: start;
-    margin: 0 0 4rem;
+    margin: 0;
     border: 0;
-    border-radius: 12px;
+    border-radius: 16px;
     background: var(--trico-surface-accent-emphasis);
     box-shadow: none;
   }
@@ -3543,6 +3544,17 @@
     font-size: 2.25rem;
     line-height: 2.5rem;
   }
+  .type-section-title-large {
+    font-size: 3.75rem;
+    line-height: 3.75rem;
+  }
+  .type-hero-location {
+    color: var(--trico-color-light);
+    font-family: var(--trico-font-family-heading);
+    font-size: 1.875rem;
+    font-weight: 600;
+    line-height: 2.25rem;
+  }
   .type-subsection-title {
     font-family: var(--trico-font-family-heading);
     font-size: clamp(1.5rem, 2.2vw, 2rem);
@@ -3554,7 +3566,38 @@
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.4;
+    letter-spacing: normal;
+  }
+  .ui-services .type-card-title,
+  .ui-service-grid .type-card-title,
+  .ui-service-card .type-card-title {
     letter-spacing: -0.025em;
+  }
+  .ui-page .ui-header nav a,
+  .ui-page .ui-button,
+  .ui-page .ui-contact-form button,
+  .ui-page .ui-submit-button {
+    font-weight: 500;
+  }
+  .ui-page .ui-button,
+  .ui-page .ui-contact-form button,
+  .ui-page .ui-form-card input,
+  .ui-page .ui-form-card select,
+  .ui-page .ui-form-card textarea,
+  .ui-page .ui-form input,
+  .ui-page .ui-form select,
+  .ui-page .ui-form textarea,
+  .ui-page .ui-contact-form input,
+  .ui-page .ui-contact-form textarea {
+    border-radius: 6px;
+  }
+  .ui-page .ui-form-card label,
+  .ui-page .ui-form label,
+  .ui-page .ui-contact-form label,
+  .ui-page .ui-resume-form > label,
+  .ui-page .ui-form-grid label {
+    font-weight: 500;
+    text-align: left;
   }
   .type-body-large {
     font-size: 1.125rem;

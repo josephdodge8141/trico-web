@@ -58,7 +58,7 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
       <div className="pm-container ui-container pm-narrow ui-narrow">
         <header className="pm-section-heading ui-section-heading">
           <span>New Clients</span>
-          <h2>New Client Inquiry</h2>
+          <h2 className="type-section-title type-section-title-compact">New Client Inquiry</h2>
           <p>
             Looking for a management partner? Share your property details and our team will follow
             up within one business day.

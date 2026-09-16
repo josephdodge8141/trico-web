@@ -68,7 +68,9 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "/real-estate"
     Then Real Estate Property Management and Development use one shared section rhythm contract
+    And representative headings use the frozen 60 48 and 36 pixel roles
     And representative service cards use the shared vertical density and readable copy measure
+    And shared navigation form labels and actions use the frozen medium weight and six-pixel corners
     And shared section rhythm remains balanced at desktop and tablet widths
 
   @id:public.review-platform-contract @backend-noop

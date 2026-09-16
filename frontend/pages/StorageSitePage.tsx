@@ -175,17 +175,19 @@ function CollectionBoundary({
 }
 function SectionHeading({
   value,
+  titleClassName = '',
 }: {
   readonly value: {
     readonly eyebrow: string;
     readonly heading: string;
     readonly description: string;
   };
+  readonly titleClassName?: string;
 }): React.JSX.Element {
   return (
     <header className="storage-section-heading ui-section-heading">
       <span>{value.eyebrow}</span>
-      <h2 className="type-section-title">{value.heading}</h2>
+      <h2 className={`type-section-title ${titleClassName}`}>{value.heading}</h2>
       <p>{value.description}</p>
     </header>
   );
@@ -333,7 +335,7 @@ function StorageBody(): React.JSX.Element {
         </ObjectBoundary>
         <section id="services" className="storage-section ui-section storage-services ui-services">
           <ObjectBoundary id="storage.services.header" value={servicesHeader}>
-            <SectionHeading value={servicesHeader} />
+            <SectionHeading value={servicesHeader} titleClassName="type-section-title-large" />
           </ObjectBoundary>
           <CollectionBoundary
             id="storage.services.items"
@@ -355,7 +357,7 @@ function StorageBody(): React.JSX.Element {
         </section>
         <section id="team" className="storage-section ui-section storage-team ui-team">
           <ObjectBoundary id="storage.team.header" value={teamHeader}>
-            <SectionHeading value={teamHeader} />
+            <SectionHeading value={teamHeader} titleClassName="type-section-title-large" />
           </ObjectBoundary>
           <CollectionBoundary
             id="storage.team.members"

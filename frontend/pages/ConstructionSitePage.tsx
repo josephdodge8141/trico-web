@@ -212,15 +212,17 @@ function Heading({
   eyebrow,
   title,
   copy,
+  titleClassName = '',
 }: {
   readonly eyebrow: string;
   readonly title: string;
   readonly copy: string;
+  readonly titleClassName?: string;
 }): React.JSX.Element {
   return (
     <header className="co-heading ui-heading">
       <span>{eyebrow}</span>
-      <h2 className="type-section-title">{title}</h2>
+      <h2 className={`type-section-title ${titleClassName}`}>{title}</h2>
       <p>{copy}</p>
     </header>
   );
@@ -452,7 +454,7 @@ function ConstructionBody(): React.JSX.Element {
                   <span>{hero.serviceAreaBadge}</span>
                 </div>
                 <h1 className="type-display">{hero.heading}</h1>
-                <h2 className="type-section-title">{hero.locationHeading}</h2>
+                <h2 className="type-hero-location">{hero.locationHeading}</h2>
                 <h3 className="type-card-title">{hero.promise}</h3>
                 <p>{hero.description}</p>
                 <div className="co-actions ui-actions">
@@ -497,13 +499,14 @@ function ConstructionBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
 
-        <section className="co-section ui-section co-tint ui-tint" id="services">
+        <section className="co-section ui-section co-tint ui-tint ui-services" id="services">
           <div className="co-container ui-container">
             <ObjectBoundary id="construction.services.header" value={servicesHeader}>
               <Heading
                 eyebrow={servicesHeader.eyebrow}
                 title={servicesHeader.heading}
                 copy={servicesHeader.description}
+                titleClassName="type-section-title-large"
               />
             </ObjectBoundary>
             <div className="co-card-grid ui-card-grid">
@@ -578,6 +581,7 @@ function ConstructionBody(): React.JSX.Element {
                 eyebrow={planHeader.eyebrow}
                 title={planHeader.heading}
                 copy={planHeader.description}
+                titleClassName="type-section-title-large"
               />
             </ObjectBoundary>
             <ObjectBoundary id="construction.plan-room.access-notice" value={planAccess}>
@@ -649,6 +653,7 @@ function ConstructionBody(): React.JSX.Element {
                 eyebrow={prosHeader.eyebrow}
                 title={prosHeader.heading}
                 copy={prosHeader.description}
+                titleClassName="type-section-title-compact"
               />
             </ObjectBoundary>
             <div className="co-card-grid ui-card-grid">
@@ -790,6 +795,7 @@ function ConstructionBody(): React.JSX.Element {
                 eyebrow={bidHeader.eyebrow}
                 title={bidHeader.heading}
                 copy={bidHeader.description}
+                titleClassName="type-section-title-compact"
               />
             </ObjectBoundary>
             <ClientForm variant="bid" />
@@ -804,6 +810,7 @@ function ConstructionBody(): React.JSX.Element {
                   eyebrow={careersHeader.eyebrow}
                   title={careersHeader.heading}
                   copy={careersHeader.description}
+                  titleClassName="type-section-title-compact"
                 />
               </ObjectBoundary>
               <div className="co-benefits ui-benefits">

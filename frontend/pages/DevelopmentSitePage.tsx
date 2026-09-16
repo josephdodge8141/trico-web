@@ -408,7 +408,9 @@ function DevelopmentBody(): React.JSX.Element {
             <ObjectBoundary id="development.services.header" value={servicesHeader}>
               <header className="dev-heading ui-heading">
                 <span className="dev-pill ui-pill">{servicesHeader.eyebrow}</span>
-                <h2 className="type-section-title">{servicesHeader.heading}</h2>
+                <h2 className="type-section-title type-section-title-large">
+                  {servicesHeader.heading}
+                </h2>
                 <p>{servicesHeader.description}</p>
               </header>
             </ObjectBoundary>
@@ -484,7 +486,9 @@ function DevelopmentBody(): React.JSX.Element {
                 <span className="dev-pill ui-pill dev-pill-blue ui-pill-blue">
                   <Handshake /> {partnersHeader.eyebrow}
                 </span>
-                <h2 className="type-section-title">{partnersHeader.heading}</h2>
+                <h2 className="type-section-title type-section-title-compact">
+                  {partnersHeader.heading}
+                </h2>
                 <p>{partnersHeader.description}</p>
               </header>
             </ObjectBoundary>

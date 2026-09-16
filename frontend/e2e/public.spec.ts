@@ -558,9 +558,9 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
     expect(secondaryBox?.x).toBeGreaterThan((primaryBox?.x ?? 0) + (primaryBox?.width ?? 0));
     expect(secondaryBox?.y).toBe(primaryBox?.y);
     await expect(primary).toHaveCSS('border-radius', '6px');
-    await expect(primary).toHaveCSS('font-weight', '600');
+    await expect(primary).toHaveCSS('font-weight', '500');
     await expect(secondary).toHaveCSS('border-radius', '6px');
-    await expect(secondary).toHaveCSS('font-weight', '600');
+    await expect(secondary).toHaveCSS('font-weight', '500');
   }
 
   await page.setViewportSize({ width: 1440, height: 1100 });
