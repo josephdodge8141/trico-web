@@ -4333,6 +4333,45 @@
     color: var(--trico-color-surface);
     background: linear-gradient(135deg, var(--trico-color-dark), var(--trico-color-deep));
   }
+  .surface-brand-gradient-vivid {
+    color: var(--trico-color-surface);
+    background: linear-gradient(135deg, #1e3a8a, var(--trico-color-dark), #1e40af);
+  }
+  .ui-heading > .weight-medium {
+    font-weight: var(--trico-font-weight-medium);
+  }
+  .ui-heading-plain > span {
+    display: none;
+  }
+  .ui-heading-plain > h2 {
+    margin-top: 0;
+  }
+  @media (min-width: 1024px) {
+    .ui-sector-grid-compact .ui-sector {
+      height: 176px;
+    }
+    .ui-sector-grid-compact .ui-sector h3 {
+      margin-bottom: 4px;
+    }
+    .ui-sector-grid-compact .ui-sector p,
+    .ui-sector-grid-compact .ui-sector > span {
+      line-height: 20px;
+    }
+    .ui-section-rhythm-compact {
+      padding-block: 80px;
+    }
+    .ui-profile-row-balanced {
+      min-height: 342px;
+    }
+    .ui-media-frame-landscape {
+      height: 444px;
+    }
+    .ui-media-frame-feature-tall {
+      height: 564px;
+      min-height: 564px;
+      aspect-ratio: auto;
+    }
+  }
   .ui-button-light {
     color: var(--trico-color-deep) !important;
     background: var(--trico-color-surface);

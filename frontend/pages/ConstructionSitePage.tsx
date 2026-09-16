@@ -213,14 +213,16 @@ function Heading({
   title,
   copy,
   titleClassName = '',
+  headingClassName = '',
 }: {
   readonly eyebrow: string;
   readonly title: string;
   readonly copy: string;
   readonly titleClassName?: string;
+  readonly headingClassName?: string;
 }): React.JSX.Element {
   return (
-    <header className="co-heading ui-heading">
+    <header className={`co-heading ui-heading ${headingClassName}`}>
       <span>{eyebrow}</span>
       <h2 className={`type-section-title ${titleClassName}`}>{title}</h2>
       <p>{copy}</p>
@@ -552,7 +554,7 @@ function ConstructionBody(): React.JSX.Element {
                     copy={sectionHeader.description}
                   />
                 </ObjectBoundary>
-                <div className="co-sector-grid ui-sector-grid">
+                <div className="co-sector-grid ui-sector-grid ui-sector-grid-compact">
                   {categorySlugs.map((slug) => {
                     const entityId = `${prefix}.category.${slug}` as ConstructionEntityId;
                     const category = value(entityId, constructionProjectCategorySchema);
@@ -696,16 +698,20 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section ui-section co-soft ui-soft" id="team">
+        <section
+          className="co-section ui-section ui-section-rhythm-compact co-soft ui-soft"
+          id="team"
+        >
           <div className="co-container ui-container">
             <ObjectBoundary id="construction.team.header" value={teamHeader}>
               <Heading
                 eyebrow={teamHeader.eyebrow}
                 title={teamHeader.heading}
                 copy={teamHeader.description}
+                headingClassName="ui-heading-plain"
               />
             </ObjectBoundary>
-            <div className="co-team-grid ui-team-grid">
+            <div className="co-team-grid ui-team-grid ui-profile-row-balanced">
               <CollectionBoundary
                 id="construction.team.members"
                 value={team}
@@ -740,22 +746,30 @@ function ConstructionBody(): React.JSX.Element {
         </section>
 
         <ObjectBoundary id="construction.workers" value={workers}>
-          <section className="co-section ui-section co-workers ui-workers">
+          <section className="co-section ui-section ui-section-rhythm-compact co-workers ui-workers">
             <div className="co-container ui-container">
               <Heading
                 eyebrow={workers.eyebrow}
                 title={workers.heading}
                 copy={workers.description}
+                headingClassName="ui-heading-plain"
               />
-              <img src={constructionImage(workers.image.key, crewTwo)} alt={workers.imageAltText} />
+              <img
+                className="ui-media-frame-landscape"
+                src={constructionImage(workers.image.key, crewTwo)}
+                alt={workers.imageAltText}
+              />
             </div>
           </section>
         </ObjectBoundary>
 
         <ObjectBoundary id="construction.about" value={about}>
-          <section className="co-section ui-section co-about ui-about" id="about">
+          <section
+            className="co-section ui-section co-about ui-about surface-brand-gradient-vivid"
+            id="about"
+          >
             <div className="co-container ui-container co-about-grid ui-about-grid">
-              <div className="co-about-art ui-about-art">
+              <div className="co-about-art ui-about-art ui-media-frame-feature-tall">
                 <span>{about.brandLabel}</span>
                 <small>{about.brandDescription}</small>
                 <aside>
@@ -764,8 +778,8 @@ function ConstructionBody(): React.JSX.Element {
                 </aside>
               </div>
               <div>
-                <span className="co-about-pill ui-about-pill">{about.eyebrow}</span>
-                <h2 className="type-section-title">{about.heading}</h2>
+                <span className="co-about-pill ui-about-pill weight-medium">{about.eyebrow}</span>
+                <h2 className="type-section-title text-on-dark">{about.heading}</h2>
                 <p>{about.introduction}</p>
                 <p>{about.detail}</p>
                 <div className="co-checks ui-checks">
@@ -783,7 +797,7 @@ function ConstructionBody(): React.JSX.Element {
                     }}
                   />
                 </div>
-                <a className="co-button ui-button co-button-gold ui-button-gold" href="#contact">
+                <a className="co-button ui-button co-button-gold ui-button-accent" href="#contact">
                   {about.actionLabel}
                 </a>
               </div>

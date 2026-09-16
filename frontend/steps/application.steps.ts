@@ -2922,6 +2922,137 @@ Then(
 );
 
 Then(
+  'Construction sectors people and about use the frozen desktop presentation contracts',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.reload();
+
+    const currentProjects = page.locator('#projects');
+    const completedProjects = page.locator('#completed-projects');
+    const sectorCards = page.locator('#projects .ui-sector, #completed-projects .ui-sector');
+    const team = page.locator('#team');
+    const crew = page.locator('.ui-workers');
+    const about = page.locator('#about');
+    const [
+      currentProjectsBox,
+      completedProjectsBox,
+      sectorCardHeights,
+      sectorTitleMargin,
+      sectorActionLineHeight,
+      teamBox,
+      crewBox,
+      teamPadding,
+      crewPadding,
+      teamHeadingPresentation,
+      teamGridBox,
+      crewImageBox,
+      aboutBox,
+      aboutArtBox,
+      aboutPresentation,
+    ] = await Promise.all([
+      currentProjects.boundingBox(),
+      completedProjects.boundingBox(),
+      sectorCards.evaluateAll((elements) =>
+        elements.map((element) => element.getBoundingClientRect().height),
+      ),
+      page
+        .locator('#projects .ui-sector h3')
+        .first()
+        .evaluate((element) => getComputedStyle(element).marginBottom),
+      page
+        .locator('#projects .ui-sector > span')
+        .first()
+        .evaluate((element) => getComputedStyle(element).lineHeight),
+      team.boundingBox(),
+      crew.boundingBox(),
+      team.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { bottom: style.paddingBottom, top: style.paddingTop };
+      }),
+      crew.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { bottom: style.paddingBottom, top: style.paddingTop };
+      }),
+      team.locator('.ui-heading').evaluate((element) => {
+        const eyebrow = element.querySelector(':scope > span');
+        const title = element.querySelector(':scope > h2');
+        if (eyebrow === null || title === null) throw new Error('Team heading is incomplete.');
+        return {
+          eyebrowDisplay: getComputedStyle(eyebrow).display,
+          titleMarginTop: getComputedStyle(title).marginTop,
+        };
+      }),
+      team.locator('.ui-team-grid').boundingBox(),
+      crew.locator('img').boundingBox(),
+      about.boundingBox(),
+      about.locator('.ui-about-art').boundingBox(),
+      about.evaluate((element) => {
+        const title = element.querySelector('h2');
+        const action = element.querySelector('a');
+        if (title === null || action === null) throw new Error('About presentation is incomplete.');
+        return {
+          actionBackground: getComputedStyle(action).backgroundColor,
+          backgroundImage: getComputedStyle(element).backgroundImage,
+          titleColor: getComputedStyle(title).color,
+        };
+      }),
+    ]);
+
+    assert.ok(currentProjectsBox && completedProjectsBox);
+    assert.ok(teamBox && crewBox && teamGridBox && crewImageBox && aboutBox && aboutArtBox);
+    assert.ok(
+      Math.abs(currentProjectsBox.height - 760) <= 2,
+      `Current sector section height was ${currentProjectsBox.height}`,
+    );
+    assert.ok(
+      Math.abs(completedProjectsBox.height - 760) <= 2,
+      `Completed sector section height was ${completedProjectsBox.height}`,
+    );
+    for (const height of sectorCardHeights) {
+      assert.ok(Math.abs(height - 176) <= 1, `Construction sector card height was ${height}`);
+    }
+    assert.equal(sectorTitleMargin, '4px');
+    assert.equal(sectorActionLineHeight, '20px');
+    assert.ok(
+      Math.abs(teamBox.height - 678) <= 2,
+      `Construction team height was ${teamBox.height}`,
+    );
+    assert.ok(
+      Math.abs(crewBox.height - 754) <= 2,
+      `Construction crew height was ${crewBox.height}`,
+    );
+    assert.deepEqual(teamPadding, { bottom: '80px', top: '80px' });
+    assert.deepEqual(crewPadding, { bottom: '80px', top: '80px' });
+    assert.deepEqual(teamHeadingPresentation, {
+      eyebrowDisplay: 'none',
+      titleMarginTop: '0px',
+    });
+    assert.ok(
+      Math.abs(teamGridBox.height - 342) <= 1,
+      `Construction team grid height was ${teamGridBox.height}`,
+    );
+    assert.ok(
+      Math.abs(crewImageBox.height - 444) <= 1,
+      `Construction crew image height was ${crewImageBox.height}`,
+    );
+    assert.ok(
+      Math.abs(aboutBox.height - 756) <= 2,
+      `Construction about height was ${aboutBox.height}`,
+    );
+    assert.ok(
+      Math.abs(aboutArtBox.height - 564) <= 1,
+      `Construction about art height was ${aboutArtBox.height}`,
+    );
+    assert.match(aboutPresentation.backgroundImage, /rgb\(30, 58, 138\)/u);
+    assert.match(aboutPresentation.backgroundImage, /rgb\(0, 18, 138\)/u);
+    assert.match(aboutPresentation.backgroundImage, /rgb\(30, 64, 175\)/u);
+    assert.equal(aboutPresentation.titleColor, 'rgb(255, 255, 255)');
+    assert.equal(aboutPresentation.actionBackground, 'rgb(134, 98, 45)');
+  },
+);
+
+Then(
   'Construction collection grids retain their responsive column templates',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
