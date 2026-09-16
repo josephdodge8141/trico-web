@@ -221,7 +221,7 @@
   }
   .review-platform-card {
     min-width: 0;
-    min-height: 17rem;
+    min-height: 282px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -3576,6 +3576,39 @@
   }
   .ui-heading-measure-standard {
     max-width: 48rem;
+  }
+  .ui-hero-description-standard {
+    width: 100%;
+    max-width: 672px;
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .ui-heading-gap-standard {
+    margin-bottom: 48px;
+  }
+  .ui-heading-gap-spacious {
+    margin-bottom: 64px;
+  }
+  .ui-heading-gap-review {
+    margin-bottom: 56px;
+  }
+  .ui-profile-density-compact .profile-card-body {
+    min-height: 196px;
+  }
+  .ui-about-prose-lead {
+    margin-block: 24px;
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .ui-about-prose-detail {
+    margin-block: 24px 32px;
+    line-height: 24px;
+  }
+  .ui-feedback-footer {
+    max-width: 672px;
+    margin: 40px auto 0;
+    font-size: 14px;
+    line-height: 20px;
   }
   .ui-heading-rhythm .type-section-title {
     margin-bottom: 1rem;

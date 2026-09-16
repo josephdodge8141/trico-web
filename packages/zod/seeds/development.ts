@@ -28,7 +28,7 @@ export const developmentV2SeedData = {
     heading: 'Transforming Vision Into',
     highlightedWord: 'Reality',
     description:
-      'From raw land acquisition to finished communities, TriCo Development brings over 40 years of experience across Utah, Idaho, and Arizona.',
+      'From raw land acquisition to finished communities, TriCo Development brings over 40 years of experience in residential and commercial development across Utah, Idaho, and Arizona.',
     primaryActionLabel: 'View Our Projects',
     secondaryActionLabel: 'Start Your Project',
   },
@@ -56,7 +56,7 @@ export const developmentV2SeedData = {
     eyebrow: 'Utah Land Specialists',
     heading: 'Your Land Experts',
     description:
-      'Comprehensive expertise in buying, listing, and developing land across the state.',
+      "With decades of experience in Utah's land market, we provide comprehensive expertise in buying, listing, and developing land across the state.",
   },
   'development.land-experts.services': [
     {
@@ -111,7 +111,7 @@ export const developmentV2SeedData = {
     eyebrow: 'Development Services',
     heading: 'Building Utah’s Future',
     description:
-      'TriCo transforms vision into reality through integrated residential and commercial development.',
+      'From raw land acquisition to finished communities, TriCo Development transforms vision into reality with over 40 years of experience in residential and commercial development.',
     projectsHeading: 'Our Projects',
     featuredHeading: 'Featured Developments',
   },
@@ -120,31 +120,36 @@ export const developmentV2SeedData = {
       id: '70de7f95-bd52-55de-a491-9d78ebe65bda',
       icon: 'MapPin',
       title: 'Land Acquisition',
-      description: 'Identify and acquire prime parcels for residential and commercial development.',
+      description:
+        'Expert guidance in identifying and acquiring prime land parcels for residential and commercial development.',
     },
     {
       id: '6fde7e02-be52-5771-a591-9f0bece65d6d',
       icon: 'Home',
       title: 'Residential Development',
-      description: 'End-to-end development from site selection through construction oversight.',
+      description:
+        'End-to-end residential development from site selection and entitlement to construction oversight.',
     },
     {
       id: '6ede7c6f-bb52-52b8-a691-a09ee9e658b4',
       icon: 'Landmark',
       title: 'Commercial Development',
-      description: 'Feasibility, zoning navigation, entitlement, and project management.',
+      description:
+        'Strategic commercial development including feasibility studies, zoning navigation, and project management.',
     },
     {
       id: '6dde7adc-bc52-544b-a791-a231eae65a47',
       icon: 'Mountain',
       title: 'Land Development',
-      description: 'Grading, utilities, roads, and site preparation for vertical construction.',
+      description:
+        'Raw land transformation including grading, utility installation, road infrastructure, and site preparation to ready parcels for vertical construction.',
     },
     {
       id: '6cde7949-c152-5c2a-a891-a3c4e7e6558e',
       icon: 'Building2',
       title: 'Storage Facility Development',
-      description: 'Purpose-built facilities designed for long-term investment performance.',
+      description:
+        'Specialized development of self-storage facilities from site selection and feasibility to build-out, tailored for long-term investment performance.',
     },
   ],
   'development.projects.categories': [
@@ -153,7 +158,8 @@ export const developmentV2SeedData = {
       icon: 'Building2',
       title: 'Current Projects',
       count: '5 Active',
-      description: 'Explore development projects currently in progress.',
+      description:
+        'Explore our active development projects currently in progress across the region.',
       buttonLabel: 'View Current',
     },
     {
@@ -161,7 +167,8 @@ export const developmentV2SeedData = {
       icon: 'TrendingUp',
       title: 'Completed Projects',
       count: '40+ Completed',
-      description: 'See our successfully completed residential and commercial developments.',
+      description:
+        'See our portfolio of successfully completed residential and commercial developments.',
       buttonLabel: 'View Completed',
     },
   ],
@@ -204,14 +211,14 @@ export const developmentV2SeedData = {
   'development.team.header': {
     eyebrow: 'Our Team',
     heading: 'Development Team',
-    description: 'Meet the professionals driving TriCo’s development success.',
+    description: "Meet the experienced professionals driving TriCo's development success.",
   },
   'development.team.members': [
     {
       id: '7e92964f-b923-50d8-a3b0-b7fe716418fc',
       name: 'Stephen Tripp',
       role: 'Founder & President',
-      bio: 'More than 40 years of experience building thriving Utah communities.',
+      bio: "With over 40 years of experience in Utah real estate and development, Steve leads TriCo's vision for building thriving communities.",
       image: managed('media/seed/steve-tripp.png'),
       imageAltText: 'Stephen Tripp',
     },
@@ -219,7 +226,7 @@ export const developmentV2SeedData = {
       id: '7d9294bc-ba23-526b-a4b0-b99172641a8f',
       name: 'Randy Rimmer',
       role: 'Vice President',
-      bio: 'Development and construction expertise guiding project execution and growth.',
+      bio: 'Randy brings decades of development and construction expertise, overseeing project execution and strategic growth.',
       image: managed('media/seed/randy-rimmer.png'),
       imageAltText: 'Randy Rimmer',
     },
@@ -227,7 +234,7 @@ export const developmentV2SeedData = {
       id: '80929975-bb23-53fe-a1b0-b4d873641c22',
       name: 'Brooke Moore',
       role: 'Director',
-      bio: 'Leads development operations and strategy with a commitment to quality.',
+      bio: 'Brooke oversees development operations and strategy, ensuring projects are delivered on time and to the highest standards.',
       image: managed('media/seed/brooke-moore.jpeg'),
       imageAltText: 'Brooke Moore',
     },
@@ -236,9 +243,9 @@ export const developmentV2SeedData = {
     eyebrow: 'About TriCo Development',
     heading: 'Building Communities Since 1984',
     introduction:
-      'For over four decades, TriCo Development has transformed raw land into vibrant neighborhoods and successful commercial centers.',
+      "For over four decades, TriCo Development has been at the forefront of Utah's growth, transforming raw land into vibrant residential neighborhoods and successful commercial centers.",
     detail:
-      'Deep local knowledge, strong contractor relationships, and a commitment to quality make us a trusted development partner.',
+      "Our comprehensive approach combines deep local knowledge, strong contractor relationships, and a commitment to quality that has made us one of Utah's most trusted development partners.",
   },
   'development.about.highlights': [
     {
@@ -255,7 +262,7 @@ export const developmentV2SeedData = {
     },
     {
       id: '0cba8e92-b146-51f9-af68-cc13fce1cf4d',
-      value: 'Successful residential and commercial projects',
+      value: 'Proven track record of successful residential and commercial projects',
     },
     {
       id: '07ba86b3-b246-538c-a468-d3f2f5e1c448',
@@ -288,7 +295,8 @@ export const developmentV2SeedData = {
   'development.reviews.header': {
     eyebrow: 'We’d Love Your Feedback',
     heading: 'Leave Us a Review',
-    description: 'Your feedback helps others discover the TriCo difference.',
+    description:
+      'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
     unavailableLinkLabel: 'Review link coming soon',
     actionLabel: 'Review on',
   },
@@ -296,25 +304,26 @@ export const developmentV2SeedData = {
     {
       id: '19c26ba6-f2ab-52ab-a809-0209a4eab557',
       name: 'Google',
-      description: 'Share your experience and help others make an informed decision.',
+      description: 'Share your experience on Google Reviews — helps neighbors find us.',
       externalUrl: '',
     },
     {
       id: '1ac26d39-f1ab-5118-a709-0076a3eab3c4',
       name: 'Facebook',
-      description: 'Share your experience and help others make an informed decision.',
+      description: 'Recommend us on Facebook so your network can see it too.',
       externalUrl: '',
     },
     {
       id: '17c26880-f4ab-55d1-a608-fee3a6eab87d',
       name: 'Yelp',
-      description: 'Share your experience and help others make an informed decision.',
+      description: 'Leave a Yelp review to help others make an informed decision.',
       externalUrl: '',
     },
   ],
   'development.reviews.footer': {
-    message: 'Prefer to share feedback privately? Email',
+    message: 'Prefer to share feedback privately? Email us at',
     email: 'Office@tricoinc.com',
+    closingMessage: '— we read every message.',
   },
   'development.contact.header': {
     eyebrow: 'Contact Us',

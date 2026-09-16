@@ -19,6 +19,7 @@ import {
   homeJourneyTimelineSchema,
   homeNewsItemsSchema,
   homeV2SeedData,
+  developmentV2SeedData,
   pendingChangesResponseSchema,
   previewPreferencesResponseSchema,
   type EditableValue,
@@ -948,18 +949,21 @@ Then(
         page: '.re-page',
         section: '.re-section',
         heading: '.re-section-heading',
+        headingMargin: '64px',
       },
       {
         route: '/property-management',
         page: '.pm-page',
         section: '.pm-section',
         heading: '.pm-section-heading',
+        headingMargin: '64px',
       },
       {
         route: '/development',
         page: '.dev-page',
         section: '.dev-section',
         heading: '.dev-heading',
+        headingMargin: '48px',
       },
     ] as const;
 
@@ -991,7 +995,7 @@ Then(
       const headingStyles = await heading.evaluate((element) => getComputedStyle(element));
       assert.equal(sectionStyles.paddingTop, '96px');
       assert.equal(sectionStyles.paddingBottom, '96px');
-      assert.equal(headingStyles.marginBottom, '64px');
+      assert.equal(headingStyles.marginBottom, expectation.headingMargin);
     }
   },
 );
@@ -1172,6 +1176,123 @@ Then(
       if (!expectation.selector.includes('textarea')) {
         await expect(control).toHaveCSS('height', '40px');
       }
+    }
+  },
+);
+
+Then('Development semantic seeds preserve the exact mounted legacy copy', function () {
+  assert.equal(
+    developmentV2SeedData['development.hero'].description,
+    'From raw land acquisition to finished communities, TriCo Development brings over 40 years of experience in residential and commercial development across Utah, Idaho, and Arizona.',
+  );
+  assert.equal(
+    developmentV2SeedData['development.land-experts.header'].description,
+    "With decades of experience in Utah's land market, we provide comprehensive expertise in buying, listing, and developing land across the state.",
+  );
+  assert.equal(
+    developmentV2SeedData['development.services.header'].description,
+    'From raw land acquisition to finished communities, TriCo Development transforms vision into reality with over 40 years of experience in residential and commercial development.',
+  );
+  assert.deepEqual(
+    developmentV2SeedData['development.services.items'].map(({ description }) => description),
+    [
+      'Expert guidance in identifying and acquiring prime land parcels for residential and commercial development.',
+      'End-to-end residential development from site selection and entitlement to construction oversight.',
+      'Strategic commercial development including feasibility studies, zoning navigation, and project management.',
+      'Raw land transformation including grading, utility installation, road infrastructure, and site preparation to ready parcels for vertical construction.',
+      'Specialized development of self-storage facilities from site selection and feasibility to build-out, tailored for long-term investment performance.',
+    ],
+  );
+  assert.deepEqual(
+    developmentV2SeedData['development.projects.categories'].map(({ description }) => description),
+    [
+      'Explore our active development projects currently in progress across the region.',
+      'See our portfolio of successfully completed residential and commercial developments.',
+    ],
+  );
+  assert.equal(
+    developmentV2SeedData['development.team.header'].description,
+    "Meet the experienced professionals driving TriCo's development success.",
+  );
+  assert.deepEqual(
+    developmentV2SeedData['development.team.members'].map(({ bio }) => bio),
+    [
+      "With over 40 years of experience in Utah real estate and development, Steve leads TriCo's vision for building thriving communities.",
+      'Randy brings decades of development and construction expertise, overseeing project execution and strategic growth.',
+      'Brooke oversees development operations and strategy, ensuring projects are delivered on time and to the highest standards.',
+    ],
+  );
+  assert.equal(
+    developmentV2SeedData['development.about'].introduction,
+    "For over four decades, TriCo Development has been at the forefront of Utah's growth, transforming raw land into vibrant residential neighborhoods and successful commercial centers.",
+  );
+  assert.equal(
+    developmentV2SeedData['development.about'].detail,
+    "Our comprehensive approach combines deep local knowledge, strong contractor relationships, and a commitment to quality that has made us one of Utah's most trusted development partners.",
+  );
+  assert.equal(
+    developmentV2SeedData['development.about.highlights'][3]?.value,
+    'Proven track record of successful residential and commercial projects',
+  );
+  assert.equal(
+    developmentV2SeedData['development.reviews.header'].description,
+    'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
+  );
+  assert.deepEqual(
+    developmentV2SeedData['development.reviews.platforms'].map(({ description }) => description),
+    [
+      'Share your experience on Google Reviews — helps neighbors find us.',
+      'Recommend us on Facebook so your network can see it too.',
+      'Leave a Yelp review to help others make an informed decision.',
+    ],
+  );
+  assert.deepEqual(developmentV2SeedData['development.reviews.footer'], {
+    message: 'Prefer to share feedback privately? Email us at',
+    email: 'Office@tricoinc.com',
+    closingMessage: '— we read every message.',
+  });
+});
+
+Then(
+  'Development headings hero prose and feedback use measured rhythm roles',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 1100 });
+    const heroDescription = page.locator('.ui-hero-description-standard');
+    await expect(heroDescription).toHaveCSS('max-width', '672px');
+    await expect(heroDescription).toHaveCSS('font-size', '18px');
+    await expect(heroDescription).toHaveCSS('line-height', '28px');
+    const headingGaps = [
+      { selector: '#services .ui-heading-gap-standard', margin: '48px' },
+      { selector: '#projects .ui-heading-gap-spacious', margin: '64px' },
+      { selector: '#team .ui-heading-gap-standard', margin: '48px' },
+      { selector: '#reviews .ui-heading-gap-review', margin: '56px' },
+    ] as const;
+    for (const expectation of headingGaps) {
+      await expect(page.locator(expectation.selector)).toHaveCSS(
+        'margin-bottom',
+        expectation.margin,
+      );
+    }
+    await expect(page.locator('.ui-about-prose-lead')).toHaveCSS('margin-bottom', '24px');
+    await expect(page.locator('.ui-about-prose-detail')).toHaveCSS('margin-bottom', '32px');
+    const feedback = page.locator('.ui-feedback-footer');
+    await expect(feedback).toHaveCSS('max-width', '672px');
+    await expect(feedback).toHaveCSS('margin-top', '40px');
+    await expect(feedback).toHaveCSS('line-height', '20px');
+  },
+);
+
+Then(
+  'Development profile and review cards use their measured densities',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const profileBody = page
+      .locator('#team .ui-profile-density-compact .profile-card-body')
+      .first();
+    await expect(profileBody).toHaveCSS('min-height', '196px');
+    for (const card of await page.locator('#reviews .review-platform-card').all()) {
+      await expect(card).toHaveCSS('min-height', '282px');
     }
   },
 );
@@ -1600,9 +1721,24 @@ Then(
     ] as const) {
       await page.setViewportSize(viewport);
       for (const expectation of [
-        { route: '/real-estate', section: '.re-section', heading: '.re-section-heading' },
-        { route: '/property-management', section: '.pm-section', heading: '.pm-section-heading' },
-        { route: '/development', section: '.dev-section', heading: '.dev-heading' },
+        {
+          route: '/real-estate',
+          section: '.re-section',
+          heading: '.re-section-heading',
+          measuredHeadingGap: undefined,
+        },
+        {
+          route: '/property-management',
+          section: '.pm-section',
+          heading: '.pm-section-heading',
+          measuredHeadingGap: undefined,
+        },
+        {
+          route: '/development',
+          section: '.dev-section',
+          heading: '.dev-heading',
+          measuredHeadingGap: '48px',
+        },
       ] as const) {
         await page.goto(expectation.route);
         const sectionStyles = await page
@@ -1615,7 +1751,10 @@ Then(
           .evaluate((element) => getComputedStyle(element));
         assert.equal(sectionStyles.paddingTop, viewport.expectedPadding);
         assert.equal(sectionStyles.paddingBottom, viewport.expectedPadding);
-        assert.equal(headingStyles.marginBottom, viewport.expectedHeadingGap);
+        assert.equal(
+          headingStyles.marginBottom,
+          expectation.measuredHeadingGap ?? viewport.expectedHeadingGap,
+        );
       }
     }
   },

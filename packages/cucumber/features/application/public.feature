@@ -93,6 +93,15 @@ Feature: Published TriCo website
     And review platform descriptions use the shared compact copy role
     And review platform cards remain balanced at desktop and compact on mobile
 
+  @id:public.development-measured-parity @backend-noop
+  Scenario: Preserve the measured Development content and vertical rhythm
+    backend-noop: Development copy and visual rhythm are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/development"
+    Then Development semantic seeds preserve the exact mounted legacy copy
+    And Development headings hero prose and feedback use measured rhythm roles
+    And Development profile and review cards use their measured densities
+
   @id:public.shared-form-footer-geometry @backend-noop
   Scenario: Keep client forms actions and division footers on one shared geometry contract
     backend-noop: Form, action, contact-grid, and footer geometry are browser-owned presentation behavior.

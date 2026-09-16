@@ -150,6 +150,7 @@ export const developmentReviewsPlatformsSchema = z.array(developmentReviewPlatfo
 export const developmentReviewsFooterSchema = z.strictObject({
   message: text(300),
   email: z.email(),
+  closingMessage: text(300),
 });
 export const developmentContactHeaderSchema = sectionHeading;
 export const developmentContactDetailsSchema = z.strictObject({
@@ -663,6 +664,7 @@ export const developmentEntityDefinitions = [
     editor: objectEditor('Private feedback', [
       field(['message'], 'Message', 0, short(300)),
       field(['email'], 'Email', 1, { type: 'email' }),
+      field(['closingMessage'], 'Closing message', 2, short(300)),
     ]),
   }),
   entity({
