@@ -240,6 +240,7 @@ function CollectionBoundary({
 function Heading({
   value,
   titleClassName = '',
+  eyebrowClassName = 'ui-eyebrow-brand',
 }: {
   readonly value: {
     readonly eyebrow: string;
@@ -247,10 +248,11 @@ function Heading({
     readonly description: string;
   };
   readonly titleClassName?: string;
+  readonly eyebrowClassName?: string;
 }): React.JSX.Element {
   return (
     <header className="pm-section-heading ui-section-heading">
-      <span>{value.eyebrow}</span>
+      <span className={eyebrowClassName}>{value.eyebrow}</span>
       <h2 className={`type-section-title ${titleClassName}`}>{value.heading}</h2>
       <p>{value.description}</p>
     </header>
@@ -399,7 +401,7 @@ function PropertyManagementBody(): React.JSX.Element {
     const item = propertyManagementServicesItemsSchema.element.parse(value);
     const Icon = icon(item.icon);
     return (
-      <article className="pm-card ui-card">
+      <article className="pm-card ui-card ui-card-padding-compact ui-card-padding-trailing-compact">
         <span className="pm-icon ui-icon">
           <Icon aria-hidden="true" />
         </span>
@@ -666,7 +668,10 @@ function PropertyManagementBody(): React.JSX.Element {
             </ObjectBoundary>
           </div>
         </section>
-        <section className="pm-section ui-section pm-team ui-team" id="team">
+        <section
+          className="pm-section ui-section pm-team ui-team ui-profile-contacts-stacked"
+          id="team"
+        >
           <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.team.header" value={teamHeader}>
               <Heading value={teamHeader} titleClassName="type-section-title-large" />
@@ -704,7 +709,7 @@ function PropertyManagementBody(): React.JSX.Element {
                 </aside>
               </div>
               <div>
-                <span className="pm-pill ui-pill pm-pill-gold ui-pill-gold">{about.eyebrow}</span>
+                <span className="pm-pill ui-pill ui-eyebrow-inverse">{about.eyebrow}</span>
                 <h2 className="type-section-title">{about.heading}</h2>
                 <p>{about.introduction}</p>
                 <p>{about.detail}</p>
@@ -731,7 +736,7 @@ function PropertyManagementBody(): React.JSX.Element {
         <section className="pm-section ui-section pm-tint ui-tint pm-testimonials ui-testimonials">
           <div className="pm-container ui-container">
             <ObjectBoundary id="property-management.testimonials.header" value={testimonialsHeader}>
-              <Heading value={testimonialsHeader} />
+              <Heading value={testimonialsHeader} eyebrowClassName="ui-eyebrow-accent" />
             </ObjectBoundary>
             <CollectionBoundary
               id="property-management.testimonials.items"
@@ -797,18 +802,18 @@ function PropertyManagementBody(): React.JSX.Element {
         </section>
         <ObjectBoundary id="property-management.careers" value={careers}>
           <section
-            className="pm-section ui-section pm-tint ui-tint pm-careers ui-careers"
+            className="pm-section ui-section pm-tint ui-tint pm-careers ui-careers ui-careers-banner-accent"
             id="careers"
           >
             <div className="pm-container ui-container pm-narrow ui-narrow">
               <span className="pm-career-icon ui-career-icon">◆</span>
               <h2 className="type-section-title type-section-title-compact">{careers.heading}</h2>
               <p>{careers.description}</p>
-              <div className="pm-career-card ui-career-card">
+              <div className="pm-career-card ui-career-card ui-career-card-compact">
                 <h3 className="type-card-title">{careers.cardHeading}</h3>
                 <p>{careers.cardDescription}</p>
                 <a
-                  className="pm-button ui-button pm-button-primary ui-button-primary"
+                  className="pm-button ui-button pm-button-primary ui-button-primary ui-career-apply-action"
                   href={`mailto:${careers.email}`}
                 >
                   {careers.email}

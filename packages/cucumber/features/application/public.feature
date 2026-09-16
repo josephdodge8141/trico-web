@@ -137,6 +137,7 @@ Feature: Published TriCo website
     And the Property Management client-only forms validate locally without creating CMS entities
     And the Property Management contact details use labeled icon rows and remain visible after anchor navigation
     And the Property Management license decoration has no visible or accessible text fallback
+    And Property Management supporting components match the mounted desktop contracts
 
   @id:public.real-estate-card-geometry @backend-noop
   Scenario: Keep Real Estate card collections centered at their intended desktop width

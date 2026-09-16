@@ -630,7 +630,7 @@ Then(
       {
         route: '/property-management',
         selector: '.pm-section-heading > span',
-        expectedColor: 'rgb(94, 133, 186)',
+        expectedColor: 'rgb(0, 18, 138)',
       },
       {
         route: '/real-estate',
@@ -1021,9 +1021,21 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const expectations = [
-      { route: '/real-estate', card: '#services .re-card' },
-      { route: '/property-management', card: '#services .pm-card' },
-      { route: '/development', card: '#projects .dev-card' },
+      {
+        route: '/real-estate',
+        card: '#services .re-card',
+        padding: { top: '32px', right: '32px', bottom: '32px', left: '32px' },
+      },
+      {
+        route: '/property-management',
+        card: '#services .pm-card',
+        padding: { top: '30px', right: '24px', bottom: '24px', left: '24px' },
+      },
+      {
+        route: '/development',
+        card: '#projects .dev-card',
+        padding: { top: '32px', right: '32px', bottom: '32px', left: '32px' },
+      },
     ] as const;
 
     for (const expectation of expectations) {
@@ -1060,10 +1072,10 @@ Then(
         },
         {
           minHeight: '240px',
-          paddingTop: '32px',
-          paddingRight: '32px',
-          paddingBottom: '32px',
-          paddingLeft: '32px',
+          paddingTop: expectation.padding.top,
+          paddingRight: expectation.padding.right,
+          paddingBottom: expectation.padding.bottom,
+          paddingLeft: expectation.padding.left,
         },
       );
       const copyMaxWidth = Number.parseFloat(geometry.copyMaxWidth);
@@ -1540,6 +1552,7 @@ Then(
       { route: '/real-estate', selector: '.ui-footer' },
       { route: '/property-management', selector: '.ui-contact' },
       { route: '/property-management', selector: '.ui-footer' },
+      { route: '/property-management', selector: '.ui-careers' },
       { route: '/construction', selector: '.ui-careers' },
       { route: '/construction', selector: '.ui-contact' },
       { route: '/construction', selector: '.ui-footer' },
@@ -1560,7 +1573,6 @@ Then(
     const centered = [
       { route: '/', selector: '.ui-contact' },
       { route: '/', selector: '.ui-footer-light' },
-      { route: '/property-management', selector: '.ui-careers' },
       { route: '/real-estate', selector: '.profile-card-body' },
       { route: '/construction', selector: '.ui-team-card' },
       { route: '/storage', selector: '.review-platform-card' },
@@ -2313,6 +2325,108 @@ Then(
     await expect(
       licenseRow.locator('.pm-contact-license-icon[aria-hidden="true"] svg'),
     ).toHaveCount(1);
+  },
+);
+Then(
+  'Property Management supporting components match the mounted desktop contracts',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.goto('/property-management');
+    await page.evaluate(() => document.fonts.ready);
+
+    const serviceCards = page.locator('#services .pm-card');
+    const serviceGeometry = await Promise.all(
+      [0, 3, 6].map(async (index) => {
+        const card = serviceCards.nth(index);
+        const cardBox = await card.boundingBox();
+        const titleBox = await card.locator('h3').boundingBox();
+        assert.ok(cardBox);
+        assert.ok(titleBox);
+        return {
+          paddingInlineStart: await card.evaluate(
+            (element) => getComputedStyle(element).paddingInlineStart,
+          ),
+          titleY: Math.round(titleBox.y),
+        };
+      }),
+    );
+    assert.deepEqual(
+      serviceGeometry.map(({ paddingInlineStart }) => paddingInlineStart),
+      ['24px', '24px', '24px'],
+    );
+    assert.deepEqual(
+      serviceGeometry.slice(1).map(({ titleY }, index) => titleY - serviceGeometry[index]!.titleY),
+      [268, 268],
+    );
+
+    const firstProfileContacts = page.locator('#team .profile-card').first().locator('a');
+    const contactRows = await firstProfileContacts.evaluateAll((elements) =>
+      elements.map((element) => {
+        const box = element.getBoundingClientRect();
+        return { y: Math.round(box.y), width: Math.round(box.width) };
+      }),
+    );
+    assert.equal(contactRows.length, 2);
+    assert.equal(contactRows[1]!.y - contactRows[0]!.y, 28);
+    assert.deepEqual(
+      contactRows.map(({ width }) => width),
+      [382, 382],
+    );
+
+    const style = async (selector: string): Promise<Readonly<Record<string, string>>> =>
+      page.locator(selector).evaluate((element) => {
+        const computed = getComputedStyle(element);
+        return {
+          color: computed.color,
+          backgroundColor: computed.backgroundColor,
+          backgroundImage: computed.backgroundImage,
+          textAlign: computed.textAlign,
+        };
+      });
+    assert.deepEqual(await style('#services .pm-section-heading > span'), {
+      color: 'rgb(0, 18, 138)',
+      backgroundColor: 'rgba(0, 18, 138, 0.1)',
+      backgroundImage: 'none',
+      textAlign: 'center',
+    });
+    assert.deepEqual(await style('.pm-testimonials .pm-section-heading > span'), {
+      color: 'rgb(134, 98, 45)',
+      backgroundColor: 'rgba(134, 98, 45, 0.1)',
+      backgroundImage: 'none',
+      textAlign: 'center',
+    });
+    assert.deepEqual(await style('.pm-about .pm-pill'), {
+      color: 'rgb(135, 161, 197)',
+      backgroundColor: 'rgba(94, 133, 186, 0.2)',
+      backgroundImage: 'none',
+      textAlign: 'start',
+    });
+
+    const box = async (selector: string): Promise<{ x: number; width: number; height: number }> => {
+      const bounds = await page.locator(selector).boundingBox();
+      assert.ok(bounds);
+      return {
+        x: Math.round(bounds.x),
+        width: Math.round(bounds.width),
+        height: Math.round(bounds.height),
+      };
+    };
+    assert.deepEqual(await box('.pm-careers'), { x: 0, width: 1512, height: 594 });
+    assert.deepEqual(await box('.pm-careers h2'), { x: 372, width: 768, height: 40 });
+    assert.deepEqual(await box('.pm-careers > .pm-container > p'), {
+      x: 372,
+      width: 768,
+      height: 56,
+    });
+    assert.deepEqual(await box('.pm-career-card h3'), { x: 405, width: 702, height: 28 });
+    assert.deepEqual(await box('.pm-career-card p'), { x: 405, width: 702, height: 24 });
+    assert.deepEqual(await style('.pm-careers'), {
+      color: 'rgb(15, 23, 41)',
+      backgroundColor: 'rgba(134, 98, 45, 0.3)',
+      backgroundImage: 'none',
+      textAlign: 'start',
+    });
   },
 );
 
