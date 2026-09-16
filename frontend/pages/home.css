@@ -100,7 +100,7 @@
   }
 
   .home-section {
-    padding: 5.8rem 1rem;
+    padding: 6rem 1rem;
   }
 
   .home-section-heading {
@@ -205,9 +205,7 @@
 
   .home-journey .editable-collection-items {
     position: relative;
-    min-width: 70rem;
     display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
   }
 
   .home-journey .editable-collection-items::before {

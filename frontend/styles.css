@@ -3668,8 +3668,41 @@
     width: auto;
     justify-self: start;
   }
+  .ui-form-stack-spaced {
+    row-gap: 20px;
+  }
+  .ui-submit-action--in-grid {
+    margin-top: 0;
+  }
   .ui-heading-measure-standard {
     max-width: 48rem;
+  }
+  .ui-hero-description-large {
+    width: 100%;
+    max-width: 768px;
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .ui-section-description-standard {
+    width: 100%;
+    max-width: 672px;
+    margin-inline: auto;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .ui-timeline-intro-standard {
+    font-size: 14px;
+    line-height: 22.75px;
+  }
+  .ui-timeline-grid-standard {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .ui-timeline-grid-standard .editable-collection-items {
+    width: 1152px;
+    min-width: 1152px;
+    grid-template-columns: repeat(8, 144px);
+    margin-inline: auto;
   }
   .ui-hero-description-standard {
     width: 100%;

@@ -339,24 +339,26 @@ function HomePageBody(): React.JSX.Element {
       <main id="main-content">
         <ObjectBoundary entityId="home.hero" value={content.hero}>
           <section className="home-hero ui-hero ui-hero-plain" aria-labelledby="home-heading">
-            <div className="home-container ui-container">
+            <div className="home-container ui-container ui-content-frame-standard">
               <h1 id="home-heading" className="type-display type-display-large">
                 {content.hero.heading}
               </h1>
-              <p>{content.hero.description}</p>
+              <p className="ui-hero-description-large">{content.hero.description}</p>
               <span className="home-accent-rule ui-accent-rule" aria-hidden="true" />
             </div>
           </section>
         </ObjectBoundary>
 
         <section className="home-section ui-section home-divisions ui-divisions" id="divisions">
-          <div className="home-container ui-container">
+          <div className="home-container ui-container ui-content-frame-standard">
             <ObjectBoundary entityId="home.divisions.header" value={content.divisionsHeader}>
               <header className="home-section-heading ui-section-heading">
                 <h2 className="type-section-title type-section-title-compact">
                   {content.divisionsHeader.heading}
                 </h2>
-                <p>{content.divisionsHeader.description}</p>
+                <p className="ui-section-description-standard">
+                  {content.divisionsHeader.description}
+                </p>
               </header>
             </ObjectBoundary>
             <CollectionBoundary
@@ -371,13 +373,15 @@ function HomePageBody(): React.JSX.Element {
           className="home-section ui-section home-tint ui-tint home-values ui-values"
           id="values"
         >
-          <div className="home-container ui-container">
+          <div className="home-container ui-container ui-content-frame-standard">
             <ObjectBoundary entityId="home.core-values.header" value={content.coreValuesHeader}>
               <header className="home-section-heading ui-section-heading">
                 <h2 className="type-section-title type-section-title-compact">
                   {content.coreValuesHeader.heading}
                 </h2>
-                <p>{content.coreValuesHeader.description}</p>
+                <p className="ui-section-description-standard">
+                  {content.coreValuesHeader.description}
+                </p>
               </header>
             </ObjectBoundary>
             <CollectionBoundary
@@ -389,22 +393,28 @@ function HomePageBody(): React.JSX.Element {
         </section>
 
         <section className="home-section ui-section home-journey ui-journey" id="journey">
-          <div className="home-container ui-container">
+          <div className="home-container ui-container ui-content-frame-standard">
             <ObjectBoundary entityId="home.journey.header" value={content.journeyHeader}>
               <header className="home-section-heading ui-section-heading">
                 <span className="home-eyebrow ui-eyebrow">{content.journeyHeader.eyebrow}</span>
                 <h2 className="type-section-title type-section-title-compact">
                   {content.journeyHeader.heading}
                 </h2>
-                <p>{content.journeyHeader.description}</p>
-                <p className="home-history ui-history">{content.journeyHeader.history}</p>
+                <p className="ui-section-description-standard">
+                  {content.journeyHeader.description}
+                </p>
+                <p className="home-history ui-history ui-timeline-intro-standard">
+                  {content.journeyHeader.history}
+                </p>
               </header>
             </ObjectBoundary>
-            <CollectionBoundary
-              entityId="home.journey.timeline"
-              value={content.timeline}
-              renderItem={(value) => <TimelineCard item={homeTimelineItemSchema.parse(value)} />}
-            />
+            <div className="ui-timeline-grid-standard">
+              <CollectionBoundary
+                entityId="home.journey.timeline"
+                value={content.timeline}
+                renderItem={(value) => <TimelineCard item={homeTimelineItemSchema.parse(value)} />}
+              />
+            </div>
           </div>
         </section>
 
@@ -412,13 +422,15 @@ function HomePageBody(): React.JSX.Element {
           className="home-section ui-section home-tint ui-tint home-leadership ui-leadership"
           id="leadership"
         >
-          <div className="home-container ui-container">
+          <div className="home-container ui-container ui-content-frame-standard">
             <ObjectBoundary entityId="home.leadership.header" value={content.leadershipHeader}>
               <header className="home-section-heading ui-section-heading">
                 <h2 className="type-section-title type-section-title-compact">
                   {content.leadershipHeader.heading}
                 </h2>
-                <p>{content.leadershipHeader.description}</p>
+                <p className="ui-section-description-standard">
+                  {content.leadershipHeader.description}
+                </p>
               </header>
             </ObjectBoundary>
             <CollectionBoundary
@@ -431,13 +443,13 @@ function HomePageBody(): React.JSX.Element {
         </section>
 
         <section className="home-section ui-section home-news ui-news" id="news">
-          <div className="home-container ui-container">
+          <div className="home-container ui-container ui-content-frame-standard">
             <ObjectBoundary entityId="home.news.header" value={content.newsHeader}>
               <header className="home-section-heading ui-section-heading">
                 <h2 className="type-section-title type-section-title-compact">
                   {content.newsHeader.heading}
                 </h2>
-                <p>{content.newsHeader.description}</p>
+                <p className="ui-section-description-standard">{content.newsHeader.description}</p>
               </header>
             </ObjectBoundary>
             <CollectionBoundary
@@ -458,7 +470,9 @@ function HomePageBody(): React.JSX.Element {
                 <h2 className="type-section-title type-section-title-compact">
                   {content.careersHeader.heading}
                 </h2>
-                <p>{content.careersHeader.description}</p>
+                <p className="ui-section-description-standard">
+                  {content.careersHeader.description}
+                </p>
               </header>
             </ObjectBoundary>
             <CollectionBoundary
@@ -471,7 +485,7 @@ function HomePageBody(): React.JSX.Element {
                 <h3 className="type-card-title type-card-title-lg">
                   {content.resumeIntro.heading}
                 </h3>
-                <p>{content.resumeIntro.description}</p>
+                <p className="ui-section-description-standard">{content.resumeIntro.description}</p>
               </header>
             </ObjectBoundary>
             <div className="ui-form-surface ui-form-surface--inquiry">
@@ -482,7 +496,7 @@ function HomePageBody(): React.JSX.Element {
 
         <ObjectBoundary entityId="home.contact" value={content.contact}>
           <section className="home-section ui-section home-contact ui-contact" id="contact">
-            <div className="home-container ui-container">
+            <div className="home-container ui-container ui-content-frame-standard">
               <h2 className="type-section-title type-section-title-compact">
                 {content.contact.heading}
               </h2>

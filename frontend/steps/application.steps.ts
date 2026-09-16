@@ -1325,6 +1325,101 @@ Then(
   },
 );
 
+Then(
+  'Home uses the frozen desktop content frame and section rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 1100 });
+    await page.goto('/');
+    await page.evaluate(() => document.fonts.ready);
+
+    const frame = await page.locator('.home-hero .home-container').boundingBox();
+    assert.ok(frame);
+    assert.deepEqual(
+      { x: Math.round(frame.x), width: Math.round(frame.width) },
+      { x: 72, width: 1368 },
+    );
+    for (const section of await page.locator('.home-section').all()) {
+      await expect(section).toHaveCSS('padding-top', '96px');
+      await expect(section).toHaveCSS('padding-bottom', '96px');
+    }
+
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    const compactFrame = await page.locator('.home-hero .home-container').boundingBox();
+    assert.ok(compactFrame);
+    assert.deepEqual(
+      { x: Math.round(compactFrame.x), width: Math.round(compactFrame.width) },
+      { x: 36, width: 1368 },
+    );
+  },
+);
+
+Then(
+  'Home hero and section descriptions use their measured type roles',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 1100 });
+    const heroDescription = page.locator('.home-hero p');
+    await expect(heroDescription).toHaveCSS('font-size', '20px');
+    await expect(heroDescription).toHaveCSS('line-height', '28px');
+    await expect(heroDescription).toHaveCSS('max-width', '768px');
+
+    const descriptions = page.locator(
+      '.home-divisions .home-section-heading > p, .home-values .home-section-heading > p, .home-leadership .home-section-heading > p, .home-news .home-section-heading > p, .home-careers .home-section-heading > p',
+    );
+    assert.equal(await descriptions.count(), 5);
+    for (const description of await descriptions.all()) {
+      await expect(description).toHaveCSS('font-size', '16px');
+      await expect(description).toHaveCSS('line-height', '24px');
+      await expect(description).toHaveCSS('max-width', '672px');
+    }
+  },
+);
+
+Then('Home resume actions use one grid spacing contract', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const form = page.locator('.home-resume-form');
+  const action = form.getByRole('button', { name: 'Submit Resume' });
+  await expect(form).toHaveCSS('row-gap', '20px');
+  await expect(action).toHaveCSS('margin-top', '0px');
+  const previous = action.locator('xpath=preceding-sibling::*[1]');
+  const previousBox = await previous.boundingBox();
+  const actionBox = await action.boundingBox();
+  assert.ok(previousBox);
+  assert.ok(actionBox);
+  assert.ok(
+    Math.abs(actionBox.y - (previousBox.y + previousBox.height) - 20) <= 1,
+    'The resume action must use the form grid gap without an additional margin.',
+  );
+});
+
+Then(
+  'Home timeline uses the measured desktop tracks and copy density',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const intro = page.locator('.home-journey .home-history');
+    await expect(intro).toHaveCSS('font-size', '14px');
+    await expect(intro).toHaveCSS('line-height', '22.75px');
+
+    const grid = page.locator('.home-journey .editable-collection-items');
+    const gridBox = await grid.boundingBox();
+    assert.ok(gridBox);
+    assert.deepEqual(
+      { x: Math.round(gridBox.x), width: Math.round(gridBox.width) },
+      { x: 180, width: 1152 },
+    );
+    const cards = await grid
+      .locator('.home-timeline-card')
+      .evaluateAll((elements) =>
+        elements.map((element) => Math.round(element.getBoundingClientRect().width)),
+      );
+    assert.deepEqual(
+      cards,
+      Array.from({ length: 8 }, () => 144),
+    );
+  },
+);
+
 const elementWidth = async (locator: ReturnType<Page['locator']>): Promise<number> =>
   locator.evaluate((element) => element.getBoundingClientRect().width);
 

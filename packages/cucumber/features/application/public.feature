@@ -113,6 +113,16 @@ Feature: Published TriCo website
     And division contact grids use the shared desktop measure and gap
     And standard and compact division footers use the frozen grid and legal rhythm
 
+  @id:public.home-broad-parity @backend-noop
+  Scenario: Preserve the Home page desktop frame typography and timeline rhythm
+    backend-noop: Home page frame, typography, form spacing, and timeline geometry are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/"
+    Then Home uses the frozen desktop content frame and section rhythm
+    And Home hero and section descriptions use their measured type roles
+    And Home resume actions use one grid spacing contract
+    And Home timeline uses the measured desktop tracks and copy density
+
   @id:public.profile-card-contract @backend-noop
   Scenario: Present people with one resilient profile card contract
     backend-noop: Profile-card geometry, portrait cropping, unavailable-media presentation, and responsive editor-wrapper behavior are browser-owned visual behavior.
