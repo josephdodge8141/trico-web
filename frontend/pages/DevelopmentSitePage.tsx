@@ -481,28 +481,32 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="dev-section ui-section dev-partners ui-partners">
+        <section className="dev-section ui-section dev-partners ui-partners ui-partner-composition-reference">
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.partners.header" value={partnersHeader}>
-              <header className="dev-heading ui-heading ui-heading-rhythm ui-heading-gap-standard">
-                <span className="dev-pill ui-pill dev-pill-blue ui-pill-blue">
+              <header className="dev-heading ui-heading ui-heading-rhythm ui-heading-gap-standard ui-partner-heading-reference">
+                <span className="dev-pill ui-pill dev-pill-blue ui-pill-blue ui-partner-eyebrow-reference">
                   <Handshake /> {partnersHeader.eyebrow}
                 </span>
                 <h2 className="type-section-title type-section-title-compact">
                   {partnersHeader.heading}
                 </h2>
-                <p>{partnersHeader.description}</p>
+                <p className="ui-partner-description-reference">{partnersHeader.description}</p>
               </header>
             </ObjectBoundary>
-            <div className="dev-partner-grid ui-partner-grid">
+            <div className="dev-partner-grid ui-partner-grid ui-partner-grid-reference">
               <CollectionBoundary
                 id="development.partners.items"
                 value={partners}
-                renderItem={(item) => <div>{developmentPartnerSchema.parse(item).name}</div>}
+                renderItem={(item) => (
+                  <div className="ui-partner-card-reference">
+                    {developmentPartnerSchema.parse(item).name}
+                  </div>
+                )}
               />
             </div>
             <ObjectBoundary id="development.partners.footer" value={partnersFooter}>
-              <p className="dev-partner-footer ui-partner-footer">
+              <p className="dev-partner-footer ui-partner-footer ui-partner-footer-reference">
                 {partnersFooter.message} <a href="#contact">{partnersFooter.actionLabel}</a>.
               </p>
             </ObjectBoundary>

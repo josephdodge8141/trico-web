@@ -1326,6 +1326,115 @@ Then(
 );
 
 Then(
+  'Development partners use the frozen desktop composition',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.evaluate(() => document.fonts.ready);
+
+    const section = page.locator('.ui-partner-composition-reference');
+    const heading = section.locator('.ui-partner-heading-reference');
+    const eyebrow = heading.locator('.ui-partner-eyebrow-reference');
+    const description = heading.locator('.ui-partner-description-reference');
+    const grid = section.locator('.ui-partner-grid-reference');
+    const cards = grid.locator('.ui-partner-card-reference');
+    const footer = section.locator('.ui-partner-footer-reference');
+    const [sectionBox, headingBox, eyebrowBox, descriptionBox, gridBox, footerBox] =
+      await Promise.all([
+        section.boundingBox(),
+        heading.boundingBox(),
+        eyebrow.boundingBox(),
+        description.boundingBox(),
+        grid.boundingBox(),
+        footer.boundingBox(),
+      ]);
+    assert.ok(sectionBox && headingBox && eyebrowBox && descriptionBox && gridBox && footerBox);
+    assert.ok(Math.abs(sectionBox.height - 530) <= 2, `partner section was ${sectionBox.height}px`);
+    assert.ok(
+      Math.abs(headingBox.width - 1368) <= 1,
+      `partner heading was ${headingBox.width}px wide`,
+    );
+    assert.ok(
+      Math.abs(headingBox.height - 174) <= 1,
+      `partner heading was ${headingBox.height}px tall`,
+    );
+    assert.ok(
+      Math.abs(eyebrowBox.height - 38) <= 1,
+      `partner eyebrow was ${eyebrowBox.height}px tall`,
+    );
+    assert.ok(
+      Math.abs(descriptionBox.width - 672) <= 1,
+      `partner description was ${descriptionBox.width}px wide`,
+    );
+    assert.ok(
+      Math.abs(descriptionBox.height - 56) <= 1,
+      `partner description was ${descriptionBox.height}px tall`,
+    );
+    assert.ok(Math.abs(gridBox.width - 1024) <= 1, `partner grid was ${gridBox.width}px wide`);
+    assert.ok(Math.abs(gridBox.height - 96) <= 1, `partner grid was ${gridBox.height}px tall`);
+    assert.ok(
+      Math.abs(footerBox.height - 20) <= 1,
+      `partner footer was ${footerBox.height}px tall`,
+    );
+
+    await expect(section).toHaveCSS('padding-top', '80px');
+    await expect(section).toHaveCSS('padding-bottom', '80px');
+    await expect(heading).toHaveCSS('margin-bottom', '48px');
+    await expect(eyebrow).toHaveCSS('padding', '8px 16px');
+    await expect(eyebrow).toHaveCSS('gap', '8px');
+    await expect(eyebrow).toHaveCSS('margin-bottom', '24px');
+    await expect(eyebrow).toHaveCSS('font-size', '14px');
+    await expect(eyebrow).toHaveCSS('line-height', '20px');
+    await expect(description).toHaveCSS('font-size', '18px');
+    await expect(description).toHaveCSS('line-height', '28px');
+    await expect(grid).toHaveCSS('column-gap', '24px');
+    await expect(grid).toHaveCSS(
+      'grid-template-columns',
+      '150.656px 150.672px 150.672px 150.656px 150.672px 150.672px',
+    );
+    await expect(cards).toHaveCount(6);
+    for (const card of await cards.all()) {
+      const box = await card.boundingBox();
+      assert.ok(box);
+      assert.ok(Math.abs(box.height - 96) <= 1, `partner card was ${box.height}px tall`);
+      await expect(card).toHaveCSS('padding', '24px');
+      await expect(card).toHaveCSS('font-size', '14px');
+      await expect(card).toHaveCSS('line-height', '20px');
+    }
+    await expect(footer).toHaveCSS('margin-top', '32px');
+    await expect(footer).toHaveCSS('font-size', '14px');
+    await expect(footer).toHaveCSS('line-height', '20px');
+  },
+);
+
+Then('Development partners remain contained on mobile', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const section = page.locator('.ui-partner-composition-reference');
+  const grid = section.locator('.ui-partner-grid-reference');
+  const geometry = await section.evaluate((element) => {
+    const gridElement = element.querySelector('.ui-partner-grid-reference');
+    if (!(gridElement instanceof HTMLElement)) throw new Error('Partner grid is missing.');
+    const sectionRect = element.getBoundingClientRect();
+    const gridRect = gridElement.getBoundingClientRect();
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      gridLeft: gridRect.left,
+      gridRight: gridRect.right,
+      sectionLeft: sectionRect.left,
+      sectionRight: sectionRect.right,
+    };
+  });
+  assert.equal(geometry.documentWidth, 390);
+  assert.ok(geometry.sectionLeft >= 0 && geometry.sectionRight <= 390);
+  assert.ok(geometry.gridLeft >= 0 && geometry.gridRight <= 390);
+  const columns = await grid.evaluate((element) =>
+    getComputedStyle(element).gridTemplateColumns.split(' '),
+  );
+  assert.equal(columns.length, 2);
+});
+
+Then(
   'Home uses the frozen desktop content frame and section rhythm',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
