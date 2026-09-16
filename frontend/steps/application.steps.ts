@@ -1114,6 +1114,124 @@ Then(
 );
 
 Then(
+  'compact and standard form controls use explicit shared reference geometry',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const compactControls = [
+      { route: '/', selector: '.ui-resume-form input[name="name"]' },
+      { route: '/', selector: '.ui-resume-form textarea[name="message"]' },
+      { route: '/real-estate', selector: 'input[name="firstName"]' },
+      { route: '/real-estate', selector: 'textarea[name="message"]' },
+      { route: '/property-management', selector: 'input[name="firstName"]' },
+      { route: '/property-management', selector: 'textarea[name="message"]' },
+      { route: '/development', selector: 'input[name="firstName"]' },
+      { route: '/development', selector: 'textarea[name="message"]' },
+    ] as const;
+    const standardControls = [
+      { route: '/construction', selector: 'input[name="firstName"]' },
+      { route: '/construction', selector: 'textarea[name="message"]' },
+      { route: '/storage', selector: 'input[name="firstName"]' },
+      { route: '/storage', selector: 'textarea[name="message"]' },
+    ] as const;
+
+    for (const expectation of compactControls) {
+      await page.goto(expectation.route);
+      const control = page.locator(expectation.selector).first();
+      await expect(control).toHaveCSS('font-size', '14px');
+      await expect(control).toHaveCSS('line-height', '20px');
+      await expect(control).toHaveCSS('font-weight', '400');
+      await expect(control).toHaveCSS('padding', '8px 12px');
+      if (!expectation.selector.includes('textarea')) {
+        await expect(control).toHaveCSS('height', '40px');
+      }
+    }
+
+    for (const expectation of standardControls) {
+      await page.goto(expectation.route);
+      const control = page.locator(expectation.selector).first();
+      await expect(control).toHaveCSS('font-size', '16px');
+      await expect(control).toHaveCSS('line-height', '20px');
+      await expect(control).toHaveCSS('font-weight', '400');
+      await expect(control).toHaveCSS('padding', '8px 12px');
+      if (!expectation.selector.includes('textarea')) {
+        await expect(control).toHaveCSS('height', '40px');
+      }
+    }
+  },
+);
+
+Then(
+  'repeated section eyebrows use one borderless semantic role',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const pages = [
+      {
+        route: '/real-estate',
+        labels: [
+          'Our Listings',
+          'Our Process',
+          'Our Team',
+          'Client Success Stories',
+          'FAQ',
+          'New Clients',
+          'Contact Us',
+        ],
+      },
+      {
+        route: '/development',
+        labels: ['Development Services', 'Our Team', 'About TriCo Development', 'Contact Us'],
+      },
+    ] as const;
+
+    for (const expectation of pages) {
+      await page.goto(expectation.route);
+      for (const label of expectation.labels) {
+        const eyebrow = page.locator('span', { hasText: label }).filter({ hasText: label }).first();
+        await expect(eyebrow).toBeVisible();
+        await expect(eyebrow).toHaveClass(/ui-section-eyebrow/);
+        await expect(eyebrow).toHaveCSS('border-top-width', '0px');
+        await expect(eyebrow).toHaveCSS('display', 'inline-block');
+      }
+    }
+  },
+);
+
+Then(
+  'shared header and primary actions use the reference geometry',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const primaryActions = [
+      { route: '/real-estate', name: 'Start Your Journey' },
+      { route: '/construction', name: 'Get a Quote' },
+      { route: '/storage', name: 'Our Services' },
+      { route: '/development', name: 'View Our Projects' },
+    ] as const;
+    for (const action of primaryActions) {
+      await page.goto(action.route);
+      const link = page.locator('.ui-actions .ui-button').filter({ hasText: action.name }).first();
+      await expect(link).toHaveCSS('height', '44px');
+      await expect(link).toHaveCSS('padding', '0px 32px');
+    }
+
+    const headerActions = [
+      { route: '/real-estate', name: 'Get Started' },
+      { route: '/property-management', name: 'Free Analysis' },
+      { route: '/construction', name: 'Get Quote' },
+      { route: '/development', name: 'Get Started' },
+    ] as const;
+    for (const action of headerActions) {
+      await page.goto(action.route);
+      const link = page
+        .locator('.ui-header-actions .ui-button')
+        .filter({ hasText: action.name })
+        .first();
+      await expect(link).toHaveCSS('height', '40px');
+      await expect(link).toHaveCSS('padding', '8px 16px');
+    }
+  },
+);
+
+Then(
   'shared supporting content follows the reference start alignment contract',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

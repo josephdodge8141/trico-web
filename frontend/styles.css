@@ -3627,6 +3627,18 @@
   .ui-page .ui-submit-button {
     font-weight: 500;
   }
+  .ui-page .ui-actions .ui-button {
+    box-sizing: border-box;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 32px;
+  }
+  .ui-page .ui-header-actions .ui-button {
+    box-sizing: border-box;
+    height: 40px;
+    min-height: 40px;
+    padding: 8px 16px;
+  }
   .ui-page .ui-button,
   .ui-page .ui-contact-form button,
   .ui-page .ui-form-card input,
@@ -3638,6 +3650,28 @@
   .ui-page .ui-contact-form input,
   .ui-page .ui-contact-form textarea {
     border-radius: 6px;
+  }
+  .ui-page :is(.ui-resume-form, .ui-form-card) :is(input:not([type='file']), select, textarea) {
+    box-sizing: border-box;
+    padding: 8px 12px;
+    font-family: var(--trico-font-family);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.25rem;
+  }
+  .ui-page :is(.ui-form, .ui-contact-form) :is(input:not([type='file']), select, textarea) {
+    box-sizing: border-box;
+    padding: 8px 12px;
+    font-family: var(--trico-font-family);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.25rem;
+  }
+  .ui-page
+    :is(.ui-resume-form, .ui-form-card, .ui-form, .ui-contact-form)
+    :is(input:not([type='file']), select) {
+    height: 40px;
+    min-height: 40px;
   }
   .ui-page .ui-form-card label,
   .ui-page .ui-form label,
@@ -3718,6 +3752,10 @@
   .ui-contact-form,
   .ui-resume-form {
     text-align: start;
+  }
+  .ui-section-eyebrow {
+    display: inline-block;
+    border-width: 0;
   }
   .text-uppercase {
     text-transform: uppercase;

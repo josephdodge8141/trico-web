@@ -73,6 +73,9 @@ Feature: Published TriCo website
     And representative service cards use the shared vertical density and readable copy measure
     And shared card title roles preserve the reference hierarchy
     And shared eyebrow compact action review form and footer roles preserve their reference type
+    And compact and standard form controls use explicit shared reference geometry
+    And repeated section eyebrows use one borderless semantic role
+    And shared header and primary actions use the reference geometry
     And shared navigation form labels and actions use the frozen medium weight and six-pixel corners
     And shared supporting content follows the reference start alignment contract
     And shared section rhythm remains balanced at desktop and tablet widths

@@ -301,11 +301,13 @@ function StorageBody(): React.JSX.Element {
               <p className="storage-promise ui-promise">{hero.subheading}</p>
               <p>{hero.description}</p>
               <div className="storage-actions ui-actions">
-                <a href="#contact">
+                <a className="ui-button" href="#contact">
                   {hero.primaryActionLabel}
                   <ArrowRight />
                 </a>
-                <a href="#services">{hero.secondaryActionLabel}</a>
+                <a className="ui-button" href="#services">
+                  {hero.secondaryActionLabel}
+                </a>
               </div>
               <CollectionBoundary
                 id="storage.hero.stats"

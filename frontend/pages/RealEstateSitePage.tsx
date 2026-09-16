@@ -454,7 +454,7 @@ function SemanticHeading({
   const heading = S.realEstateServicesHeaderSchema.parse(item);
   return (
     <header className="re-section-heading ui-section-heading">
-      <span className="re-pill ui-pill">{heading.eyebrow}</span>
+      <span className="re-pill ui-pill ui-section-eyebrow">{heading.eyebrow}</span>
       <h2 className={`type-section-title ${titleClassName}`}>{heading.heading}</h2>
       <p>{heading.description}</p>
     </header>
@@ -837,7 +837,7 @@ function RealEstateBody(): React.JSX.Element {
                 <section id="team" className="re-section ui-section re-tint ui-tint">
                   <div className="re-container ui-container">
                     <header className="re-section-heading ui-section-heading">
-                      <span className="re-pill ui-pill">{heading.eyebrow}</span>
+                      <span className="re-pill ui-pill ui-section-eyebrow">{heading.eyebrow}</span>
                       <h2 className="type-section-title type-section-title-large">
                         {heading.heading}
                       </h2>
@@ -968,7 +968,7 @@ function RealEstateBody(): React.JSX.Element {
                   const heading = S.realEstateReviewsHeaderSchema.parse(item);
                   return (
                     <header className="re-section-heading ui-section-heading">
-                      <span className="re-pill ui-pill">{heading.eyebrow}</span>
+                      <span className="re-pill ui-pill ui-section-eyebrow">{heading.eyebrow}</span>
                       <h2 className="type-section-title">{heading.heading}</h2>
                       <p>{heading.description}</p>
                       <ReviewRating />
@@ -1016,7 +1016,9 @@ function RealEstateBody(): React.JSX.Element {
                     const heading = S.realEstateContactHeaderSchema.parse(item);
                     return (
                       <>
-                        <span className="re-pill ui-pill">{heading.eyebrow}</span>
+                        <span className="re-pill ui-pill ui-section-eyebrow">
+                          {heading.eyebrow}
+                        </span>
                         <h2 className="type-section-title">{heading.heading}</h2>
                         <p>{heading.description}</p>
                       </>

@@ -19,7 +19,7 @@ export function RealEstateNewClientForm(): React.JSX.Element {
     <section id="new-client" className="re-section ui-section re-new-client ui-new-client">
       <div className="re-container ui-container re-form-narrow ui-form-narrow">
         <header className="re-section-heading ui-section-heading">
-          <span className="re-pill ui-pill">New Clients</span>
+          <span className="re-pill ui-pill ui-section-eyebrow">New Clients</span>
           <h2 className="type-section-title type-section-title-compact">New Client Inquiry</h2>
           <p>
             Buying, selling, or investing? Tell us a bit about your goals and one of our agents will

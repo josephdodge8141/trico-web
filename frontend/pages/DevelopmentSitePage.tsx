@@ -407,7 +407,9 @@ function DevelopmentBody(): React.JSX.Element {
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.services.header" value={servicesHeader}>
               <header className="dev-heading ui-heading">
-                <span className="dev-pill ui-pill">{servicesHeader.eyebrow}</span>
+                <span className="dev-pill ui-pill ui-section-eyebrow">
+                  {servicesHeader.eyebrow}
+                </span>
                 <h2 className="type-section-title type-section-title-large">
                   {servicesHeader.heading}
                 </h2>
@@ -511,7 +513,7 @@ function DevelopmentBody(): React.JSX.Element {
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.team.header" value={teamHeader}>
               <header className="dev-heading ui-heading">
-                <span className="dev-pill ui-pill">{teamHeader.eyebrow}</span>
+                <span className="dev-pill ui-pill ui-section-eyebrow">{teamHeader.eyebrow}</span>
                 <h2 className="type-section-title">{teamHeader.heading}</h2>
                 <p>{teamHeader.description}</p>
               </header>
@@ -541,7 +543,7 @@ function DevelopmentBody(): React.JSX.Element {
           <div className="dev-container ui-container dev-about-grid ui-about-grid">
             <div>
               <ObjectBoundary id="development.about" value={about}>
-                <span className="dev-pill ui-pill">{about.eyebrow}</span>
+                <span className="dev-pill ui-pill ui-section-eyebrow">{about.eyebrow}</span>
                 <h2 className="type-section-title">{about.heading}</h2>
                 <p>{about.introduction}</p>
                 <p>{about.detail}</p>
@@ -631,7 +633,7 @@ function DevelopmentBody(): React.JSX.Element {
           <div className="dev-container ui-container dev-contact-grid ui-contact-grid">
             <div>
               <ObjectBoundary id="development.contact.header" value={contactHeader}>
-                <span className="dev-pill ui-pill">{contactHeader.eyebrow}</span>
+                <span className="dev-pill ui-pill ui-section-eyebrow">{contactHeader.eyebrow}</span>
                 <h2 className="type-section-title">{contactHeader.heading}</h2>
                 <p>{contactHeader.description}</p>
               </ObjectBoundary>
