@@ -193,15 +193,22 @@ async function fontContractErrors(root: string): Promise<string[]> {
     (match) => ({ family: match[1] ?? '', weight: match[2] ?? '' }),
   );
   const errors: string[] = [];
-  if (imports.some(({ family }) => family !== 'open-sans')) {
-    errors.push('frontend/main.tsx must not load typefaces other than Open Sans');
+  if (imports.some(({ family }) => family !== 'open-sans' && family !== 'lato')) {
+    errors.push('frontend/main.tsx must not load typefaces other than Open Sans and Lato');
   }
   const weights = imports
     .filter(({ family }) => family === 'open-sans')
     .map(({ weight }) => weight)
     .sort();
-  if (weights.join(',') !== '400,600,700,800') {
-    errors.push('frontend/main.tsx must load Open Sans weights 400, 600, 700, and 800 exactly');
+  if (weights.join(',') !== '400,500,600,700') {
+    errors.push('frontend/main.tsx must load Open Sans weights 400, 500, 600, and 700 exactly');
+  }
+  const headingWeights = imports
+    .filter(({ family }) => family === 'lato')
+    .map(({ weight }) => weight)
+    .sort();
+  if (headingWeights.join(',') !== '400,700') {
+    errors.push('frontend/main.tsx must load Lato weights 400 and 700 exactly');
   }
   return errors;
 }

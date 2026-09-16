@@ -598,7 +598,7 @@ Then('page stylesheets contain no typography declarations', async function () {
   assert.deepEqual(violations, []);
 });
 Then(
-  'Open Sans is the only bundled typeface with the four supported application weights loaded',
+  'Open Sans body copy and Lato headings are bundled with the supported visual-parity weights',
   async function (this: FrontendWorld) {
     const typography = await this.currentPage().evaluate(async () => {
       await document.fonts.ready;
@@ -614,10 +614,10 @@ Then(
         headingFamily: window.getComputedStyle(heading).fontFamily,
       };
     });
-    assert.deepEqual(typography.families, ['Open Sans']);
-    assert.deepEqual(typography.weights, [400, 600, 700, 800]);
+    assert.deepEqual(typography.families, ['Lato', 'Open Sans']);
+    assert.deepEqual(typography.weights, [400, 500, 600, 700]);
     assert.match(typography.bodyFamily, /Open Sans/);
-    assert.match(typography.headingFamily, /Open Sans/);
+    assert.match(typography.headingFamily, /Lato/);
   },
 );
 Then(

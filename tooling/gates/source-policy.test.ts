@@ -97,10 +97,10 @@ test('rejects non-layout declarations in page stylesheets', async () => {
   ]);
 });
 
-test('requires Open Sans and the supported font weights only', async () => {
+test('requires Open Sans body and Lato heading faces with visual-parity weights only', async () => {
   const root = await fixture({
     'frontend/main.tsx': [
-      "import '@fontsource/lato/latin-400.css';",
+      "import '@fontsource/roboto/latin-400.css';",
       "import '@fontsource/open-sans/latin-300.css';",
       "import '@fontsource/open-sans/latin-400.css';",
       "import '@fontsource/open-sans/latin-600.css';",
@@ -108,8 +108,9 @@ test('requires Open Sans and the supported font weights only', async () => {
     ].join('\n'),
   });
   assert.deepEqual(await checkSourcePolicy(root), [
-    'frontend/main.tsx must load Open Sans weights 400, 600, 700, and 800 exactly',
-    'frontend/main.tsx must not load typefaces other than Open Sans',
+    'frontend/main.tsx must load Lato weights 400 and 700 exactly',
+    'frontend/main.tsx must load Open Sans weights 400, 500, 600, and 700 exactly',
+    'frontend/main.tsx must not load typefaces other than Open Sans and Lato',
   ]);
 });
 
@@ -146,10 +147,12 @@ async function fixture(files: Readonly<Record<string, string>> = {}): Promise<st
     'frontend/vite.config.ts': 'export {};\n',
     'frontend/styles.css': ':root { font-family: Open Sans, sans-serif; }\n',
     'frontend/main.tsx': [
+      "import '@fontsource/lato/latin-400.css';",
+      "import '@fontsource/lato/latin-700.css';",
       "import '@fontsource/open-sans/latin-400.css';",
+      "import '@fontsource/open-sans/latin-500.css';",
       "import '@fontsource/open-sans/latin-600.css';",
       "import '@fontsource/open-sans/latin-700.css';",
-      "import '@fontsource/open-sans/latin-800.css';",
     ].join('\n'),
     'frontend/pages/home.tsx': 'export const Home = null;\n',
     'infra/runtime/protocol.ts': 'export const protocol = 1;\n',

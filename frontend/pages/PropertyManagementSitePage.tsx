@@ -508,9 +508,9 @@ function PropertyManagementBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="property-management.hero" value={hero}>
-          <section className="pm-hero ui-hero">
+          <section className="pm-hero ui-hero ui-split-hero">
             <div className="pm-container ui-container pm-hero-grid ui-hero-grid">
-              <div>
+              <div className="ui-hero-copy">
                 <span className="pm-pill ui-pill pm-pill-gold ui-pill-gold">
                   <Building2 />
                   {hero.eyebrow}

@@ -442,9 +442,9 @@ function ConstructionBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="construction.hero" value={hero}>
-          <section className="co-hero ui-hero">
+          <section className="co-hero ui-hero ui-split-hero">
             <div className="co-container ui-container co-hero-grid ui-hero-grid">
-              <div>
+              <div className="ui-hero-copy">
                 <div className="co-pills ui-pills">
                   <span>
                     <HardHat /> {hero.primaryBadge}
@@ -487,7 +487,7 @@ function ConstructionBody(): React.JSX.Element {
                 </div>
               </div>
               <div
-                className="division-hero-media"
+                className="division-hero-media ui-split-hero-media-gold"
                 data-division-hero-media="true"
                 data-media-state="available"
               >

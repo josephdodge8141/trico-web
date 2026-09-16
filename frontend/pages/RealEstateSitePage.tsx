@@ -566,7 +566,7 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const hero = S.realEstateHeroSchema.parse(item);
               return (
-                <section className="re-hero ui-hero">
+                <section className="re-hero ui-hero ui-split-hero">
                   <div className="re-container ui-container re-hero-grid ui-hero-grid">
                     <div className="re-hero-copy ui-hero-copy">
                       <span className="re-pill ui-pill re-pill-gold ui-pill-gold">

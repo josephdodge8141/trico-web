@@ -286,7 +286,7 @@ function StorageBody(): React.JSX.Element {
       ) : null}
       <main id="storage-main">
         <ObjectBoundary id="storage.hero" value={hero}>
-          <section className="storage-hero ui-hero">
+          <section className="storage-hero ui-hero ui-split-hero">
             <div className="storage-hero-copy ui-hero-copy">
               <div className="storage-badges ui-badges">
                 <span>
@@ -322,7 +322,7 @@ function StorageBody(): React.JSX.Element {
               />
             </div>
             <figure
-              className="division-hero-media"
+              className="division-hero-media ui-split-hero-media-success"
               data-division-hero-media="true"
               data-media-state="available"
             >

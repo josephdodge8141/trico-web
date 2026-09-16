@@ -75,7 +75,7 @@
   }
 
   .home-hero {
-    padding: 212px 1rem 78px;
+    padding: 208px 1rem 133px;
   }
 
   .home-hero ~ .editable-boundary-controls {
@@ -104,8 +104,13 @@
   }
 
   .home-section-heading {
-    max-width: 48rem;
+    max-width: none;
     margin: 0 auto 3rem;
+  }
+
+  .home-section-heading > p {
+    max-width: 48rem;
+    margin-inline: auto;
   }
 
   .home-section-heading h2 {
@@ -113,7 +118,7 @@
   }
 
   .home-divisions .editable-collection-items {
-    max-width: 62.5rem;
+    max-width: 64.5rem;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.5rem 2rem;

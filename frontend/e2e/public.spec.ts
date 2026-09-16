@@ -100,7 +100,9 @@ for (const publicPage of publicPages) {
   });
 }
 
-test('self-hosts the single public-site typeface and every used weight', async ({ page }) => {
+test('self-hosts the Lovable body and heading typefaces with every used weight', async ({
+  page,
+}) => {
   await page.goto('/property-management');
   const registeredFaces = await page.evaluate(async () => {
     await document.fonts.ready;
@@ -110,14 +112,17 @@ test('self-hosts the single public-site typeface and every used weight', async (
     }));
   });
 
-  expect([...new Set(registeredFaces.map(({ family }) => family))]).toEqual(['Open Sans']);
+  expect([...new Set(registeredFaces.map(({ family }) => family))].sort()).toEqual([
+    'Lato',
+    'Open Sans',
+  ]);
   expect(
     [...new Set(registeredFaces.map(({ weight }) => weight))].sort((left, right) => left - right),
-  ).toEqual([400, 600, 700, 800]);
+  ).toEqual([400, 500, 600, 700]);
   await expect(page.locator('.pm-page')).toHaveCSS('font-family', /Open Sans/);
   await expect(page.getByRole('heading', { name: 'What to Expect with TriCo' })).toHaveCSS(
     'font-family',
-    /Open Sans/,
+    /Lato/,
   );
 });
 
