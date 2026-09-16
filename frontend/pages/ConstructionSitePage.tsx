@@ -512,7 +512,7 @@ function ConstructionBody(): React.JSX.Element {
                 titleClassName="type-section-title-large"
               />
             </ObjectBoundary>
-            <div className="co-card-grid ui-card-grid">
+            <div className="co-card-grid ui-card-grid ui-card-grid-fixed-rows">
               <CollectionBoundary
                 id="construction.services.items"
                 value={services}
@@ -659,7 +659,7 @@ function ConstructionBody(): React.JSX.Element {
                 titleClassName="type-section-title-compact"
               />
             </ObjectBoundary>
-            <div className="co-card-grid ui-card-grid">
+            <div className="co-card-grid ui-card-grid ui-card-grid-fixed-rows ui-card-grid-roomy-start">
               <CollectionBoundary
                 id="construction.pros.items"
                 value={pros}

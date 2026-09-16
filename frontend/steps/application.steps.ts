@@ -2413,6 +2413,42 @@ Then(
 );
 
 Then(
+  'Construction service and pro card rows use the frozen desktop rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.reload();
+
+    const services = page.locator('#services');
+    const pros = page.locator('#pros');
+    const serviceCards = services.locator('.co-card');
+    const proCards = pros.locator('.co-card');
+    const [servicesBox, prosBox, serviceHeights, proHeights] = await Promise.all([
+      services.boundingBox(),
+      pros.boundingBox(),
+      serviceCards.evaluateAll((elements) =>
+        elements.map((element) => element.getBoundingClientRect().height),
+      ),
+      proCards.evaluateAll((elements) =>
+        elements.map((element) => element.getBoundingClientRect().height),
+      ),
+    ]);
+    assert.ok(servicesBox && prosBox);
+    assert.ok(
+      Math.abs(servicesBox.height - 1020) <= 2,
+      `Construction services height was ${servicesBox.height}`,
+    );
+    assert.ok(
+      Math.abs(prosBox.height - 1150) <= 2,
+      `Construction pros height was ${prosBox.height}`,
+    );
+    for (const height of [...serviceHeights, ...proHeights]) {
+      assert.ok(Math.abs(height - 252) <= 1, `Construction repeated card height was ${height}`);
+    }
+  },
+);
+
+Then(
   'Construction collection grids retain their responsive column templates',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

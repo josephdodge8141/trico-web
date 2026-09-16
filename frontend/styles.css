@@ -3594,6 +3594,12 @@
   .ui-card-padding-compact {
     padding: 1.875rem var(--trico-card-padding-compact);
   }
+  .ui-card-grid-fixed-rows .ui-card {
+    min-height: 15.75rem;
+  }
+  .ui-card-grid-roomy-start {
+    padding-top: 1.5rem;
+  }
   @media (min-width: 1024px) {
     .ui-content-frame-standard {
       box-sizing: border-box;
