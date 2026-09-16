@@ -67,6 +67,7 @@ test('canonical feature files are the catalog source rather than copied text', a
       'public.division-hero-media-contract',
       'public.shared-section-rhythm',
       'public.review-platform-contract',
+      'public.shared-form-footer-geometry',
       'public.profile-card-contract',
       'public.property-management-mounted-composition',
       'public.real-estate-card-geometry',

@@ -93,6 +93,17 @@ Feature: Published TriCo website
     And review platform descriptions use the shared compact copy role
     And review platform cards remain balanced at desktop and compact on mobile
 
+  @id:public.shared-form-footer-geometry @backend-noop
+  Scenario: Keep client forms actions and division footers on one shared geometry contract
+    backend-noop: Form, action, contact-grid, and footer geometry are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/"
+    Then shared client forms use the frozen inquiry standard and wide measures
+    And client form surfaces do not leak card padding into semantic forms
+    And client form submit actions use the frozen full-width and intrinsic geometry
+    And division contact grids use the shared desktop measure and gap
+    And standard and compact division footers use the frozen grid and legal rhythm
+
   @id:public.profile-card-contract @backend-noop
   Scenario: Present people with one resilient profile card contract
     backend-noop: Profile-card geometry, portrait cropping, unavailable-media presentation, and responsive editor-wrapper behavior are browser-owned visual behavior.

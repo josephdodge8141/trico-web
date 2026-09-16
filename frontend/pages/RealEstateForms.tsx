@@ -26,7 +26,7 @@ export function RealEstateNewClientForm(): React.JSX.Element {
             reach out within one business day.
           </p>
         </header>
-        <div className="re-form-card ui-form-card">
+        <div className="re-form-card ui-form-card ui-form-surface ui-form-surface--inquiry">
           {submitted ? (
             <div className="re-form-success ui-form-success" role="status">
               <CheckCircle2 aria-hidden="true" />
@@ -34,7 +34,7 @@ export function RealEstateNewClientForm(): React.JSX.Element {
               <p>Your inquiry is ready for our team to review.</p>
             </div>
           ) : (
-            <form onSubmit={submit}>
+            <form className="ui-client-form ui-form-layout--inquiry" onSubmit={submit}>
               <div className="re-field-grid ui-field-grid">
                 <label>
                   Full Name *
@@ -76,7 +76,7 @@ export function RealEstateNewClientForm(): React.JSX.Element {
                 />
               </label>
               <button
-                className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide"
+                className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide ui-submit-action ui-submit-action--full"
                 type="submit"
               >
                 Submit Inquiry <Send aria-hidden="true" />
@@ -101,9 +101,9 @@ export function RealEstateContactForm(): React.JSX.Element {
     );
   }
   return (
-    <div className="re-form-card ui-form-card">
+    <div className="re-form-card ui-form-card ui-form-surface ui-form-surface--standard">
       <h3 className="type-form-title">Start Your Real Estate Journey</h3>
-      <form onSubmit={submit}>
+      <form className="ui-client-form ui-form-layout--standard" onSubmit={submit}>
         <div className="re-field-grid ui-field-grid">
           <label>
             First Name *
@@ -135,7 +135,7 @@ export function RealEstateContactForm(): React.JSX.Element {
           />
         </label>
         <button
-          className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide"
+          className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide ui-submit-action ui-submit-action--full"
           type="submit"
         >
           Get Started <Send aria-hidden="true" />

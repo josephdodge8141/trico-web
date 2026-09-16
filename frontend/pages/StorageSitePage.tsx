@@ -443,7 +443,7 @@ function StorageBody(): React.JSX.Element {
         </section>
         <section
           id="contact"
-          className="storage-section ui-section storage-contact ui-contact ui-align-start"
+          className="storage-section ui-section storage-contact ui-contact ui-align-start ui-contact-grid ui-contact-grid-standard"
         >
           <div>
             <ObjectBoundary id="storage.contact.header" value={contactHeader}>
@@ -483,11 +483,13 @@ function StorageBody(): React.JSX.Element {
               </div>
             </ObjectBoundary>
           </div>
-          <StorageContactForm />
+          <div className="ui-form-surface ui-form-surface--standard">
+            <StorageContactForm />
+          </div>
         </section>
       </main>
-      <footer className="storage-footer ui-footer ui-align-start">
-        <div className="storage-footer-grid ui-footer-grid">
+      <footer className="storage-footer ui-footer ui-align-start ui-footer-rhythm">
+        <div className="storage-footer-grid ui-footer-grid ui-footer-grid--standard">
           <ObjectBoundary id="storage.footer.brand" value={footerBrand}>
             <div>
               <img
@@ -531,7 +533,7 @@ function StorageBody(): React.JSX.Element {
           </div>
         </div>
         <ObjectBoundary id="storage.footer.legal" value={legal}>
-          <small>
+          <small className="ui-footer-legal-rhythm">
             © {new Date().getFullYear()} {legal.organizationName}. {legal.rightsNotice}
           </small>
         </ObjectBoundary>

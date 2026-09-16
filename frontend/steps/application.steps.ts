@@ -1176,6 +1176,151 @@ Then(
   },
 );
 
+const elementWidth = async (locator: ReturnType<Page['locator']>): Promise<number> =>
+  locator.evaluate((element) => element.getBoundingClientRect().width);
+
+const expectNear = (actual: number, expected: number, label: string): void => {
+  assert.ok(
+    Math.abs(actual - expected) <= 2,
+    `${label} measured ${String(actual)}px; expected ${String(expected)}px ±2px.`,
+  );
+};
+
+Then(
+  'shared client forms use the frozen inquiry standard and wide measures',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    const expectations = [
+      { route: '/', selector: '.ui-form-layout--inquiry', width: 702 },
+      { route: '/real-estate', selector: '.ui-new-client .ui-form-layout--inquiry', width: 702 },
+      {
+        route: '/property-management',
+        selector: '.ui-new-client .ui-form-layout--inquiry',
+        width: 702,
+      },
+      { route: '/real-estate', selector: '.ui-contact .ui-form-layout--standard', width: 586 },
+      {
+        route: '/property-management',
+        selector: '.ui-contact .ui-form-layout--standard',
+        width: 586,
+      },
+      { route: '/construction', selector: '.ui-contact .ui-form-layout--standard', width: 586 },
+      { route: '/storage', selector: '.ui-contact .ui-form-layout--standard', width: 586 },
+      { route: '/development', selector: '.ui-contact .ui-form-layout--standard', width: 586 },
+      { route: '/construction', selector: '.ui-bid .ui-form-layout--wide', width: 830 },
+    ] as const;
+    for (const expectation of expectations) {
+      await page.goto(expectation.route);
+      const form = page.locator(expectation.selector).first();
+      await expect(form).toBeVisible();
+      expectNear(await elementWidth(form), expectation.width, `${expectation.route} form`);
+    }
+  },
+);
+
+Then(
+  'client form surfaces do not leak card padding into semantic forms',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const expectation of [
+      { route: '/', selector: '.ui-resume-form' },
+      { route: '/construction', selector: '.ui-bid .ui-form' },
+      { route: '/storage', selector: '.ui-contact-form' },
+    ] as const) {
+      await page.goto(expectation.route);
+      const form = page.locator(expectation.selector).first();
+      await expect(form).toHaveClass(/ui-client-form/);
+      await expect(form).toHaveCSS('padding', '0px');
+      await expect(form).toHaveCSS('border-top-width', '0px');
+    }
+  },
+);
+
+Then(
+  'client form submit actions use the frozen full-width and intrinsic geometry',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const route of [
+      '/',
+      '/real-estate',
+      '/property-management',
+      '/storage',
+      '/development',
+    ] as const) {
+      await page.goto(route);
+      const button = page.locator('.ui-submit-action--full').first();
+      await expect(button).toHaveCSS('height', '44px');
+      await expect(button).toHaveCSS('padding', '0px 32px');
+      const form = button.locator('xpath=ancestor::form');
+      expectNear(await elementWidth(button), await elementWidth(form), `${route} submit action`);
+    }
+    await page.goto('/construction');
+    const bidButton = page.locator('.ui-bid .ui-submit-action--intrinsic');
+    await expect(bidButton).toHaveCSS('height', '44px');
+    assert.ok((await elementWidth(bidButton)) < 240);
+  },
+);
+
+Then(
+  'division contact grids use the shared desktop measure and gap',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const route of [
+      '/real-estate',
+      '/property-management',
+      '/construction',
+      '/storage',
+      '/development',
+    ] as const) {
+      await page.goto(route);
+      const grid = page.locator('.ui-contact-grid-standard').first();
+      await expect(grid).toBeVisible();
+      expectNear(await elementWidth(grid), 1368, `${route} contact grid`);
+      await expect(grid).toHaveCSS('column-gap', '64px');
+    }
+  },
+);
+
+Then(
+  'standard and compact division footers use the frozen grid and legal rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const route of ['/real-estate', '/construction', '/storage', '/development'] as const) {
+      await page.goto(route);
+      const footer = page.locator('.ui-footer-rhythm');
+      const grid = footer.locator('.ui-footer-grid--standard');
+      expectNear(await elementWidth(grid), 1368, `${route} footer grid`);
+      await expect(grid).toHaveCSS('min-height', '284px');
+      await expect(grid).toHaveCSS('column-gap', '48px');
+      await expect(footer).toHaveCSS('padding-bottom', '64px');
+      const legal = footer.locator('.ui-footer-legal-rhythm');
+      await expect(legal).toHaveCSS('margin-top', '48px');
+      const rhythm = await footer.evaluate((element) => {
+        const gridElement = element.querySelector('.ui-footer-grid--standard');
+        const legalElement = element.querySelector('.ui-footer-legal-rhythm');
+        if (!(gridElement instanceof HTMLElement) || !(legalElement instanceof HTMLElement)) {
+          throw new Error('Footer rhythm elements are missing.');
+        }
+        const footerRect = element.getBoundingClientRect();
+        const gridRect = gridElement.getBoundingClientRect();
+        const legalRect = legalElement.getBoundingClientRect();
+        return {
+          gap: legalRect.top - gridRect.bottom,
+          bottom: footerRect.bottom - legalRect.bottom,
+        };
+      });
+      expectNear(rhythm.gap, 48, `${route} footer legal gap`);
+      expectNear(rhythm.bottom, 64, `${route} footer bottom rhythm`);
+    }
+    await page.goto('/property-management');
+    const compact = page.locator('.ui-footer-grid--compact');
+    expectNear(await elementWidth(compact), 1368, 'Property Management footer grid');
+    await expect(compact).toHaveCSS('min-height', '214px');
+    await expect(page.locator('.ui-footer-rhythm')).toHaveCSS('padding-bottom', '64px');
+  },
+);
+
 Then(
   'repeated section eyebrows use one borderless semantic role',
   async function (this: FrontendWorld) {

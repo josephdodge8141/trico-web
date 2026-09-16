@@ -1036,7 +1036,7 @@ function RealEstateBody(): React.JSX.Element {
             id="contact"
             className="re-section ui-section re-contact ui-contact ui-align-start"
           >
-            <div className="re-container ui-container re-contact-grid ui-contact-grid">
+            <div className="re-container ui-container re-contact-grid ui-contact-grid ui-contact-grid-standard">
               <div>
                 <Boundary id="real-estate.contact.header">
                   {(item) => {
@@ -1098,8 +1098,8 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
         </main>
-        <footer className="re-footer ui-footer ui-align-start">
-          <div className="re-container ui-container re-footer-grid ui-footer-grid">
+        <footer className="re-footer ui-footer ui-align-start ui-footer-rhythm">
+          <div className="re-container ui-container re-footer-grid ui-footer-grid ui-footer-grid--standard">
             <Boundary id="real-estate.footer.brand">
               {(item) => {
                 const brand = S.realEstateFooterBrandSchema.parse(item);
@@ -1151,7 +1151,7 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const legal = S.realEstateFooterLegalSchema.parse(item);
               return (
-                <p className="re-copyright ui-copyright">
+                <p className="re-copyright ui-copyright ui-footer-legal-rhythm">
                   © {new Date().getFullYear()} {legal.organizationName}. {legal.rightsNotice}
                 </p>
               );

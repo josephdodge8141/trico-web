@@ -233,7 +233,7 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
   const isBid = variant === 'bid';
   return (
     <form
-      className="co-form ui-form"
+      className={`co-form ui-form ui-client-form ${isBid ? 'ui-form-layout--wide' : 'ui-form-layout--standard'}`}
       onSubmit={(event) => {
         event.preventDefault();
         event.currentTarget.reset();
@@ -299,7 +299,10 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
           placeholder="Tell us about your construction project..."
         />
       </label>
-      <button className="co-button ui-button co-button-gold ui-button-gold" type="submit">
+      <button
+        className={`co-button ui-button co-button-gold ui-button-gold ui-submit-action ${isBid ? 'ui-submit-action--intrinsic' : 'ui-submit-action--full'}`}
+        type="submit"
+      >
         {isBid ? 'Request Your Bid' : 'Get Quote'} <ArrowRight aria-hidden="true" />
       </button>
       {sent ? (
@@ -798,7 +801,9 @@ function ConstructionBody(): React.JSX.Element {
                 titleClassName="type-section-title-compact"
               />
             </ObjectBoundary>
-            <ClientForm variant="bid" />
+            <div className="ui-form-surface ui-form-surface--wide ui-form-surface--on-dark">
+              <ClientForm variant="bid" />
+            </div>
           </div>
         </section>
 
@@ -906,7 +911,7 @@ function ConstructionBody(): React.JSX.Element {
           className="co-section ui-section co-contact ui-contact ui-align-start"
           id="contact"
         >
-          <div className="co-container ui-container co-contact-grid ui-contact-grid">
+          <div className="co-container ui-container co-contact-grid ui-contact-grid ui-contact-grid-standard">
             <div>
               <ObjectBoundary id="construction.contact.header" value={contactHeader}>
                 <Heading
@@ -964,15 +969,15 @@ function ConstructionBody(): React.JSX.Element {
                 </div>
               </ObjectBoundary>
             </div>
-            <div className="co-contact-form ui-contact-form">
+            <div className="co-contact-form ui-contact-form ui-form-surface ui-form-surface--standard">
               <h3 className="type-form-title">Request a Quote</h3>
               <ClientForm variant="contact" />
             </div>
           </div>
         </section>
       </main>
-      <footer className="co-footer ui-footer ui-align-start">
-        <div className="co-container ui-container co-footer-grid ui-footer-grid">
+      <footer className="co-footer ui-footer ui-align-start ui-footer-rhythm">
+        <div className="co-container ui-container co-footer-grid ui-footer-grid ui-footer-grid--standard">
           <ObjectBoundary id="construction.footer.brand" value={footerBrand}>
             <div>
               <img
@@ -1010,7 +1015,7 @@ function ConstructionBody(): React.JSX.Element {
           </ObjectBoundary>
         </div>
         <ObjectBoundary id="construction.footer.legal" value={footerLegal}>
-          <p className="co-legal ui-legal">
+          <p className="co-legal ui-legal ui-footer-legal-rhythm">
             © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>
         </ObjectBoundary>

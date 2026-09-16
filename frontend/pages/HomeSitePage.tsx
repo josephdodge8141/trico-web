@@ -474,7 +474,9 @@ function HomePageBody(): React.JSX.Element {
                 <p>{content.resumeIntro.description}</p>
               </header>
             </ObjectBoundary>
-            <HomeResumeForm />
+            <div className="ui-form-surface ui-form-surface--inquiry">
+              <HomeResumeForm />
+            </div>
           </div>
         </section>
 

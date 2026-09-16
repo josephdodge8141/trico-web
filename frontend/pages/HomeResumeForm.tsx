@@ -103,7 +103,11 @@ export function HomeResumeForm(): React.JSX.Element {
   }
 
   return (
-    <form className="home-resume-form ui-resume-form" noValidate onSubmit={submit}>
+    <form
+      className="home-resume-form ui-resume-form ui-client-form ui-form-layout--inquiry"
+      noValidate
+      onSubmit={submit}
+    >
       <div className="home-form-grid ui-form-grid">
         <label>
           <span>Full Name *</span>
@@ -228,7 +232,10 @@ export function HomeResumeForm(): React.JSX.Element {
           </small>
         )}
       </label>
-      <button className="home-submit-button ui-submit-button" type="submit">
+      <button
+        className="home-submit-button ui-submit-button ui-submit-action ui-submit-action--full"
+        type="submit"
+      >
         <Send aria-hidden="true" />
         Submit Resume
       </button>

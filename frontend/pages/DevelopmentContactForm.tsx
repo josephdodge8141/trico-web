@@ -18,9 +18,9 @@ export function DevelopmentContactForm(): React.JSX.Element {
     );
   }
   return (
-    <div className="dev-form-card ui-form-card">
+    <div className="dev-form-card ui-form-card ui-form-surface ui-form-surface--standard">
       <h3 className="type-form-title">Start Your Development Project</h3>
-      <form onSubmit={submit}>
+      <form className="ui-client-form ui-form-layout--standard" onSubmit={submit}>
         <div className="dev-field-grid ui-field-grid">
           <label>
             First Name *<input name="firstName" required placeholder="John" />
@@ -48,7 +48,7 @@ export function DevelopmentContactForm(): React.JSX.Element {
           />
         </label>
         <button
-          className="dev-button ui-button dev-primary ui-primary dev-wide ui-wide"
+          className="dev-button ui-button dev-primary ui-primary dev-wide ui-wide ui-submit-action ui-submit-action--full"
           type="submit"
         >
           Get Started <Send aria-hidden="true" />

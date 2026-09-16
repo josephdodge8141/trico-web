@@ -630,7 +630,7 @@ function DevelopmentBody(): React.JSX.Element {
           id="contact"
           className="dev-section ui-section dev-contact ui-contact ui-align-start"
         >
-          <div className="dev-container ui-container dev-contact-grid ui-contact-grid">
+          <div className="dev-container ui-container dev-contact-grid ui-contact-grid ui-contact-grid-standard">
             <div>
               <ObjectBoundary id="development.contact.header" value={contactHeader}>
                 <span className="dev-pill ui-pill ui-section-eyebrow">{contactHeader.eyebrow}</span>
@@ -679,7 +679,7 @@ function DevelopmentBody(): React.JSX.Element {
         </section>
       </main>
       <footer className="dev-footer ui-footer ui-align-start ui-footer-rhythm">
-        <div className="dev-container ui-container dev-footer-grid ui-footer-grid">
+        <div className="dev-container ui-container dev-footer-grid ui-footer-grid ui-footer-grid--standard">
           <ObjectBoundary id="development.footer.brand" value={footerBrand}>
             <div>
               <img
@@ -722,7 +722,7 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </div>
         <ObjectBoundary id="development.footer.legal" value={footerLegal}>
-          <p className="dev-copyright ui-copyright">
+          <p className="dev-copyright ui-copyright ui-footer-legal-rhythm">
             © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>
         </ObjectBoundary>

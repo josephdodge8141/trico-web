@@ -64,7 +64,7 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
             up within one business day.
           </p>
         </header>
-        <div className="pm-form-card ui-form-card">
+        <div className="pm-form-card ui-form-card ui-form-surface ui-form-surface--inquiry">
           {submitted ? (
             <div className="pm-form-success ui-form-success" role="status">
               <h3>Thanks for reaching out!</h3>
@@ -74,7 +74,12 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
               </button>
             </div>
           ) : (
-            <form aria-label="New client inquiry" noValidate onSubmit={submit}>
+            <form
+              className="ui-client-form ui-form-layout--inquiry"
+              aria-label="New client inquiry"
+              noValidate
+              onSubmit={submit}
+            >
               <div className="pm-form-grid ui-form-grid">
                 <label>
                   Full Name *<input name="name" maxLength={100} placeholder="Jane Smith" />
@@ -123,7 +128,7 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
                 />
               </label>
               <button
-                className="pm-button ui-button pm-button-primary ui-button-primary"
+                className="pm-button ui-button pm-button-primary ui-button-primary ui-submit-action ui-submit-action--full"
                 type="submit"
               >
                 Submit Inquiry
@@ -158,7 +163,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
     }
   };
   return (
-    <div className="pm-form-card ui-form-card pm-analysis-form ui-analysis-form">
+    <div className="pm-form-card ui-form-card pm-analysis-form ui-analysis-form ui-form-surface ui-form-surface--standard">
       <h3 className="type-form-title">Request Your Free Analysis</h3>
       {submitted ? (
         <div className="pm-form-success ui-form-success" role="status">
@@ -169,7 +174,12 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
           </button>
         </div>
       ) : (
-        <form aria-label="Free property analysis" noValidate onSubmit={submit}>
+        <form
+          className="ui-client-form ui-form-layout--standard"
+          aria-label="Free property analysis"
+          noValidate
+          onSubmit={submit}
+        >
           <div className="pm-form-grid ui-form-grid">
             <label>
               First Name *<input name="firstName" placeholder="John" />
@@ -205,7 +215,10 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
               placeholder="Tell us about your property and what you're looking for..."
             />
           </label>
-          <button className="pm-button ui-button pm-button-primary ui-button-primary" type="submit">
+          <button
+            className="pm-button ui-button pm-button-primary ui-button-primary ui-submit-action ui-submit-action--full"
+            type="submit"
+          >
             Get Free Analysis
           </button>
         </form>

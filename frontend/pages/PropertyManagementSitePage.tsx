@@ -853,7 +853,7 @@ function PropertyManagementBody(): React.JSX.Element {
           className="pm-section ui-section pm-contact ui-contact ui-align-start"
           id="contact"
         >
-          <div className="pm-container ui-container pm-contact-grid ui-contact-grid">
+          <div className="pm-container ui-container pm-contact-grid ui-contact-grid ui-contact-grid-standard">
             <div>
               <ObjectBoundary id="property-management.contact.header" value={contactHeader}>
                 <Heading value={contactHeader} />
@@ -924,8 +924,8 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="pm-footer ui-footer ui-align-start">
-        <div className="pm-container ui-container pm-footer-grid ui-footer-grid">
+      <footer className="pm-footer ui-footer ui-align-start ui-footer-rhythm">
+        <div className="pm-container ui-container pm-footer-grid ui-footer-grid ui-footer-grid--compact">
           <ObjectBoundary id="property-management.footer.brand" value={footerBrand}>
             <div className="pm-footer-brand ui-footer-brand">
               <img
@@ -966,7 +966,7 @@ function PropertyManagementBody(): React.JSX.Element {
           />
         </div>
         <ObjectBoundary id="property-management.footer.legal" value={footerLegal}>
-          <div className="pm-container ui-container pm-footer-legal ui-footer-legal">
+          <div className="pm-container ui-container pm-footer-legal ui-footer-legal ui-footer-legal-rhythm">
             <span>
               © {new Date().getFullYear()} {footerLegal.organizationName}.{' '}
               {footerLegal.rightsNotice}

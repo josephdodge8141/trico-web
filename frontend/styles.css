@@ -3488,6 +3488,73 @@
   .ui-contained-section {
     padding-inline: max(1rem, calc((100vw - 1368px) / 2));
   }
+  .ui-form-surface {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 2rem;
+    border: 1px solid var(--trico-color-border);
+    border-radius: 16px;
+    background: var(--trico-color-surface);
+    box-shadow: 0 4px 18px var(--trico-shadow-subtle);
+  }
+  .ui-form-surface--inquiry {
+    max-width: 768px;
+    margin-inline: auto;
+  }
+  .ui-form-surface--standard {
+    max-width: 652px;
+    margin-inline: auto;
+  }
+  .ui-form-surface--wide {
+    max-width: 896px;
+    margin-inline: auto;
+  }
+  .ui-form-surface--on-dark {
+    border-color: var(--trico-overlay-light-subtle);
+    background: var(--trico-overlay-light-subtle);
+  }
+  .ui-client-form {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .ui-form-layout--inquiry {
+    width: 100%;
+    max-width: 702px;
+    margin-inline: auto;
+  }
+  .ui-form-layout--standard {
+    width: 100%;
+    max-width: 586px;
+    margin-inline: auto;
+  }
+  .ui-form-layout--wide {
+    width: 100%;
+    max-width: 830px;
+    margin-inline: auto;
+  }
+  .ui-submit-action {
+    box-sizing: border-box;
+    height: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 20px;
+    padding: 0 32px;
+  }
+  .ui-submit-action--full {
+    width: 100%;
+  }
+  .ui-submit-action--intrinsic {
+    width: auto;
+    justify-self: start;
+  }
   .ui-heading-measure-standard {
     max-width: 48rem;
   }
@@ -3497,12 +3564,55 @@
   .ui-heading-rhythm .type-section-title + p {
     margin-top: 1.5rem;
   }
-  .ui-footer-rhythm .ui-copyright {
+  .ui-footer-rhythm .ui-copyright,
+  .ui-footer-rhythm .ui-footer-legal-rhythm {
     margin: 3rem auto 0;
     padding: 2rem 1rem 0;
   }
+  .ui-footer-rhythm :is(p, small).ui-footer-legal-rhythm {
+    display: block;
+  }
   .ui-card-padding-compact {
     padding: 1.875rem var(--trico-card-padding-compact);
+  }
+  @media (min-width: 1024px) {
+    .ui-contact-grid-standard {
+      box-sizing: border-box;
+      width: min(calc(100% - 2rem), 1368px);
+      margin-inline: auto;
+      padding-inline: 0;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 64px;
+    }
+    .ui-footer-rhythm {
+      padding: 64px 0;
+    }
+    .ui-footer-grid--standard,
+    .ui-footer-grid--compact {
+      box-sizing: border-box;
+      width: min(calc(100% - 2rem), 1368px);
+      margin-inline: auto;
+      gap: 48px;
+    }
+    .ui-footer-grid--standard {
+      min-height: 284px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .ui-footer-grid--compact {
+      min-height: 214px;
+    }
+    .ui-footer-rhythm .ui-footer-legal-rhythm {
+      box-sizing: border-box;
+      width: min(calc(100% - 2rem), 1368px);
+    }
+  }
+  @media (max-width: 767px) {
+    .ui-form-surface {
+      padding: 1.25rem;
+    }
+    .ui-submit-action {
+      margin-top: 0;
+    }
   }
   @media (min-width: 1024px) {
     .ui-viewport-hero {
