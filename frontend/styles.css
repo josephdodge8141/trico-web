@@ -3855,6 +3855,52 @@
     margin-block: 24px 32px;
     line-height: 24px;
   }
+  .ui-about-rhythm-reference .ui-about-eyebrow-reference {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 0 16px;
+    gap: normal;
+    color: rgb(135 161 197);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    border-width: 0;
+    border-radius: 9999px;
+    background: rgb(94 133 186 / 20%);
+  }
+  .ui-about-rhythm-reference .ui-about-title-reference {
+    margin: 0 0 24px;
+  }
+  .ui-about-rhythm-reference .ui-about-introduction-reference {
+    margin: 0 0 24px;
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .ui-about-rhythm-reference .ui-about-bridge-reference {
+    margin: 0 0 24px;
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .ui-about-rhythm-reference .ui-about-detail-reference {
+    margin: 0 0 24px;
+    line-height: 24px;
+  }
+  .ui-about-rhythm-reference .ui-about-conclusion-reference {
+    margin: 0 0 32px;
+    line-height: 24px;
+  }
+  .ui-about-rhythm-reference .ui-about-action-reference {
+    box-sizing: border-box;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 32px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    border-width: 0;
+    border-radius: 6px;
+  }
   .ui-feedback-footer {
     max-width: 672px;
     margin: 40px auto 0;

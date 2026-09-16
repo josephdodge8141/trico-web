@@ -405,14 +405,18 @@ function StorageBody(): React.JSX.Element {
                   {about.statLabel}
                 </aside>
               </div>
-              <div>
-                <span className="storage-pill ui-pill">{about.eyebrow}</span>
-                <h2 className="type-section-title">{about.heading}</h2>
-                <p>{about.introduction}</p>
-                <p className="storage-bridge ui-bridge">{about.bridge}</p>
-                <p>{about.detail}</p>
-                <p>{about.conclusion}</p>
-                <a href="#contact">{about.actionLabel}</a>
+              <div className="ui-about-rhythm-reference">
+                <span className="storage-pill ui-pill ui-about-eyebrow-reference">
+                  {about.eyebrow}
+                </span>
+                <h2 className="type-section-title ui-about-title-reference">{about.heading}</h2>
+                <p className="ui-about-introduction-reference">{about.introduction}</p>
+                <p className="storage-bridge ui-bridge ui-about-bridge-reference">{about.bridge}</p>
+                <p className="ui-about-detail-reference">{about.detail}</p>
+                <p className="ui-about-conclusion-reference">{about.conclusion}</p>
+                <a className="ui-about-action-reference" href="#contact">
+                  {about.actionLabel}
+                </a>
               </div>
             </div>
           </section>

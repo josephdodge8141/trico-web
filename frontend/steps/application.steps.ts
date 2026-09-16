@@ -2934,6 +2934,110 @@ Then(
   },
 );
 Then(
+  'Storage Our Why uses the measured desktop prose and action rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.reload();
+
+    const about = page.locator('.storage-about');
+    const layout = about.locator('.storage-about-layout');
+    const eyebrow = about.getByText('Why TriCo Storage', { exact: true });
+    const heading = about.getByRole('heading', { name: 'Our Why' });
+    const introduction = about.getByText(/We built our storage division to serve owners/);
+    const bridge = about.getByText('Our approach was designed to bridge that gap.', {
+      exact: true,
+    });
+    const detail = about.getByText(/We bring disciplined, performance driven management/);
+    const conclusion = about.getByText(/We believe storage management works best/);
+    const action = about.getByRole('link', { name: 'Partner With Us' });
+    const [aboutBox, layoutBox, introductionBox, actionBox] = await Promise.all([
+      about.boundingBox(),
+      layout.boundingBox(),
+      introduction.boundingBox(),
+      action.boundingBox(),
+    ]);
+    assert.ok(aboutBox && layoutBox && introductionBox && actionBox);
+    assert.ok(Math.abs(aboutBox.height - 724) <= 2, `Storage About height was ${aboutBox.height}`);
+    assert.ok(
+      Math.abs(layoutBox.height - 532) <= 2,
+      `Storage About layout height was ${layoutBox.height}`,
+    );
+    assert.ok(
+      Math.abs(introductionBox.height - 112) <= 2,
+      `Storage About introduction height was ${introductionBox.height}`,
+    );
+    assert.ok(
+      Math.abs(actionBox.height - 44) <= 1,
+      `Storage About action height was ${actionBox.height}`,
+    );
+
+    await expect(eyebrow).toHaveCSS('padding', '8px 16px');
+    await expect(eyebrow).toHaveCSS('margin-bottom', '16px');
+    await expect(heading).toHaveCSS('margin-bottom', '24px');
+    await expect(introduction).toHaveCSS('font-size', '18px');
+    await expect(introduction).toHaveCSS('line-height', '28px');
+    await expect(introduction).toHaveCSS('margin-bottom', '24px');
+    await expect(bridge).toHaveCSS('margin-bottom', '24px');
+    await expect(detail).toHaveCSS('margin-bottom', '24px');
+    await expect(conclusion).toHaveCSS('margin-bottom', '32px');
+    await expect(action).toHaveCSS('font-size', '14px');
+    await expect(action).toHaveCSS('font-weight', '500');
+    await expect(action).toHaveCSS('line-height', '20px');
+    await expect(action).toHaveCSS('padding-left', '32px');
+    await expect(action).toHaveCSS('padding-right', '32px');
+    await expect(action).toHaveCSS('margin-top', '0px');
+  },
+);
+Then(
+  'Storage Our Why preserves its geometry in edit mode without overflowing on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const publicGeometry = await page.locator('.storage-about').evaluate((section) => {
+      const layout = section.querySelector('.storage-about-layout');
+      if (!(layout instanceof HTMLElement)) throw new Error('Storage About layout was missing.');
+      return {
+        sectionHeight: section.getBoundingClientRect().height,
+        layoutHeight: layout.getBoundingClientRect().height,
+      };
+    });
+
+    await loginEditor(page);
+    await page.goto('/storage');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    const editGeometry = await page.locator('.storage-about').evaluate((section) => {
+      const layout = section.querySelector('.storage-about-layout');
+      if (!(layout instanceof HTMLElement)) throw new Error('Storage About layout was missing.');
+      return {
+        sectionHeight: section.getBoundingClientRect().height,
+        layoutHeight: layout.getBoundingClientRect().height,
+      };
+    });
+    assert.ok(Math.abs(editGeometry.sectionHeight - publicGeometry.sectionHeight) <= 1);
+    assert.ok(Math.abs(editGeometry.layoutHeight - publicGeometry.layoutHeight) <= 1);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const about = page.locator('.storage-about');
+    await about.scrollIntoViewIfNeeded();
+    const mobileGeometry = await about.evaluate((section) => {
+      const boxes = [section, ...section.querySelectorAll(':scope .storage-about-layout > *')].map(
+        (element) => element.getBoundingClientRect(),
+      );
+      return {
+        clientWidth: section.clientWidth,
+        scrollWidth: section.scrollWidth,
+        boxes: boxes.map(({ left, right }) => ({ left, right })),
+      };
+    });
+    assert.ok(mobileGeometry.scrollWidth <= mobileGeometry.clientWidth + 1);
+    assert.ok(
+      mobileGeometry.boxes.every(({ left, right }) => left >= -1 && right <= 391),
+      `Storage About overflowed mobile: ${JSON.stringify(mobileGeometry.boxes)}`,
+    );
+  },
+);
+Then(
   'all 18 Storage entities have an editable visual boundary',
   async function (this: FrontendWorld) {
     await expect(this.currentPage().locator('[data-storage-entity-boundary="true"]')).toHaveCount(
