@@ -3504,6 +3504,87 @@
   }
 }
 @layer utilities {
+  .ui-theme-storage {
+    --ui-division-primary: rgb(30 58 138);
+    --ui-division-primary-strong: rgb(30 64 175);
+    --ui-division-accent: rgb(59 130 246);
+    --ui-division-success: rgb(16 185 129);
+  }
+  .ui-theme-storage .ui-split-hero {
+    background: linear-gradient(
+      90deg,
+      var(--ui-division-primary) 0%,
+      var(--ui-division-primary) 50%,
+      var(--trico-color-surface-muted) 50%,
+      var(--trico-color-surface-muted) 100%
+    );
+  }
+  .ui-theme-storage .ui-services {
+    background: linear-gradient(
+      135deg,
+      rgb(30 58 138 / 10%),
+      rgb(243 244 246 / 50%),
+      rgb(30 58 138 / 5%)
+    );
+  }
+  .ui-theme-storage .ui-team {
+    background: linear-gradient(
+      135deg,
+      rgb(30 58 138 / 5%),
+      rgb(243 244 246 / 30%),
+      rgb(30 58 138 / 10%)
+    );
+  }
+  .ui-theme-storage :is(.ui-about, .ui-footer) {
+    background: linear-gradient(
+      135deg,
+      var(--ui-division-primary),
+      var(--trico-color-dark),
+      var(--ui-division-primary-strong)
+    );
+  }
+  .ui-theme-storage .ui-section-heading > span {
+    color: var(--ui-division-accent);
+    background: rgb(37 99 235 / 10%);
+  }
+  .ui-theme-storage .ui-service-card > span {
+    color: var(--ui-division-success);
+    background: rgb(16 185 129 / 10%);
+  }
+  .ui-theme-storage .ui-split-hero .ui-promise {
+    color: rgb(135 161 197);
+  }
+  .ui-theme-storage .ui-split-hero .ui-actions a:first-child,
+  .ui-theme-storage .ui-about a {
+    color: var(--trico-color-surface);
+    background: var(--trico-color-gold);
+  }
+  .ui-theme-storage .ui-split-hero .ui-actions a:nth-child(2) {
+    color: var(--trico-color-dark);
+    background: var(--trico-color-surface);
+  }
+  .ui-on-dark .type-section-title,
+  .ui-footer-copy-standard .type-footer-title {
+    color: var(--trico-color-surface);
+  }
+  .ui-theme-storage .ui-about .ui-bridge {
+    color: rgb(255 255 255 / 80%);
+    font-weight: 500;
+    line-height: 28px;
+  }
+  .ui-theme-storage .ui-about p:not(.ui-bridge),
+  .ui-footer-copy-standard :is(p, address, a, span) {
+    color: rgb(255 255 255 / 70%);
+  }
+  .ui-footer-copy-standard .type-footer-title {
+    margin: 0 0 1rem;
+    font-weight: 600;
+  }
+  .ui-footer-copy-standard .ui-footer-grid p {
+    margin-block: 0 1.5rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
   .ui-contained-section {
     padding-inline: max(1rem, calc((100vw - 1368px) / 2));
   }
@@ -3633,7 +3714,42 @@
   .ui-card-grid-roomy-start {
     padding-top: 1.5rem;
   }
+  .ui-service-grid-compact .editable-collection-items {
+    column-gap: 1.5rem;
+    row-gap: 2rem;
+  }
+  .ui-service-grid-compact .ui-service-card > span {
+    margin-bottom: 16px;
+  }
+  .ui-service-grid-compact .ui-service-card {
+    padding-bottom: 2.5rem;
+  }
+  .ui-service-grid-compact .ui-service-card .type-card-title {
+    margin: 6px 0 0;
+  }
   @media (min-width: 1024px) {
+    .ui-split-frame > .ui-hero-copy {
+      padding-inline: max(1rem, calc((100vw - 1368px) / 2));
+    }
+    .ui-split-grid-standard {
+      box-sizing: border-box;
+      width: min(calc(100% - 2rem), 1368px);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 48px;
+      margin-inline: auto;
+    }
+    .ui-profile-grid-four .editable-collection-items {
+      grid-template-columns: repeat(4, 316px);
+      justify-content: space-between;
+      gap: 0;
+    }
+    .ui-profile-grid-four .ui-team-card {
+      text-align: start;
+    }
+    .ui-profile-grid-four .ui-team-card img {
+      object-position: 50% 50%;
+    }
     .ui-content-frame-standard {
       box-sizing: border-box;
       width: min(calc(100% - 2rem), 1368px);

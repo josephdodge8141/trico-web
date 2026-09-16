@@ -188,11 +188,13 @@
   .storage-team-card p {
     margin: 0;
   }
-  .storage-about {
+  .storage-about-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
     gap: 5rem;
+  }
+  .storage-about {
     padding: 6rem max(1rem, calc((100vw - 1400px) / 2));
   }
   .storage-about-mark {
@@ -332,7 +334,7 @@
       grid-template-columns: 1fr;
       padding-top: 148px;
     }
-    .storage-about,
+    .storage-about-layout,
     .storage-contact {
       grid-template-columns: 1fr;
     }

@@ -626,18 +626,34 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const samples = [
-      { route: '/', selector: '.home-card-icon' },
-      { route: '/property-management', selector: '.pm-section-heading > span' },
-      { route: '/real-estate', selector: '.re-service-grid .re-card > svg:first-child' },
-      { route: '/construction', selector: '.co-heading > span' },
-      { route: '/storage', selector: '.storage-section-heading > span' },
-      { route: '/development', selector: '.dev-pill' },
+      { route: '/', selector: '.home-card-icon', expectedColor: 'rgb(94, 133, 186)' },
+      {
+        route: '/property-management',
+        selector: '.pm-section-heading > span',
+        expectedColor: 'rgb(94, 133, 186)',
+      },
+      {
+        route: '/real-estate',
+        selector: '.re-service-grid .re-card > svg:first-child',
+        expectedColor: 'rgb(94, 133, 186)',
+      },
+      {
+        route: '/construction',
+        selector: '.co-heading > span',
+        expectedColor: 'rgb(94, 133, 186)',
+      },
+      {
+        route: '/storage',
+        selector: '.storage-section-heading > span',
+        expectedColor: 'rgb(59, 130, 246)',
+      },
+      { route: '/development', selector: '.dev-pill', expectedColor: 'rgb(94, 133, 186)' },
     ] as const;
     for (const sample of samples) {
       await page.goto(sample.route);
       const target = page.locator(sample.selector).first();
       await expect(target).toBeAttached();
-      await expect(target).toHaveCSS('color', 'rgb(94, 133, 186)');
+      await expect(target).toHaveCSS('color', sample.expectedColor);
     }
   },
 );
@@ -2405,6 +2421,77 @@ Then(
         `Storage service row ${String(index + 1)} title offset was ${offset}`,
       );
     });
+  },
+);
+Then(
+  'Storage uses its frozen theme frames portrait cards and text roles',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.reload();
+
+    const heroHeading = page.getByRole('heading', {
+      name: 'Maximize Your Storage Facility Profitability',
+    });
+    const heroPrimary = page.locator('.storage-actions a').first();
+    const heroSecondary = page.locator('.storage-actions a').nth(1);
+    const about = page.locator('.storage-about');
+    const aboutLayout = about.locator('.storage-about-layout');
+    const aboutHeading = about.getByRole('heading', { name: 'Our Why' });
+    const aboutLead = about.getByText('Our approach was designed to bridge that gap.');
+    const aboutAction = about.getByRole('link', { name: 'Partner With Us' });
+    const [heroHeadingBox, aboutBox] = await Promise.all([
+      heroHeading.boundingBox(),
+      aboutLayout.boundingBox(),
+    ]);
+    assert.ok(heroHeadingBox && aboutBox);
+    assert.ok(
+      Math.abs(heroHeadingBox.x - 72) <= 2,
+      `Storage hero heading x was ${heroHeadingBox.x}`,
+    );
+    assert.ok(
+      Math.abs(aboutBox.width - 1368) <= 2,
+      `Storage about frame width was ${aboutBox.width}`,
+    );
+    await expect(aboutLayout).toHaveCSS('column-gap', '48px');
+
+    await expect(heroPrimary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+    await expect(heroPrimary).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(heroSecondary).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(aboutHeading).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(aboutLead).toHaveCSS('color', 'rgba(255, 255, 255, 0.8)');
+    await expect(aboutLead).toHaveCSS('font-weight', '500');
+    await expect(aboutAction).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+    await expect(aboutAction).toHaveCSS('color', 'rgb(255, 255, 255)');
+
+    const serviceGrid = page.locator('.storage-services .editable-collection-items');
+    const firstService = serviceGrid.locator('.storage-service-card').first();
+    await expect(serviceGrid).toHaveCSS('column-gap', '24px');
+    await expect(serviceGrid).toHaveCSS('row-gap', '32px');
+    await expect(firstService.locator(':scope > span')).toHaveCSS('color', 'rgb(16, 185, 129)');
+    await expect(firstService.getByRole('heading')).toHaveCSS('margin-top', '6px');
+    await expect(firstService.getByRole('heading')).toHaveCSS('margin-bottom', '0px');
+
+    const portraits = page.locator('.storage-team-card img');
+    await expect(portraits).toHaveCount(4);
+    for (const portrait of await portraits.all()) {
+      const box = await portrait.boundingBox();
+      assert.ok(box);
+      assert.ok(Math.abs(box.width - 316) <= 2, `Storage portrait width was ${box.width}`);
+      assert.ok(Math.abs(box.height - 316) <= 2, `Storage portrait height was ${box.height}`);
+      await expect(portrait).toHaveCSS('object-position', '50% 50%');
+    }
+    await expect(page.locator('.storage-team-card').first()).toHaveCSS('text-align', 'start');
+
+    const footer = page.locator('.storage-footer');
+    const footerTitle = footer.getByRole('heading', { name: 'Quick Links' });
+    const footerCopy = footer.locator('.storage-footer-grid p').first();
+    await expect(footerTitle).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(footerTitle).toHaveCSS('font-weight', '600');
+    await expect(footerTitle).toHaveCSS('margin-bottom', '16px');
+    await expect(footerCopy).toHaveCSS('font-size', '16px');
+    await expect(footerCopy).toHaveCSS('line-height', '24px');
+    await expect(footerCopy).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
   },
 );
 Then(

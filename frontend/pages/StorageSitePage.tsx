@@ -241,7 +241,7 @@ function StorageBody(): React.JSX.Element {
   const branding = value('storage.footer.branding-options', storageFooterBrandingOptionsSchema);
   const legal = value('storage.footer.legal', storageFooterLegalSchema);
   return (
-    <div className="storage-page ui-page">
+    <div className="storage-page ui-page ui-theme-storage">
       <a className="skip-link" href="#storage-main">
         Skip to main content
       </a>
@@ -290,7 +290,7 @@ function StorageBody(): React.JSX.Element {
       ) : null}
       <main id="storage-main">
         <ObjectBoundary id="storage.hero" value={hero}>
-          <section className="storage-hero ui-hero ui-split-hero ui-viewport-hero">
+          <section className="storage-hero ui-hero ui-split-hero ui-split-frame ui-on-dark ui-viewport-hero">
             <div className="storage-hero-copy ui-hero-copy">
               <div className="storage-badges ui-badges">
                 <span>
@@ -339,7 +339,7 @@ function StorageBody(): React.JSX.Element {
         </ObjectBoundary>
         <section
           id="services"
-          className="storage-section ui-section ui-contained-section storage-services ui-services"
+          className="storage-section ui-section ui-contained-section storage-services ui-services ui-service-grid-compact"
         >
           <ObjectBoundary id="storage.services.header" value={servicesHeader}>
             <SectionHeading
@@ -366,7 +366,10 @@ function StorageBody(): React.JSX.Element {
             }}
           />
         </section>
-        <section id="team" className="storage-section ui-section storage-team ui-team">
+        <section
+          id="team"
+          className="storage-section ui-section ui-contained-section storage-team ui-team ui-profile-grid-four"
+        >
           <ObjectBoundary id="storage.team.header" value={teamHeader}>
             <SectionHeading value={teamHeader} titleClassName="type-section-title-large" />
           </ObjectBoundary>
@@ -392,23 +395,25 @@ function StorageBody(): React.JSX.Element {
           />
         </section>
         <ObjectBoundary id="storage.about" value={about}>
-          <section id="about" className="storage-about ui-about">
-            <div className="storage-about-mark ui-about-mark">
-              <strong>TriCo</strong>
-              <span>Storage Management</span>
-              <aside>
-                <b>{about.statValue}</b>
-                {about.statLabel}
-              </aside>
-            </div>
-            <div>
-              <span className="storage-pill ui-pill">{about.eyebrow}</span>
-              <h2 className="type-section-title">{about.heading}</h2>
-              <p>{about.introduction}</p>
-              <p className="storage-bridge ui-bridge">{about.bridge}</p>
-              <p>{about.detail}</p>
-              <p>{about.conclusion}</p>
-              <a href="#contact">{about.actionLabel}</a>
+          <section id="about" className="storage-about ui-about ui-on-dark">
+            <div className="storage-about-layout ui-split-grid-standard">
+              <div className="storage-about-mark ui-about-mark">
+                <strong>TriCo</strong>
+                <span>Storage Management</span>
+                <aside>
+                  <b>{about.statValue}</b>
+                  {about.statLabel}
+                </aside>
+              </div>
+              <div>
+                <span className="storage-pill ui-pill">{about.eyebrow}</span>
+                <h2 className="type-section-title">{about.heading}</h2>
+                <p>{about.introduction}</p>
+                <p className="storage-bridge ui-bridge">{about.bridge}</p>
+                <p>{about.detail}</p>
+                <p>{about.conclusion}</p>
+                <a href="#contact">{about.actionLabel}</a>
+              </div>
             </div>
           </section>
         </ObjectBoundary>
@@ -488,7 +493,7 @@ function StorageBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="storage-footer ui-footer ui-align-start ui-footer-rhythm">
+      <footer className="storage-footer ui-footer ui-align-start ui-on-dark ui-footer-rhythm ui-footer-copy-standard">
         <div className="storage-footer-grid ui-footer-grid ui-footer-grid--standard">
           <ObjectBoundary id="storage.footer.brand" value={footerBrand}>
             <div>
