@@ -65,7 +65,7 @@ export const realEstateV2SeedData = {
   'real-estate.listings.header': heading(
     'Our Listings',
     'Featured Properties',
-    'Browse current commercial properties, land listings, and recently completed transactions across Utah.',
+    'Browse our current commercial properties, land listings, and recently completed transactions across Utah.',
   ),
   'real-estate.listings.items': [
     [
@@ -76,6 +76,7 @@ export const realEstateV2SeedData = {
       'Land',
       'active',
       'whisper-hollow-lot-119.jpg',
+      '2019235',
       'https://www.utahrealestate.com/2019235',
     ],
     [
@@ -86,6 +87,7 @@ export const realEstateV2SeedData = {
       'Land',
       'active',
       'whisper-hollow-lot-boxwood.jpg',
+      '2019250',
       'https://www.utahrealestate.com/2019250',
     ],
     [
@@ -96,6 +98,7 @@ export const realEstateV2SeedData = {
       'Land',
       'active',
       'whisper-hollow-lot-105.jpg',
+      '2019286',
       'https://www.utahrealestate.com/2019286',
     ],
     [
@@ -106,6 +109,7 @@ export const realEstateV2SeedData = {
       'Commercial',
       'active',
       'real-estate-property-1.jpeg',
+      '',
       'https://www.loopnet.com/Listing/9853-S-700-E-Sandy-UT/37111521/',
     ],
     [
@@ -116,6 +120,7 @@ export const realEstateV2SeedData = {
       'Commercial',
       'active',
       'real-estate-property-2.jpeg',
+      '',
       'https://www.loopnet.com/Listing/2560-E-3300-S-Salt-Lake-City-UT/39291246/',
     ],
     [
@@ -127,6 +132,7 @@ export const realEstateV2SeedData = {
       'sold',
       'boxwood-dr-exterior.jpg',
       '',
+      '',
     ],
     [
       '2200 State St',
@@ -136,6 +142,7 @@ export const realEstateV2SeedData = {
       'Commercial Office',
       'sold',
       'real-estate-property-1.jpeg',
+      '',
       '',
     ],
     [
@@ -147,6 +154,7 @@ export const realEstateV2SeedData = {
       'sold',
       'whisper-hollow-lot-105.jpg',
       '',
+      '',
     ],
     [
       'LOT 109 — Boxwood Dr',
@@ -156,6 +164,7 @@ export const realEstateV2SeedData = {
       'Residential',
       'sold',
       'whisper-hollow-lot-boxwood.jpg',
+      '',
       '',
     ],
     [
@@ -167,12 +176,14 @@ export const realEstateV2SeedData = {
       'sold',
       'real-estate-property-2.jpeg',
       '',
+      '',
     ],
-  ].map(([address, city, price, detail, type, status, image, externalUrl], n) => ({
+  ].map(([address, city, price, detail, type, status, image, mlsNumber, externalUrl], n) => ({
     id: itemId('real-estate.listings.items', n),
     address: address ?? 'New listing',
     city: city ?? 'Draper, UT',
     price: price ?? 'Contact for details',
+    mlsNumber: mlsNumber ?? '',
     detail: detail ?? 'Property details',
     type: type ?? 'Property',
     status: status === 'active' ? ('active' as const) : ('sold' as const),
@@ -210,7 +221,7 @@ export const realEstateV2SeedData = {
               imageAltText: `${address ?? 'Property'} photo ${String(galleryIndex + 1)}`,
             }))
           : [],
-    actionLabel: status === 'active' ? 'View listing' : '',
+    actionLabel: status === 'active' ? (mlsNumber ? 'View on MLS' : 'View on LoopNet') : '',
     externalUrl: externalUrl ?? '',
   })),
   'real-estate.listings.actions': {
@@ -270,14 +281,29 @@ export const realEstateV2SeedData = {
   'real-estate.process.header': heading(
     'Our Process',
     'Your Path to Success',
-    'A clear, collaborative approach keeps your priorities at the center of every decision.',
+    'Our proven process ensures a seamless experience from initial consultation to closing and beyond.',
   ),
   'real-estate.process.steps': [
-    ['Discovery & Consultation', 'We begin by understanding your goals, timeline, and budget.'],
-    ['Market Analysis', 'We evaluate the market and identify opportunities.'],
-    ['Negotiation & Transaction', 'We negotiate the best terms and guide every detail.'],
-    ['Closing & Transfer', 'We coordinate a smooth transfer of ownership.'],
-    ['Ongoing Support', 'We remain a resource after closing.'],
+    [
+      'Discovery & Consultation',
+      'We begin by understanding your goals, timeline, and budget to create a customized strategy that aligns with your real estate objectives.',
+    ],
+    [
+      'Market Analysis',
+      'Our team conducts thorough market research and property evaluations to identify opportunities and ensure informed decision-making.',
+    ],
+    [
+      'Negotiation & Transaction',
+      'Leveraging decades of experience, we negotiate the best terms and guide you through every step of the transaction process.',
+    ],
+    [
+      'Closing & Transfer',
+      'We coordinate all closing details, ensuring a smooth transfer of ownership with attention to every legal and financial requirement.',
+    ],
+    [
+      'Ongoing Support',
+      "Our relationship doesn't end at closing. We provide continued support, market updates, and guidance for your future real estate needs.",
+    ],
   ].map(([title, description], n) => ({
     id: itemId('real-estate.process.steps', n),
     number: String(n + 1).padStart(2, '0'),
@@ -446,20 +472,37 @@ export const realEstateV2SeedData = {
   'real-estate.faq.header': heading(
     'FAQ',
     'Common Questions',
-    'Answers to frequently asked questions about our services and process.',
+    'Find answers to frequently asked questions about our real estate services and process.',
   ),
   'real-estate.faq.items': [
-    'What areas does TriCo Real Estate serve?',
-    'How does TriCo approach property listings?',
-    'What types of commercial properties do you handle?',
-    'Can TriCo help with land development projects?',
-    'What sets TriCo apart?',
-    'How do I get started?',
-  ].map((question, n) => ({
+    [
+      'What areas does TriCo Real Estate serve?',
+      'TriCo Real Estate primarily serves the greater Salt Lake City area, including Utah County, Davis County, and Summit County. We also handle select properties throughout Utah and have expanded into Arizona and Idaho markets.',
+    ],
+    [
+      'How does TriCo approach property listings?',
+      'We create customized marketing strategies for each property, including professional photography, virtual tours, targeted digital advertising, and leveraging our extensive network of buyers and investors. Our goal is maximum exposure to qualified buyers.',
+    ],
+    [
+      'What types of commercial properties do you handle?',
+      'We specialize in all commercial property types including office buildings, retail centers, industrial facilities, multi-family apartments, and mixed-use developments. Our team has deep experience in each sector.',
+    ],
+    [
+      'Can TriCo help with land development projects?',
+      "Absolutely. We offer comprehensive land development services from site selection and due diligence through entitlement, construction coordination, and sales. We've successfully completed numerous residential and commercial development projects.",
+    ],
+    [
+      'What sets TriCo apart from other real estate firms?',
+      'With 40+ years of local experience, we combine deep market knowledge with personalized service. Our integrated approach—offering real estate, property management, and construction under one roof—provides unique value to our clients.',
+    ],
+    [
+      'How do I get started with TriCo Real Estate?',
+      "Simply contact us for a free consultation. We'll discuss your goals, timeline, and requirements to create a customized strategy. Whether you're buying, selling, leasing, or developing, we're here to guide you through the process.",
+    ],
+  ].map(([question, answer], n) => ({
     id: itemId('real-estate.faq.items', n),
-    question,
-    answer:
-      'Our experienced team will discuss your needs and create a strategy around your goals and timeline.',
+    question: question ?? 'New question',
+    answer: answer ?? 'Add an answer.',
   })),
   'real-estate.reviews.header': heading(
     'We’d Love Your Feedback',

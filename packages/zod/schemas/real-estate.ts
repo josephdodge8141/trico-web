@@ -55,6 +55,7 @@ export const realEstateListingSchema = z.strictObject({
   address: text(200),
   city: text(120),
   price: text(80),
+  mlsNumber: optional(40),
   detail: text(120),
   type: text(100),
   status: z.enum(['active', 'sold']),
@@ -421,6 +422,7 @@ export const realEstateEntityDefinitions = [
       address: 'New listing',
       city: 'Draper, UT',
       price: 'Contact for details',
+      mlsNumber: '',
       detail: 'Property details',
       type: 'Property',
       status: 'active',
@@ -435,9 +437,10 @@ export const realEstateEntityDefinitions = [
       field(['address'], 'Address', 1, short(200)),
       field(['city'], 'City', 2, short(120)),
       field(['price'], 'Price', 3, short(80)),
-      field(['detail'], 'Property detail', 4, short(120)),
-      field(['type'], 'Property type', 5, short(100)),
-      field(['status'], 'Status', 6, {
+      field(['mlsNumber'], 'MLS number', 4, short(40), false),
+      field(['detail'], 'Property detail', 5, short(120)),
+      field(['type'], 'Property type', 6, short(100)),
+      field(['status'], 'Status', 7, {
         type: 'enum',
         display: 'radio',
         choices: [
@@ -445,9 +448,9 @@ export const realEstateEntityDefinitions = [
           { value: 'sold', label: 'Sold' },
         ],
       }),
-      field(['image'], 'Photo', 7, media('imageAltText')),
-      field(['imageAltText'], 'Photo description', 8, short(200)),
-      field(['gallery'], 'Photo gallery', 9, {
+      field(['image'], 'Photo', 8, media('imageAltText')),
+      field(['imageAltText'], 'Photo description', 9, short(200)),
+      field(['gallery'], 'Photo gallery', 10, {
         type: 'nested-collection',
         itemLabel: 'Gallery photo',
         addLabel: 'Add gallery photo',
@@ -464,8 +467,8 @@ export const realEstateEntityDefinitions = [
           leafField(['imageAltText'], 'Photo description', 2, short(200)),
         ],
       }),
-      field(['actionLabel'], 'Button label', 10, short(80), false),
-      field(['externalUrl'], 'Listing website', 11, externalLink(), false),
+      field(['actionLabel'], 'Button label', 11, short(80), false),
+      field(['externalUrl'], 'Listing website', 12, externalLink(), false),
     ],
   ),
   object('real-estate.listings.actions', 'Listing actions', realEstateListingsActionsSchema, [

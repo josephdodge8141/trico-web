@@ -25,6 +25,50 @@ test('Real Estate service seed preserves the complete legacy-visible description
   );
 });
 
+test('Real Estate listing process and FAQ seeds preserve strict mounted semantics', () => {
+  const listings = realEstateV2SeedData['real-estate.listings.items'];
+  assert.deepEqual(
+    listings.slice(0, 5).map(({ mlsNumber }) => mlsNumber),
+    ['2019235', '2019250', '2019286', '', ''],
+  );
+  assert.equal(
+    realEstateListingsItemsSchema.safeParse([
+      { ...listings[0], unsupportedListingField: 'not allowed' },
+    ]).success,
+    false,
+  );
+  const listingDefinition = realEstateEntityDefinitions.find(
+    ({ id }) => id === 'real-estate.listings.items',
+  );
+  assert.equal(listingDefinition?.editor.kind, 'list');
+  assert.equal(
+    listingDefinition?.editor.kind === 'list'
+      ? listingDefinition.editor.groups.some(({ fields }) =>
+          fields.some(({ path }) => path.join('.') === 'mlsNumber'),
+        )
+      : false,
+    true,
+  );
+  assert.deepEqual(
+    realEstateV2SeedData['real-estate.process.steps'].map(({ description }) => description),
+    [
+      'We begin by understanding your goals, timeline, and budget to create a customized strategy that aligns with your real estate objectives.',
+      'Our team conducts thorough market research and property evaluations to identify opportunities and ensure informed decision-making.',
+      'Leveraging decades of experience, we negotiate the best terms and guide you through every step of the transaction process.',
+      'We coordinate all closing details, ensuring a smooth transfer of ownership with attention to every legal and financial requirement.',
+      "Our relationship doesn't end at closing. We provide continued support, market updates, and guidance for your future real estate needs.",
+    ],
+  );
+  assert.equal(
+    realEstateV2SeedData['real-estate.faq.header'].description,
+    'Find answers to frequently asked questions about our real estate services and process.',
+  );
+  assert.equal(
+    new Set(realEstateV2SeedData['real-estate.faq.items'].map(({ answer }) => answer)).size,
+    6,
+  );
+});
+
 test('Real Estate supporting seeds preserve the complete mounted semantic content', () => {
   assert.deepEqual(
     [

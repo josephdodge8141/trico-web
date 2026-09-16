@@ -965,7 +965,7 @@ Then(
         page: '.re-page',
         section: '.re-section',
         heading: '.re-section-heading',
-        headingMargin: '64px',
+        headingMargin: '48px',
       },
       {
         route: '/property-management',
@@ -1753,7 +1753,7 @@ Then(
           route: '/real-estate',
           section: '.re-section',
           heading: '.re-section-heading',
-          measuredHeadingGap: undefined,
+          measuredHeadingGap: '48px',
         },
         {
           route: '/property-management',
@@ -2211,6 +2211,139 @@ Then(
       assert.ok(Math.abs(itemsBox.x - collectionBox.x) <= 1);
       assert.ok(Math.abs(itemsBox.width - collectionBox.width) <= 1);
     }
+  },
+);
+Then(
+  'Real Estate listings process and FAQ match their mounted desktop contracts',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.goto('/real-estate');
+    await page.evaluate(() => document.fonts.ready);
+    const roundedBox = async (
+      selector: string,
+    ): Promise<{ x: number; y: number; width: number; height: number }> => {
+      const bounds = await page.locator(selector).first().boundingBox();
+      assert.ok(bounds);
+      return {
+        x: Math.round(bounds.x),
+        y: Math.round(bounds.y),
+        width: Math.round(bounds.width),
+        height: Math.round(bounds.height),
+      };
+    };
+
+    const listings = await roundedBox('#listings');
+    const gallery = await roundedBox('#listings > .re-container > .re-listings-gallery');
+    const tabs = await roundedBox('#listings .re-tabs');
+    const activeTab = await roundedBox('#listings .re-tabs button[aria-selected="true"]');
+    const listingGrid = await roundedBox('#listings .re-listing-grid');
+    const firstListing = await roundedBox('#listings .re-listing');
+    const firstPhoto = await roundedBox('#listings .re-listing-photo');
+    const firstBody = await roundedBox('#listings .re-listing-body');
+    const firstAction = await roundedBox('#listings .re-listing-action');
+    assert.deepEqual(
+      {
+        sectionHeight: listings.height,
+        gallery: { x: gallery.x, width: gallery.width },
+        tabs: { x: tabs.x, width: tabs.width, height: tabs.height },
+        activeTab: { width: activeTab.width, height: activeTab.height },
+        grid: { x: listingGrid.x, width: listingGrid.width, height: listingGrid.height },
+        gridGap: await page
+          .locator('#listings .re-listing-grid .editable-collection-items')
+          .evaluate((element) => getComputedStyle(element).columnGap),
+        firstListing: { width: firstListing.width, height: firstListing.height },
+        firstPhoto: { width: firstPhoto.width, height: firstPhoto.height },
+        firstBody: { width: firstBody.width, height: firstBody.height },
+        listingReference: await page.locator('.ui-listing-reference').first().innerText(),
+        firstAction: { width: firstAction.width, height: firstAction.height },
+      },
+      {
+        sectionHeight: 1604,
+        gallery: { x: 180, width: 1152 },
+        tabs: { x: 599, width: 315, height: 40 },
+        activeTab: { width: 186, height: 32 },
+        grid: { x: 180, width: 1152, height: 916 },
+        gridGap: '32px',
+        firstListing: { width: 363, height: 479 },
+        firstPhoto: { width: 361, height: 270 },
+        firstBody: { width: 361, height: 206 },
+        listingReference: 'MLS# 2019235',
+        firstAction: { width: 134, height: 36 },
+      },
+    );
+
+    const process = await roundedBox('#process');
+    const processTimeline = await roundedBox('#process .re-process');
+    const processCards = await page
+      .locator('#process .re-process article > div')
+      .evaluateAll((elements) =>
+        elements.map((element) => {
+          const bounds = element.getBoundingClientRect();
+          const heading = element.querySelector('h3')?.getBoundingClientRect();
+          return {
+            x: Math.round(bounds.x),
+            width: Math.round(bounds.width),
+            articleHeight: Math.round(element.parentElement?.getBoundingClientRect().height ?? 0),
+            contentX: Math.round(heading?.x ?? 0),
+            contentWidth: Math.round(heading?.width ?? 0),
+          };
+        }),
+      );
+    assert.deepEqual(
+      {
+        sectionHeight: process.height,
+        timeline: { x: processTimeline.x, width: processTimeline.width },
+        cards: processCards,
+        descriptions: await page.locator('#process article p').allTextContents(),
+      },
+      {
+        sectionHeight: 1526,
+        timeline: { x: 72, width: 1368 },
+        cards: [
+          { x: 72, width: 620, articleHeight: 218, contentX: 105, contentWidth: 554 },
+          { x: 820, width: 620, articleHeight: 218, contentX: 853, contentWidth: 554 },
+          { x: 72, width: 620, articleHeight: 218, contentX: 105, contentWidth: 554 },
+          { x: 820, width: 620, articleHeight: 218, contentX: 853, contentWidth: 554 },
+          { x: 72, width: 620, articleHeight: 218, contentX: 105, contentWidth: 554 },
+        ],
+        descriptions: [
+          'We begin by understanding your goals, timeline, and budget to create a customized strategy that aligns with your real estate objectives.',
+          'Our team conducts thorough market research and property evaluations to identify opportunities and ensure informed decision-making.',
+          'Leveraging decades of experience, we negotiate the best terms and guide you through every step of the transaction process.',
+          'We coordinate all closing details, ensuring a smooth transfer of ownership with attention to every legal and financial requirement.',
+          "Our relationship doesn't end at closing. We provide continued support, market updates, and guidance for your future real estate needs.",
+        ],
+      },
+    );
+
+    const faq = await roundedBox('#faq');
+    const faqHeading = await roundedBox('#faq .re-section-heading');
+    const faqItems = await roundedBox('#faq .re-faqs');
+    assert.deepEqual(
+      {
+        sectionHeight: faq.height,
+        items: { x: faqItems.x, width: faqItems.width, height: faqItems.height },
+        headingGap: faqItems.y - (faqHeading.y + faqHeading.height),
+        rowHeights: await page
+          .locator('#faq details')
+          .evaluateAll((elements) =>
+            elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+          ),
+        summaryHeights: await page
+          .locator('#faq summary')
+          .evaluateAll((elements) =>
+            elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+          ),
+      },
+      {
+        sectionHeight: 820,
+        items: { x: 372, width: 768, height: 428 },
+        headingGap: 48,
+        rowHeights: [58, 58, 58, 58, 58, 58],
+        summaryHeights: [56, 56, 56, 56, 56, 56],
+      },
+    );
   },
 );
 Then(
