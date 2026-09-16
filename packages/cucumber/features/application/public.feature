@@ -110,6 +110,14 @@ Feature: Published TriCo website
     Then Development partners use the frozen desktop composition
     And Development partners remain contained on mobile
 
+  @id:public.development-about-composition @backend-noop
+  Scenario: Preserve the Development About composition
+    backend-noop: Development About geometry and responsive editor-wrapper presentation are browser-owned visual behavior.
+    Given the current content manifest is available
+    When I open "/development"
+    Then Development About uses the frozen desktop composition
+    And Development About remains contained with transparent editor wrappers on mobile
+
   @id:public.shared-form-footer-geometry @backend-noop
   Scenario: Keep client forms actions and division footers on one shared geometry contract
     backend-noop: Form, action, contact-grid, and footer geometry are browser-owned presentation behavior.

@@ -1434,6 +1434,54 @@ Then('Development partners remain contained on mobile', async function (this: Fr
   assert.equal(columns.length, 2);
 });
 
+Then('Development About uses the frozen desktop composition', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.evaluate(() => document.fonts.ready);
+  const section = page.locator('#about');
+  const grid = section.locator('.dev-about-grid');
+  const [sectionBox, gridBox] = await Promise.all([section.boundingBox(), grid.boundingBox()]);
+  assert.ok(sectionBox && gridBox);
+  assert.ok(Math.abs(sectionBox.height - 744) <= 2, `About section was ${sectionBox.height}px`);
+  assert.ok(Math.abs(gridBox.width - 1152) <= 1, `About grid was ${gridBox.width}px wide`);
+  assert.ok(Math.abs(gridBox.height - 552) <= 2, `About grid was ${gridBox.height}px tall`);
+  await expect(grid).toHaveCSS('column-gap', '48px');
+  await expect(grid).toHaveCSS('grid-template-columns', '552px 552px');
+});
+
+Then(
+  'Development About remains contained with transparent editor wrappers on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const section = page.locator('#about');
+    const grid = section.locator('.dev-about-grid');
+    const geometry = await section.evaluate((element) => {
+      const gridElement = element.querySelector('.dev-about-grid');
+      if (!(gridElement instanceof HTMLElement)) throw new Error('About grid is missing.');
+      const sectionRect = element.getBoundingClientRect();
+      const gridRect = gridElement.getBoundingClientRect();
+      return {
+        documentWidth: document.documentElement.scrollWidth,
+        gridLeft: gridRect.left,
+        gridRight: gridRect.right,
+        sectionLeft: sectionRect.left,
+        sectionRight: sectionRect.right,
+      };
+    });
+    assert.equal(geometry.documentWidth, 390);
+    assert.ok(geometry.sectionLeft >= 0 && geometry.sectionRight <= 390);
+    assert.ok(geometry.gridLeft >= 0 && geometry.gridRight <= 390);
+    await expect(grid).toHaveCSS('grid-template-columns', '358px');
+    const wrappers = grid.locator(
+      '.dev-entity-slot, [data-entity-boundary="true"], .editable-collection-items',
+    );
+    assert.ok((await wrappers.count()) > 0);
+    for (const wrapper of await wrappers.all())
+      await expect(wrapper).toHaveCSS('display', 'contents');
+  },
+);
+
 Then(
   'Home uses the frozen desktop content frame and section rhythm',
   async function (this: FrontendWorld) {
