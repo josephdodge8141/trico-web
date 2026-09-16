@@ -849,7 +849,10 @@ function PropertyManagementBody(): React.JSX.Element {
             </ObjectBoundary>
           </div>
         </section>
-        <section className="pm-section ui-section pm-contact ui-contact" id="contact">
+        <section
+          className="pm-section ui-section pm-contact ui-contact ui-align-start"
+          id="contact"
+        >
           <div className="pm-container ui-container pm-contact-grid ui-contact-grid">
             <div>
               <ObjectBoundary id="property-management.contact.header" value={contactHeader}>
@@ -921,7 +924,7 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="pm-footer ui-footer">
+      <footer className="pm-footer ui-footer ui-align-start">
         <div className="pm-container ui-container pm-footer-grid ui-footer-grid">
           <ObjectBoundary id="property-management.footer.brand" value={footerBrand}>
             <div className="pm-footer-brand ui-footer-brand">

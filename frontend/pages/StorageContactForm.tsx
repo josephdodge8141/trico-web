@@ -14,7 +14,7 @@ export function StorageContactForm(): React.JSX.Element {
         setSubmitted(true);
       }}
     >
-      <h3>Request a Consultation</h3>
+      <h3 className="type-form-title">Request a Consultation</h3>
       <div className="storage-form-row ui-form-row">
         <label>
           First Name *<input name="firstName" required placeholder="John" />

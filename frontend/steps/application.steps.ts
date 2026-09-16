@@ -676,6 +676,22 @@ Then(
     await expect(page.locator('.dev-brand strong')).toHaveCSS('color', 'rgb(134, 98, 45)');
   },
 );
+Then(
+  'Construction sector actions use the shared slate blue action role',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.goto('/construction');
+    const actions = page.locator(
+      '#projects .ui-sector > span, #completed-projects .ui-sector > span',
+    );
+    await expect(actions).toHaveCount(16);
+    for (const action of await actions.all()) {
+      await expect(action).toHaveCSS('color', 'rgb(94, 133, 186)');
+      await expect(action).toHaveCSS('font-weight', '500');
+      await expect(action).toHaveCSS('gap', '4px');
+    }
+  },
+);
 
 const reviewPlatformSamples = [
   { route: '/real-estate', grid: '.re-review-grid' },
@@ -1018,6 +1034,126 @@ Then(
       assert.ok(copyMaxWidth >= 300 && copyMaxWidth <= 390);
       assert.ok(geometry.copyLineHeight >= 24);
       assert.equal(geometry.titleLetterSpacing, '-0.5px');
+    }
+  },
+);
+
+Then(
+  'shared card title roles preserve the reference hierarchy',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const boldTitles = [
+      { route: '/', selector: '.ui-division-card h3', size: '24px', lineHeight: '32px' },
+      { route: '/', selector: '.ui-value h3', size: '20px', lineHeight: '28px' },
+      { route: '/', selector: '.ui-career-card h3', size: '16px', lineHeight: '24px' },
+      { route: '/construction', selector: '.ui-sector h3', size: '18px', lineHeight: '28px' },
+      { route: '/storage', selector: '.ui-team-card h3', size: '20px', lineHeight: '28px' },
+      { route: '/development', selector: '.ui-values h3', size: '18px', lineHeight: '28px' },
+    ] as const;
+    for (const expectation of boldTitles) {
+      await page.goto(expectation.route);
+      const title = page.locator(expectation.selector).first();
+      await expect(title).toBeVisible();
+      await expect(title).toHaveCSS('font-size', expectation.size);
+      await expect(title).toHaveCSS('line-height', expectation.lineHeight);
+      await expect(title).toHaveCSS('font-weight', '700');
+    }
+
+    for (const expectation of [
+      { route: '/construction', selector: '#services .type-card-title' },
+      { route: '/storage', selector: '.ui-services .type-card-title' },
+      { route: '/development', selector: '.ui-service-grid .type-card-title' },
+    ] as const) {
+      await page.goto(expectation.route);
+      const title = page.locator(expectation.selector).first();
+      await expect(title).toHaveCSS('font-size', '20px');
+      await expect(title).toHaveCSS('line-height', '28px');
+      await expect(title).toHaveCSS('font-weight', '600');
+      await expect(title).toHaveCSS('letter-spacing', '-0.5px');
+    }
+  },
+);
+
+Then(
+  'shared eyebrow compact action review form and footer roles preserve their reference type',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.goto('/construction');
+    await expect(page.locator('.ui-heading > span').first()).toHaveCSS('font-weight', '500');
+    const planAction = page.locator('.ui-plan button').first();
+    await expect(planAction).toHaveCSS('font-size', '14px');
+    await expect(planAction).toHaveCSS('line-height', '20px');
+    await expect(planAction).toHaveCSS('font-weight', '500');
+
+    const supportingTitles = [
+      { route: '/construction', selector: '.review-platform-card h3', weight: '600' },
+      { route: '/storage', selector: '.ui-contact-form h3', weight: '600' },
+      { route: '/development', selector: '.ui-form-card h3', weight: '600' },
+    ] as const;
+    for (const expectation of supportingTitles) {
+      await page.goto(expectation.route);
+      const title = page.locator(expectation.selector).first();
+      await expect(title).toHaveCSS(
+        'font-size',
+        expectation.selector.includes('review-') ? '20px' : '24px',
+      );
+      await expect(title).toHaveCSS(
+        'line-height',
+        expectation.selector.includes('review-') ? '28px' : '32px',
+      );
+      await expect(title).toHaveCSS('font-weight', expectation.weight);
+    }
+
+    for (const route of ['/real-estate', '/construction', '/storage', '/development'] as const) {
+      await page.goto(route);
+      const title = page.locator('.ui-footer h3').first();
+      await expect(title).toHaveCSS('font-size', '18px');
+      await expect(title).toHaveCSS('line-height', '28px');
+    }
+  },
+);
+
+Then(
+  'shared supporting content follows the reference start alignment contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const expectations = [
+      { route: '/', selector: '.ui-careers' },
+      { route: '/real-estate', selector: '.ui-careers' },
+      { route: '/real-estate', selector: '.ui-contact' },
+      { route: '/real-estate', selector: '.ui-footer' },
+      { route: '/property-management', selector: '.ui-contact' },
+      { route: '/property-management', selector: '.ui-footer' },
+      { route: '/construction', selector: '.ui-careers' },
+      { route: '/construction', selector: '.ui-contact' },
+      { route: '/construction', selector: '.ui-footer' },
+      { route: '/storage', selector: '.ui-contact' },
+      { route: '/storage', selector: '.ui-footer' },
+      { route: '/development', selector: '.ui-contact' },
+      { route: '/development', selector: '.ui-footer' },
+    ] as const;
+
+    for (const expectation of expectations) {
+      await page.goto(expectation.route);
+      await page.setViewportSize({ width: 1440, height: 1100 });
+      const element = page.locator(expectation.selector).first();
+      await expect(element).toBeVisible();
+      await expect(element).toHaveCSS('text-align', 'start');
+    }
+
+    const centered = [
+      { route: '/', selector: '.ui-contact' },
+      { route: '/', selector: '.ui-footer-light' },
+      { route: '/property-management', selector: '.ui-careers' },
+      { route: '/real-estate', selector: '.profile-card-body' },
+      { route: '/construction', selector: '.ui-team-card' },
+      { route: '/storage', selector: '.review-platform-card' },
+    ] as const;
+    for (const expectation of centered) {
+      await page.goto(expectation.route);
+      const element = page.locator(expectation.selector).first();
+      await expect(element).toBeVisible();
+      await expect(element).toHaveCSS('text-align', 'center');
     }
   },
 );

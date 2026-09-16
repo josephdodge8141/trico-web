@@ -52,6 +52,7 @@ Feature: Published TriCo website
     And Open Sans body copy and Lato headings are bundled with the supported visual-parity weights
     And Home Property Management Real Estate Construction Storage and Development use the shared blue highlight role
     And division statistics use the shared blue stat role while intentional brand accents remain gold
+    And Construction sector actions use the shared slate blue action role
 
   @id:public.division-hero-media-contract @backend-noop
   Scenario: Keep division hero media consistent across content states and breakpoints
@@ -70,7 +71,10 @@ Feature: Published TriCo website
     Then Real Estate Property Management and Development use one shared section rhythm contract
     And representative headings use the frozen 60 48 and 36 pixel roles
     And representative service cards use the shared vertical density and readable copy measure
+    And shared card title roles preserve the reference hierarchy
+    And shared eyebrow compact action review form and footer roles preserve their reference type
     And shared navigation form labels and actions use the frozen medium weight and six-pixel corners
+    And shared supporting content follows the reference start alignment contract
     And shared section rhythm remains balanced at desktop and tablet widths
 
   @id:public.review-platform-contract @backend-noop

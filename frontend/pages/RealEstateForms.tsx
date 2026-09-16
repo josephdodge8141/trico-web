@@ -102,7 +102,7 @@ export function RealEstateContactForm(): React.JSX.Element {
   }
   return (
     <div className="re-form-card ui-form-card">
-      <h3>Start Your Real Estate Journey</h3>
+      <h3 className="type-form-title">Start Your Real Estate Journey</h3>
       <form onSubmit={submit}>
         <div className="re-field-grid ui-field-grid">
           <label>

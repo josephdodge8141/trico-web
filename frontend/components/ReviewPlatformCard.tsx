@@ -98,7 +98,7 @@ export function ReviewPlatformCard({
       <span className="review-platform-mark">
         <PlatformMark platform={platform} />
       </span>
-      <h3>{name}</h3>
+      <h3 className="type-supporting-title">{name}</h3>
       <p>{description}</p>
       {externalUrl === '' ? (
         <span className="review-platform-unavailable">{unavailableLabel}</span>

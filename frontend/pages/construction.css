@@ -267,7 +267,7 @@
   .co-sector span {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.25rem;
   }
   .co-header-actions svg,
   .co-button svg,

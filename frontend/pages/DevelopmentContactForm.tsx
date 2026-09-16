@@ -19,7 +19,7 @@ export function DevelopmentContactForm(): React.JSX.Element {
   }
   return (
     <div className="dev-form-card ui-form-card">
-      <h3>Start Your Development Project</h3>
+      <h3 className="type-form-title">Start Your Development Project</h3>
       <form onSubmit={submit}>
         <div className="dev-field-grid ui-field-grid">
           <label>

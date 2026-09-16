@@ -342,7 +342,7 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
             </div>,
           )}
           <nav aria-label="Quick links">
-            <h3 className="type-card-title">Quick Links</h3>
+            <h3 className="type-footer-title">Quick Links</h3>
             <EditableCollection
               active={editing.active}
               definition={definition('construction.footer.links')}
@@ -361,7 +361,7 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
             'construction.footer.licenses',
             editableValueSchema.parse(footerLicenses),
             <div>
-              <h3 className="type-card-title">{footerLicenses.heading}</h3>
+              <h3 className="type-footer-title">{footerLicenses.heading}</h3>
               {footerLicenses.licenses.map((license) => (
                 <p key={license.id}>{license.label}</p>
               ))}

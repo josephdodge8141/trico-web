@@ -559,7 +559,7 @@ function ConstructionBody(): React.JSX.Element {
                           className="co-sector ui-sector"
                           to={`/construction/${status}/${slug}`}
                         >
-                          <h3 className="type-card-title">{category.label}</h3>
+                          <h3 className="type-card-title type-card-title-sm">{category.label}</h3>
                           <p>{category.blurb}</p>
                           <span>
                             {sectionHeader.cardActionLabel} <ArrowRight />
@@ -802,7 +802,10 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section ui-section co-careers ui-careers" id="careers">
+        <section
+          className="co-section ui-section co-careers ui-careers ui-align-start"
+          id="careers"
+        >
           <div className="co-container ui-container co-career-grid ui-career-grid">
             <div>
               <ObjectBoundary id="construction.careers.header" value={careersHeader}>
@@ -842,7 +845,9 @@ function ConstructionBody(): React.JSX.Element {
               </a>
             </div>
             <aside className="co-positions ui-positions">
-              <h3 className="type-card-title">{careersHeader.positionsHeading}</h3>
+              <h3 className="type-card-title type-card-title-lg">
+                {careersHeader.positionsHeading}
+              </h3>
               <CollectionBoundary
                 id="construction.careers.open-positions"
                 value={positions}
@@ -897,7 +902,10 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section className="co-section ui-section co-contact ui-contact" id="contact">
+        <section
+          className="co-section ui-section co-contact ui-contact ui-align-start"
+          id="contact"
+        >
           <div className="co-container ui-container co-contact-grid ui-contact-grid">
             <div>
               <ObjectBoundary id="construction.contact.header" value={contactHeader}>
@@ -957,13 +965,13 @@ function ConstructionBody(): React.JSX.Element {
               </ObjectBoundary>
             </div>
             <div className="co-contact-form ui-contact-form">
-              <h3 className="type-card-title">Request a Quote</h3>
+              <h3 className="type-form-title">Request a Quote</h3>
               <ClientForm variant="contact" />
             </div>
           </div>
         </section>
       </main>
-      <footer className="co-footer ui-footer">
+      <footer className="co-footer ui-footer ui-align-start">
         <div className="co-container ui-container co-footer-grid ui-footer-grid">
           <ObjectBoundary id="construction.footer.brand" value={footerBrand}>
             <div>
@@ -982,7 +990,7 @@ function ConstructionBody(): React.JSX.Element {
             </div>
           </ObjectBoundary>
           <nav aria-label="Quick links">
-            <h3 className="type-card-title">Quick Links</h3>
+            <h3 className="type-footer-title">Quick Links</h3>
             <CollectionBoundary
               id="construction.footer.links"
               value={footerLinks}
@@ -994,7 +1002,7 @@ function ConstructionBody(): React.JSX.Element {
           </nav>
           <ObjectBoundary id="construction.footer.licenses" value={footerLicenses}>
             <div>
-              <h3 className="type-card-title">{footerLicenses.heading}</h3>
+              <h3 className="type-footer-title">{footerLicenses.heading}</h3>
               {footerLicenses.licenses.map((license) => (
                 <p key={license.id}>{license.label}</p>
               ))}

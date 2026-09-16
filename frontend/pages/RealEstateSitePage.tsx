@@ -871,7 +871,7 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const careers = S.realEstateCareersSchema.parse(item);
               return (
-                <section className="re-section ui-section re-careers ui-careers">
+                <section className="re-section ui-section re-careers ui-careers ui-align-start">
                   <div className="re-container ui-container re-careers-grid ui-careers-grid">
                     <div>
                       <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
@@ -1005,7 +1005,10 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
 
-          <section id="contact" className="re-section ui-section re-contact ui-contact">
+          <section
+            id="contact"
+            className="re-section ui-section re-contact ui-contact ui-align-start"
+          >
             <div className="re-container ui-container re-contact-grid ui-contact-grid">
               <div>
                 <Boundary id="real-estate.contact.header">
@@ -1066,7 +1069,7 @@ function RealEstateBody(): React.JSX.Element {
             </div>
           </section>
         </main>
-        <footer className="re-footer ui-footer">
+        <footer className="re-footer ui-footer ui-align-start">
           <div className="re-container ui-container re-footer-grid ui-footer-grid">
             <Boundary id="real-estate.footer.brand">
               {(item) => {
@@ -1096,7 +1099,7 @@ function RealEstateBody(): React.JSX.Element {
                 return (
                   <>
                     {index === 0 ? (
-                      <h3 className="type-card-title">{interfaceCopy.footerNavigation}</h3>
+                      <h3 className="type-footer-title">{interfaceCopy.footerNavigation}</h3>
                     ) : null}
                     <a href={`#${link.destination}`}>{link.label}</a>
                   </>
@@ -1108,7 +1111,7 @@ function RealEstateBody(): React.JSX.Element {
                 const license = S.realEstateFooterLicenseSchema.parse(item);
                 return (
                   <div>
-                    <h3 className="type-card-title">{license.heading}</h3>
+                    <h3 className="type-footer-title">{license.heading}</h3>
                     <p>{license.license}</p>
                   </div>
                 );

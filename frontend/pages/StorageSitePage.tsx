@@ -430,7 +430,10 @@ function StorageBody(): React.JSX.Element {
             </p>
           </ObjectBoundary>
         </section>
-        <section id="contact" className="storage-section ui-section storage-contact ui-contact">
+        <section
+          id="contact"
+          className="storage-section ui-section storage-contact ui-contact ui-align-start"
+        >
           <div>
             <ObjectBoundary id="storage.contact.header" value={contactHeader}>
               <SectionHeading value={contactHeader} />
@@ -472,7 +475,7 @@ function StorageBody(): React.JSX.Element {
           <StorageContactForm />
         </section>
       </main>
-      <footer className="storage-footer ui-footer">
+      <footer className="storage-footer ui-footer ui-align-start">
         <div className="storage-footer-grid ui-footer-grid">
           <ObjectBoundary id="storage.footer.brand" value={footerBrand}>
             <div>
@@ -489,7 +492,7 @@ function StorageBody(): React.JSX.Element {
             </div>
           </ObjectBoundary>
           <div>
-            <h3 className="type-card-title">Quick Links</h3>
+            <h3 className="type-footer-title">Quick Links</h3>
             <CollectionBoundary
               id="storage.footer.links"
               value={footerLinks}
@@ -504,7 +507,7 @@ function StorageBody(): React.JSX.Element {
             />
           </div>
           <div id="features">
-            <h3 className="type-card-title">Branding Options</h3>
+            <h3 className="type-footer-title">Branding Options</h3>
             <CollectionBoundary
               id="storage.footer.branding-options"
               value={branding}

@@ -159,7 +159,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
   };
   return (
     <div className="pm-form-card ui-form-card pm-analysis-form ui-analysis-form">
-      <h3>Request Your Free Analysis</h3>
+      <h3 className="type-form-title">Request Your Free Analysis</h3>
       {submitted ? (
         <div className="pm-form-success ui-form-success" role="status">
           <h4>Thank you for your inquiry!</h4>

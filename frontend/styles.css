@@ -1648,12 +1648,14 @@
 
   .ui-value h3,
   .ui-news-card h3 {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
   }
 
   .ui-career-card h3 {
     font-family: var(--trico-font-family);
-    font-size: 0.95rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
   }
 
   .ui-career-card p {
@@ -1671,7 +1673,8 @@
   }
 
   .ui-resume-heading h3 {
-    font-size: 1.7rem;
+    font-size: 1.5rem;
+    line-height: 2rem;
   }
 
   .ui-resume-form > label,
@@ -2402,10 +2405,10 @@
     color: var(--trico-color-muted);
     font-size: 0.86rem;
   }
-  .ui-sector span {
-    color: var(--trico-color-gold);
+  .ui-sector > span {
+    color: var(--trico-color-highlight);
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 500;
   }
   .ui-notice p {
     color: var(--trico-color-muted);
@@ -3564,14 +3567,59 @@
   .type-card-title {
     font-family: var(--trico-font-family-heading);
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.4;
+    letter-spacing: normal;
+  }
+  .type-card-title-lg {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  .type-card-title-sm {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  .type-card-title-xs {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  .type-supporting-title {
+    font-family: var(--trico-font-family-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.75rem;
+    letter-spacing: normal;
+  }
+  .type-form-title {
+    font-family: var(--trico-font-family-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 2rem;
+    letter-spacing: normal;
+  }
+  .type-footer-title {
+    font-family: var(--trico-font-family-heading);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.75rem;
     letter-spacing: normal;
   }
   .ui-services .type-card-title,
   .ui-service-grid .type-card-title,
   .ui-service-card .type-card-title {
+    font-weight: 600;
     letter-spacing: -0.025em;
+  }
+  .ui-heading > span,
+  .ui-section-heading > span,
+  .ui-sector > span,
+  .ui-plan button {
+    font-weight: 500;
+  }
+  .ui-sector > span,
+  .ui-plan button {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
   }
   .ui-page .ui-header nav a,
   .ui-page .ui-button,
@@ -3597,7 +3645,7 @@
   .ui-page .ui-resume-form > label,
   .ui-page .ui-form-grid label {
     font-weight: 500;
-    text-align: left;
+    text-align: start;
   }
   .type-body-large {
     font-size: 1.125rem;
@@ -3664,6 +3712,12 @@
   }
   .text-left {
     text-align: left;
+  }
+  .ui-align-start,
+  .ui-form-card,
+  .ui-contact-form,
+  .ui-resume-form {
+    text-align: start;
   }
   .text-uppercase {
     text-transform: uppercase;

@@ -195,7 +195,7 @@ function DivisionCard({ item }: { readonly item: HomeDivisionItem }): React.JSX.
         <span className="home-card-icon ui-card-icon">
           <Icon aria-hidden="true" />
         </span>
-        <h3 className="type-card-title">{item.title}</h3>
+        <h3 className="type-card-title type-card-title-lg">{item.title}</h3>
         <p>{item.description}</p>
         <span className="home-card-link ui-card-link">
           Learn More <ArrowRight aria-hidden="true" />
@@ -240,7 +240,7 @@ function LeaderCard({ item }: { readonly item: HomeLeadershipMember }): React.JS
         />
       </div>
       <div>
-        <h3 className="type-card-title">{item.name}</h3>
+        <h3 className="type-card-title type-card-title-sm">{item.name}</h3>
         <p>{item.role}</p>
       </div>
     </article>
@@ -263,7 +263,7 @@ function CareerCard({ item }: { readonly item: HomeCareerPosition }): React.JSX.
   return (
     <article className="home-career-card ui-career-card">
       <div>
-        <h3 className="type-card-title">
+        <h3 className="type-card-title type-card-title-xs">
           <Briefcase aria-hidden="true" /> {item.title}
         </h3>
         <p>
@@ -449,7 +449,7 @@ function HomePageBody(): React.JSX.Element {
         </section>
 
         <section
-          className="home-section ui-section home-tint ui-tint home-careers ui-careers"
+          className="home-section ui-section home-tint ui-tint home-careers ui-careers ui-align-start"
           id="careers"
         >
           <div className="home-container ui-container home-careers-container ui-careers-container">
@@ -468,7 +468,9 @@ function HomePageBody(): React.JSX.Element {
             />
             <ObjectBoundary entityId="home.careers.resume-intro" value={content.resumeIntro}>
               <header className="home-resume-heading ui-resume-heading" id="resume-form">
-                <h3 className="type-card-title">{content.resumeIntro.heading}</h3>
+                <h3 className="type-card-title type-card-title-lg">
+                  {content.resumeIntro.heading}
+                </h3>
                 <p>{content.resumeIntro.description}</p>
               </header>
             </ObjectBoundary>

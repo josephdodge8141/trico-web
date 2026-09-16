@@ -443,7 +443,7 @@ function DevelopmentBody(): React.JSX.Element {
                     <article className="dev-category ui-category">
                       <Icon />
                       <strong>{category.count}</strong>
-                      <h3 className="type-card-title">{category.title}</h3>
+                      <h3 className="type-card-title type-card-title-lg">{category.title}</h3>
                       <p>{category.description}</p>
                       <button className="dev-button ui-button dev-outline-gold ui-outline-gold">
                         {category.buttonLabel}
@@ -576,7 +576,7 @@ function DevelopmentBody(): React.JSX.Element {
                     <article>
                       <Icon />
                       <div>
-                        <h3 className="type-card-title">{companyValue.title}</h3>
+                        <h3 className="type-card-title type-card-title-sm">{companyValue.title}</h3>
                         <p>{companyValue.description}</p>
                       </div>
                     </article>
@@ -624,7 +624,10 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section id="contact" className="dev-section ui-section dev-contact ui-contact">
+        <section
+          id="contact"
+          className="dev-section ui-section dev-contact ui-contact ui-align-start"
+        >
           <div className="dev-container ui-container dev-contact-grid ui-contact-grid">
             <div>
               <ObjectBoundary id="development.contact.header" value={contactHeader}>
@@ -673,7 +676,7 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="dev-footer ui-footer">
+      <footer className="dev-footer ui-footer ui-align-start">
         <div className="dev-container ui-container dev-footer-grid ui-footer-grid">
           <ObjectBoundary id="development.footer.brand" value={footerBrand}>
             <div>
@@ -695,7 +698,7 @@ function DevelopmentBody(): React.JSX.Element {
             </div>
           </ObjectBoundary>
           <div>
-            <h3 className="type-card-title">{footerBrand.linksHeading}</h3>
+            <h3 className="type-footer-title">{footerBrand.linksHeading}</h3>
             <CollectionBoundary
               id="development.footer.links"
               value={footerLinks}
@@ -706,7 +709,7 @@ function DevelopmentBody(): React.JSX.Element {
             />
           </div>
           <div>
-            <h3 className="type-card-title">{footerBrand.serviceAreasHeading}</h3>
+            <h3 className="type-footer-title">{footerBrand.serviceAreasHeading}</h3>
             <CollectionBoundary
               id="development.footer.service-areas"
               value={serviceAreas}
