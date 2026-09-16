@@ -75,12 +75,39 @@ test('Real Estate listings retain galleries and real external destinations', () 
   );
 });
 
+test('Real Estate listing actions retain the directory and contact calls to action', () => {
+  const actions = realEstateV2SeedData['real-estate.listings.actions'];
+  assert.deepEqual(
+    actions.directoryLinks.map(({ label, externalUrl }) => ({ label, externalUrl })),
+    [
+      { label: 'Browse on MLS', externalUrl: 'https://www.utahrealestate.com/' },
+      { label: 'Browse on LoopNet', externalUrl: 'https://www.loopnet.com/' },
+    ],
+  );
+  assert.equal(actions.contactActionLabel, 'Looking for something specific? Contact us');
+  const definition = realEstateEntityDefinitions.find(
+    ({ id }) => id === 'real-estate.listings.actions',
+  );
+  const directoryField = definition?.editor.groups[0]?.fields.find(
+    ({ path }) => path[0] === 'directoryLinks',
+  );
+  assert.equal(directoryField?.control.type, 'nested-collection');
+  if (directoryField?.control.type !== 'nested-collection') return;
+  assert.equal(
+    directoryField.control.itemFields.find(({ path }) => path[0] === 'externalUrl')?.control.type,
+    'link-builder',
+  );
+});
+
 test('Real Estate catalog records truthful multi-surface coverage', () => {
   const listings = realEstateEntityViewCatalog.find(
     ({ entityId }) => entityId === 'real-estate.listings.items',
   );
   const header = realEstateEntityViewCatalog.find(
     ({ entityId }) => entityId === 'real-estate.header',
+  );
+  const actions = realEstateEntityViewCatalog.find(
+    ({ entityId }) => entityId === 'real-estate.listings.actions',
   );
   assert.equal(listings?.legacyComponent.includes('Active and sold listing cards'), true);
   assert.equal(
@@ -89,6 +116,12 @@ test('Real Estate catalog records truthful multi-surface coverage', () => {
   );
   assert.equal(
     header?.secondary.some(({ regionLabel }) => regionLabel === 'Mobile navigation'),
+    true,
+  );
+  assert.equal(
+    actions?.secondary.some(
+      ({ regionLabel }) => regionLabel === 'Listing directory and contact actions',
+    ),
     true,
   );
 });

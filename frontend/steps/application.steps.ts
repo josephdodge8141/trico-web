@@ -2073,6 +2073,32 @@ Then(
 );
 
 Then(
+  'listing directory actions and the contact call to action complete the gallery',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.goto('/real-estate');
+    const directories = page.getByRole('group', { name: 'Listing directories' });
+    await expect(directories).toBeVisible();
+    const links = directories.getByRole('link');
+    await expect(links).toHaveCount(2);
+    await expect(links.nth(0)).toHaveText('Browse on MLS');
+    await expect(links.nth(0)).toHaveAttribute('href', 'https://www.utahrealestate.com/');
+    await expect(links.nth(1)).toHaveText('Browse on LoopNet');
+    await expect(links.nth(1)).toHaveAttribute('href', 'https://www.loopnet.com/');
+    for (const link of await links.all()) {
+      await expect(link).toHaveCSS('height', '44px');
+    }
+    const contact = page.getByRole('link', {
+      name: 'Looking for something specific? Contact us',
+      exact: true,
+    });
+    await expect(contact).toHaveAttribute('href', '#contact');
+    await expect(contact).toHaveCSS('height', '44px');
+  },
+);
+
+Then(
   'listing tabs show the active and sold counts in a light segmented control',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

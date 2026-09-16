@@ -65,9 +65,16 @@ export const realEstateListingSchema = z.strictObject({
   externalUrl: optionalExternalUrl,
 });
 export const realEstateListingsItemsSchema = z.array(realEstateListingSchema);
+export const realEstateListingDirectoryLinkSchema = z.strictObject({
+  id,
+  label: text(80),
+  externalUrl: z.url().max(1000),
+});
 export const realEstateListingsActionsSchema = z.strictObject({
   activeLabel: text(80),
   soldLabel: text(80),
+  directoryLinks: z.array(realEstateListingDirectoryLinkSchema).min(1).max(6),
+  contactActionLabel: text(120),
 });
 export const realEstateServicesHeaderSchema = heading;
 export const realEstateServiceSchema = z.strictObject({
@@ -461,9 +468,27 @@ export const realEstateEntityDefinitions = [
       field(['externalUrl'], 'Listing website', 11, externalLink(), false),
     ],
   ),
-  object('real-estate.listings.actions', 'Listing tabs', realEstateListingsActionsSchema, [
+  object('real-estate.listings.actions', 'Listing actions', realEstateListingsActionsSchema, [
     field(['activeLabel'], 'Active tab', 0, short(80)),
     field(['soldLabel'], 'Sold tab', 1, short(80)),
+    field(['directoryLinks'], 'Listing directories', 2, {
+      type: 'nested-collection',
+      itemLabel: 'Directory',
+      addLabel: 'Add directory',
+      itemLabelPath: ['label'],
+      reorderable: true,
+      blankItem: {
+        id: blank(16),
+        label: 'New directory',
+        externalUrl: 'https://example.com/',
+      },
+      itemFields: [
+        leafField(['id'], 'Item identity', 0, system()),
+        leafField(['label'], 'Label', 1, short(80)),
+        leafField(['externalUrl'], 'Directory website', 2, externalLink()),
+      ],
+    }),
+    field(['contactActionLabel'], 'Contact link label', 3, short(120)),
   ]),
   object(
     'real-estate.services.header',
@@ -736,7 +761,7 @@ const realEstateLegacyComponentById: Readonly<Record<string, string>> = {
   'real-estate.hero.stats': 'Legacy Real Estate page / Hero statistics',
   'real-estate.listings.header': 'Legacy Real Estate page / Listings introduction',
   'real-estate.listings.items': 'Legacy Real Estate page / Active and sold listing cards',
-  'real-estate.listings.actions': 'Legacy Real Estate page / Listing tabs',
+  'real-estate.listings.actions': 'Legacy Real Estate page / Listing tabs and directory actions',
   'real-estate.services.header': 'Legacy Real Estate page / Services introduction',
   'real-estate.services.items': 'Legacy Real Estate page / Service cards',
   'real-estate.process.header': 'Legacy Real Estate page / Process introduction',
@@ -775,6 +800,13 @@ const secondarySlots: Readonly<Record<string, EntityViewCatalogEntry['secondary'
       slotId: 'real-estate.listings.items.sold',
       routes: ['/real-estate'],
       regionLabel: 'Sold listing tab',
+    },
+  ],
+  'real-estate.listings.actions': [
+    {
+      slotId: 'real-estate.listings.actions.directory-actions',
+      routes: ['/real-estate'],
+      regionLabel: 'Listing directory and contact actions',
     },
   ],
 };

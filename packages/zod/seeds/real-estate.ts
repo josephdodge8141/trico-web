@@ -213,7 +213,23 @@ export const realEstateV2SeedData = {
     actionLabel: status === 'active' ? 'View listing' : '',
     externalUrl: externalUrl ?? '',
   })),
-  'real-estate.listings.actions': { activeLabel: 'Active Listings', soldLabel: 'Sold' },
+  'real-estate.listings.actions': {
+    activeLabel: 'Active Listings',
+    soldLabel: 'Sold',
+    directoryLinks: [
+      {
+        id: itemId('real-estate.listings.actions.directoryLinks', 0),
+        label: 'Browse on MLS',
+        externalUrl: 'https://www.utahrealestate.com/',
+      },
+      {
+        id: itemId('real-estate.listings.actions.directoryLinks', 1),
+        label: 'Browse on LoopNet',
+        externalUrl: 'https://www.loopnet.com/',
+      },
+    ],
+    contactActionLabel: 'Looking for something specific? Contact us',
+  },
   'real-estate.services.header': heading(
     'Real Estate',
     'Full-Service Real Estate Brokerage',

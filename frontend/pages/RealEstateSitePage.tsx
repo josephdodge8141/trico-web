@@ -472,6 +472,11 @@ function RealEstateBody(): React.JSX.Element {
     'real-estate.listings.items',
     S.realEstateListingsItemsSchema,
   );
+  const listingActions = parseRealEstateValue(
+    document,
+    'real-estate.listings.actions',
+    S.realEstateListingsActionsSchema,
+  );
   const activeListingCount = listingItems.filter(({ status }) => status === 'active').length;
   const soldListingCount = listingItems.filter(({ status }) => status === 'sold').length;
   useEffect(() => {
@@ -728,6 +733,28 @@ function RealEstateBody(): React.JSX.Element {
                     );
                   }}
                 />
+                <div
+                  className="re-listing-directories ui-listing-directories"
+                  role="group"
+                  aria-label="Listing directories"
+                >
+                  {listingActions.directoryLinks.map((link) => (
+                    <a
+                      className="ui-button ui-button-outline-dark ui-directory-action"
+                      href={link.externalUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      key={link.id}
+                    >
+                      {link.label} <ExternalLink aria-hidden="true" />
+                    </a>
+                  ))}
+                </div>
+                <div className="re-listing-contact ui-listing-contact text-center">
+                  <a className="ui-listing-contact-action" href="#contact">
+                    {listingActions.contactActionLabel}
+                  </a>
+                </div>
               </div>
             </div>
           </section>

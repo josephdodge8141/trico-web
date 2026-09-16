@@ -133,6 +133,7 @@ Feature: Published TriCo website
     And listing cards preserve their intended image ratio at desktop and mobile widths
     And listing tabs show the active and sold counts in a light segmented control
     And each available external listing action remains accessible but visually subordinate
+    And listing directory actions and the contact call to action complete the gallery
 
   @id:public.construction-collection-geometry @backend-noop
   Scenario: Keep editable collection grids structurally transparent

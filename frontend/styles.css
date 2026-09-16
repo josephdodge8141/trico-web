@@ -1835,6 +1835,32 @@
     border-color: var(--trico-color-border);
     background: var(--trico-color-surface);
   }
+  .ui-directory-action {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    min-height: 44px;
+    gap: 0.5rem;
+    padding: 0 32px;
+    border-radius: 6px;
+  }
+  .ui-directory-action svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  .ui-listing-contact-action {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    min-height: 44px;
+    color: var(--trico-color-dark);
+    font-size: 1rem;
+    font-weight: 600;
+  }
   .ui-pill {
     color: var(--trico-color-highlight);
     font-size: 0.86rem;

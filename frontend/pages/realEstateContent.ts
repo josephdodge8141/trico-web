@@ -27,7 +27,13 @@ export function parseRealEstateValue<Output>(
 ): Output {
   const candidate = document[id];
   return parser.parse(
-    candidate === undefined || legacy(id, candidate) ? realEstateV2SeedData[id] : candidate,
+    candidate === undefined ||
+      legacy(id, candidate) ||
+      (id === 'real-estate.listings.actions' &&
+        record(candidate) &&
+        (!('directoryLinks' in candidate) || !('contactActionLabel' in candidate)))
+      ? realEstateV2SeedData[id]
+      : candidate,
   );
 }
 

@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   realEstateHeroSchema,
   realEstateEntityDefinitions,
+  realEstateListingsActionsSchema,
   realEstateListingsItemsSchema,
   realEstateV2SeedData,
 } from '@app/schemas';
@@ -23,6 +24,19 @@ test('Real Estate uses semantic seed values when content is absent or legacy', (
       realEstateHeroSchema,
     ),
     realEstateV2SeedData['real-estate.hero'],
+  );
+  assert.deepEqual(
+    parseRealEstateValue(
+      {
+        'real-estate.listings.actions': {
+          activeLabel: 'Active Listings',
+          soldLabel: 'Sold',
+        },
+      },
+      'real-estate.listings.actions',
+      realEstateListingsActionsSchema,
+    ),
+    realEstateV2SeedData['real-estate.listings.actions'],
   );
 });
 test('Real Estate renders a saved object replacement from private preview content', () => {

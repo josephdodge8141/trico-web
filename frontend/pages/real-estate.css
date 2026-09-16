@@ -204,6 +204,16 @@
     width: min(100%, 1120px);
     margin-inline: auto;
   }
+  .re-listing-directories {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2.5rem;
+  }
+  .re-listing-contact {
+    margin-top: 3rem;
+  }
   .re-listing {
     overflow: hidden;
   }
