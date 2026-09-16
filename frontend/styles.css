@@ -3515,6 +3515,119 @@
     border-radius: 6px;
     background: var(--trico-overlay-light);
   }
+  .ui-select-field {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    gap: 0.4rem;
+    color: var(--trico-color-ink);
+    text-align: start;
+  }
+  .ui-select-field > label {
+    cursor: pointer;
+  }
+  .ui-select-trigger {
+    box-sizing: border-box;
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 8px 12px;
+    color: var(--trico-color-ink);
+    font: inherit;
+    font-weight: 400;
+    text-align: start;
+    border: 1px solid var(--trico-color-border);
+    border-radius: 6px;
+    background: var(--trico-color-surface);
+    cursor: pointer;
+  }
+  :is(.ui-resume-form, .ui-form-card) .ui-select-trigger {
+    font-family: var(--trico-font-family);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  :is(.ui-form, .ui-contact-form) .ui-select-trigger {
+    font-family: var(--trico-font-family);
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+  .ui-resume-form .ui-select-trigger {
+    background: var(--trico-overlay-light);
+  }
+  .ui-bid .ui-select-trigger {
+    color: var(--trico-color-surface);
+    border-color: var(--trico-overlay-light);
+    background: var(--trico-overlay-light-subtle);
+  }
+  .ui-select-trigger:focus-visible {
+    outline: 3px solid var(--trico-surface-accent-emphasis);
+    outline-offset: 2px;
+  }
+  .ui-select-trigger[aria-invalid='true'] {
+    border-color: var(--trico-color-danger);
+  }
+  .ui-native-select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 0;
+    clip: rect(0 0 0 0);
+  }
+  .ui-select-icon,
+  .ui-select-option-check {
+    flex: none;
+    display: grid;
+    place-items: center;
+  }
+  .ui-select-icon svg,
+  .ui-select-option-check svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  .ui-select-content {
+    z-index: 1400;
+    width: var(--radix-select-trigger-width);
+    max-height: min(var(--radix-select-content-available-height), 20rem);
+    overflow: hidden;
+    color: var(--trico-color-ink);
+    font-family: var(--trico-font-family);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    border: 1px solid var(--trico-color-border-strong);
+    border-radius: 6px;
+    background: var(--trico-color-surface);
+    box-shadow: 0 8px 24px var(--trico-shadow-emphasis);
+  }
+  .ui-select-viewport {
+    padding: 0.25rem;
+  }
+  .ui-select-option {
+    position: relative;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ui-select-option[data-highlighted] {
+    color: var(--trico-color-surface);
+    outline: none;
+    background: var(--trico-color-dark);
+  }
+  .ui-select-option-check {
+    position: absolute;
+    right: 0.75rem;
+  }
 }
 @layer utilities {
   .ui-theme-storage {
@@ -4501,5 +4614,15 @@
     .type-display-large {
       font-size: 3rem;
     }
+  }
+  .ui-page .ui-select-field > select[aria-hidden='true'] {
+    box-sizing: border-box;
+    width: 1px;
+    height: 1px;
+    min-height: 1px;
+    max-height: 1px;
+    padding: 0;
+    margin: -1px;
+    border: 0;
   }
 }

@@ -113,6 +113,16 @@ Feature: Published TriCo website
     And division contact grids use the shared desktop measure and gap
     And standard and compact division footers use the frozen grid and legal rhythm
 
+  @id:public.accessible-select-field @backend-noop
+  Scenario: Choose public-form options through one accessible styled selection contract
+    backend-noop: Public-form select presentation, keyboard interaction, validation, and browser form serialization are frontend-owned behavior.
+    Given the current content manifest is available
+    When I open "/"
+    Then the Home resume division uses the measured accessible selection control
+    And the shared selection control supports keyboard choice dismissal and form serialization
+    And Property Management Real Estate and Construction reuse the public selection contract
+    And the public selection contract remains usable and valid on mobile
+
   @id:public.home-broad-parity @backend-noop
   Scenario: Preserve the Home page desktop frame typography and timeline rhythm
     backend-noop: Home page frame, typography, form spacing, and timeline geometry are browser-owned presentation behavior.

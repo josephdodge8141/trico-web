@@ -81,6 +81,7 @@ import { EditableCollection } from '../components/EditableCollection.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
+import { SelectField } from '../components/SelectField.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -270,21 +271,22 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
           <label>
             Project Location *<input required name="location" placeholder="City, State" />
           </label>
-          <label>
-            Project Type *
-            <select required name="projectType" defaultValue="">
-              <option value="" disabled>
-                Select project type...
-              </option>
-              <option>Concrete Work</option>
-              <option>Multi-Housing Development</option>
-              <option>Underground Utilities</option>
-              <option>Excavation</option>
-              <option>Office Construction/Remodel</option>
-              <option>Storage Facility</option>
-              <option>Other</option>
-            </select>
-          </label>
+          <SelectField
+            id="construction-project-type"
+            name="projectType"
+            label="Project Type *"
+            placeholder="Select project type..."
+            required
+            options={[
+              'Concrete Work',
+              'Multi-Housing Development',
+              'Underground Utilities',
+              'Excavation',
+              'Office Construction/Remodel',
+              'Storage Facility',
+              'Other',
+            ].map((option) => ({ value: option, label: option }))}
+          />
         </>
       ) : (
         <label>

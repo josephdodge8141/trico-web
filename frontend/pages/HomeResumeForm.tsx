@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { CheckCircle2, Send, Upload } from 'lucide-react';
 
+import { SelectField } from '../components/SelectField.js';
+
 const divisions = [
   'Real Estate',
   'Property Management',
@@ -162,30 +164,18 @@ export function HomeResumeForm(): React.JSX.Element {
             </small>
           )}
         </label>
-        <label>
-          <span>Division of Interest *</span>
-          <select
-            name="division"
-            value={value.division}
-            onChange={(event) => update('division', event.target.value)}
-            aria-invalid={errors.division === undefined ? undefined : true}
-            aria-describedby={
-              errors.division === undefined ? undefined : 'home-resume-division-error'
-            }
-          >
-            <option value="">Select a division</option>
-            {divisions.map((division) => (
-              <option key={division} value={division}>
-                {division}
-              </option>
-            ))}
-          </select>
-          {errors.division === undefined ? null : (
-            <small id="home-resume-division-error" className="home-form-error ui-form-error">
-              {errors.division}
-            </small>
-          )}
-        </label>
+        <SelectField
+          id="home-resume-division"
+          name="division"
+          label="Division of Interest *"
+          placeholder="Select a division"
+          options={divisions.map((division) => ({ value: division, label: division }))}
+          required
+          value={value.division}
+          onValueChange={(nextValue) => update('division', nextValue)}
+          error={errors.division}
+          errorClassName="home-form-error ui-form-error"
+        />
       </div>
       <label>
         <span>Position / Role of Interest</span>

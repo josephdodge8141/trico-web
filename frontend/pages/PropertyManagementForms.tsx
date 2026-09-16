@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 
+import { SelectField } from '../components/SelectField.js';
+
 type FormErrors = Readonly<Record<string, string>>;
 
 const required = (data: FormData, name: string, label: string): string | undefined => {
@@ -36,6 +38,13 @@ function FieldError({
 export function PropertyManagementNewClientForm(): React.JSX.Element {
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const clearError = (name: string): void => {
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[name];
+      return next;
+    });
+  };
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -96,19 +105,24 @@ export function PropertyManagementNewClientForm(): React.JSX.Element {
                   Phone
                   <input name="phone" type="tel" maxLength={30} placeholder="(801) 555-1234" />
                 </label>
-                <label>
-                  I'm interested in *
-                  <select name="interest" defaultValue="">
-                    <option value="">Select an option</option>
-                    <option>Single-family rental</option>
-                    <option>Multi-family / apartments</option>
-                    <option>Commercial property</option>
-                    <option>HOA / COA management</option>
-                    <option>Storage facility</option>
-                    <option>Other</option>
-                  </select>
-                  <FieldError errors={errors} name="interest" />
-                </label>
+                <SelectField
+                  id="property-management-interest"
+                  name="interest"
+                  label="I'm interested in *"
+                  placeholder="Select an option"
+                  required
+                  options={[
+                    'Single-family rental',
+                    'Multi-family / apartments',
+                    'Commercial property',
+                    'HOA / COA management',
+                    'Storage facility',
+                    'Other',
+                  ].map((option) => ({ value: option, label: option }))}
+                  onValueChange={() => clearError('interest')}
+                  error={errors.interest}
+                  errorClassName="pm-form-error ui-form-error"
+                />
               </div>
               <label>
                 Property Address (optional)

@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { CheckCircle2, Send } from 'lucide-react';
 
+import { SelectField } from '../components/SelectField.js';
+
 function useLocalFormSuccess(): readonly [boolean, (event: FormEvent<HTMLFormElement>) => void] {
   const [submitted, setSubmitted] = useState(false);
   return [
@@ -48,20 +50,21 @@ export function RealEstateNewClientForm(): React.JSX.Element {
                   Phone
                   <input name="phone" type="tel" placeholder="(801) 555-1234" />
                 </label>
-                <label>
-                  I’m interested in *
-                  <select name="interest" required defaultValue="">
-                    <option value="" disabled>
-                      Select an option
-                    </option>
-                    <option>Buying a home</option>
-                    <option>Selling a property</option>
-                    <option>Land / acreage</option>
-                    <option>Commercial property</option>
-                    <option>Investment property</option>
-                    <option>Other</option>
-                  </select>
-                </label>
+                <SelectField
+                  id="real-estate-interest"
+                  name="interest"
+                  label="I’m interested in *"
+                  placeholder="Select an option"
+                  required
+                  options={[
+                    'Buying a home',
+                    'Selling a property',
+                    'Land / acreage',
+                    'Commercial property',
+                    'Investment property',
+                    'Other',
+                  ].map((option) => ({ value: option, label: option }))}
+                />
               </div>
               <label>
                 Property Address (optional)

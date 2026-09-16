@@ -1568,6 +1568,134 @@ const expectNear = (actual: number, expected: number, label: string): void => {
 };
 
 Then(
+  'the Home resume division uses the measured accessible selection control',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.goto('/');
+    await page.evaluate(() => document.fonts.ready);
+    const nativeSelect = page.locator('.ui-resume-form select[name="division"]');
+    const nativeBox = await nativeSelect.boundingBox();
+    assert.ok(nativeBox);
+    assert.deepEqual(
+      { width: Math.round(nativeBox.width), height: Math.round(nativeBox.height) },
+      { width: 1, height: 1 },
+    );
+    await expect(nativeSelect).toHaveAttribute('aria-hidden', 'true');
+    await expect(nativeSelect).toHaveAttribute('tabindex', '-1');
+    const trigger = page.getByRole('combobox', { name: 'Division of Interest *' });
+    const triggerBox = await trigger.boundingBox();
+    assert.ok(triggerBox);
+    assert.deepEqual(
+      { width: Math.round(triggerBox.width), height: Math.round(triggerBox.height) },
+      { width: 342, height: 40 },
+    );
+    await expect(trigger).toHaveText('Select a division');
+  },
+);
+
+Then(
+  'the shared selection control supports keyboard choice dismissal and form serialization',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const trigger = page.getByRole('combobox', { name: 'Division of Interest *' });
+    const nativeSelect = page.locator('.ui-resume-form select[name="division"]');
+    assert.equal(
+      await page.locator('.ui-resume-form').evaluate((form) => {
+        if (!(form instanceof HTMLFormElement)) return undefined;
+        return new FormData(form).get('division');
+      }),
+      '',
+    );
+    assert.equal(
+      await nativeSelect.evaluate((select: HTMLSelectElement) => select.checkValidity()),
+      false,
+    );
+    await expect(trigger).toHaveAttribute('aria-invalid', 'true');
+    await trigger.focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect(trigger).toHaveText('Real Estate');
+    assert.equal(
+      await page.locator('.ui-resume-form').evaluate((form) => {
+        if (!(form instanceof HTMLFormElement)) return undefined;
+        return new FormData(form).get('division');
+      }),
+      'Real Estate',
+    );
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+    await expect(trigger).toHaveText('Real Estate');
+    await expect(trigger).toBeFocused();
+  },
+);
+
+Then(
+  'Property Management Real Estate and Construction reuse the public selection contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const expectation of [
+      {
+        route: '/property-management',
+        name: "I'm interested in *",
+        nativeName: 'interest',
+        placeholder: 'Select an option',
+      },
+      {
+        route: '/real-estate',
+        name: 'I’m interested in *',
+        nativeName: 'interest',
+        placeholder: 'Select an option',
+      },
+      {
+        route: '/construction',
+        name: 'Project Type *',
+        nativeName: 'projectType',
+        placeholder: 'Select project type...',
+      },
+    ] as const) {
+      await page.goto(expectation.route);
+      const trigger = page.getByRole('combobox', { name: expectation.name });
+      await expect(trigger).toBeVisible();
+      await expect(trigger).toHaveText(expectation.placeholder);
+      const nativeSelect = page.locator(`select[name="${expectation.nativeName}"]`).first();
+      const nativeBox = await nativeSelect.boundingBox();
+      assert.ok(nativeBox);
+      assert.deepEqual(
+        { width: Math.round(nativeBox.width), height: Math.round(nativeBox.height) },
+        { width: 1, height: 1 },
+      );
+      await trigger.focus();
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      assert.notEqual(await nativeSelect.evaluate((select: HTMLSelectElement) => select.value), '');
+    }
+  },
+);
+
+Then(
+  'the public selection contract remains usable and valid on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    const trigger = page.getByRole('combobox', { name: 'Division of Interest *' });
+    const box = await trigger.boundingBox();
+    assert.ok(box);
+    assert.equal(Math.round(box.height), 40);
+    assert.ok(box.x >= 0 && box.x + box.width <= 390);
+    await page.getByRole('button', { name: 'Submit Resume' }).click();
+    await expect(trigger).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByText('Please select a division.')).toBeVisible();
+  },
+);
+
+Then(
   'shared client forms use the frozen inquiry standard and wide measures',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
