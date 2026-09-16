@@ -1420,6 +1420,143 @@ Then(
   },
 );
 
+Then(
+  'Property Management broad sections use the frozen desktop frame',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 1100 });
+    await page.goto('/property-management');
+    await page.evaluate(() => document.fonts.ready);
+    for (const selector of [
+      '#services > .pm-container',
+      '#process > .pm-container',
+      '#managed-properties > .pm-container',
+      '.pm-testimonials > .pm-container',
+      '#reviews > .pm-container',
+    ]) {
+      const box = await page.locator(selector).boundingBox();
+      assert.ok(box);
+      assert.deepEqual(
+        { x: Math.round(box.x), width: Math.round(box.width) },
+        { x: 72, width: 1368 },
+      );
+    }
+  },
+);
+
+Then(
+  'the Property Management portal uses the measured frame card and action density',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const portal = page.locator('#tenant-portal');
+    const section = await portal.boundingBox();
+    const frame = await portal.locator(':scope > .pm-container').boundingBox();
+    const grid = await portal.locator('.editable-collection-items').boundingBox();
+    assert.ok(section);
+    assert.ok(frame);
+    assert.ok(grid);
+    assert.deepEqual(
+      {
+        sectionHeight: Math.round(section.height),
+        frame: { x: Math.round(frame.x), width: Math.round(frame.width) },
+        grid: { x: Math.round(grid.x), width: Math.round(grid.width) },
+      },
+      {
+        sectionHeight: 774,
+        frame: { x: 244, width: 1024 },
+        grid: { x: 244, width: 1024 },
+      },
+    );
+    for (const card of await portal.locator('.pm-card').all()) {
+      await expect(card).toHaveCSS('min-height', '181px');
+    }
+    const action = portal.getByRole('link', { name: 'Access Tenant Portal' });
+    await expect(action).toHaveCSS('height', '60px');
+    await expect(action).toHaveCSS('font-weight', '600');
+    await expect(action).toHaveCSS('line-height', '28px');
+    await expect(action).toHaveCSS('border-radius', '8px');
+  },
+);
+
+Then(
+  'Property Management reviews use the measured grid and feedback rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const reviews = page.locator('#reviews');
+    const section = await reviews.boundingBox();
+    const grid = await reviews.locator('.editable-collection-items').boundingBox();
+    assert.ok(section);
+    assert.ok(grid);
+    assert.deepEqual(
+      {
+        sectionHeight: Math.round(section.height),
+        grid: { x: Math.round(grid.x), width: Math.round(grid.width) },
+      },
+      { sectionHeight: 818, grid: { x: 244, width: 1024 } },
+    );
+    const feedback = reviews.locator('.pm-reviews-footer');
+    await expect(feedback).toHaveCSS('max-width', '672px');
+    await expect(feedback).toHaveCSS('font-size', '14px');
+    await expect(feedback).toHaveCSS('line-height', '20px');
+    await expect(feedback).toHaveCSS('margin-top', '40px');
+    await expect(feedback.getByRole('link')).toHaveCSS('text-decoration-line', 'none');
+  },
+);
+
+Then(
+  'Property Management contact uses the compact copy detail and form contracts',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const contact = page.locator('#contact');
+    const section = await contact.boundingBox();
+    assert.ok(section);
+    assert.equal(Math.round(section.height), 996);
+    const intro = contact.locator('.pm-section-heading p');
+    await expect(intro).toHaveCSS('font-size', '18px');
+    await expect(intro).toHaveCSS('line-height', '28px');
+    await expect(intro).toHaveCSS('margin-bottom', '32px');
+    for (const title of await contact.locator('.pm-contact-detail h3').all()) {
+      await expect(title).toHaveCSS('font-size', '16px');
+      await expect(title).toHaveCSS('line-height', '24px');
+      await expect(title).toHaveCSS('font-weight', '600');
+    }
+    const form = contact.locator('form');
+    const formBox = await form.boundingBox();
+    assert.ok(formBox);
+    assert.equal(Math.round(formBox.height), 454);
+    await expect(form).toHaveCSS('row-gap', '20px');
+    await expect(form.getByRole('button', { name: 'Get Free Analysis' })).toHaveCSS(
+      'margin-top',
+      '0px',
+    );
+  },
+);
+
+Then(
+  'Property Management testimonial and FAQ rows use their measured type and density',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const title of await page.locator('.pm-testimonials .pm-quote-card h3').all()) {
+      await expect(title).toHaveCSS('font-size', '16px');
+      await expect(title).toHaveCSS('line-height', '24px');
+      await expect(title).toHaveCSS('font-weight', '600');
+    }
+    const faq = page.locator('#faq');
+    const faqBox = await faq.boundingBox();
+    assert.ok(faqBox);
+    assert.equal(Math.round(faqBox.height), 984);
+    const rows = await faq
+      .locator('.pm-faq-item')
+      .evaluateAll((elements) =>
+        elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+      );
+    assert.deepEqual(
+      rows,
+      Array.from({ length: 6 }, () => 78),
+    );
+  },
+);
+
 const elementWidth = async (locator: ReturnType<Page['locator']>): Promise<number> =>
   locator.evaluate((element) => element.getBoundingClientRect().width);
 
@@ -2585,7 +2722,7 @@ Then(
     );
     assert.deepEqual(
       serviceGeometry.slice(1).map(({ titleY }, index) => titleY - serviceGeometry[index]!.titleY),
-      [268, 268],
+      [268, 292],
     );
 
     const firstProfileContacts = page.locator('#team .profile-card').first().locator('a');

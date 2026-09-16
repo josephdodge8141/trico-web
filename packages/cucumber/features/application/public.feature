@@ -123,6 +123,17 @@ Feature: Published TriCo website
     And Home resume actions use one grid spacing contract
     And Home timeline uses the measured desktop tracks and copy density
 
+  @id:public.property-management-broad-parity @backend-noop
+  Scenario: Preserve Property Management supporting-section geometry
+    backend-noop: Property Management frames, portal, reviews, contact, testimonial, and FAQ geometry are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/property-management"
+    Then Property Management broad sections use the frozen desktop frame
+    And the Property Management portal uses the measured frame card and action density
+    And Property Management reviews use the measured grid and feedback rhythm
+    And Property Management contact uses the compact copy detail and form contracts
+    And Property Management testimonial and FAQ rows use their measured type and density
+
   @id:public.profile-card-contract @backend-noop
   Scenario: Present people with one resilient profile card contract
     backend-noop: Profile-card geometry, portrait cropping, unavailable-media presentation, and responsive editor-wrapper behavior are browser-owned visual behavior.

@@ -3988,6 +3988,63 @@
       width: min(calc(100% - 2rem), 1368px);
       margin-inline: auto;
     }
+    .ui-content-frame-1024 {
+      box-sizing: border-box;
+      width: min(calc(100% - 2rem), 1024px);
+      max-width: 1024px;
+      margin-inline: auto;
+      padding-inline: 0;
+    }
+    .ui-portal-density-compact .ui-card {
+      min-height: 181px;
+      padding-top: 23px;
+    }
+    .ui-page .ui-portal-action .ui-portal-action-primary {
+      font-weight: 600;
+      line-height: 28px;
+      border-width: 0;
+      border-radius: 8px;
+    }
+    .ui-review-grid-standard .editable-collection-items {
+      width: 100%;
+      max-width: 1024px;
+      margin-inline: auto;
+    }
+    .ui-review-density-reference .review-rating {
+      margin-block-end: 16px;
+    }
+    .ui-review-density-reference .ui-section-heading .type-section-title {
+      margin-bottom: 20px;
+    }
+    .ui-review-density-reference .ui-feedback-footer a {
+      text-decoration: none;
+    }
+    .ui-contact-heading-compact {
+      margin-bottom: 0;
+    }
+    .ui-contact-intro {
+      margin-bottom: 32px;
+      font-size: 18px;
+      line-height: 28px;
+    }
+    .ui-contact-detail-compact .ui-contact-detail h3 {
+      font-size: 16px;
+      line-height: 24px;
+      font-weight: 600;
+    }
+    .ui-contact-density-reference .ui-google {
+      box-sizing: border-box;
+      height: 48px;
+      margin-bottom: 9px;
+    }
+    .ui-quote-density-compact .ui-quote-card h3 {
+      font-size: 16px;
+      line-height: 24px;
+      font-weight: 600;
+    }
+    .ui-faq-density-reference .ui-faq-item summary {
+      padding-block: 26px;
+    }
     .ui-contact-grid-standard {
       box-sizing: border-box;
       width: min(calc(100% - 2rem), 1368px);

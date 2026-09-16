@@ -10,6 +10,7 @@ import {
   Clock,
   ClipboardCheck,
   CreditCard,
+  ExternalLink,
   Facebook,
   FileText,
   Heart,
@@ -241,6 +242,8 @@ function Heading({
   value,
   titleClassName = '',
   eyebrowClassName = 'ui-eyebrow-brand',
+  headingClassName = '',
+  descriptionClassName = '',
 }: {
   readonly value: {
     readonly eyebrow: string;
@@ -249,12 +252,14 @@ function Heading({
   };
   readonly titleClassName?: string;
   readonly eyebrowClassName?: string;
+  readonly headingClassName?: string;
+  readonly descriptionClassName?: string;
 }): React.JSX.Element {
   return (
-    <header className="pm-section-heading ui-section-heading">
+    <header className={`pm-section-heading ui-section-heading ${headingClassName}`}>
       <span className={eyebrowClassName}>{value.eyebrow}</span>
       <h2 className={`type-section-title ${titleClassName}`}>{value.heading}</h2>
-      <p>{value.description}</p>
+      <p className={descriptionClassName}>{value.description}</p>
     </header>
   );
 }
@@ -575,7 +580,7 @@ function PropertyManagementBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
         <section className="pm-section ui-section pm-tint ui-tint ui-services" id="services">
-          <div className="pm-container ui-container">
+          <div className="pm-container ui-container ui-content-frame-standard">
             <ObjectBoundary id="property-management.services.header" value={servicesHeader}>
               <Heading value={servicesHeader} />
             </ObjectBoundary>
@@ -587,7 +592,7 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
         <section className="pm-section ui-section pm-process ui-process" id="process">
-          <div className="pm-container ui-container">
+          <div className="pm-container ui-container ui-content-frame-standard">
             <ObjectBoundary id="property-management.process.header" value={processHeader}>
               <Heading value={processHeader} />
             </ObjectBoundary>
@@ -616,7 +621,7 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
         <section className="pm-section ui-section pm-tint ui-tint" id="managed-properties">
-          <div className="pm-container ui-container">
+          <div className="pm-container ui-container ui-content-frame-standard">
             <ObjectBoundary id="property-management.portfolio.managed.header" value={managedHeader}>
               <Heading value={managedHeader} />
             </ObjectBoundary>
@@ -643,8 +648,11 @@ function PropertyManagementBody(): React.JSX.Element {
             />
           </div>
         </section>
-        <section className="pm-section ui-section pm-portal ui-portal" id="tenant-portal">
-          <div className="pm-container ui-container pm-narrow ui-narrow">
+        <section
+          className="pm-section ui-section pm-portal ui-portal ui-portal-density-compact"
+          id="tenant-portal"
+        >
+          <div className="pm-container ui-container pm-narrow ui-narrow ui-content-frame-1024">
             <ObjectBoundary id="property-management.tenant-portal" value={portal}>
               <>
                 <Heading value={portal} />
@@ -655,12 +663,12 @@ function PropertyManagementBody(): React.JSX.Element {
                 />
                 <div className="pm-portal-action ui-portal-action">
                   <a
-                    className="pm-button ui-button pm-button-primary ui-button-primary"
+                    className="pm-button ui-button pm-button-primary ui-button-primary ui-portal-action-primary"
                     href={portal.externalUrl}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    {portal.actionLabel}
+                    {portal.actionLabel} <ExternalLink aria-hidden="true" />
                   </a>
                   <p>{portal.note}</p>
                 </div>
@@ -672,7 +680,7 @@ function PropertyManagementBody(): React.JSX.Element {
           className="pm-section ui-section pm-team ui-team ui-profile-contacts-stacked"
           id="team"
         >
-          <div className="pm-container ui-container">
+          <div className="pm-container ui-container ui-content-frame-standard">
             <ObjectBoundary id="property-management.team.header" value={teamHeader}>
               <Heading value={teamHeader} titleClassName="type-section-title-large" />
             </ObjectBoundary>
@@ -700,7 +708,7 @@ function PropertyManagementBody(): React.JSX.Element {
         </section>
         <ObjectBoundary id="property-management.about" value={about}>
           <section className="pm-section ui-section pm-about ui-about" id="about">
-            <div className="pm-container ui-container pm-about-grid ui-about-grid">
+            <div className="pm-container ui-container pm-about-grid ui-about-grid ui-content-frame-standard">
               <div className="pm-about-image ui-about-image">
                 <img src={asset(about.image.key) ?? aboutPhoto} alt={about.imageAltText} />
                 <aside>
@@ -733,8 +741,8 @@ function PropertyManagementBody(): React.JSX.Element {
             </div>
           </section>
         </ObjectBoundary>
-        <section className="pm-section ui-section pm-tint ui-tint pm-testimonials ui-testimonials">
-          <div className="pm-container ui-container">
+        <section className="pm-section ui-section pm-tint ui-tint pm-testimonials ui-testimonials ui-quote-density-compact">
+          <div className="pm-container ui-container ui-content-frame-standard">
             <ObjectBoundary id="property-management.testimonials.header" value={testimonialsHeader}>
               <Heading value={testimonialsHeader} eyebrowClassName="ui-eyebrow-accent" />
             </ObjectBoundary>
@@ -780,7 +788,7 @@ function PropertyManagementBody(): React.JSX.Element {
             />
           </div>
         </section>
-        <section className="pm-section ui-section pm-faq ui-faq" id="faq">
+        <section className="pm-section ui-section pm-faq ui-faq ui-faq-density-reference" id="faq">
           <div className="pm-container ui-container pm-narrow ui-narrow">
             <ObjectBoundary id="property-management.faq.header" value={faqHeader}>
               <Heading value={faqHeader} />
@@ -823,8 +831,11 @@ function PropertyManagementBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
         <PropertyManagementNewClientForm />
-        <section className="pm-section ui-section pm-reviews ui-reviews" id="reviews">
-          <div className="pm-container ui-container">
+        <section
+          className="pm-section ui-section pm-reviews ui-reviews ui-review-grid-standard ui-review-density-reference"
+          id="reviews"
+        >
+          <div className="pm-container ui-container ui-content-frame-standard">
             <ObjectBoundary id="property-management.reviews.header" value={reviewsHeader}>
               <Heading value={reviewsHeader} />
             </ObjectBoundary>
@@ -846,7 +857,7 @@ function PropertyManagementBody(): React.JSX.Element {
               }}
             />
             <ObjectBoundary id="property-management.reviews.footer" value={reviewsFooter}>
-              <p className="pm-reviews-footer ui-reviews-footer">
+              <p className="pm-reviews-footer ui-reviews-footer ui-feedback-footer">
                 {reviewsFooter.privateFeedbackLabel}{' '}
                 <a href={`mailto:${reviewsFooter.email}`}>{reviewsFooter.email}</a> — we read every
                 message.
@@ -855,16 +866,20 @@ function PropertyManagementBody(): React.JSX.Element {
           </div>
         </section>
         <section
-          className="pm-section ui-section pm-contact ui-contact ui-align-start"
+          className="pm-section ui-section pm-contact ui-contact ui-align-start ui-contact-density-reference"
           id="contact"
         >
           <div className="pm-container ui-container pm-contact-grid ui-contact-grid ui-contact-grid-standard">
             <div>
               <ObjectBoundary id="property-management.contact.header" value={contactHeader}>
-                <Heading value={contactHeader} />
+                <Heading
+                  value={contactHeader}
+                  headingClassName="ui-contact-heading-compact"
+                  descriptionClassName="ui-contact-intro"
+                />
               </ObjectBoundary>
               <ObjectBoundary id="property-management.contact.details" value={contact}>
-                <div className="pm-contact-details ui-contact-details">
+                <div className="pm-contact-details ui-contact-details ui-contact-detail-compact">
                   <a className="pm-google ui-google" href={contact.reviewUrl}>
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.22-1.83 4.23-1.48 1.48-3.78 2.93-6.01 2.93-4.97 0-9-4.03-9-9s4.03-9 9-9c4.17 0 7.38 2.91 8.35 6.65h-2.35c-.8-2.4-2.62-4.05-6-4.05a6.4 6.4 0 1 0 0 12.8c2.54 0 4.22-1.06 5.36-2.36.9-.9 1.5-2.18 1.72-3.73h-7.08Z" />

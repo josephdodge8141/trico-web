@@ -70,6 +70,7 @@ test('canonical feature files are the catalog source rather than copied text', a
       'public.development-measured-parity',
       'public.shared-form-footer-geometry',
       'public.home-broad-parity',
+      'public.property-management-broad-parity',
       'public.profile-card-contract',
       'public.property-management-mounted-composition',
       'public.real-estate-card-geometry',

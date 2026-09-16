@@ -175,7 +175,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
         </div>
       ) : (
         <form
-          className="ui-client-form ui-form-layout--standard"
+          className="ui-client-form ui-form-layout--standard ui-form-stack-spaced"
           aria-label="Free property analysis"
           noValidate
           onSubmit={submit}
@@ -216,7 +216,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
             />
           </label>
           <button
-            className="pm-button ui-button pm-button-primary ui-button-primary ui-submit-action ui-submit-action--full"
+            className="pm-button ui-button pm-button-primary ui-button-primary ui-submit-action ui-submit-action--full ui-submit-action--in-grid"
             type="submit"
           >
             Get Free Analysis
