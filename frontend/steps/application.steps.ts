@@ -3873,6 +3873,104 @@ Then(
 );
 
 Then(
+  'the Construction footer uses the mounted inverse surface copy title legal and border roles',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+
+    const footer = page.locator('.co-footer');
+    await expect(footer).toHaveCSS(
+      'background-image',
+      'linear-gradient(to right bottom, rgb(30, 58, 138), rgb(0, 18, 138), rgb(30, 64, 175))',
+    );
+    await expect(footer).toHaveCSS('border-top-width', '4px');
+    await expect(footer).toHaveCSS('border-top-color', 'rgba(37, 99, 235, 0.5)');
+
+    const description = footer.locator('.ui-footer-copy-lead');
+    await expect(description).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
+    await expect(description).toHaveCSS('font-size', '16px');
+    await expect(description).toHaveCSS('line-height', '24px');
+
+    for (const title of ['Quick Links', 'Licenses']) {
+      const heading = footer.getByRole('heading', { name: title });
+      await expect(heading).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect(heading).toHaveCSS('font-size', '18px');
+      await expect(heading).toHaveCSS('font-weight', '600');
+      await expect(heading).toHaveCSS('line-height', '28px');
+    }
+
+    const legal = footer.locator('.ui-footer-legal-copy');
+    await expect(legal).toHaveCSS('color', 'rgba(255, 255, 255, 0.6)');
+    await expect(legal).toHaveCSS('font-size', '14px');
+    await expect(legal).toHaveCSS('line-height', '20px');
+  },
+);
+
+Then(
+  'the Construction footer preserves its desktop geometry editor wrappers and mobile containment',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const readGeometry = async () => {
+      const footer = await page.locator('.co-footer').boundingBox();
+      const grid = await page.locator('.co-footer-grid').boundingBox();
+      const logo = await page.locator('.co-footer img').boundingBox();
+      assert.ok(footer && grid && logo);
+      return {
+        footer: {
+          x: footer.x,
+          width: footer.width,
+          height: footer.height,
+        },
+        grid: {
+          x: grid.x,
+          y: grid.y - footer.y,
+          width: grid.width,
+          height: grid.height,
+        },
+        logo: { width: logo.width, height: logo.height },
+      };
+    };
+
+    const publicGeometry = await readGeometry();
+    assert.ok(Math.abs(publicGeometry.footer.x) <= 1);
+    assert.ok(Math.abs(publicGeometry.footer.width - 1425) <= 1);
+    assert.ok(Math.abs(publicGeometry.footer.height - 517) <= 2);
+    assert.ok(Math.abs(publicGeometry.grid.x - 28.5) <= 1);
+    assert.ok(Math.abs(publicGeometry.grid.y - 68) <= 1);
+    assert.ok(Math.abs(publicGeometry.grid.width - 1368) <= 1);
+    assert.ok(Math.abs(publicGeometry.grid.height - 284) <= 1);
+    assert.ok(Math.abs(publicGeometry.logo.width - 200) <= 1);
+    assert.ok(Math.abs(publicGeometry.logo.height - 48) <= 1);
+
+    await loginEditor(page);
+    await page.goto('/construction');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const editGeometry = await readGeometry();
+    assert.deepEqual(editGeometry, publicGeometry);
+    await expect(
+      page.locator('.co-footer [data-construction-entity-boundary="true"]'),
+    ).not.toHaveCount(0);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const containment = await page.locator('.co-footer').evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        left: rect.left,
+        right: rect.right,
+      };
+    });
+    assert.ok(containment.scrollWidth <= containment.clientWidth + 1);
+    assert.ok(containment.left >= -1 && containment.right <= 391);
+  },
+);
+
+Then(
   'Construction collection grids retain their responsive column templates',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

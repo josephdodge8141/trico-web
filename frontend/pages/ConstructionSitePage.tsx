@@ -993,7 +993,7 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="co-footer ui-footer ui-align-start ui-footer-rhythm">
+      <footer className="co-footer ui-footer ui-align-start ui-footer-rhythm ui-inverse-surface ui-inverse-border-accent">
         <div className="co-container ui-container co-footer-grid ui-footer-grid ui-footer-grid--standard">
           <ObjectBoundary id="construction.footer.brand" value={footerBrand}>
             <div>
@@ -1001,8 +1001,8 @@ function ConstructionBody(): React.JSX.Element {
                 src={constructionImage(footerBrand.logo.key, tricoLogo)}
                 alt={footerBrand.logoAltText}
               />
-              <p>{footerBrand.description}</p>
-              <address>
+              <p className="ui-footer-copy-lead ui-inverse-copy-lead">{footerBrand.description}</p>
+              <address className="ui-inverse-copy-standard">
                 {footerBrand.address}
                 <br />
                 <a href={`tel:${footerBrand.phone.replace(/[^\d+]/g, '')}`}>{footerBrand.phone}</a>
@@ -1011,8 +1011,8 @@ function ConstructionBody(): React.JSX.Element {
               </address>
             </div>
           </ObjectBoundary>
-          <nav aria-label="Quick links">
-            <h3 className="type-footer-title">Quick Links</h3>
+          <nav className="ui-inverse-copy-standard ui-editor-add-overlay" aria-label="Quick links">
+            <h3 className="type-footer-title ui-inverse-footer-title">Quick Links</h3>
             <CollectionBoundary
               id="construction.footer.links"
               value={footerLinks}
@@ -1023,8 +1023,10 @@ function ConstructionBody(): React.JSX.Element {
             />
           </nav>
           <ObjectBoundary id="construction.footer.licenses" value={footerLicenses}>
-            <div>
-              <h3 className="type-footer-title">{footerLicenses.heading}</h3>
+            <div className="ui-inverse-copy-standard">
+              <h3 className="type-footer-title ui-inverse-footer-title">
+                {footerLicenses.heading}
+              </h3>
               {footerLicenses.licenses.map((license) => (
                 <p key={license.id}>{license.label}</p>
               ))}
@@ -1032,8 +1034,9 @@ function ConstructionBody(): React.JSX.Element {
           </ObjectBoundary>
         </div>
         <ObjectBoundary id="construction.footer.legal" value={footerLegal}>
-          <p className="co-legal ui-legal ui-footer-legal-rhythm">
-            © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
+          <p className="co-legal ui-legal ui-footer-legal-rhythm ui-footer-legal-copy ui-inverse-legal-copy">
+            © {new Date().getFullYear()} {footerLegal.organizationName.trim()}.{' '}
+            {footerLegal.rightsNotice}
           </p>
         </ObjectBoundary>
       </footer>

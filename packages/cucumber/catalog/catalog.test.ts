@@ -81,6 +81,7 @@ test('canonical feature files are the catalog source rather than copied text', a
       'public.real-estate-inverse-surfaces',
       'public.construction-collection-geometry',
       'public.construction-residual-composition',
+      'public.construction-footer-presentation',
       'public.storage-about-rhythm',
       'public.storage-mounted-composition',
       'public.dedicated-division-composition::real-estate',

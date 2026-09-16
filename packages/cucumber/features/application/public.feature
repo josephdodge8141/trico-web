@@ -236,6 +236,14 @@ Feature: Published TriCo website
     When I open "/construction"
     Then Construction long-form sections preserve their frozen desktop height and density contracts
 
+  @id:public.construction-footer-presentation @backend-noop
+  Scenario: Preserve the Construction inverse footer presentation
+    backend-noop: Construction footer color, typography, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/construction"
+    Then the Construction footer uses the mounted inverse surface copy title legal and border roles
+    And the Construction footer preserves its desktop geometry editor wrappers and mobile containment
+
   @id:public.storage-about-rhythm @backend-noop
   Scenario: Preserve the measured Storage Our Why rhythm
     backend-noop: Storage About prose, action, responsive geometry, and editor-wrapper transparency are browser-owned presentation behavior.

@@ -44,6 +44,7 @@
     --trico-color-inverse-gradient-end: #1e40af;
     --trico-color-inverse-copy-strong: rgb(255 255 255 / 80%);
     --trico-color-inverse-copy: rgb(255 255 255 / 70%);
+    --trico-color-inverse-copy-muted: rgb(255 255 255 / 60%);
     --trico-review-google: #4285f4;
     --trico-review-facebook: #1877f2;
     --trico-review-yelp: #d32323;
@@ -4790,6 +4791,39 @@
   }
   .ui-inverse-surface.ui-footer-copy-standard .type-footer-title {
     font-weight: 600;
+  }
+  .ui-inverse-border-accent {
+    border-top-color: rgb(37 99 235 / 50%);
+  }
+  .ui-inverse-copy-lead {
+    color: var(--trico-color-inverse-copy);
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .ui-inverse-copy-standard,
+  .ui-inverse-copy-standard :is(p, a, span) {
+    color: var(--trico-color-inverse-copy);
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .ui-inverse-footer-title {
+    color: var(--trico-color-surface);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+  .ui-inverse-legal-copy {
+    color: var(--trico-color-inverse-copy-muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+  @media (min-width: 1024px) {
+    .ui-editor-add-overlay .editable-collection-add {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      margin: 0;
+    }
   }
   .ui-page .ui-inverse-footer-links .editable-collection-items {
     display: grid;
