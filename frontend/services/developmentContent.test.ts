@@ -39,3 +39,36 @@ test('Development page uses semantic labels and valid editable highlight markup'
   assert.match(source, /className="dev-highlights ui-highlights"\s+role="list"/);
   assert.match(source, /<div role="listitem">/);
 });
+
+test('Development seeds preserve the complete extracted legacy copy and footer inventory', () => {
+  assert.deepEqual(
+    developmentV2SeedData['development.land-experts.services'].map(
+      ({ description }) => description,
+    ),
+    [
+      'Expert guidance in identifying and acquiring prime land opportunities across Utah. We help you find the perfect property for your vision.',
+      'Strategic marketing and comprehensive listing services to maximize the value and exposure of your land investment.',
+      'Full-service development expertise from concept to completion. We transform raw land into thriving residential and commercial communities.',
+    ],
+  );
+  assert.deepEqual(
+    developmentV2SeedData['development.about.values'].map(({ description }) => description),
+    [
+      'We see potential where others see raw land, transforming vision into thriving communities.',
+      'Every project is built on a foundation of honesty, transparency, and ethical practices.',
+      'We develop with the future in mind, creating lasting value for communities and investors.',
+    ],
+  );
+  assert.deepEqual(
+    developmentV2SeedData['development.footer.links'].map(({ label }) => label),
+    [
+      'Land Acquisition',
+      'Residential Development',
+      'Commercial Development',
+      'Current Projects',
+      'Our Team',
+      'About Us',
+      'Contact',
+    ],
+  );
+});

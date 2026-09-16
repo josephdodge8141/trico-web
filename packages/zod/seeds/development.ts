@@ -63,19 +63,22 @@ export const developmentV2SeedData = {
       id: '17682a88-25d5-5acd-a91c-44630f62bfa1',
       icon: 'MapPin',
       title: 'Land Buying',
-      description: 'Identify and acquire prime land opportunities across Utah.',
+      description:
+        'Expert guidance in identifying and acquiring prime land opportunities across Utah. We help you find the perfect property for your vision.',
     },
     {
       id: '18682c1b-24d5-593a-a81c-42d00e62be0e',
       icon: 'FileText',
       title: 'Land Listing',
-      description: 'Strategic marketing designed to maximize value and exposure.',
+      description:
+        'Strategic marketing and comprehensive listing services to maximize the value and exposure of your land investment.',
     },
     {
       id: '19682dae-23d5-57a7-ab1c-47890d62bc7b',
       icon: 'Building2',
       title: 'Land Development',
-      description: 'Full-service expertise transforming raw land into thriving communities.',
+      description:
+        'Full-service development expertise from concept to completion. We transform raw land into thriving residential and commercial communities.',
     },
   ],
   'development.land-experts.stats': [
@@ -264,19 +267,22 @@ export const developmentV2SeedData = {
       id: 'd44556d0-3d8a-5e27-a029-9f59aeb8556b',
       icon: 'Target',
       title: 'Vision-Driven',
-      description: 'We see potential where others see raw land.',
+      description:
+        'We see potential where others see raw land, transforming vision into thriving communities.',
     },
     {
       id: 'd5455863-3c8a-5c94-af29-9dc6adb853d8',
       icon: 'Shield',
       title: 'Integrity',
-      description: 'Every project is built on honesty and transparency.',
+      description:
+        'Every project is built on a foundation of honesty, transparency, and ethical practices.',
     },
     {
       id: 'd64559f6-3f8b-514d-ae29-9c33b0b85891',
       icon: 'TrendingUp',
       title: 'Long-Term Value',
-      description: 'We create lasting value for communities and investors.',
+      description:
+        'We develop with the future in mind, creating lasting value for communities and investors.',
     },
   ],
   'development.reviews.header': {
@@ -341,11 +347,29 @@ export const developmentV2SeedData = {
     serviceAreasHeading: 'Service Areas',
   },
   'development.footer.links': [
-    { id: 'd16faaeb-8474-5d68-abcc-4816af12c3dc', label: 'Services', destination: 'services' },
-    { id: 'd06fa958-8574-5efb-accc-49a9b012c56f', label: 'Projects', destination: 'projects' },
-    { id: 'd36fae11-8674-508e-a9cc-44f0b112c702', label: 'Team', destination: 'team' },
-    { id: 'd26fac7e-8774-5221-aacc-4683b212c895', label: 'About', destination: 'about' },
-    { id: 'd56fb137-8874-53b4-afcc-4e62ab12bd90', label: 'Contact', destination: 'contact' },
+    {
+      id: 'd16faaeb-8474-5d68-abcc-4816af12c3dc',
+      label: 'Land Acquisition',
+      destination: 'services',
+    },
+    {
+      id: 'd06fa958-8574-5efb-accc-49a9b012c56f',
+      label: 'Residential Development',
+      destination: 'services',
+    },
+    {
+      id: 'd36fae11-8674-508e-a9cc-44f0b112c702',
+      label: 'Commercial Development',
+      destination: 'projects',
+    },
+    {
+      id: 'd26fac7e-8774-5221-aacc-4683b212c895',
+      label: 'Current Projects',
+      destination: 'projects',
+    },
+    { id: 'd56fb137-8874-53b4-afcc-4e62ab12bd90', label: 'Our Team', destination: 'team' },
+    { id: 'd46fafa4-8974-5547-a0cc-4ff5ac12bf23', label: 'About Us', destination: 'about' },
+    { id: 'd76fb45d-8a74-56da-adcc-4b3cad12c0b6', label: 'Contact', destination: 'contact' },
   ],
   'development.footer.service-areas': [
     { id: '96562e9e-6713-5399-a32e-e5f39fae3375', label: 'Utah' },

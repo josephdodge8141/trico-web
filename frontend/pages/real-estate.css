@@ -295,6 +295,9 @@
     max-width: var(--trico-card-copy-measure);
     margin: 0.8rem 0 0;
   }
+  .re-service-grid .re-card h3 {
+    margin-top: 0.7rem;
+  }
   .re-process-container {
     max-width: 1040px;
   }

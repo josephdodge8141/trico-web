@@ -160,6 +160,9 @@
     min-height: var(--trico-card-min-height);
     padding: var(--trico-card-padding);
   }
+  .dev-land-card {
+    height: 312px;
+  }
   .dev-land-card h3,
   .dev-card h3 {
     margin-top: 1.2rem;
@@ -297,6 +300,7 @@
   .dev-values article {
     display: flex;
     gap: 1rem;
+    min-height: 134px;
     padding: 1.5rem;
   }
   .dev-values > article > svg {
@@ -385,14 +389,16 @@
     margin: 1rem 0 0.5rem;
   }
   .dev-footer {
-    padding: 64px 0 0;
+    padding: 64px 0;
   }
   .dev-footer h3 {
     margin-bottom: 1rem;
   }
   .dev-footer-grid {
+    width: min(100% - 2rem, 1368px);
+    min-height: 284px;
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr 0.8fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 3rem;
   }
   .dev-footer-grid img {
@@ -415,7 +421,7 @@
   }
   .dev-copyright {
     margin: 3rem auto 0;
-    padding: 2rem 1rem;
+    padding: 2rem 1rem 0;
   }
   @media (max-width: 1023px) {
     .dev-header nav,
@@ -488,8 +494,13 @@
     }
     .dev-land-card,
     .dev-card {
+      height: auto;
       min-height: 0;
       padding: var(--trico-card-padding-compact);
+    }
+    .dev-values article,
+    .dev-footer-grid {
+      min-height: 0;
     }
     .dev-form-card {
       padding: 1.25rem;

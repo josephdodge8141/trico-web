@@ -1293,6 +1293,77 @@ Then(
 );
 
 Then(
+  'Development preserves the complete legacy copy and footer inventory',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.goto('/development');
+
+    await expect(
+      page.getByText(
+        'Expert guidance in identifying and acquiring prime land opportunities across Utah. We help you find the perfect property for your vision.',
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        'We see potential where others see raw land, transforming vision into thriving communities.',
+        { exact: true },
+      ),
+    ).toBeVisible();
+    const quickLinks = page.locator('.ui-footer-grid').getByRole('link');
+    await expect(quickLinks).toHaveCount(7);
+    await expect(quickLinks).toHaveText([
+      'Land Acquisition',
+      'Residential Development',
+      'Commercial Development',
+      'Current Projects',
+      'Our Team',
+      'About Us',
+      'Contact',
+    ]);
+  },
+);
+
+Then('Development uses the reference card and footer rhythm', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.setViewportSize({ width: 1512, height: 827 });
+  await page.goto('/development');
+
+  const landCards = page.locator('.ui-land-grid .ui-land-card');
+  await expect(landCards).toHaveCount(3);
+  for (const card of await landCards.all()) {
+    await expect(card).toHaveCSS('height', '312px');
+  }
+
+  const valueCards = page.locator('.ui-values article');
+  await expect(valueCards).toHaveCount(3);
+  for (const card of await valueCards.all()) {
+    await expect(card).toHaveCSS('height', '134px');
+  }
+
+  const footer = page.locator('.ui-footer');
+  const footerGrid = page.locator('.ui-footer-grid');
+  const copyright = page.locator('.ui-copyright');
+  const [footerBox, gridBox, copyrightBox] = await Promise.all([
+    footer.boundingBox(),
+    footerGrid.boundingBox(),
+    copyright.boundingBox(),
+  ]);
+  assert.ok(footerBox && gridBox && copyrightBox);
+  assert.ok(Math.abs(footerBox.height - 517) <= 2, `footer height was ${footerBox.height}`);
+  assert.ok(Math.abs(gridBox.height - 284) <= 2, `footer grid height was ${gridBox.height}`);
+  assert.ok(
+    Math.abs(copyrightBox.y - (gridBox.y + gridBox.height) - 48) <= 2,
+    'copyright did not begin 48px after the footer grid',
+  );
+  assert.ok(
+    Math.abs(footerBox.y + footerBox.height - (copyrightBox.y + copyrightBox.height) - 64) <= 2,
+    'footer did not retain its 64px bottom rhythm',
+  );
+});
+
+Then(
   'representative headings use the frozen 60 48 and 36 pixel roles',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
@@ -1634,6 +1705,41 @@ Then(
   },
 );
 Then(
+  'Real Estate services preserve the complete legacy descriptions and audited card rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.reload();
+
+    const expectedDescriptions = [
+      'Full-service commercial brokerage including office, retail, industrial, and investment properties. We handle sales, leasing, and acquisitions across all commercial property types.',
+      'Expert guidance in buying and selling land for residential subdivisions, commercial development, and investment opportunities throughout Utah.',
+      'Comprehensive commercial leasing services including market analysis, property showings, tenant screening, and lease negotiation for landlords and tenants.',
+      'Build your dream home in one of our developed subdivisions or custom build on a specific lot. We manage the entire process from design to move-in.',
+      "Full residential brokerage services for buyers and sellers. Whether you're purchasing your first home or selling a property, our team provides expert guidance.",
+    ] as const;
+    const cards = page.locator('#services .re-card');
+    await expect(cards).toHaveCount(expectedDescriptions.length);
+
+    const actualDescriptions = await cards.locator('p').allTextContents();
+    const cardHeights = await cards.evaluateAll((elements) =>
+      elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+    );
+    const gridHeight = await page
+      .locator('.re-service-grid .editable-collection-items')
+      .evaluate((element) => Math.round(element.getBoundingClientRect().height));
+
+    assert.deepEqual(
+      { actualDescriptions, cardHeights, gridHeight },
+      {
+        actualDescriptions: expectedDescriptions,
+        cardHeights: [268, 268, 268, 268, 268],
+        gridHeight: 560,
+      },
+    );
+  },
+);
+Then(
   'entering edit mode preserves the Real Estate card grid geometry',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
@@ -1815,6 +1921,67 @@ Then(
       positions,
       [...positions].sort((left, right) => left - right),
     );
+  },
+);
+Then(
+  'Storage uses the frozen desktop hero heading and service-card geometry',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1512, height: 827 });
+    await page.reload();
+
+    const hero = page.locator('.storage-hero');
+    const services = page.locator('.storage-services');
+    const heading = services.getByRole('heading', { name: 'Complete Storage Management' });
+    const grid = services.locator('.editable-collection-items');
+    const cards = grid.locator('.storage-service-card');
+    await expect(cards).toHaveCount(12);
+
+    const [heroBox, servicesBox, headingBox, gridBox] = await Promise.all([
+      hero.boundingBox(),
+      services.boundingBox(),
+      heading.boundingBox(),
+      grid.boundingBox(),
+    ]);
+    assert.ok(heroBox && servicesBox && headingBox && gridBox);
+    assert.ok(Math.abs(heroBox.height - 827) <= 1, `Storage hero height was ${heroBox.height}`);
+    assert.ok(
+      Math.abs(headingBox.width - 768) <= 2,
+      `Storage services heading width was ${headingBox.width}`,
+    );
+    assert.ok(
+      Math.abs(headingBox.height - 120) <= 2,
+      `Storage services heading height was ${headingBox.height}`,
+    );
+    assert.ok(
+      Math.abs(gridBox.width - 1368) <= 2,
+      `Storage services grid width was ${gridBox.width}`,
+    );
+
+    const firstCardPadding = await cards
+      .first()
+      .evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingLeft));
+    assert.ok(
+      Math.abs(firstCardPadding - 24) <= 1,
+      `Storage service-card padding was ${firstCardPadding}`,
+    );
+
+    const titleOffsets = await Promise.all(
+      [0, 3, 6, 9].map(async (index) => {
+        const box = await cards.nth(index).getByRole('heading').boundingBox();
+        assert.ok(box);
+        return box.y - servicesBox.y;
+      }),
+    );
+    const expectedOffsets = [507, 775, 1067, 1407];
+    titleOffsets.forEach((offset, index) => {
+      const expectedOffset = expectedOffsets[index];
+      assert.ok(expectedOffset !== undefined);
+      assert.ok(
+        Math.abs(offset - expectedOffset) <= 3,
+        `Storage service row ${String(index + 1)} title offset was ${offset}`,
+      );
+    });
   },
 );
 Then(

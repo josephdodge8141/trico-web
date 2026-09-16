@@ -3485,6 +3485,22 @@
   }
 }
 @layer utilities {
+  .ui-contained-section {
+    padding-inline: max(1rem, calc((100vw - 1368px) / 2));
+  }
+  .ui-heading-measure-standard {
+    max-width: 48rem;
+  }
+  .ui-card-padding-compact {
+    padding: 1.875rem var(--trico-card-padding-compact);
+  }
+  @media (min-width: 1024px) {
+    .ui-viewport-hero {
+      height: 100vh;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+  }
   .ui-split-hero {
     color: var(--trico-color-surface);
     text-align: left;
@@ -3566,6 +3582,7 @@
     font-weight: 700;
     line-height: 1;
     letter-spacing: normal;
+    margin-bottom: 1rem;
   }
   .type-display-large {
     font-size: 4.5rem;
@@ -3631,6 +3648,16 @@
     font-weight: 700;
     line-height: 1.75rem;
     letter-spacing: normal;
+  }
+  .ui-hero .type-display {
+    margin-bottom: 1.5rem;
+  }
+  .ui-page .type-section-title + p {
+    margin-top: 1.5rem;
+  }
+  .ui-page .ui-copyright {
+    margin: 3rem auto 0;
+    padding: 2rem 1rem 0;
   }
   .ui-services .type-card-title,
   .ui-service-grid .type-card-title,

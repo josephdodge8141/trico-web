@@ -175,6 +175,7 @@ function CollectionBoundary({
 }
 function SectionHeading({
   value,
+  className = '',
   titleClassName = '',
 }: {
   readonly value: {
@@ -182,10 +183,11 @@ function SectionHeading({
     readonly heading: string;
     readonly description: string;
   };
+  readonly className?: string;
   readonly titleClassName?: string;
 }): React.JSX.Element {
   return (
-    <header className="storage-section-heading ui-section-heading">
+    <header className={`storage-section-heading ui-section-heading ${className}`}>
       <span>{value.eyebrow}</span>
       <h2 className={`type-section-title ${titleClassName}`}>{value.heading}</h2>
       <p>{value.description}</p>
@@ -288,7 +290,7 @@ function StorageBody(): React.JSX.Element {
       ) : null}
       <main id="storage-main">
         <ObjectBoundary id="storage.hero" value={hero}>
-          <section className="storage-hero ui-hero ui-split-hero">
+          <section className="storage-hero ui-hero ui-split-hero ui-viewport-hero">
             <div className="storage-hero-copy ui-hero-copy">
               <div className="storage-badges ui-badges">
                 <span>
@@ -335,9 +337,16 @@ function StorageBody(): React.JSX.Element {
             </figure>
           </section>
         </ObjectBoundary>
-        <section id="services" className="storage-section ui-section storage-services ui-services">
+        <section
+          id="services"
+          className="storage-section ui-section ui-contained-section storage-services ui-services"
+        >
           <ObjectBoundary id="storage.services.header" value={servicesHeader}>
-            <SectionHeading value={servicesHeader} titleClassName="type-section-title-large" />
+            <SectionHeading
+              value={servicesHeader}
+              className="ui-heading-measure-standard"
+              titleClassName="type-section-title-large"
+            />
           </ObjectBoundary>
           <CollectionBoundary
             id="storage.services.items"
@@ -346,7 +355,7 @@ function StorageBody(): React.JSX.Element {
               const service = storageServiceSchema.parse(item);
               const Icon = icons[service.icon] ?? Building;
               return (
-                <article className="storage-service-card ui-service-card">
+                <article className="storage-service-card ui-service-card ui-card-padding-compact">
                   <span>
                     <Icon />
                   </span>

@@ -238,17 +238,29 @@ export const realEstateV2SeedData = {
   'real-estate.services.items': [
     [
       'Commercial Real Estate',
-      'Full-service commercial brokerage for office, retail, industrial, and investment properties.',
+      'Full-service commercial brokerage including office, retail, industrial, and investment properties. We handle sales, leasing, and acquisitions across all commercial property types.',
       'FileText',
     ],
-    ['Land Sales & Acquisitions', 'Expert guidance buying and selling land.', 'ShoppingBag'],
+    [
+      'Land Sales & Acquisitions',
+      'Expert guidance in buying and selling land for residential subdivisions, commercial development, and investment opportunities throughout Utah.',
+      'ShoppingBag',
+    ],
     [
       'Leasing & Tenant Placement',
-      'Market analysis, showings, screening, and lease negotiation.',
+      'Comprehensive commercial leasing services including market analysis, property showings, tenant screening, and lease negotiation for landlords and tenants.',
       'Handshake',
     ],
-    ['New Construction Homes', 'Build in our subdivisions or custom build on your lot.', 'Home'],
-    ['Residential Services', 'Trusted representation for buyers and sellers.', 'Building2'],
+    [
+      'New Construction Homes',
+      'Build your dream home in one of our developed subdivisions or custom build on a specific lot. We manage the entire process from design to move-in.',
+      'Home',
+    ],
+    [
+      'Residential Services',
+      "Full residential brokerage services for buyers and sellers. Whether you're purchasing your first home or selling a property, our team provides expert guidance.",
+      'Building2',
+    ],
   ].map(([title, description, icon], n) => ({
     id: itemId('real-estate.services.items', n),
     title: title ?? 'New service',

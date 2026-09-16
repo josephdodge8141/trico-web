@@ -130,10 +130,9 @@
     width: 1.3rem;
   }
   .storage-section {
-    padding: 6rem max(1rem, calc((100vw - 1400px) / 2));
+    padding-block: 6rem;
   }
   .storage-section-heading {
-    max-width: 54rem;
     margin: 0 auto 4rem;
   }
   .storage-section-heading span {
@@ -143,11 +142,10 @@
   .storage-services .editable-collection-items {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.4rem;
+    gap: 2rem;
   }
   .storage-service-card {
     height: 100%;
-    padding: 1.75rem;
   }
   .storage-service-card > span,
   .storage-review-card > span:first-child {

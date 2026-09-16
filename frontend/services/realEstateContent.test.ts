@@ -12,6 +12,19 @@ import {
   parseRealEstateValue,
 } from '../pages/realEstateContent.js';
 
+test('Real Estate service seed preserves the complete legacy-visible descriptions', () => {
+  assert.deepEqual(
+    realEstateV2SeedData['real-estate.services.items'].map(({ description }) => description),
+    [
+      'Full-service commercial brokerage including office, retail, industrial, and investment properties. We handle sales, leasing, and acquisitions across all commercial property types.',
+      'Expert guidance in buying and selling land for residential subdivisions, commercial development, and investment opportunities throughout Utah.',
+      'Comprehensive commercial leasing services including market analysis, property showings, tenant screening, and lease negotiation for landlords and tenants.',
+      'Build your dream home in one of our developed subdivisions or custom build on a specific lot. We manage the entire process from design to move-in.',
+      "Full residential brokerage services for buyers and sellers. Whether you're purchasing your first home or selling a property, our team provides expert guidance.",
+    ],
+  );
+});
+
 test('Real Estate uses semantic seed values when content is absent or legacy', () => {
   assert.deepEqual(
     parseRealEstateValue({}, 'real-estate.hero', realEstateHeroSchema),

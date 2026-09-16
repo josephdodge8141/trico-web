@@ -78,6 +78,8 @@ Feature: Published TriCo website
     And shared header and primary actions use the reference geometry
     And shared navigation form labels and actions use the frozen medium weight and six-pixel corners
     And shared supporting content follows the reference start alignment contract
+    And Development preserves the complete legacy copy and footer inventory
+    And Development uses the reference card and footer rhythm
     And shared section rhythm remains balanced at desktop and tablet widths
 
   @id:public.review-platform-contract @backend-noop
@@ -122,6 +124,7 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "/real-estate"
     Then Real Estate services team and testimonials use centered three-column desktop grids
+    And Real Estate services preserve the complete legacy descriptions and audited card rhythm
     And entering edit mode preserves the Real Estate card grid geometry
 
   @id:public.real-estate-listing-gallery @backend-noop
@@ -153,6 +156,7 @@ Feature: Published TriCo website
     Then Storage presents facility management for owners rather than consumer unit shopping
     And all 18 Storage entities have an editable visual boundary
     And the Storage hero, services, team, Our Why, reviews, contact, and footer render in order
+    And Storage uses the frozen desktop hero heading and service-card geometry
     And the Storage contact form validates locally without creating a CMS entity
     And Storage navigation remains usable at desktop and mobile widths
 
