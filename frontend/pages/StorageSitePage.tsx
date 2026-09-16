@@ -344,7 +344,7 @@ function StorageBody(): React.JSX.Element {
           <ObjectBoundary id="storage.services.header" value={servicesHeader}>
             <SectionHeading
               value={servicesHeader}
-              className="ui-heading-measure-standard"
+              className="ui-heading-measure-standard ui-heading-rhythm"
               titleClassName="type-section-title-large"
             />
           </ObjectBoundary>

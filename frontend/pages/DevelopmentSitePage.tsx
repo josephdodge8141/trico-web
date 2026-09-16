@@ -358,7 +358,7 @@ function DevelopmentBody(): React.JSX.Element {
         <section id="services" className="dev-section ui-section dev-tint ui-tint">
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.land-experts.header" value={landHeader}>
-              <header className="dev-heading ui-heading">
+              <header className="dev-heading ui-heading ui-heading-rhythm">
                 <span className="dev-pill ui-pill">
                   <Mountain /> {landHeader.eyebrow}
                 </span>
@@ -406,7 +406,7 @@ function DevelopmentBody(): React.JSX.Element {
         <section id="projects" className="dev-section ui-section">
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.services.header" value={servicesHeader}>
-              <header className="dev-heading ui-heading">
+              <header className="dev-heading ui-heading ui-heading-rhythm">
                 <span className="dev-pill ui-pill ui-section-eyebrow">
                   {servicesHeader.eyebrow}
                 </span>
@@ -484,7 +484,7 @@ function DevelopmentBody(): React.JSX.Element {
         <section className="dev-section ui-section dev-partners ui-partners">
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.partners.header" value={partnersHeader}>
-              <header className="dev-heading ui-heading">
+              <header className="dev-heading ui-heading ui-heading-rhythm">
                 <span className="dev-pill ui-pill dev-pill-blue ui-pill-blue">
                   <Handshake /> {partnersHeader.eyebrow}
                 </span>
@@ -512,7 +512,7 @@ function DevelopmentBody(): React.JSX.Element {
         <section id="team" className="dev-section ui-section dev-tint ui-tint">
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.team.header" value={teamHeader}>
-              <header className="dev-heading ui-heading">
+              <header className="dev-heading ui-heading ui-heading-rhythm">
                 <span className="dev-pill ui-pill ui-section-eyebrow">{teamHeader.eyebrow}</span>
                 <h2 className="type-section-title">{teamHeader.heading}</h2>
                 <p>{teamHeader.description}</p>
@@ -592,7 +592,7 @@ function DevelopmentBody(): React.JSX.Element {
         <section id="reviews" className="dev-section ui-section dev-reviews ui-reviews">
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.reviews.header" value={reviewsHeader}>
-              <header className="dev-heading ui-heading">
+              <header className="dev-heading ui-heading ui-heading-rhythm">
                 <span className="dev-pill ui-pill">{reviewsHeader.eyebrow}</span>
                 <h2 className="type-section-title">{reviewsHeader.heading}</h2>
                 <p>{reviewsHeader.description}</p>
@@ -678,7 +678,7 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="dev-footer ui-footer ui-align-start">
+      <footer className="dev-footer ui-footer ui-align-start ui-footer-rhythm">
         <div className="dev-container ui-container dev-footer-grid ui-footer-grid">
           <ObjectBoundary id="development.footer.brand" value={footerBrand}>
             <div>

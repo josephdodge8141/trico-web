@@ -3491,6 +3491,16 @@
   .ui-heading-measure-standard {
     max-width: 48rem;
   }
+  .ui-heading-rhythm .type-section-title {
+    margin-bottom: 1rem;
+  }
+  .ui-heading-rhythm .type-section-title + p {
+    margin-top: 1.5rem;
+  }
+  .ui-footer-rhythm .ui-copyright {
+    margin: 3rem auto 0;
+    padding: 2rem 1rem 0;
+  }
   .ui-card-padding-compact {
     padding: 1.875rem var(--trico-card-padding-compact);
   }
@@ -3582,7 +3592,6 @@
     font-weight: 700;
     line-height: 1;
     letter-spacing: normal;
-    margin-bottom: 1rem;
   }
   .type-display-large {
     font-size: 4.5rem;
@@ -3648,16 +3657,6 @@
     font-weight: 700;
     line-height: 1.75rem;
     letter-spacing: normal;
-  }
-  .ui-hero .type-display {
-    margin-bottom: 1.5rem;
-  }
-  .ui-page .type-section-title + p {
-    margin-top: 1.5rem;
-  }
-  .ui-page .ui-copyright {
-    margin: 3rem auto 0;
-    padding: 2rem 1rem 0;
   }
   .ui-services .type-card-title,
   .ui-service-grid .type-card-title,
