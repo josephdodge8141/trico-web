@@ -1513,6 +1513,59 @@ Then(
 );
 
 Then(
+  'the Development contact form preserves the frozen compact field rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.evaluate(() => document.fonts.ready);
+
+    const form = page.locator('#contact .ui-form-presentation-compact');
+    await expect(form).toHaveCount(1);
+    const formBox = await form.boundingBox();
+    assert.ok(formBox);
+    assert.ok(Math.abs(formBox.width - 586) <= 1, `contact form was ${formBox.width}px wide`);
+    assert.ok(Math.abs(formBox.height - 454) <= 1, `contact form was ${formBox.height}px tall`);
+
+    const labels = form.locator('label');
+    await expect(labels).toHaveCount(6);
+    for (const label of await labels.all()) {
+      await expect(label).toHaveCSS('display', 'block');
+      await expect(label).toHaveCSS('font-size', '14px');
+      await expect(label).toHaveCSS('font-weight', '500');
+      await expect(label).toHaveCSS('line-height', '20px');
+      await expect(label).toHaveCSS('margin-bottom', '8px');
+    }
+
+    for (const input of await form.locator('input').all()) {
+      const inputBox = await input.boundingBox();
+      assert.ok(inputBox);
+      assert.ok(Math.abs(inputBox.height - 40) <= 1, `contact input was ${inputBox.height}px tall`);
+    }
+    const textarea = form.locator('textarea');
+    const textareaBox = await textarea.boundingBox();
+    assert.ok(textareaBox);
+    assert.ok(
+      Math.abs(textareaBox.height - 98) <= 1,
+      `contact textarea was ${textareaBox.height}px tall`,
+    );
+
+    const submit = form.getByRole('button', { name: 'Get Started' });
+    const submitBox = await submit.boundingBox();
+    assert.ok(submitBox);
+    assert.ok(
+      Math.abs(submitBox.y - formBox.y - 410) <= 1,
+      `contact submit began ${submitBox.y - formBox.y}px below the form`,
+    );
+    assert.ok(
+      Math.abs(submitBox.height - 44) <= 1,
+      `contact submit was ${submitBox.height}px tall`,
+    );
+    await expect(submit).toHaveCSS('line-height', '20px');
+    await expect(submit).toHaveCSS('border-top-width', '0px');
+  },
+);
+
+Then(
   'Development partners use the frozen desktop composition',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

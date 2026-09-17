@@ -353,28 +353,6 @@
   .dev-form-card h3 {
     margin-bottom: 1.5rem;
   }
-  .dev-form-card form {
-    display: grid;
-    gap: 1.25rem;
-  }
-  .dev-field-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  .dev-form-card label {
-    display: grid;
-    gap: 0.45rem;
-  }
-  .dev-form-card input,
-  .dev-form-card textarea {
-    width: 100%;
-    min-height: 44px;
-    padding: 0.7rem 0.8rem;
-  }
-  .dev-form-card textarea {
-    min-height: 108px;
-  }
   .dev-form-success {
     min-height: 320px;
     display: grid;
@@ -513,7 +491,6 @@
     .dev-about-grid,
     .dev-review-grid,
     .dev-contact-grid,
-    .dev-field-grid,
     .dev-footer-grid {
       grid-template-columns: 1fr;
     }
