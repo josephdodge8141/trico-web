@@ -388,7 +388,7 @@ function StorageBody(): React.JSX.Element {
             renderItem={(item) => {
               const member = storageTeamMemberSchema.parse(item);
               return (
-                <article className="ui-team-card ui-four-profile-card">
+                <article className="storage-team-card ui-team-card ui-four-profile-card">
                   <img
                     className="ui-four-profile-portrait"
                     src={managedImage(member.image.key, storageLogo)}
