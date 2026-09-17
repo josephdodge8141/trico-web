@@ -355,7 +355,10 @@ function DevelopmentBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
 
-        <section id="services" className="dev-section ui-section dev-tint ui-tint">
+        <section
+          id="services"
+          className="dev-section ui-section dev-tint ui-tint ui-supporting-surface-strong"
+        >
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.land-experts.header" value={landHeader}>
               <header className="dev-heading ui-heading ui-heading-rhythm ui-heading-gap-standard">
@@ -513,7 +516,10 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section id="team" className="dev-section ui-section dev-tint ui-tint">
+        <section
+          id="team"
+          className="dev-section ui-section dev-tint ui-tint ui-supporting-surface-strong"
+        >
           <div className="dev-container ui-container">
             <ObjectBoundary id="development.team.header" value={teamHeader}>
               <header className="dev-heading ui-heading ui-heading-rhythm ui-heading-gap-standard">
@@ -633,7 +639,7 @@ function DevelopmentBody(): React.JSX.Element {
 
         <section
           id="contact"
-          className="dev-section ui-section dev-contact ui-contact ui-align-start"
+          className="dev-section ui-section dev-contact ui-contact ui-align-start ui-supporting-surface-soft"
         >
           <div className="dev-container ui-container dev-contact-grid ui-contact-grid ui-contact-grid-standard">
             <div>

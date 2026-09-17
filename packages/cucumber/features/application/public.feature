@@ -110,6 +110,13 @@ Feature: Published TriCo website
     And Development headings hero prose and feedback use measured rhythm roles
     And Development profile and review cards use their measured densities
 
+  @id:public.development-supporting-surfaces @backend-noop
+  Scenario: Preserve the Development supporting-surface roles
+    backend-noop: Development supporting-surface gradients are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/development"
+    Then Development supporting surfaces preserve the frozen gradient strengths
+
   @id:public.development-partner-composition @backend-noop
   Scenario: Preserve the Development partner composition
     backend-noop: Development partner geometry and responsive presentation are browser-owned visual behavior.

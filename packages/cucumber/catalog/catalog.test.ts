@@ -69,6 +69,7 @@ test('canonical feature files are the catalog source rather than copied text', a
       'public.shared-section-rhythm',
       'public.review-platform-contract',
       'public.development-measured-parity',
+      'public.development-supporting-surfaces',
       'public.development-partner-composition',
       'public.development-about-composition',
       'public.development-footer-presentation',

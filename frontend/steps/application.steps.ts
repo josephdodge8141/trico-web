@@ -1463,6 +1463,22 @@ Then(
 );
 
 Then(
+  'Development supporting surfaces preserve the frozen gradient strengths',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const supportingGradient =
+      'linear-gradient(to right bottom, rgba(30, 58, 138, 0.2), rgba(255, 255, 255, 0.3), rgba(30, 58, 138, 0.1))';
+    for (const selector of ['#services', '#team'] as const) {
+      await expect(page.locator(selector)).toHaveCSS('background-image', supportingGradient);
+    }
+    await expect(page.locator('#contact')).toHaveCSS(
+      'background-image',
+      'linear-gradient(to right bottom, rgba(30, 58, 138, 0.1), rgba(243, 244, 246, 0.3), rgba(30, 58, 138, 0.05))',
+    );
+  },
+);
+
+Then(
   'Development partners use the frozen desktop composition',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

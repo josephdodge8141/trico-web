@@ -82,6 +82,12 @@
     --trico-border-on-dark: rgb(255 255 255 / 30%);
     --trico-surface-muted-subtle: rgb(243 244 246 / 45%);
     --trico-surface-muted-emphasis: rgb(243 244 246 / 65%);
+    --trico-supporting-surface-strong-start: rgb(30 58 138 / 20%);
+    --trico-supporting-surface-strong-center: rgb(255 255 255 / 30%);
+    --trico-supporting-surface-strong-end: rgb(30 58 138 / 10%);
+    --trico-supporting-surface-soft-start: rgb(30 58 138 / 10%);
+    --trico-supporting-surface-soft-center: rgb(243 244 246 / 30%);
+    --trico-supporting-surface-soft-end: rgb(30 58 138 / 5%);
   }
 }
 @layer components {
@@ -3087,6 +3093,22 @@
       var(--trico-surface-brand-subtle),
       var(--trico-surface-muted-emphasis),
       var(--trico-surface-brand-subtle)
+    );
+  }
+  .ui-supporting-surface-strong {
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-supporting-surface-strong-start),
+      var(--trico-supporting-surface-strong-center),
+      var(--trico-supporting-surface-strong-end)
+    );
+  }
+  .ui-supporting-surface-soft {
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-supporting-surface-soft-start),
+      var(--trico-supporting-surface-soft-center),
+      var(--trico-supporting-surface-soft-end)
     );
   }
   .ui-division-card {
