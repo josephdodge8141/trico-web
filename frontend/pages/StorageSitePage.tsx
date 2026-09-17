@@ -16,7 +16,6 @@ import {
   Phone,
   Settings,
   Shield,
-  Sparkles,
   Target,
   TrendingUp,
   Users,
@@ -246,14 +245,20 @@ function StorageBody(): React.JSX.Element {
         Skip to main content
       </a>
       <ObjectBoundary id="storage.anniversary-banner" value={banner}>
-        <div className="storage-banner ui-banner">
-          <Sparkles aria-hidden="true" />
+        <div className="storage-banner ui-banner ui-centered-logo-banner">
+          <svg
+            className="ui-centered-logo-banner-wave"
+            aria-hidden="true"
+            viewBox="0 0 1440 48"
+            preserveAspectRatio="none"
+          >
+            <path d="M0 31c175-18 323-18 472 0s297 18 472 0 321-18 496 0v17H0Z" />
+          </svg>
           <strong>{banner.message}</strong>
-          <Sparkles aria-hidden="true" />
         </div>
       </ObjectBoundary>
       <ObjectBoundary id="storage.header" value={header}>
-        <header className="storage-header ui-header">
+        <header className="storage-header ui-header ui-centered-logo-header">
           <Link to="/" aria-label="TriCo home">
             <img src={managedImage(header.logo.key, storageLogo)} alt={header.logoAltText} />
           </Link>

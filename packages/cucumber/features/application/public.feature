@@ -260,6 +260,14 @@ Feature: Published TriCo website
     Then Storage Our Why uses the measured desktop prose and action rhythm
     And Storage Our Why preserves its geometry in edit mode without overflowing on mobile
 
+  @id:public.storage-centered-logo-masthead @backend-noop
+  Scenario: Preserve the Storage centered-logo masthead
+    backend-noop: Storage masthead geometry, presentation, responsive navigation, and editor-wrapper transparency are browser-owned behavior.
+    Given the current content manifest is available
+    When I open "/storage"
+    Then Storage uses the measured centered-logo desktop masthead
+    And Storage preserves the masthead in edit mode with usable mobile navigation
+
   @id:public.storage-mounted-composition @backend-noop
   Scenario: Render the complete mounted Storage Management composition
     backend-noop: Storage composition, responsive presentation, and its client-only consultation form are browser-owned behavior.

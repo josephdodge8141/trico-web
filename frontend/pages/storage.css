@@ -9,35 +9,9 @@
     z-index: 75;
     top: 156px;
   }
-  .storage-banner {
-    position: fixed;
-    z-index: 60;
-    inset: 0 0 auto;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-  }
-  .storage-header {
-    position: fixed;
-    z-index: 50;
-    top: 52px;
-    right: 0;
-    left: 0;
-    height: 96px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem max(1rem, calc((100vw - 1400px) / 2));
-  }
   .storage-header img {
     height: 64px;
     width: auto;
-  }
-  .storage-header nav,
-  .storage-header button {
-    display: none;
   }
   .storage-mobile-nav {
     position: fixed;
@@ -318,17 +292,6 @@
     display: grid;
   }
   @media (max-width: 1023px) {
-    .storage-header {
-      justify-content: space-between;
-      padding-inline: 1rem;
-    }
-    .storage-header nav {
-      display: none;
-    }
-    .storage-header button {
-      display: grid;
-      place-items: center;
-    }
     .storage-hero {
       min-height: auto;
       grid-template-columns: 1fr;
@@ -345,12 +308,6 @@
     }
   }
   @media (min-width: 1024px) {
-    .storage-header nav {
-      position: absolute;
-      right: max(1rem, calc((100vw - 1400px) / 2));
-      display: flex;
-      gap: 1.3rem;
-    }
     .storage-mobile-nav {
       display: none;
     }

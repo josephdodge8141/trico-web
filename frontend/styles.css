@@ -3636,6 +3636,73 @@
   }
 }
 @layer utilities {
+  .ui-centered-logo-banner {
+    position: fixed;
+    z-index: 60;
+    inset: 0 0 auto;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: var(--trico-color-surface);
+    background: linear-gradient(90deg, rgb(29 78 216), rgb(37 99 235), rgb(29 78 216));
+    box-shadow: 0 2px 10px rgb(29 78 216 / 20%);
+  }
+  .ui-centered-logo-banner > strong {
+    position: relative;
+    z-index: 1;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 24px;
+    letter-spacing: 0.025em;
+  }
+  .ui-centered-logo-banner-wave {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--trico-color-surface);
+    opacity: 0.2;
+    pointer-events: none;
+  }
+  .ui-centered-logo-banner-wave path {
+    fill: currentColor;
+  }
+  .ui-centered-logo-header {
+    position: fixed;
+    z-index: 50;
+    top: 52px;
+    right: 0;
+    left: 0;
+    height: 97px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px max(16px, calc((100vw - 1400px) / 2));
+    border-bottom: 1px solid var(--trico-color-border);
+    background: rgb(255 255 255 / 95%);
+    backdrop-filter: blur(8px);
+  }
+  .ui-centered-logo-header > a {
+    display: block;
+    line-height: 0;
+  }
+  .ui-centered-logo-header img {
+    display: block;
+  }
+  .ui-centered-logo-header > nav,
+  .ui-centered-logo-header > button {
+    display: none;
+  }
+  @media (max-width: 1023px) {
+    .ui-centered-logo-header > button {
+      position: absolute;
+      right: 16px;
+      display: grid;
+      place-items: center;
+    }
+  }
   .ui-theme-storage {
     --ui-division-primary: rgb(30 58 138);
     --ui-division-primary-strong: rgb(30 64 175);

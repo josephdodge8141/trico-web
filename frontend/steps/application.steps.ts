@@ -95,6 +95,28 @@ class FrontendWorld extends World {
         readonly textCenterX: number;
       }
     | undefined;
+  storagePublicMastheadGeometry:
+    | {
+        readonly banner: {
+          readonly x: number;
+          readonly y: number;
+          readonly width: number;
+          readonly height: number;
+        };
+        readonly header: {
+          readonly x: number;
+          readonly y: number;
+          readonly width: number;
+          readonly height: number;
+        };
+        readonly logo: {
+          readonly x: number;
+          readonly y: number;
+          readonly width: number;
+          readonly height: number;
+        };
+      }
+    | undefined;
   currentPage(): Page {
     assert.ok(this.page);
     return this.page;
@@ -3355,6 +3377,110 @@ Then(
       positions,
       [...positions].sort((left, right) => left - right),
     );
+  },
+);
+Then(
+  'Storage uses the measured centered-logo desktop masthead',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.reload();
+
+    const banner = page.locator('.storage-banner');
+    const header = page.locator('.storage-header');
+    const logo = header.getByRole('img');
+    const desktopNavigation = header.getByRole('navigation', { name: 'Storage navigation' });
+    const [bannerBox, headerBox, logoBox] = await Promise.all([
+      banner.boundingBox(),
+      header.boundingBox(),
+      logo.boundingBox(),
+    ]);
+    assert.ok(bannerBox && headerBox && logoBox);
+    this.storagePublicMastheadGeometry = {
+      banner: bannerBox,
+      header: headerBox,
+      logo: logoBox,
+    };
+
+    assert.ok(
+      Math.abs(bannerBox.height - 48) <= 1,
+      `Storage banner height was ${bannerBox.height}`,
+    );
+    assert.ok(Math.abs(headerBox.y - 52) <= 1, `Storage header top was ${headerBox.y}`);
+    assert.ok(
+      Math.abs(headerBox.height - 97) <= 1,
+      `Storage header height was ${headerBox.height}`,
+    );
+    assert.ok(Math.abs(logoBox.width - 114.4) <= 1, `Storage logo width was ${logoBox.width}`);
+    assert.ok(Math.abs(logoBox.height - 64) <= 1, `Storage logo height was ${logoBox.height}`);
+    assert.ok(Math.abs(logoBox.y - 68) <= 1, `Storage logo top was ${logoBox.y}`);
+    assert.ok(
+      Math.abs(logoBox.x + logoBox.width / 2 - (headerBox.x + headerBox.width / 2)) <= 1,
+      'Storage logo was not centered in its header',
+    );
+
+    await expect(banner).toHaveCSS(
+      'background-image',
+      'linear-gradient(90deg, rgb(29, 78, 216), rgb(37, 99, 235), rgb(29, 78, 216))',
+    );
+    const bannerLabel = banner.getByText('40+ Years of Excellence', { exact: true });
+    await expect(bannerLabel).toHaveCSS('font-size', '16px');
+    await expect(bannerLabel).toHaveCSS('line-height', '24px');
+    await expect(bannerLabel).toHaveCSS('font-weight', '700');
+    await expect(banner.locator('.ui-centered-logo-banner-wave')).toBeVisible();
+    await expect(header).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.95)');
+    await expect(desktopNavigation).toBeHidden();
+  },
+);
+Then(
+  'Storage preserves the masthead in edit mode with usable mobile navigation',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const publicGeometry = this.storagePublicMastheadGeometry;
+    assert.ok(publicGeometry);
+    await loginEditor(page);
+    await page.goto(`${baseUrl}/storage`);
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+
+    const banner = page.locator('.storage-banner');
+    const header = page.locator('.storage-header');
+    const logo = header.getByRole('img');
+    const [bannerBox, headerBox, logoBox] = await Promise.all([
+      banner.boundingBox(),
+      header.boundingBox(),
+      logo.boundingBox(),
+    ]);
+    assert.ok(bannerBox && headerBox && logoBox);
+    for (const [name, publicBox, editBox] of [
+      ['banner', publicGeometry.banner, bannerBox],
+      ['header', publicGeometry.header, headerBox],
+      ['logo', publicGeometry.logo, logoBox],
+    ] as const) {
+      for (const dimension of ['x', 'y', 'width', 'height'] as const) {
+        assert.ok(
+          Math.abs(editBox[dimension] - publicBox[dimension]) <= 1,
+          `Storage ${name} ${dimension} changed in edit mode`,
+        );
+      }
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobileHeaderBox = await header.boundingBox();
+    const mobileLogoBox = await logo.boundingBox();
+    assert.ok(mobileHeaderBox && mobileLogoBox);
+    assert.ok(
+      Math.abs(
+        mobileLogoBox.x + mobileLogoBox.width / 2 - (mobileHeaderBox.x + mobileHeaderBox.width / 2),
+      ) <= 1,
+      'Storage mobile logo was not centered',
+    );
+    assert.ok(mobileLogoBox.x >= mobileHeaderBox.x);
+    assert.ok(mobileLogoBox.x + mobileLogoBox.width <= mobileHeaderBox.x + mobileHeaderBox.width);
+    const menu = page.getByRole('button', { name: 'Open navigation' });
+    await expect(menu).toBeVisible();
+    await menu.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('navigation', { name: 'Mobile storage navigation' })).toBeVisible();
   },
 );
 Then(
