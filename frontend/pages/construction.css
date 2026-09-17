@@ -375,14 +375,6 @@
   .co-team-card svg {
     width: 0.85rem;
   }
-  .co-workers img {
-    width: min(100%, 672px);
-    height: 400px;
-    display: block;
-    margin: auto;
-    object-fit: cover;
-    object-position: top;
-  }
   .co-about-art {
     position: relative;
     aspect-ratio: 4/3;
@@ -677,9 +669,6 @@
     .co-about-art aside {
       right: 0.75rem;
       bottom: -0.75rem;
-    }
-    .co-workers img {
-      height: 300px;
     }
     .co-footer-grid {
       grid-template-columns: 1fr;

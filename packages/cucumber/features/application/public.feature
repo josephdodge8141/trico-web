@@ -248,6 +248,7 @@ Feature: Published TriCo website
     Then Construction services plans pros and reviews fill their centered desktop grids
     And Construction service and pro card rows use the frozen desktop rhythm
     And Construction sectors people and about use the frozen desktop presentation contracts
+    And Construction workers media preserves the frozen desktop composition
     And Construction collection grids retain their responsive column templates
     And entering edit mode preserves the Construction collection grid geometry
     And shared collection sizing preserves Real Estate and Property Management service grids

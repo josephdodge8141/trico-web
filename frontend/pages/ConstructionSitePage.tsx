@@ -782,7 +782,7 @@ function ConstructionBody(): React.JSX.Element {
                 eyebrow={workers.eyebrow}
                 title={workers.heading}
                 copy={workers.description}
-                headingClassName="ui-heading-plain"
+                headingClassName="ui-heading-plain ui-heading-media-reference"
               />
               <img
                 className="ui-media-frame-landscape"

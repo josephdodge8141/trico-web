@@ -4001,7 +4001,6 @@ Then(
     const completedProjects = page.locator('#completed-projects');
     const sectorCards = page.locator('#projects .ui-sector, #completed-projects .ui-sector');
     const team = page.locator('#team');
-    const crew = page.locator('.ui-workers');
     const about = page.locator('#about');
     const [
       currentProjectsBox,
@@ -4010,12 +4009,9 @@ Then(
       sectorTitleMargin,
       sectorActionLineHeight,
       teamBox,
-      crewBox,
       teamPadding,
-      crewPadding,
       teamHeadingPresentation,
       teamGridBox,
-      crewImageBox,
       aboutBox,
       aboutArtBox,
       aboutPresentation,
@@ -4034,12 +4030,7 @@ Then(
         .first()
         .evaluate((element) => getComputedStyle(element).lineHeight),
       team.boundingBox(),
-      crew.boundingBox(),
       team.evaluate((element) => {
-        const style = getComputedStyle(element);
-        return { bottom: style.paddingBottom, top: style.paddingTop };
-      }),
-      crew.evaluate((element) => {
         const style = getComputedStyle(element);
         return { bottom: style.paddingBottom, top: style.paddingTop };
       }),
@@ -4053,7 +4044,6 @@ Then(
         };
       }),
       team.locator('.ui-team-grid').boundingBox(),
-      crew.locator('img').boundingBox(),
       about.boundingBox(),
       about.locator('.ui-about-art').boundingBox(),
       about.evaluate((element) => {
@@ -4069,7 +4059,7 @@ Then(
     ]);
 
     assert.ok(currentProjectsBox && completedProjectsBox);
-    assert.ok(teamBox && crewBox && teamGridBox && crewImageBox && aboutBox && aboutArtBox);
+    assert.ok(teamBox && teamGridBox && aboutBox && aboutArtBox);
     assert.ok(
       Math.abs(currentProjectsBox.height - 760) <= 2,
       `Current sector section height was ${currentProjectsBox.height}`,
@@ -4087,12 +4077,7 @@ Then(
       Math.abs(teamBox.height - 678) <= 2,
       `Construction team height was ${teamBox.height}`,
     );
-    assert.ok(
-      Math.abs(crewBox.height - 754) <= 2,
-      `Construction crew height was ${crewBox.height}`,
-    );
     assert.deepEqual(teamPadding, { bottom: '80px', top: '80px' });
-    assert.deepEqual(crewPadding, { bottom: '80px', top: '80px' });
     assert.deepEqual(teamHeadingPresentation, {
       eyebrowDisplay: 'none',
       titleMarginTop: '0px',
@@ -4100,10 +4085,6 @@ Then(
     assert.ok(
       Math.abs(teamGridBox.height - 342) <= 1,
       `Construction team grid height was ${teamGridBox.height}`,
-    );
-    assert.ok(
-      Math.abs(crewImageBox.height - 444) <= 1,
-      `Construction crew image height was ${crewImageBox.height}`,
     );
     assert.ok(
       Math.abs(aboutBox.height - 756) <= 2,
@@ -4118,6 +4099,56 @@ Then(
     assert.match(aboutPresentation.backgroundImage, /rgb\(30, 64, 175\)/u);
     assert.equal(aboutPresentation.titleColor, 'rgb(255, 255, 255)');
     assert.equal(aboutPresentation.actionBackground, 'rgb(134, 98, 45)');
+  },
+);
+
+Then(
+  'Construction workers media preserves the frozen desktop composition',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+
+    const crew = page.locator('.ui-workers');
+    const image = crew.locator('img');
+    const [crewBox, imageBox, copy, padding, presentation] = await Promise.all([
+      crew.boundingBox(),
+      image.boundingBox(),
+      crew.locator('.ui-heading > p').innerText(),
+      crew.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { bottom: style.paddingBottom, top: style.paddingTop };
+      }),
+      image.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          borderRadius: style.borderRadius,
+          boxShadow: style.boxShadow,
+          objectFit: style.objectFit,
+          objectPosition: style.objectPosition,
+        };
+      }),
+    ]);
+    assert.ok(crewBox && imageBox);
+    const expectedCopy =
+      'The hardworking team that brings every project to life — dedicated professionals committed to quality craftsmanship on every job site.';
+    const topOffset = imageBox.y - crewBox.y;
+    const matchesFrozenComposition =
+      Math.abs(crewBox.height - 754) <= 2 &&
+      copy === expectedCopy &&
+      padding.bottom === '80px' &&
+      padding.top === '80px' &&
+      Math.abs(imageBox.height - 400) <= 1 &&
+      Math.abs(topOffset - 273) <= 1 &&
+      presentation.borderRadius === '0px' &&
+      presentation.boxShadow === 'none' &&
+      presentation.objectFit === 'cover' &&
+      presentation.objectPosition === '50% 0%';
+    assert.ok(
+      matchesFrozenComposition,
+      `Construction workers composition differed: ${JSON.stringify({ copy, crewHeight: crewBox.height, imageHeight: imageBox.height, padding, presentation, topOffset })}`,
+    );
   },
 );
 

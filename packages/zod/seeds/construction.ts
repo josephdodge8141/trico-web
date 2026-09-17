@@ -294,7 +294,7 @@ const baseSeeds: Readonly<Record<string, EditableValue>> = {
     eyebrow: 'In the Field',
     heading: 'Our Construction Crew',
     description:
-      'The hardworking professionals who bring every project to life with quality craftsmanship.',
+      'The hardworking team that brings every project to life — dedicated professionals committed to quality craftsmanship on every job site.',
     image: { kind: 'managed', key: 'media/seed/construction-crew-2.jpg' },
     imageAltText: 'TriCo construction crew posing with heavy equipment',
   },

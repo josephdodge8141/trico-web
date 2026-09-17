@@ -4898,6 +4898,16 @@
   .ui-heading-plain > h2 {
     margin-top: 0;
   }
+  .ui-media-frame-landscape {
+    width: min(100%, 672px);
+    height: 300px;
+    display: block;
+    margin: auto;
+    object-fit: cover;
+    object-position: 50% 0%;
+    border-radius: 0;
+    box-shadow: none;
+  }
   @media (min-width: 1024px) {
     .ui-sector-grid-compact .ui-sector {
       height: 176px;
@@ -4916,7 +4926,13 @@
       min-height: 342px;
     }
     .ui-media-frame-landscape {
-      height: 444px;
+      height: 400px;
+    }
+    .ui-heading-media-reference {
+      margin-bottom: 70px;
+    }
+    .ui-heading-media-reference > h2 {
+      margin-bottom: 24px;
     }
     .ui-media-frame-feature-tall {
       height: 564px;
