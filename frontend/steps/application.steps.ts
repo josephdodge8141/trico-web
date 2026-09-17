@@ -948,10 +948,38 @@ Then(
 );
 
 const divisionHeroMediaSamples = [
-  { route: '/property-management', state: 'unavailable' },
-  { route: '/real-estate', state: 'unavailable' },
-  { route: '/construction', state: 'available' },
-  { route: '/storage', state: 'available' },
+  {
+    route: '/property-management',
+    state: 'unavailable',
+    width: 192,
+    height: 192,
+    x: 720,
+    hasShadow: false,
+  },
+  {
+    route: '/real-estate',
+    state: 'unavailable',
+    width: 660,
+    height: 495,
+    x: 744,
+    hasShadow: true,
+  },
+  {
+    route: '/construction',
+    state: 'available',
+    width: 660,
+    height: 495,
+    x: 744,
+    hasShadow: true,
+  },
+  {
+    route: '/storage',
+    state: 'available',
+    width: 192,
+    height: 192,
+    x: 720,
+    hasShadow: false,
+  },
 ] as const;
 
 Then(
@@ -967,12 +995,13 @@ Then(
       await expect(media).toHaveAttribute('data-media-state', sample.state);
       await expect(media).toHaveCSS('border-radius', '16px');
       await expect(media).toHaveCSS('overflow', 'hidden');
-      await expect(media).toHaveCSS('box-shadow', 'none');
+      const boxShadow = await media.evaluate((element) => getComputedStyle(element).boxShadow);
+      assert.equal(boxShadow === 'none', !sample.hasShadow);
       const box = await media.boundingBox();
       assert.ok(box);
-      assert.equal(box.width, 192);
-      assert.equal(box.height, 192);
-      assert.equal(box.x, 720);
+      assert.equal(box.width, sample.width);
+      assert.equal(box.height, sample.height);
+      assert.equal(box.x, sample.x);
     }
   },
 );
@@ -2365,6 +2394,174 @@ Then(
       await expect(page.locator('[data-division-hero-media="true"]')).toBeVisible();
       await page.setViewportSize({ width: breakpoint - 1, height: 1100 });
       await expect(page.locator('[data-division-hero-media="true"]')).toBeHidden();
+    }
+  },
+);
+
+const mountedSplitHeroes = [
+  {
+    route: '/real-estate',
+    section: '.re-hero',
+    boundary: '.re-hero-entity-slot',
+    mediaKind: 'placeholder',
+    rightSurface: 'rgba(239, 246, 255, 0.3)',
+  },
+  {
+    route: '/construction',
+    section: '.co-hero',
+    boundary: '.co-hero-entity-slot',
+    mediaKind: 'image',
+    rightSurface: 'rgba(255, 251, 235, 0.3)',
+  },
+] as const;
+
+async function readMountedSplitHero(page: Page, selector: string) {
+  const section = page.locator(selector);
+  const media = section.locator('[data-division-hero-media="true"]');
+  const [sectionBox, mediaBox, presentation] = await Promise.all([
+    section.boundingBox(),
+    media.boundingBox(),
+    section.evaluate((element) => {
+      const left = getComputedStyle(element, '::before');
+      const right = getComputedStyle(element, '::after');
+      return {
+        background: getComputedStyle(element).backgroundImage,
+        leftBackground: left.backgroundImage,
+        rightBackground: right.backgroundImage,
+      };
+    }),
+  ]);
+  assert.ok(sectionBox && mediaBox);
+  return { media, mediaBox, presentation, sectionBox };
+}
+
+Then(
+  'Real Estate and Construction render their mounted split surfaces and full primary media',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    for (const expectation of mountedSplitHeroes) {
+      await page.goto(expectation.route);
+      const { media, mediaBox, presentation, sectionBox } = await readMountedSplitHero(
+        page,
+        expectation.section,
+      );
+      assert.deepEqual(
+        { height: sectionBox.height, width: sectionBox.width, x: sectionBox.x, y: sectionBox.y },
+        { height: 1100, width: 1440, x: 0, y: 0 },
+      );
+      assert.deepEqual(
+        { height: mediaBox.height, width: mediaBox.width, x: mediaBox.x },
+        { height: 495, width: 660, x: 744 },
+      );
+      assert.equal(presentation.background, 'none');
+      assert.match(presentation.leftBackground, /rgb\(30, 58, 138\)/u);
+      assert.match(presentation.leftBackground, /rgb\(0, 18, 138\)/u);
+      assert.match(presentation.leftBackground, /rgb\(30, 64, 175\)/u);
+      assert.ok(presentation.rightBackground.includes('rgb(243, 244, 246)'));
+      assert.ok(presentation.rightBackground.includes(expectation.rightSurface));
+
+      const decoration = await media
+        .locator('xpath=following-sibling::*[contains(@class, "ui-split-hero-media-swatch")]')
+        .evaluate((element) => {
+          const style = getComputedStyle(element);
+          return {
+            bottom: style.bottom,
+            height: style.height,
+            left: style.left,
+            width: style.width,
+          };
+        });
+      assert.deepEqual(decoration, {
+        bottom: '-24px',
+        height: '192px',
+        left: '-24px',
+        width: '192px',
+      });
+
+      if (expectation.mediaKind === 'image') {
+        const image = media.locator('img');
+        await expect(image).toBeVisible();
+        const imagePresentation = await image.evaluate((element) => {
+          if (!(element instanceof HTMLImageElement))
+            throw new Error('Hero media is not an image.');
+          return {
+            naturalHeight: element.naturalHeight,
+            naturalWidth: element.naturalWidth,
+            objectFit: getComputedStyle(element).objectFit,
+            objectPosition: getComputedStyle(element).objectPosition,
+            opacity: getComputedStyle(element).opacity,
+            src: element.src,
+          };
+        });
+        assert.deepEqual(
+          {
+            naturalHeight: imagePresentation.naturalHeight,
+            naturalWidth: imagePresentation.naturalWidth,
+            objectFit: imagePresentation.objectFit,
+            objectPosition: imagePresentation.objectPosition,
+            opacity: imagePresentation.opacity,
+          },
+          {
+            naturalHeight: 1216,
+            naturalWidth: 1824,
+            objectFit: 'cover',
+            objectPosition: '50% 0%',
+            opacity: '1',
+          },
+        );
+        assert.match(imagePresentation.src, /construction-crew-1/u);
+      } else {
+        const placeholder = media.locator('.division-hero-media-placeholder');
+        await expect(placeholder).toBeVisible();
+        await expect(placeholder).toContainText('Photo coming soon');
+        await expect(placeholder.locator('svg')).toHaveCSS('opacity', '1');
+      }
+    }
+  },
+);
+
+Then(
+  'the split-hero primary media preserves section geometry editor wrappers and mobile containment',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await loginEditor(page);
+    for (const expectation of mountedSplitHeroes) {
+      await page.goto(expectation.route);
+      await page.getByRole('button', { name: 'Enter edit mode' }).click();
+      await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+      const { mediaBox, sectionBox } = await readMountedSplitHero(page, expectation.section);
+      assert.deepEqual(
+        { height: sectionBox.height, width: sectionBox.width, x: sectionBox.x, y: sectionBox.y },
+        { height: 1100, width: 1440, x: 0, y: 0 },
+      );
+      assert.deepEqual(
+        { height: mediaBox.height, width: mediaBox.width, x: mediaBox.x },
+        { height: 495, width: 660, x: 744 },
+      );
+      await expect(page.locator(`${expectation.boundary} > .editable-boundary`)).toHaveCount(1);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const expectation of mountedSplitHeroes) {
+      await page.goto(expectation.route);
+      const section = page.locator(expectation.section);
+      const media = section.locator('[data-division-hero-media="true"]');
+      await expect(media).toBeHidden();
+      const containment = await section.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          scrollWidth: element.scrollWidth,
+          width: rect.width,
+        };
+      });
+      assert.ok(containment.left >= 0);
+      assert.ok(containment.right <= 390);
+      assert.ok(containment.scrollWidth <= 390);
+      assert.equal(containment.width, 390);
     }
   },
 );

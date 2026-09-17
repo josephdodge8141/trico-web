@@ -478,8 +478,8 @@ function ConstructionBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="construction.hero" value={hero}>
-          <section className="co-hero ui-hero ui-split-hero">
-            <div className="co-container ui-container co-hero-grid ui-hero-grid">
+          <section className="co-hero ui-hero ui-split-hero ui-split-hero-mounted ui-split-hero-accent-gold">
+            <div className="co-container ui-container co-hero-grid ui-hero-grid ui-split-hero-grid-mounted">
               <div className="ui-hero-copy">
                 <div className="co-pills ui-pills">
                   <span>
@@ -522,12 +522,18 @@ function ConstructionBody(): React.JSX.Element {
                   />
                 </div>
               </div>
-              <div
-                className="division-hero-media ui-split-hero-media-gold"
-                data-division-hero-media="true"
-                data-media-state="available"
-              >
-                <img src={constructionImage(hero.image.key, crewOne)} alt={hero.imageAltText} />
+              <div className="ui-split-hero-media-frame">
+                <div
+                  className="division-hero-media ui-split-hero-primary-media"
+                  data-division-hero-media="true"
+                  data-media-state="available"
+                >
+                  <img src={constructionImage(hero.image.key, crewOne)} alt={hero.imageAltText} />
+                </div>
+                <span
+                  className="ui-split-hero-media-swatch ui-split-hero-media-swatch-gold"
+                  aria-hidden="true"
+                />
               </div>
             </div>
           </section>

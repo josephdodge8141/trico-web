@@ -69,6 +69,9 @@
     --trico-overlay-deep: rgb(0 10 77 / 93%);
     --trico-surface-gold-subtle: rgb(134 98 45 / 8%);
     --trico-surface-gold-emphasis: rgb(134 98 45 / 24%);
+    --trico-surface-warm-emphasis: rgb(245 158 11 / 20%);
+    --trico-surface-blue-soft: rgb(239 246 255 / 30%);
+    --trico-surface-gold-soft: rgb(255 251 235 / 30%);
     --trico-shadow-subtle: rgb(15 23 41 / 8%);
     --trico-shadow-emphasis: rgb(15 23 41 / 20%);
     --trico-surface-accent-subtle: rgb(94 133 186 / 9%);
@@ -4436,6 +4439,115 @@
   .ui-split-hero .ui-split-hero-media-success {
     background: var(--trico-surface-success-emphasis);
   }
+  .ui-split-hero.ui-split-hero-mounted {
+    position: relative;
+    background: none;
+  }
+  .ui-split-hero-mounted::before,
+  .ui-split-hero-mounted::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    inset-block: 0;
+    width: 50%;
+    pointer-events: none;
+  }
+  .ui-split-hero-mounted::before {
+    left: 0;
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-color-inverse-gradient-start),
+      var(--trico-color-dark),
+      var(--trico-color-inverse-gradient-end)
+    );
+  }
+  .ui-split-hero-mounted::after {
+    right: 0;
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-color-surface-muted),
+      var(--trico-surface-blue-soft)
+    );
+  }
+  .ui-split-hero-mounted.ui-split-hero-accent-gold::after {
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-color-surface-muted),
+      var(--trico-surface-gold-soft)
+    );
+  }
+  .ui-split-hero-mounted .ui-split-hero-grid-mounted {
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    column-gap: 3rem;
+    padding-inline: 1rem;
+  }
+  .ui-split-hero .ui-split-hero-media-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    align-self: center;
+    isolation: isolate;
+  }
+  .ui-split-hero .ui-split-hero-primary-media {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    margin: 0;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    box-shadow: 0 25px 50px -12px var(--trico-shadow-emphasis);
+  }
+  .ui-split-hero .ui-split-hero-media-swatch {
+    position: absolute;
+    z-index: 0;
+    left: -24px;
+    bottom: -24px;
+    width: 192px;
+    height: 192px;
+    border-radius: 16px;
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-surface-brand-emphasis),
+      var(--trico-surface-accent-emphasis)
+    );
+  }
+  .ui-split-hero .ui-split-hero-media-swatch-gold {
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-surface-warm-emphasis),
+      var(--trico-surface-gold-emphasis)
+    );
+  }
+  .ui-split-hero .ui-split-hero-primary-media > img,
+  .ui-split-hero .ui-split-hero-primary-media > .division-hero-media-placeholder {
+    position: relative;
+    z-index: 1;
+    border-radius: inherit;
+    opacity: 1;
+  }
+  .ui-split-hero .ui-split-hero-primary-media > img {
+    object-position: center top;
+  }
+  .ui-split-hero .ui-split-hero-primary-media > .division-hero-media-placeholder > * {
+    opacity: 1;
+  }
+  .ui-split-hero .ui-split-hero-primary-media-blue > .division-hero-media-placeholder {
+    border: 1px solid var(--trico-surface-brand-emphasis);
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-surface-brand-emphasis),
+      var(--trico-surface-gold-emphasis),
+      var(--trico-surface-accent-emphasis)
+    );
+  }
   .ui-hero-plain {
     color: var(--trico-color-ink);
     background: var(--trico-color-surface);
@@ -4873,6 +4985,15 @@
     background: var(--trico-color-dark);
   }
   @media (max-width: 1023px) {
+    .ui-split-hero-mounted::before {
+      width: 100%;
+    }
+    .ui-split-hero-mounted::after {
+      display: none;
+    }
+    .ui-split-hero .ui-split-hero-media-frame {
+      display: none;
+    }
     .ui-split-hero {
       text-align: center;
       background: var(--trico-color-dark);

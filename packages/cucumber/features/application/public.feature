@@ -260,6 +260,14 @@ Feature: Published TriCo website
     Then the Construction bid uses the mounted inverse section and form presentation
     And the Construction bid preserves its geometry editor wrappers mobile containment and select behavior
 
+  @id:public.split-hero-primary-media-presentation @backend-noop
+  Scenario: Restore the mounted split-hero primary media
+    backend-noop: Real Estate and Construction hero media visibility, split-surface presentation, responsive behavior, and editor-wrapper transparency are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/construction"
+    Then Real Estate and Construction render their mounted split surfaces and full primary media
+    And the split-hero primary media preserves section geometry editor wrappers and mobile containment
+
   @id:public.storage-about-rhythm @backend-noop
   Scenario: Preserve the measured Storage Our Why rhythm
     backend-noop: Storage About prose, action, responsive geometry, and editor-wrapper transparency are browser-owned presentation behavior.

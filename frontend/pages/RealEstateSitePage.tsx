@@ -584,8 +584,8 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const hero = S.realEstateHeroSchema.parse(item);
               return (
-                <section className="re-hero ui-hero ui-split-hero">
-                  <div className="re-container ui-container re-hero-grid ui-hero-grid">
+                <section className="re-hero ui-hero ui-split-hero ui-split-hero-mounted ui-split-hero-accent-blue">
+                  <div className="re-container ui-container re-hero-grid ui-hero-grid ui-split-hero-grid-mounted">
                     <div className="re-hero-copy ui-hero-copy">
                       <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
                         <MapPin aria-hidden="true" /> {hero.badge}
@@ -622,19 +622,22 @@ function RealEstateBody(): React.JSX.Element {
                         }}
                       />
                     </div>
-                    <div
-                      className="re-hero-visual ui-hero-visual division-hero-media"
-                      data-division-hero-media="true"
-                      data-media-state="unavailable"
-                    >
+                    <div className="ui-split-hero-media-frame">
                       <div
-                        className="division-hero-media-placeholder"
-                        role="img"
-                        aria-label={hero.heading}
+                        className="re-hero-visual ui-hero-visual division-hero-media ui-split-hero-primary-media ui-split-hero-primary-media-blue"
+                        data-division-hero-media="true"
+                        data-media-state="unavailable"
                       >
-                        <ImageIcon aria-hidden="true" />
-                        <span>Photo coming soon</span>
+                        <div
+                          className="division-hero-media-placeholder"
+                          role="img"
+                          aria-label={hero.heading}
+                        >
+                          <ImageIcon aria-hidden="true" />
+                          <span>Photo coming soon</span>
+                        </div>
                       </div>
+                      <span className="ui-split-hero-media-swatch" aria-hidden="true" />
                     </div>
                   </div>
                 </section>
