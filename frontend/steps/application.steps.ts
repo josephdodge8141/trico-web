@@ -2531,9 +2531,11 @@ Then(
       { route: '/development', label: 'First Name *', action: 'Get Started' },
     ] as const) {
       await page.goto(sample.route);
-      const label = page.getByText(sample.label, { exact: true }).last();
-      const input = label.locator('input');
       const action = page.getByRole('button', { name: sample.action, exact: true }).last();
+      const form = action.locator('xpath=ancestor::form[1]');
+      await expect(form).toHaveCount(1);
+      const label = form.getByText(sample.label, { exact: true }).last();
+      const input = form.getByLabel(sample.label, { exact: true });
       await expect(label).toHaveCSS('font-weight', '500');
       await expect(input).toHaveCSS('border-radius', '6px');
       await expect(action).toHaveCSS('font-weight', '500');
