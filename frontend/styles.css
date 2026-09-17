@@ -4722,6 +4722,74 @@
     color: var(--trico-color-surface);
     background: linear-gradient(135deg, #1e3a8a, var(--trico-color-dark), #1e40af);
   }
+  .surface-brand-gradient-deep {
+    color: var(--trico-color-surface);
+    background: linear-gradient(
+      to right bottom,
+      var(--trico-color-deep),
+      var(--trico-color-dark),
+      var(--trico-color-inverse-gradient-start)
+    );
+  }
+  .ui-inverse-section .ui-heading p {
+    color: var(--trico-color-inverse-copy-strong);
+    opacity: 1;
+  }
+  .ui-inverse-form-surface {
+    color: var(--trico-color-surface);
+    border-color: var(--trico-overlay-light-subtle);
+    background: var(--trico-overlay-light-subtle);
+  }
+  .ui-inverse-form-surface .ui-form label,
+  .ui-inverse-form-surface .ui-select-label {
+    color: var(--trico-color-surface);
+  }
+  .ui-inverse-form-surface .ui-form :is(input, select, textarea, .ui-select-trigger) {
+    color: var(--trico-color-surface);
+    border-color: var(--trico-color-inverse-divider);
+    background: var(--trico-color-inverse-divider);
+  }
+  .ui-inverse-form-surface .ui-form-action-row {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 22px;
+  }
+  .ui-inverse-form-surface .ui-form-action-row .ui-submit-action {
+    margin-top: 0;
+  }
+  .ui-inverse-form-surface .ui-form-action-links,
+  .ui-inverse-form-surface .ui-form-action-links a {
+    display: flex;
+    align-items: center;
+  }
+  .ui-inverse-form-surface .ui-form-action-links {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1.5rem;
+  }
+  .ui-inverse-form-surface .ui-form-action-links a {
+    gap: 0.5rem;
+    color: var(--trico-color-inverse-copy);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-decoration: none;
+  }
+  .ui-inverse-form-surface .ui-form-action-links svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  @media (max-width: 767px) {
+    .ui-inverse-form-surface .ui-form-action-row {
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .ui-inverse-form-surface .ui-form-action-links {
+      justify-content: flex-start;
+    }
+  }
   .ui-heading > .weight-medium {
     font-weight: var(--trico-font-weight-medium);
   }

@@ -231,7 +231,15 @@ function Heading({
   );
 }
 
-function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React.JSX.Element {
+function ClientForm({
+  variant,
+  phone = '',
+  email = '',
+}: {
+  readonly variant: 'bid' | 'contact';
+  readonly phone?: string;
+  readonly email?: string;
+}): React.JSX.Element {
   const [sent, setSent] = useState(false);
   const isBid = variant === 'bid';
   return (
@@ -303,12 +311,31 @@ function ClientForm({ variant }: { readonly variant: 'bid' | 'contact' }): React
           placeholder="Tell us about your construction project..."
         />
       </label>
-      <button
-        className={`co-button ui-button co-button-gold ui-button-gold ui-submit-action ${isBid ? 'ui-submit-action--intrinsic' : 'ui-submit-action--full'}`}
-        type="submit"
-      >
-        {isBid ? 'Request Your Bid' : 'Get Quote'} <ArrowRight aria-hidden="true" />
-      </button>
+      {isBid ? (
+        <div className="ui-form-action-row">
+          <button
+            className="co-button ui-button co-button-gold ui-button-accent ui-submit-action ui-submit-action--intrinsic"
+            type="submit"
+          >
+            Request Your Bid <ArrowRight aria-hidden="true" />
+          </button>
+          <div className="ui-form-action-links">
+            <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}>
+              <Phone aria-hidden="true" /> {phone}
+            </a>
+            <a href={`mailto:${email}`}>
+              <Mail aria-hidden="true" /> Email Us
+            </a>
+          </div>
+        </div>
+      ) : (
+        <button
+          className="co-button ui-button co-button-gold ui-button-gold ui-submit-action ui-submit-action--full"
+          type="submit"
+        >
+          Get Quote <ArrowRight aria-hidden="true" />
+        </button>
+      )}
       {sent ? (
         <p className="co-form-success ui-form-success" role="status">
           Thank you. A construction specialist will contact you soon.
@@ -808,7 +835,10 @@ function ConstructionBody(): React.JSX.Element {
           </section>
         </ObjectBoundary>
 
-        <section className="co-section ui-section co-bid ui-bid" id="bid">
+        <section
+          className="co-section ui-section co-bid ui-bid ui-inverse-section surface-brand-gradient-deep"
+          id="bid"
+        >
           <div className="co-container ui-container co-narrow ui-narrow">
             <ObjectBoundary id="construction.bid.header" value={bidHeader}>
               <Heading
@@ -818,8 +848,8 @@ function ConstructionBody(): React.JSX.Element {
                 titleClassName="type-section-title-compact"
               />
             </ObjectBoundary>
-            <div className="ui-form-surface ui-form-surface--wide ui-form-surface--on-dark">
-              <ClientForm variant="bid" />
+            <div className="ui-form-surface ui-form-surface--wide ui-form-surface--on-dark ui-inverse-form-surface">
+              <ClientForm variant="bid" phone={contact.phone} email={contact.email} />
             </div>
           </div>
         </section>

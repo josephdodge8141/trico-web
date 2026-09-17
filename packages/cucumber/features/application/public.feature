@@ -252,6 +252,14 @@ Feature: Published TriCo website
     Then the Construction footer uses the mounted inverse surface copy title legal and border roles
     And the Construction footer preserves its desktop geometry editor wrappers and mobile containment
 
+  @id:public.construction-bid-inverse-presentation @backend-noop
+  Scenario: Preserve the Construction inverse bid presentation
+    backend-noop: Construction bid color, form controls, semantic contact actions, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/construction"
+    Then the Construction bid uses the mounted inverse section and form presentation
+    And the Construction bid preserves its geometry editor wrappers mobile containment and select behavior
+
   @id:public.storage-about-rhythm @backend-noop
   Scenario: Preserve the measured Storage Our Why rhythm
     backend-noop: Storage About prose, action, responsive geometry, and editor-wrapper transparency are browser-owned presentation behavior.

@@ -3966,9 +3966,13 @@ Then(
         }),
         page.locator('#bid').evaluate((element) => {
           const form = element.querySelector('.ui-client-form');
+          const actionRow = element.querySelector('.ui-form-action-row');
           const submit = element.querySelector('.ui-submit-action');
-          if (form === null || submit === null) throw new Error('Bid form is incomplete.');
+          if (form === null || actionRow === null || submit === null) {
+            throw new Error('Bid form is incomplete.');
+          }
           return {
+            actionRowMarginTop: getComputedStyle(actionRow).marginTop,
             formGap: getComputedStyle(form).gap,
             submitMarginTop: getComputedStyle(submit).marginTop,
           };
@@ -3987,7 +3991,11 @@ Then(
       headingMarginBottom: '100px',
       noticeHeight: 114,
     });
-    assert.deepEqual(bidDensity, { formGap: '24px', submitMarginTop: '22px' });
+    assert.deepEqual(bidDensity, {
+      actionRowMarginTop: '22px',
+      formGap: '24px',
+      submitMarginTop: '0px',
+    });
     assert.ok(careerGridBox);
     assert.ok(
       Math.abs(careerGridBox.height - 580) <= 1,
@@ -4083,6 +4091,101 @@ Then(
 
     await page.setViewportSize({ width: 390, height: 844 });
     const containment = await page.locator('.co-footer').evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        left: rect.left,
+        right: rect.right,
+      };
+    });
+    assert.ok(containment.scrollWidth <= containment.clientWidth + 1);
+    assert.ok(containment.left >= -1 && containment.right <= 391);
+  },
+);
+
+Then(
+  'the Construction bid uses the mounted inverse section and form presentation',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+
+    const bid = page.locator('#bid');
+    await expect(bid).toHaveCSS(
+      'background-image',
+      'linear-gradient(to right bottom, rgb(0, 10, 77), rgb(0, 18, 138), rgb(30, 58, 138))',
+    );
+    await expect(bid.getByRole('heading', { name: 'Get a Bid on Your Project' })).toHaveCSS(
+      'color',
+      'rgb(255, 255, 255)',
+    );
+    await expect(bid.locator('.ui-heading p')).toHaveCSS('color', 'rgba(255, 255, 255, 0.8)');
+
+    const formSurface = bid.locator('.ui-form-surface');
+    await expect(formSurface).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
+    await expect(formSurface).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.1)');
+    const input = bid.locator('input').first();
+    await expect(input).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.2)');
+    await expect(input).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.2)');
+    await expect(bid.locator('#construction-project-type-label')).toHaveCSS(
+      'color',
+      'rgb(255, 255, 255)',
+    );
+    await expect(bid.getByRole('button', { name: 'Request Your Bid' })).toHaveCSS(
+      'background-color',
+      'rgb(134, 98, 45)',
+    );
+    await expect(bid.getByRole('link', { name: '(801) 571-8833' })).toHaveAttribute(
+      'href',
+      'tel:8015718833',
+    );
+    await expect(bid.getByRole('link', { name: 'Email Us' })).toHaveAttribute(
+      'href',
+      'mailto:Office@tricoinc.com',
+    );
+  },
+);
+
+Then(
+  'the Construction bid preserves its geometry editor wrappers mobile containment and select behavior',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const readGeometry = async () => {
+      const section = await page.locator('#bid').boundingBox();
+      const form = await page.locator('#bid .ui-form-layout--wide').boundingBox();
+      assert.ok(section && form);
+      return {
+        section: { x: section.x, width: section.width, height: section.height },
+        form: { width: form.width },
+      };
+    };
+
+    const publicGeometry = await readGeometry();
+    assert.ok(Math.abs(publicGeometry.section.x) <= 1);
+    assert.ok(Math.abs(publicGeometry.section.width - 1425) <= 1);
+    assert.ok(Math.abs(publicGeometry.section.height - 1078) <= 2);
+    assert.ok(Math.abs(publicGeometry.form.width - 830) <= 1);
+
+    const trigger = page.getByRole('combobox', { name: 'Project Type *' });
+    await trigger.focus();
+    await page.keyboard.type('Underground');
+    await expect(trigger).toHaveText('Underground Utilities');
+
+    await loginEditor(page);
+    await page.goto('/construction');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const editGeometry = await readGeometry();
+    assert.deepEqual(editGeometry, publicGeometry);
+    await expect(page.locator('#bid [data-construction-entity-boundary="true"]')).not.toHaveCount(
+      0,
+    );
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const containment = await page.locator('#bid').evaluate((element) => {
       const rect = element.getBoundingClientRect();
       return {
         clientWidth: element.clientWidth,
