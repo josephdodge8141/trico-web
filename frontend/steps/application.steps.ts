@@ -3764,6 +3764,61 @@ Then(
   },
 );
 Then(
+  'Storage uses the mounted split-hero heading measure and diagonal surfaces',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.reload();
+
+    const hero = page.locator('.storage-hero');
+    const copy = hero.locator('.storage-hero-copy');
+    const title = hero.getByRole('heading', {
+      name: 'Maximize Your Storage Facility Profitability',
+    });
+    const actions = hero.locator('.storage-actions');
+    const stats = hero.locator('.editable-collection-items');
+    const [heroBox, copyBox, titleBox, actionsBox, statsBox] = await Promise.all([
+      hero.boundingBox(),
+      copy.boundingBox(),
+      title.boundingBox(),
+      actions.boundingBox(),
+      stats.boundingBox(),
+    ]);
+    assert.ok(heroBox && copyBox && titleBox && actionsBox && statsBox);
+    assert.ok(
+      Math.abs(heroBox.width - 1440) <= 1 && Math.abs(heroBox.height - 1100) <= 1,
+      `Storage split hero was ${heroBox.width}x${heroBox.height}`,
+    );
+    assert.ok(
+      Math.abs(copyBox.width - 720) <= 1,
+      `Storage split-hero copy width was ${copyBox.width}`,
+    );
+    await expect(title).toHaveCSS('max-width', '576px');
+    await expect(title).toHaveCSS('font-size', '60px');
+    await expect(title).toHaveCSS('line-height', '60px');
+    const titleLineCount = await title.evaluate((element) => {
+      const text = element.firstChild;
+      if (!text) return 0;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      return range.getClientRects().length;
+    });
+    assert.equal(titleLineCount, 3, `Storage split-hero title used ${titleLineCount} lines`);
+    assert.ok(
+      Math.abs(actionsBox.y - 779) <= 1,
+      `Storage split-hero actions top was ${actionsBox.y}`,
+    );
+    assert.ok(Math.abs(statsBox.y - 855) <= 1, `Storage split-hero stats top was ${statsBox.y}`);
+    await expect(hero).toHaveCSS(
+      'background-image',
+      'linear-gradient(135deg, rgb(30, 58, 138), rgb(0, 18, 138), rgb(30, 64, 175)), linear-gradient(to right bottom, rgba(30, 58, 138, 0.1), rgba(243, 244, 246, 0.3), rgba(30, 58, 138, 0.05))',
+    );
+    await expect(hero).toHaveCSS('background-size', '50% 100%, 50% 100%');
+    await expect(hero).toHaveCSS('background-position', '0% 50%, 100% 50%');
+    await expect(hero).toHaveCSS('background-repeat', 'no-repeat, no-repeat');
+  },
+);
+Then(
   'Storage uses the mounted service heading and four-row card rhythm',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

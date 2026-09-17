@@ -295,7 +295,7 @@ function StorageBody(): React.JSX.Element {
       ) : null}
       <main id="storage-main">
         <ObjectBoundary id="storage.hero" value={hero}>
-          <section className="storage-hero ui-hero ui-split-hero ui-split-frame ui-on-dark ui-viewport-hero">
+          <section className="storage-hero ui-hero ui-split-hero ui-split-frame ui-on-dark ui-viewport-hero ui-mounted-split-hero-surfaces">
             <div className="storage-hero-copy ui-hero-copy">
               <div className="storage-badges ui-badges">
                 <span>
@@ -304,7 +304,7 @@ function StorageBody(): React.JSX.Element {
                 </span>
                 <span>{hero.serviceAreaBadge}</span>
               </div>
-              <h1 className="type-display">{hero.heading}</h1>
+              <h1 className="type-display ui-mounted-split-hero-heading">{hero.heading}</h1>
               <p className="storage-promise ui-promise">{hero.subheading}</p>
               <p>{hero.description}</p>
               <div className="storage-actions ui-actions">

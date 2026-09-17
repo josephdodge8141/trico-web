@@ -3759,6 +3759,26 @@
       var(--trico-color-surface-muted) 100%
     );
   }
+  .ui-split-hero.ui-mounted-split-hero-surfaces {
+    background:
+      linear-gradient(
+          135deg,
+          var(--trico-color-inverse-gradient-start),
+          var(--trico-color-dark),
+          var(--trico-color-inverse-gradient-end)
+        )
+        left / 50% 100% no-repeat,
+      linear-gradient(
+          to right bottom,
+          var(--trico-supporting-surface-soft-start),
+          var(--trico-supporting-surface-soft-center),
+          var(--trico-supporting-surface-soft-end)
+        )
+        right / 50% 100% no-repeat;
+  }
+  .ui-mounted-split-hero-heading {
+    max-width: 36rem;
+  }
   .ui-theme-storage .ui-services {
     background: linear-gradient(
       135deg,
