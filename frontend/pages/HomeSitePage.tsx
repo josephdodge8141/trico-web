@@ -313,7 +313,7 @@ function HomePageBody(): React.JSX.Element {
       </a>
       <div className="home-anniversary-shell ui-anniversary-shell">
         <ObjectBoundary entityId="home.anniversary-banner" value={content.anniversaryBanner}>
-          <div className="home-anniversary ui-anniversary">
+          <div className="home-anniversary ui-anniversary ui-anniversary--primary ui-anniversary--display-label">
             <span aria-hidden="true" />
             <strong>{content.anniversaryBanner.message}</strong>
             <span aria-hidden="true" />

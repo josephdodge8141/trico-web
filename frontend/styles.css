@@ -23,6 +23,8 @@
     --trico-color-deep: #000a4d;
     --trico-color-light: #5e85ba;
     --trico-color-gold: #86622d;
+    --trico-color-banner-strong: #1d4ed8;
+    --trico-color-banner-vivid: #2563eb;
     --trico-color-ink: #0f1729;
     --trico-color-muted: #6b7280;
     --trico-color-border: #e5e7eb;
@@ -1556,17 +1558,30 @@
     text-transform: uppercase;
     background: linear-gradient(
       90deg,
-      var(--trico-color-dark),
-      var(--trico-color-light),
-      var(--trico-color-dark)
+      var(--trico-color-banner-strong),
+      var(--trico-color-banner-vivid),
+      var(--trico-color-banner-strong)
     );
     box-shadow: 0 3px 14px var(--trico-surface-brand-emphasis);
   }
 
   .ui-anniversary strong {
-    font-size: 1.1rem;
-    font: 700 1.15rem var(--trico-font-family);
-    letter-spacing: 0.04em;
+    font: 700 16px/24px var(--trico-font-family);
+    letter-spacing: 0.025em;
+  }
+
+  .ui-anniversary--primary {
+    background: linear-gradient(
+      90deg,
+      var(--trico-color-dark),
+      var(--trico-color-banner-vivid),
+      var(--trico-color-dark)
+    );
+  }
+
+  .ui-anniversary--display-label strong {
+    font: 700 20px/28px var(--trico-font-family-heading);
+    letter-spacing: 0.025em;
   }
 
   .ui-hero {
@@ -1819,7 +1834,8 @@
 
   @media (max-width: 767px) {
     .ui-anniversary strong {
-      font-size: 0.88rem;
+      font-size: 14px;
+      line-height: 20px;
       text-align: center;
     }
 

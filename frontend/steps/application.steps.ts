@@ -95,6 +95,22 @@ class FrontendWorld extends World {
         readonly textCenterX: number;
       }
     | undefined;
+  homePublicAnniversaryGeometry:
+    | {
+        readonly banner: {
+          readonly x: number;
+          readonly y: number;
+          readonly width: number;
+          readonly height: number;
+        };
+        readonly label: {
+          readonly x: number;
+          readonly y: number;
+          readonly width: number;
+          readonly height: number;
+        };
+      }
+    | undefined;
   storagePublicMastheadGeometry:
     | {
         readonly banner: {
@@ -539,6 +555,105 @@ Then(
           border: 'rgba(94, 133, 186, 0.5)',
         });
     }
+  },
+);
+Then('Home uses the measured vivid anniversary banner', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.reload();
+  await page.evaluate(async () => document.fonts.ready);
+
+  const shell = page.locator('.home-anniversary-shell');
+  const banner = page.locator('.home-anniversary');
+  const label = banner.getByText('40+ Years of Excellence', { exact: true });
+  const [shellBox, bannerBox, labelBox] = await Promise.all([
+    shell.boundingBox(),
+    banner.boundingBox(),
+    label.boundingBox(),
+  ]);
+  assert.ok(shellBox && bannerBox && labelBox);
+  this.homePublicAnniversaryGeometry = { banner: bannerBox, label: labelBox };
+
+  for (const [name, actual, expected] of [
+    ['shell x', shellBox.x, 0],
+    ['shell y', shellBox.y, 0],
+    ['shell width', shellBox.width, 1440],
+    ['shell height', shellBox.height, 52],
+    ['banner x', bannerBox.x, 0],
+    ['banner y', bannerBox.y, 0],
+    ['banner width', bannerBox.width, 1440],
+    ['banner height', bannerBox.height, 52],
+    ['label center', labelBox.x + labelBox.width / 2, 720],
+    ['label y', labelBox.y, 12],
+    ['label width', labelBox.width, 269.375],
+    ['label height', labelBox.height, 28],
+  ] as const) {
+    assert.ok(Math.abs(actual - expected) <= 1, `Home anniversary ${name} was ${actual}`);
+  }
+  await expect(shell).toHaveCSS('position', 'fixed');
+  await expect(banner).toHaveCSS(
+    'background-image',
+    'linear-gradient(90deg, rgb(0, 18, 138), rgb(37, 99, 235), rgb(0, 18, 138))',
+  );
+  await expect(label).toHaveCSS('font-size', '20px');
+  await expect(label).toHaveCSS('line-height', '28px');
+  await expect(label).toHaveCSS('font-weight', '700');
+  await expect(label).toHaveCSS('letter-spacing', '0.5px');
+  assert.match(await label.evaluate((element) => getComputedStyle(element).fontFamily), /Lato/);
+});
+Then(
+  'Home preserves the anniversary banner in edit mode and on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const publicGeometry = this.homePublicAnniversaryGeometry;
+    assert.ok(publicGeometry);
+
+    await loginEditor(page);
+    await page.goto(`${baseUrl}/`);
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    const banner = page.locator('.home-anniversary');
+    const label = banner.getByText('40+ Years of Excellence', { exact: true });
+    const [editBannerBox, editLabelBox] = await Promise.all([
+      banner.boundingBox(),
+      label.boundingBox(),
+    ]);
+    assert.ok(editBannerBox && editLabelBox);
+    for (const [name, publicBox, editBox] of [
+      ['banner', publicGeometry.banner, editBannerBox],
+      ['label', publicGeometry.label, editLabelBox],
+    ] as const) {
+      for (const dimension of ['x', 'y', 'width', 'height'] as const) {
+        assert.ok(
+          Math.abs(editBox[dimension] - publicBox[dimension]) <= 1,
+          `Home anniversary ${name} ${dimension} changed in edit mode`,
+        );
+      }
+    }
+    await expect(banner).toHaveCSS(
+      'background-image',
+      'linear-gradient(90deg, rgb(0, 18, 138), rgb(37, 99, 235), rgb(0, 18, 138))',
+    );
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const [mobileBannerBox, mobileLabelBox] = await Promise.all([
+      banner.boundingBox(),
+      label.boundingBox(),
+    ]);
+    assert.ok(mobileBannerBox && mobileLabelBox);
+    for (const [name, actual, expected] of [
+      ['x', mobileBannerBox.x, 0],
+      ['y', mobileBannerBox.y, 0],
+      ['width', mobileBannerBox.width, 390],
+      ['height', mobileBannerBox.height, 56],
+    ] as const) {
+      assert.ok(Math.abs(actual - expected) <= 1, `Home mobile anniversary ${name} was ${actual}`);
+    }
+    assert.ok(mobileLabelBox.x >= 0 && mobileLabelBox.x + mobileLabelBox.width <= 390);
+    await expect(label).toHaveCSS('font-size', '14px');
+    await expect(label).toHaveCSS('line-height', '20px');
+    const decorations = banner.locator(':scope > span');
+    await expect(decorations).toHaveCount(2);
+    for (let index = 0; index < 2; index += 1) await expect(decorations.nth(index)).toBeHidden();
   },
 );
 Then(

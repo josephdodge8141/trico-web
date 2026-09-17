@@ -41,6 +41,14 @@ Feature: Published TriCo website
     When I open "/"
     Then every Home division card uses the approved blue text border icon and action treatment
 
+  @id:public.home-anniversary-presentation @backend-noop
+  Scenario: Preserve the vivid Home anniversary presentation
+    backend-noop: Home anniversary color, typography, responsive geometry, and editor-wrapper transparency are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/"
+    Then Home uses the measured vivid anniversary banner
+    And Home preserves the anniversary banner in edit mode and on mobile
+
   @id:public.semantic-highlight-colors @backend-noop
   Scenario: Use one blue-led semantic highlight contract across the TriCo family
     backend-noop: Cross-site color roles and their rendered presentation are browser-owned visual behavior.

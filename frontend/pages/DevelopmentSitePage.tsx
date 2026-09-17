@@ -260,7 +260,7 @@ function DevelopmentBody(): React.JSX.Element {
         Skip to main content
       </a>
       <ObjectBoundary id="development.anniversary-banner" value={banner}>
-        <div className="dev-anniversary ui-anniversary">
+        <div className="dev-anniversary ui-anniversary ui-anniversary--primary">
           <i />
           <strong>{banner.message}</strong>
           <span>•</span>
