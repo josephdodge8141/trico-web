@@ -3943,6 +3943,67 @@
   .ui-heading-gap-review {
     margin-bottom: 56px;
   }
+  .ui-four-profile-heading {
+    width: 100%;
+    max-width: 768px;
+    margin: 0 auto 64px;
+  }
+  .ui-four-profile-heading > span {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    border-radius: 9999px;
+  }
+  .ui-four-profile-heading .type-section-title {
+    margin: 0 0 24px;
+  }
+  .ui-four-profile-heading .type-section-title + p {
+    margin: 0;
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .ui-profile-grid-four .editable-collection-items {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .ui-four-profile-card {
+    height: 100%;
+    overflow: hidden;
+  }
+  .ui-four-profile-card .ui-four-profile-portrait {
+    width: 100%;
+    aspect-ratio: 1;
+    display: block;
+    object-fit: cover;
+    object-position: 50% 50%;
+  }
+  .ui-four-profile-card-body {
+    padding: 24px;
+  }
+  .ui-four-profile-card-body .type-card-title {
+    margin: 0 0 4px;
+  }
+  .ui-four-profile-card .ui-four-profile-role {
+    display: block;
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+  .ui-four-profile-card .ui-four-profile-biography {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .ui-profile-grid-four .editable-collection-items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   .ui-heading-contract-mounted .ui-section-eyebrow {
     gap: normal;
     padding: 8px 16px;
@@ -4306,9 +4367,9 @@
       margin-inline: auto;
     }
     .ui-profile-grid-four .editable-collection-items {
-      grid-template-columns: repeat(4, 316px);
-      justify-content: space-between;
-      gap: 0;
+      grid-template-columns: repeat(4, 318px);
+      justify-content: center;
+      gap: 32px;
     }
     .ui-profile-grid-four .ui-team-card {
       text-align: start;

@@ -376,7 +376,11 @@ function StorageBody(): React.JSX.Element {
           className="storage-section ui-section ui-contained-section storage-team ui-team ui-profile-grid-four"
         >
           <ObjectBoundary id="storage.team.header" value={teamHeader}>
-            <SectionHeading value={teamHeader} titleClassName="type-section-title-large" />
+            <SectionHeading
+              value={teamHeader}
+              className="ui-four-profile-heading"
+              titleClassName="type-section-title-large"
+            />
           </ObjectBoundary>
           <CollectionBoundary
             id="storage.team.members"
@@ -384,15 +388,16 @@ function StorageBody(): React.JSX.Element {
             renderItem={(item) => {
               const member = storageTeamMemberSchema.parse(item);
               return (
-                <article className="storage-team-card ui-team-card">
+                <article className="ui-team-card ui-four-profile-card">
                   <img
+                    className="ui-four-profile-portrait"
                     src={managedImage(member.image.key, storageLogo)}
                     alt={member.imageAltText}
                   />
-                  <div>
+                  <div className="ui-four-profile-card-body">
                     <h3 className="type-card-title">{member.name}</h3>
-                    <strong>{member.role}</strong>
-                    <p>{member.bio}</p>
+                    <strong className="ui-four-profile-role">{member.role}</strong>
+                    <p className="ui-four-profile-biography">{member.bio}</p>
                   </div>
                 </article>
               );

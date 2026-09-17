@@ -3724,7 +3724,7 @@ Then(
     await expect(firstService.getByRole('heading')).toHaveCSS('margin-top', '6px');
     await expect(firstService.getByRole('heading')).toHaveCSS('margin-bottom', '0px');
 
-    const portraits = page.locator('.storage-team-card img');
+    const portraits = page.locator('.ui-four-profile-portrait');
     await expect(portraits).toHaveCount(4);
     for (const portrait of await portraits.all()) {
       const box = await portrait.boundingBox();
@@ -3733,7 +3733,7 @@ Then(
       assert.ok(Math.abs(box.height - 316) <= 2, `Storage portrait height was ${box.height}`);
       await expect(portrait).toHaveCSS('object-position', '50% 50%');
     }
-    await expect(page.locator('.storage-team-card').first()).toHaveCSS('text-align', 'start');
+    await expect(page.locator('.ui-four-profile-card').first()).toHaveCSS('text-align', 'start');
 
     const footer = page.locator('.storage-footer');
     const footerTitle = footer.getByRole('heading', { name: 'Quick Links' });
@@ -3744,6 +3744,70 @@ Then(
     await expect(footerCopy).toHaveCSS('font-size', '16px');
     await expect(footerCopy).toHaveCSS('line-height', '24px');
     await expect(footerCopy).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
+  },
+);
+Then(
+  'Storage uses the shared four-profile geometry and mounted copy rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.reload();
+
+    const team = page.locator('.storage-team');
+    const heading = team.locator('.storage-section-heading');
+    const grid = team.locator('.editable-collection-items');
+    const cards = grid.locator('.ui-team-card');
+    const portraits = cards.locator('img');
+    const biographies = cards.locator('div > p');
+    const [teamBox, headingBox, gridBox, firstCardBox, firstPortraitBox] = await Promise.all([
+      team.boundingBox(),
+      heading.boundingBox(),
+      grid.boundingBox(),
+      cards.first().boundingBox(),
+      portraits.first().boundingBox(),
+    ]);
+    assert.ok(teamBox && headingBox && gridBox && firstCardBox && firstPortraitBox);
+
+    assert.ok(
+      Math.abs(firstPortraitBox.width - 316) <= 1 && Math.abs(firstPortraitBox.height - 316) <= 1,
+      `Storage portrait was ${firstPortraitBox.width}x${firstPortraitBox.height}`,
+    );
+    assert.ok(Math.abs(teamBox.height - 1250) <= 1, `Storage team height was ${teamBox.height}`);
+    assert.ok(
+      Math.abs(headingBox.width - 768) <= 1,
+      `Storage team heading width was ${headingBox.width}`,
+    );
+    assert.ok(Math.abs(gridBox.width - 1368) <= 1, `Storage team grid width was ${gridBox.width}`);
+    assert.ok(
+      Math.abs(firstCardBox.width - 318) <= 1,
+      `Storage team card width was ${firstCardBox.width}`,
+    );
+    assert.ok(
+      Math.abs(firstPortraitBox.y - teamBox.y - 325) <= 1,
+      `Storage portrait top offset was ${firstPortraitBox.y - teamBox.y}`,
+    );
+
+    const cardBoxes = await Promise.all(
+      [0, 1, 2, 3].map(async (index) => {
+        const box = await cards.nth(index).boundingBox();
+        assert.ok(box);
+        return box;
+      }),
+    );
+    for (let index = 1; index < cardBoxes.length; index += 1) {
+      const previous = cardBoxes[index - 1];
+      const current = cardBoxes[index];
+      assert.ok(previous && current);
+      assert.ok(
+        Math.abs(current.x - previous.x - previous.width - 32) <= 1,
+        `Storage team gap ${String(index)} was ${current.x - previous.x - previous.width}`,
+      );
+    }
+
+    await expect(cards.first().locator(':scope > div')).toHaveCSS('padding', '24px');
+    for (const biography of await biographies.all()) {
+      await expect(biography).toHaveCSS('line-height', '20px');
+    }
   },
 );
 Then(

@@ -134,32 +134,7 @@
   .storage-service-card h3 {
     margin: 1rem 0 0.65rem;
   }
-  .storage-team .editable-collection-items {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-  }
-  .storage-team-card {
-    height: 100%;
-    overflow: hidden;
-  }
-  .storage-team-card img {
-    width: 100%;
-    aspect-ratio: 1;
-    display: block;
-    object-fit: cover;
-    object-position: top;
-  }
-  .storage-team-card div {
-    padding: 1.4rem;
-  }
-  .storage-team-card strong {
-    display: block;
-    margin: 0.2rem 0 0.75rem;
-  }
-  .storage-service-card p,
-  .storage-team-card h3,
-  .storage-team-card p {
+  .storage-service-card p {
     margin: 0;
   }
   .storage-about-layout {
@@ -302,7 +277,6 @@
       grid-template-columns: 1fr;
     }
     .storage-services .editable-collection-items,
-    .storage-team .editable-collection-items,
     .storage-footer-grid {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -344,7 +318,6 @@
       padding: 4.5rem 1rem;
     }
     .storage-services .editable-collection-items,
-    .storage-team .editable-collection-items,
     .storage-reviews .editable-collection-items,
     .storage-form-row {
       grid-template-columns: 1fr;
