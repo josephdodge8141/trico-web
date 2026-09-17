@@ -88,6 +88,9 @@
     --trico-supporting-surface-soft-start: rgb(30 58 138 / 10%);
     --trico-supporting-surface-soft-center: rgb(243 244 246 / 30%);
     --trico-supporting-surface-soft-end: rgb(30 58 138 / 5%);
+    --trico-profile-editorial-surface: rgb(255 255 255 / 50%);
+    --trico-profile-editorial-border: rgb(229 231 235 / 50%);
+    --trico-profile-editorial-shadow: rgb(0 0 0 / 5%);
   }
 }
 @layer components {
@@ -4017,6 +4020,36 @@
   }
   .ui-profile-density-compact .profile-card-body {
     min-height: 196px;
+  }
+  .ui-profile-presentation-editorial .profile-card {
+    border-color: var(--trico-profile-editorial-border);
+    border-radius: 8px;
+    background: var(--trico-profile-editorial-surface);
+    box-shadow:
+      0 0 rgb(0 0 0 / 0%),
+      0 0 rgb(0 0 0 / 0%),
+      0 1px 2px var(--trico-profile-editorial-shadow);
+  }
+  .ui-profile-presentation-editorial .profile-card-body {
+    align-items: flex-start;
+    text-align: start;
+  }
+  .ui-profile-presentation-editorial .profile-card-body h3 {
+    width: 100%;
+    margin: 0 0 4px;
+  }
+  .ui-profile-presentation-editorial .profile-card-body strong {
+    margin: 0 0 12px;
+    color: var(--trico-color-light);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+  .ui-profile-presentation-editorial .profile-card-body > p {
+    width: 100%;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: start;
   }
   .ui-about-prose-lead {
     margin-block: 24px;

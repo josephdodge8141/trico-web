@@ -1463,6 +1463,40 @@ Then(
 );
 
 Then(
+  'Development team cards preserve the frozen editorial profile presentation',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const cards = page.locator('#team .profile-card');
+    await expect(cards).toHaveCount(3);
+    for (const card of await cards.all()) {
+      await expect(card).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.5)');
+      await expect(card).toHaveCSS('border-color', 'rgba(229, 231, 235, 0.5)');
+      await expect(card).toHaveCSS('border-radius', '8px');
+      await expect(card).toHaveCSS(
+        'box-shadow',
+        'rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px',
+      );
+      const body = card.locator('.profile-card-body');
+      await expect(body).toHaveCSS('align-items', 'flex-start');
+      await expect(body).toHaveCSS('text-align', 'start');
+      const name = body.locator('h3');
+      await expect(name).toHaveCSS('width', '270px');
+      await expect(name).toHaveCSS('margin', '0px 0px 4px');
+      const role = body.locator('strong');
+      await expect(role).toHaveCSS('color', 'rgb(94, 133, 186)');
+      await expect(role).toHaveCSS('font-size', '16px');
+      await expect(role).toHaveCSS('font-weight', '500');
+      await expect(role).toHaveCSS('line-height', '24px');
+      await expect(role).toHaveCSS('margin', '0px 0px 12px');
+      const biography = body.locator(':scope > p');
+      await expect(biography).toHaveCSS('font-size', '14px');
+      await expect(biography).toHaveCSS('line-height', '20px');
+      await expect(biography).toHaveCSS('text-align', 'start');
+    }
+  },
+);
+
+Then(
   'Development supporting surfaces preserve the frozen gradient strengths',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

@@ -109,6 +109,7 @@ Feature: Published TriCo website
     Then Development semantic seeds preserve the exact mounted legacy copy
     And Development headings hero prose and feedback use measured rhythm roles
     And Development profile and review cards use their measured densities
+    And Development team cards preserve the frozen editorial profile presentation
 
   @id:public.development-supporting-surfaces @backend-noop
   Scenario: Preserve the Development supporting-surface roles

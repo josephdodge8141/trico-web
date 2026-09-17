@@ -528,7 +528,7 @@ function DevelopmentBody(): React.JSX.Element {
                 <p>{teamHeader.description}</p>
               </header>
             </ObjectBoundary>
-            <div className="dev-team-grid ui-team-grid ui-profile-density-compact">
+            <div className="dev-team-grid ui-team-grid ui-profile-density-compact ui-profile-presentation-editorial">
               <CollectionBoundary
                 id="development.team.members"
                 value={team}
