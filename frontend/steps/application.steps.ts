@@ -3971,6 +3971,136 @@ Then(
 );
 
 Then(
+  'the Development footer uses the mounted inverse surface brand copy title link and legal roles',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+
+    const footer = page.locator('.dev-footer');
+    await expect(footer).toHaveCSS(
+      'background-image',
+      'linear-gradient(to right bottom, rgb(30, 58, 138), rgb(0, 18, 138), rgb(30, 64, 175))',
+    );
+    await expect(footer).toHaveCSS('border-top-width', '4px');
+    await expect(footer).toHaveCSS('border-top-color', 'rgba(37, 99, 235, 0.5)');
+
+    const divisionLabel = footer.getByText('Development', { exact: true });
+    await expect(divisionLabel).toHaveCSS('color', 'rgb(94, 133, 186)');
+    await expect(divisionLabel).toHaveCSS('font-size', '14px');
+    await expect(divisionLabel).toHaveCSS('font-weight', '700');
+    await expect(divisionLabel).toHaveCSS('line-height', '20px');
+
+    const description = footer.locator('.ui-footer-copy-lead');
+    await expect(description).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
+    await expect(description).toHaveCSS('font-size', '16px');
+    await expect(description).toHaveCSS('line-height', '24px');
+    await expect(description).toHaveCSS('margin-top', '24px');
+    await expect(description).toHaveCSS('margin-bottom', '24px');
+
+    for (const title of ['Quick Links', 'Service Areas']) {
+      const heading = footer.getByRole('heading', { name: title });
+      await expect(heading).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect(heading).toHaveCSS('font-size', '18px');
+      await expect(heading).toHaveCSS('font-weight', '600');
+      await expect(heading).toHaveCSS('line-height', '28px');
+      await expect(heading).toHaveCSS('margin-bottom', '16px');
+    }
+
+    const link = footer.getByRole('link', { name: 'Land Acquisition', exact: true });
+    await expect(link).toHaveCSS('color', 'rgba(255, 255, 255, 0.7)');
+    await expect(link).toHaveCSS('display', 'inline');
+    await expect(link).toHaveCSS('font-size', '14px');
+    await expect(link).toHaveCSS('line-height', '20px');
+    await expect(link).toHaveCSS('margin-top', '0px');
+
+    const contactRow = footer.locator('.ui-inverse-contact-row').first();
+    await expect(contactRow).toHaveCSS('height', '20px');
+    await expect(contactRow).toHaveCSS('gap', '12px');
+
+    const legal = footer.locator('.ui-footer-legal-copy');
+    await expect(legal).toHaveCSS('color', 'rgba(255, 255, 255, 0.6)');
+    await expect(legal).toHaveCSS('font-size', '14px');
+    await expect(legal).toHaveCSS('line-height', '20px');
+    await expect(legal).toHaveCSS('border-top-color', 'rgba(255, 255, 255, 0.2)');
+  },
+);
+
+Then(
+  'the Development footer preserves its desktop geometry editor wrappers and mobile containment',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const readGeometry = async () => {
+      const footer = await page.locator('.dev-footer').boundingBox();
+      const grid = await page.locator('.dev-footer-grid').boundingBox();
+      const gridStyle = await page.locator('.dev-footer-grid').evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { columns: style.gridTemplateColumns, gap: style.columnGap };
+      });
+      assert.ok(footer && grid);
+      return {
+        footer: { x: footer.x, width: footer.width, height: footer.height },
+        grid: {
+          x: grid.x,
+          y: grid.y - footer.y,
+          width: grid.width,
+          height: grid.height,
+        },
+        gridStyle,
+      };
+    };
+
+    const publicGeometry = await readGeometry();
+    assert.ok(Math.abs(publicGeometry.footer.x) <= 1);
+    assert.ok(Math.abs(publicGeometry.footer.width - 1425) <= 1);
+    assert.ok(Math.abs(publicGeometry.footer.height - 517) <= 2);
+    assert.ok(Math.abs(publicGeometry.grid.x - 28.5) <= 1);
+    assert.ok(Math.abs(publicGeometry.grid.y - 68) <= 1);
+    assert.ok(Math.abs(publicGeometry.grid.width - 1368) <= 1);
+    assert.ok(Math.abs(publicGeometry.grid.height - 284) <= 1);
+    assert.deepEqual(publicGeometry.gridStyle, {
+      columns: '424px 424px 424px',
+      gap: '48px',
+    });
+
+    await loginEditor(page);
+    await page.goto('/development');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const editGeometry = await readGeometry();
+    assert.deepEqual(
+      {
+        footer: { x: editGeometry.footer.x, width: editGeometry.footer.width },
+        grid: { x: editGeometry.grid.x, width: editGeometry.grid.width },
+      },
+      {
+        footer: { x: publicGeometry.footer.x, width: publicGeometry.footer.width },
+        grid: { x: publicGeometry.grid.x, width: publicGeometry.grid.width },
+      },
+    );
+    await expect(
+      page.locator('.dev-footer [data-development-entity-boundary="true"]'),
+    ).not.toHaveCount(0);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const containment = await page.locator('.dev-footer').evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        left: rect.left,
+        right: rect.right,
+      };
+    });
+    assert.ok(containment.scrollWidth <= containment.clientWidth + 1);
+    assert.ok(containment.left >= -1 && containment.right <= 391);
+    await expect(page.locator('.dev-footer-grid')).toHaveCSS('grid-template-columns', '358px');
+  },
+);
+
+Then(
   'Construction collection grids retain their responsive column templates',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

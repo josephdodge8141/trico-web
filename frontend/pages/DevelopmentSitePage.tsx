@@ -683,7 +683,7 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </section>
       </main>
-      <footer className="dev-footer ui-footer ui-align-start ui-footer-rhythm">
+      <footer className="dev-footer ui-footer ui-align-start ui-footer-rhythm ui-inverse-surface ui-inverse-border-accent">
         <div className="dev-container ui-container dev-footer-grid ui-footer-grid ui-footer-grid--standard">
           <ObjectBoundary id="development.footer.brand" value={footerBrand}>
             <div>
@@ -691,21 +691,23 @@ function DevelopmentBody(): React.JSX.Element {
                 src={managedImage(footerBrand.logo.key, tricoLogo)}
                 alt={footerBrand.logoAltText}
               />
-              <b>{footerBrand.divisionLabel}</b>
-              <p>{footerBrand.description}</p>
-              <span>
+              <b className="ui-inverse-brand-label">{footerBrand.divisionLabel}</b>
+              <p className="ui-footer-copy-lead ui-inverse-copy-lead">{footerBrand.description}</p>
+              <span className="ui-inverse-contact-row">
                 <MapPin /> {footerBrand.address}
               </span>
-              <span>
+              <span className="ui-inverse-contact-row">
                 <Phone /> {footerBrand.phone}
               </span>
-              <span>
+              <span className="ui-inverse-contact-row">
                 <Mail /> {footerBrand.email}
               </span>
             </div>
           </ObjectBoundary>
-          <div>
-            <h3 className="type-footer-title">{footerBrand.linksHeading}</h3>
+          <div className="ui-inverse-footer-links ui-editor-add-overlay">
+            <h3 className="type-footer-title ui-inverse-footer-title">
+              {footerBrand.linksHeading}
+            </h3>
             <CollectionBoundary
               id="development.footer.links"
               value={footerLinks}
@@ -715,8 +717,10 @@ function DevelopmentBody(): React.JSX.Element {
               }}
             />
           </div>
-          <div>
-            <h3 className="type-footer-title">{footerBrand.serviceAreasHeading}</h3>
+          <div className="ui-inverse-footer-list-compact">
+            <h3 className="type-footer-title ui-inverse-footer-title">
+              {footerBrand.serviceAreasHeading}
+            </h3>
             <CollectionBoundary
               id="development.footer.service-areas"
               value={serviceAreas}
@@ -727,7 +731,7 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
         </div>
         <ObjectBoundary id="development.footer.legal" value={footerLegal}>
-          <p className="dev-copyright ui-copyright ui-footer-legal-rhythm">
+          <p className="dev-copyright ui-copyright ui-footer-legal-rhythm ui-footer-legal-copy ui-inverse-legal-copy">
             © {new Date().getFullYear()} {footerLegal.organizationName}. {footerLegal.rightsNotice}
           </p>
         </ObjectBoundary>

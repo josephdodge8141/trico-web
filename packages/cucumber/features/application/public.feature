@@ -118,6 +118,14 @@ Feature: Published TriCo website
     Then Development About uses the frozen desktop composition
     And Development About remains contained with transparent editor wrappers on mobile
 
+  @id:public.development-footer-presentation @backend-noop
+  Scenario: Preserve the Development inverse footer presentation
+    backend-noop: Development footer color, typography, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
+    Given the current content manifest is available
+    When I open "/development"
+    Then the Development footer uses the mounted inverse surface brand copy title link and legal roles
+    And the Development footer preserves its desktop geometry editor wrappers and mobile containment
+
   @id:public.shared-form-footer-geometry @backend-noop
   Scenario: Keep client forms actions and division footers on one shared geometry contract
     backend-noop: Form, action, contact-grid, and footer geometry are browser-owned presentation behavior.
