@@ -4325,20 +4325,82 @@
   .ui-card-grid-roomy-start {
     padding-top: 1.5rem;
   }
-  .ui-service-grid-compact .editable-collection-items {
-    column-gap: 1.5rem;
-    row-gap: 2rem;
+  .ui-mounted-service-heading {
+    width: 100%;
+    max-width: 768px;
+    margin: 0 auto 64px;
   }
-  .ui-service-grid-compact .ui-service-card > span {
-    margin-bottom: 16px;
+  .ui-mounted-service-heading > span {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    border-radius: 9999px;
   }
-  .ui-service-grid-compact .ui-service-card {
-    padding-bottom: 2.5rem;
+  .ui-mounted-service-heading .type-section-title {
+    margin: 0 0 24px;
   }
-  .ui-service-grid-compact .ui-service-card .type-card-title {
+  .ui-mounted-service-heading .type-section-title + p {
+    margin: 0;
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .ui-mounted-service-grid .editable-collection-items {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 24px;
+    row-gap: 24px;
+  }
+  .ui-mounted-service-grid .editable-collection-items > div {
+    min-width: 0;
+    height: 100%;
+  }
+  .ui-mounted-service-card {
+    height: 100%;
+    overflow: hidden;
+  }
+  .ui-mounted-service-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+  }
+  .ui-mounted-service-card-header > span {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    flex: none;
+    place-items: center;
+    margin: 0 0 16px;
+    color: var(--ui-division-success, var(--trico-color-highlight));
+    border-radius: 8px;
+    background: rgb(16 185 129 / 10%);
+  }
+  .ui-mounted-service-card-header > span > svg {
+    width: 24px;
+  }
+  .ui-mounted-service-card-header .type-card-title {
     margin: 6px 0 0;
   }
+  .ui-mounted-service-card-body {
+    padding: 0 24px 24px;
+  }
+  .ui-mounted-service-card-body > p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .ui-mounted-service-grid .editable-collection-items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   @media (min-width: 1024px) {
+    .ui-mounted-service-grid .editable-collection-items {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
     .ui-process-frame-standard {
       box-sizing: border-box;
       width: min(calc(100% - 2rem), 85.5rem);

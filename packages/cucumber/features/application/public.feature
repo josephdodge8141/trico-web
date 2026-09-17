@@ -301,6 +301,7 @@ Feature: Published TriCo website
     And all 18 Storage entities have an editable visual boundary
     And the Storage hero, services, team, Our Why, reviews, contact, and footer render in order
     And Storage uses the frozen desktop hero heading and service-card geometry
+    And Storage uses the mounted service heading and four-row card rhythm
     And Storage uses its frozen theme frames portrait cards and text roles
     And Storage uses the shared four-profile geometry and mounted copy rhythm
     And the Storage contact form validates locally without creating a CMS entity

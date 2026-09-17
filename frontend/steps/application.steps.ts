@@ -3651,6 +3651,7 @@ Then(
 
     const firstCardPadding = await cards
       .first()
+      .locator('.ui-mounted-service-card-header')
       .evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingLeft));
     assert.ok(
       Math.abs(firstCardPadding - 24) <= 1,
@@ -3673,6 +3674,87 @@ Then(
         `Storage service row ${String(index + 1)} title offset was ${offset}`,
       );
     });
+  },
+);
+Then(
+  'Storage uses the mounted service heading and four-row card rhythm',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.reload();
+
+    const services = page.locator('.storage-services');
+    const heading = services.locator('.storage-section-heading');
+    const eyebrow = heading.locator(':scope > span');
+    const grid = services.locator('.editable-collection-items');
+    const cards = grid.locator('.storage-service-card');
+    const [servicesBox, headingBox, eyebrowBox, gridBox] = await Promise.all([
+      services.boundingBox(),
+      heading.boundingBox(),
+      eyebrow.boundingBox(),
+      grid.boundingBox(),
+    ]);
+    assert.ok(servicesBox && headingBox && eyebrowBox && gridBox);
+
+    assert.ok(
+      Math.abs(servicesBox.height - 1676) <= 1,
+      `Storage services height was ${servicesBox.height}`,
+    );
+    assert.ok(
+      Math.abs(headingBox.height - 252) <= 1,
+      `Storage services heading height was ${headingBox.height}`,
+    );
+    assert.ok(
+      Math.abs(gridBox.y - servicesBox.y - 412) <= 1,
+      `Storage services grid top offset was ${gridBox.y - servicesBox.y}`,
+    );
+    assert.ok(
+      Math.abs(gridBox.height - 1168) <= 1,
+      `Storage services grid height was ${gridBox.height}`,
+    );
+    assert.ok(
+      Math.abs(eyebrowBox.height - 36) <= 1,
+      `Storage services eyebrow height was ${eyebrowBox.height}`,
+    );
+    await expect(eyebrow).toHaveCSS('padding', '8px 16px');
+    await expect(eyebrow).toHaveCSS('font-size', '14px');
+    await expect(eyebrow).toHaveCSS('line-height', '20px');
+
+    const rowCards = await Promise.all(
+      [0, 3, 6, 9].map(async (index) => {
+        const box = await cards.nth(index).boundingBox();
+        assert.ok(box);
+        return box;
+      }),
+    );
+    const expectedRowHeights = [244, 268, 316, 268];
+    rowCards.forEach((box, index) => {
+      const expectedHeight = expectedRowHeights[index];
+      assert.ok(expectedHeight !== undefined);
+      assert.ok(
+        Math.abs(box.height - expectedHeight) <= 1,
+        `Storage service row ${String(index + 1)} height was ${box.height}`,
+      );
+      if (index === 0) return;
+      const previous = rowCards[index - 1];
+      assert.ok(previous);
+      assert.ok(
+        Math.abs(box.y - previous.y - previous.height - 24) <= 1,
+        `Storage service row ${String(index + 1)} gap was ${box.y - previous.y - previous.height}`,
+      );
+    });
+
+    for (const card of await cards.all()) {
+      const [titleBox, descriptionBox] = await Promise.all([
+        card.getByRole('heading').boundingBox(),
+        card.locator('p').boundingBox(),
+      ]);
+      assert.ok(titleBox && descriptionBox);
+      assert.ok(
+        Math.abs(descriptionBox.y - titleBox.y - titleBox.height - 24) <= 1,
+        `Storage service title-to-description gap was ${descriptionBox.y - titleBox.y - titleBox.height}`,
+      );
+    }
   },
 );
 Then(
@@ -3719,8 +3801,11 @@ Then(
     const serviceGrid = page.locator('.storage-services .editable-collection-items');
     const firstService = serviceGrid.locator('.storage-service-card').first();
     await expect(serviceGrid).toHaveCSS('column-gap', '24px');
-    await expect(serviceGrid).toHaveCSS('row-gap', '32px');
-    await expect(firstService.locator(':scope > span')).toHaveCSS('color', 'rgb(16, 185, 129)');
+    await expect(serviceGrid).toHaveCSS('row-gap', '24px');
+    await expect(firstService.locator('.ui-mounted-service-card-header > span')).toHaveCSS(
+      'color',
+      'rgb(16, 185, 129)',
+    );
     await expect(firstService.getByRole('heading')).toHaveCSS('margin-top', '6px');
     await expect(firstService.getByRole('heading')).toHaveCSS('margin-bottom', '0px');
 

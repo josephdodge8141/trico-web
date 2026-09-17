@@ -113,29 +113,11 @@
     display: inline-block;
     padding: 0.45rem 0.9rem;
   }
-  .storage-services .editable-collection-items {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-  }
-  .storage-service-card {
-    height: 100%;
-  }
-  .storage-service-card > span,
   .storage-review-card > span:first-child {
     width: 48px;
     height: 48px;
     display: grid;
     place-items: center;
-  }
-  .storage-service-card svg {
-    width: 24px;
-  }
-  .storage-service-card h3 {
-    margin: 1rem 0 0.65rem;
-  }
-  .storage-service-card p {
-    margin: 0;
   }
   .storage-about-layout {
     display: grid;
@@ -276,7 +258,6 @@
     .storage-contact {
       grid-template-columns: 1fr;
     }
-    .storage-services .editable-collection-items,
     .storage-footer-grid {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -317,7 +298,6 @@
     .storage-contact {
       padding: 4.5rem 1rem;
     }
-    .storage-services .editable-collection-items,
     .storage-reviews .editable-collection-items,
     .storage-form-row {
       grid-template-columns: 1fr;

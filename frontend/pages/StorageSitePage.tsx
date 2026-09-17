@@ -344,12 +344,12 @@ function StorageBody(): React.JSX.Element {
         </ObjectBoundary>
         <section
           id="services"
-          className="storage-section ui-section ui-contained-section storage-services ui-services ui-service-grid-compact"
+          className="storage-section ui-section ui-contained-section storage-services ui-services ui-mounted-service-grid"
         >
           <ObjectBoundary id="storage.services.header" value={servicesHeader}>
             <SectionHeading
               value={servicesHeader}
-              className="ui-heading-measure-standard ui-heading-rhythm"
+              className="ui-mounted-service-heading"
               titleClassName="type-section-title-large"
             />
           </ObjectBoundary>
@@ -360,12 +360,16 @@ function StorageBody(): React.JSX.Element {
               const service = storageServiceSchema.parse(item);
               const Icon = icons[service.icon] ?? Building;
               return (
-                <article className="storage-service-card ui-service-card ui-card-padding-compact">
-                  <span>
-                    <Icon />
-                  </span>
-                  <h3 className="type-card-title">{service.title}</h3>
-                  <p>{service.description}</p>
+                <article className="storage-service-card ui-service-card ui-mounted-service-card">
+                  <header className="ui-mounted-service-card-header">
+                    <span>
+                      <Icon />
+                    </span>
+                    <h3 className="type-card-title">{service.title}</h3>
+                  </header>
+                  <div className="ui-mounted-service-card-body">
+                    <p>{service.description}</p>
+                  </div>
                 </article>
               );
             }}
