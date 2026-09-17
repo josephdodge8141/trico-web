@@ -331,20 +331,30 @@
     "size": 2368464
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "robert-ayers.png",
-    "assetId": "b68bcf6b-f860-463c-b1e4-69698067bc30",
+    "sourceAssetId": "b68bcf6b-f860-463c-b1e4-69698067bc30",
+    "sourceProjectId": "070a6314-6df5-4464-9eb5-be7e80bc91c8",
+    "sourceR2Key": "a/v1/070a6314-6df5-4464-9eb5-be7e80bc91c8/b68bcf6b-f860-463c-b1e4-69698067bc30/robert-ayers.png",
+    "objectKey": "media/seed/robert-ayers.png",
     "contentType": "image/png",
-    "originalSize": 2741172,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sha256": "7f6760fd9ca96315219b4e1d6334d23b58e38ffa1010977f057ab6a70a46c914",
+    "size": 2741172,
+    "width": 1122,
+    "height": 1402
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "shauna-thomas.png",
-    "assetId": "53b95017-091d-494c-9a52-72f835e8a19f",
+    "sourceAssetId": "53b95017-091d-494c-9a52-72f835e8a19f",
+    "sourceProjectId": "070a6314-6df5-4464-9eb5-be7e80bc91c8",
+    "sourceR2Key": "a/v1/070a6314-6df5-4464-9eb5-be7e80bc91c8/53b95017-091d-494c-9a52-72f835e8a19f/shauna-thomas.png",
+    "objectKey": "media/seed/shauna-thomas.png",
     "contentType": "image/png",
-    "originalSize": 2315953,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sha256": "858d36a1c6ce48cae3650581012c8d26d92f9840df974dc858f0b87010b85f71",
+    "size": 2315953,
+    "width": 1122,
+    "height": 1402
   },
   {
     "disposition": "upload",
@@ -361,12 +371,17 @@
     "size": 154608
   },
   {
-    "disposition": "placeholder",
+    "disposition": "upload",
     "originalFilename": "stacie-papanikolas.jpg",
-    "assetId": "bf1ec498-6451-42bb-a2af-37e8138149f9",
+    "sourceAssetId": "bf1ec498-6451-42bb-a2af-37e8138149f9",
+    "sourceProjectId": "070a6314-6df5-4464-9eb5-be7e80bc91c8",
+    "sourceR2Key": "a/v1/070a6314-6df5-4464-9eb5-be7e80bc91c8/bf1ec498-6451-42bb-a2af-37e8138149f9/stacie-papanikolas.jpg",
+    "objectKey": "media/seed/stacie-papanikolas.jpg",
     "contentType": "image/jpeg",
-    "originalSize": 444883,
-    "placeholderKey": "media/seed/placeholder-neutral.svg"
+    "sha256": "51ffe1a92be2c55e74d0fa3ad48a1006b93257424ea7edfb82bfb7f5b34e0a85",
+    "size": 444883,
+    "width": 1200,
+    "height": 1500
   },
   {
     "disposition": "upload",

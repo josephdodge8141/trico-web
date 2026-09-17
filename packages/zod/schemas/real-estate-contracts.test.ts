@@ -129,6 +129,34 @@ test('Real Estate listings retain only their approved frozen external image sour
   );
 });
 
+test('Real Estate agents retain every recovered portrait as managed media', () => {
+  assert.deepEqual(
+    realEstateV2SeedData['real-estate.team.agents'].map(({ name, image }) => ({ name, image })),
+    [
+      {
+        name: 'Michael Thornton',
+        image: { kind: 'managed', key: 'media/seed/michael-thornton.jpg' },
+      },
+      {
+        name: 'Ben Beesley',
+        image: { kind: 'managed', key: 'media/seed/ben-beesley.jpg' },
+      },
+      {
+        name: 'Shauna Ayers',
+        image: { kind: 'managed', key: 'media/seed/shauna-thomas.png' },
+      },
+      {
+        name: 'Robert Ayers',
+        image: { kind: 'managed', key: 'media/seed/robert-ayers.png' },
+      },
+      {
+        name: 'Stacie Papanikolas',
+        image: { kind: 'managed', key: 'media/seed/stacie-papanikolas.jpg' },
+      },
+    ],
+  );
+});
+
 test('Real Estate listing actions retain the directory and contact calls to action', () => {
   const actions = realEstateV2SeedData['real-estate.listings.actions'];
   assert.deepEqual(

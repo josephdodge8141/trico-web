@@ -58,6 +58,9 @@ import placeholderPhoto from '../assets/images/placeholder-neutral.svg';
 import randyPhoto from '../assets/images/randy-rimmer.png';
 import commercialOnePhoto from '../assets/images/real-estate-property-1.jpeg';
 import commercialTwoPhoto from '../assets/images/real-estate-property-2.jpeg';
+import robertPhoto from '../assets/images/robert-ayers.png';
+import shaunaPhoto from '../assets/images/shauna-thomas.png';
+import staciePhoto from '../assets/images/stacie-papanikolas.jpg';
 import stevePhoto from '../assets/images/steve-tripp.png';
 import tricoLogo from '../assets/images/trico-logo.png';
 import whisper105Photo from '../assets/images/whisper-hollow-lot-105.jpg';
@@ -93,6 +96,9 @@ const imageByKey: Readonly<Record<string, string>> = {
   'media/seed/mia-barlow-re.png': miaPhoto,
   'media/seed/michael-thornton.jpg': michaelPhoto,
   'media/seed/ben-beesley.jpg': benPhoto,
+  'media/seed/shauna-thomas.png': shaunaPhoto,
+  'media/seed/robert-ayers.png': robertPhoto,
+  'media/seed/stacie-papanikolas.jpg': staciePhoto,
   'media/seed/placeholder-neutral.svg': placeholderPhoto,
   'media/seed/whisper-hollow-lot-119.jpg': whisper119Photo,
   'media/seed/whisper-hollow-lot-boxwood.jpg': whisperBoxwoodPhoto,

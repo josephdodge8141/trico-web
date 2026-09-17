@@ -35,11 +35,11 @@ The normalized five-source bootstrap is checked in at `packages/zod/seeds/extern
 
 ## Media disposition
 
-- Bootstrap owns upload of the 51 runtime media files present in the ZIP plus the ten Property Management portfolio assets recovered byte-for-byte from their supplied immutable Lovable asset references.
-- The three remaining `.asset.json` portrait records stay separately tracked for their page-specific parity pass. Juniper Ridge and Riverwood Crossing intentionally use the neutral placeholder because the mounted source declares no image for either association.
+- Bootstrap owns upload of the 51 runtime media files present in the ZIP plus the ten Property Management portfolio assets and three Real Estate agent portraits recovered byte-for-byte from their supplied immutable Lovable asset references.
+- The recovered Real Estate portraits preserve their supplied Lovable asset IDs, project ID, R2 keys, MIME types, byte sizes, dimensions, and SHA-256 digests in the media inventory. Juniper Ridge and Riverwood Crossing intentionally use the neutral placeholder because the mounted source declares no image for either association.
 - No bootstrap or runtime path automatically deletes media because historical publications may retain references.
 
-The 61 available binaries are checked in under `packages/zod/seeds/media/` for deterministic bootstrap without retaining the source ZIP. `packages/zod/seeds/media-inventory.json` records each upload object key, byte size, and SHA-256, plus the supplied Lovable asset ID for the ten recovered portfolio files. It separately records the three portrait binaries not yet checked in by original filename, Lovable asset ID, content type, original size, and the shared `media/seed/placeholder-neutral.svg` replacement. Placeholder audit metadata is deliberately excluded from public entity JSON.
+The 64 available binaries are checked in under `packages/zod/seeds/media/` for deterministic bootstrap without retaining the source ZIP. `packages/zod/seeds/media-inventory.json` records each upload object key, byte size, and SHA-256, plus the supplied Lovable provenance for the thirteen recovered immutable assets. Placeholder audit metadata is deliberately excluded from public entity JSON.
 
 ## Bootstrap safety
 
@@ -54,4 +54,4 @@ The 61 available binaries are checked in under `packages/zod/seeds/media/` for d
 
 All list IDs are derived from the checked-in namespace, entity ID, and zero-based source position. The normalized cardinalities include five home divisions, ten combined Real Estate listings, and seven named managed properties. All 16 current/completed construction project collections are intentionally empty and remain editable.
 
-Automated contract coverage verifies all 195 seed keys, source list cardinalities for the cleaned exceptions, deterministic item identity, the absence of migration metadata in public values, the 61/3 media accounting, all five external-source contracts, and a conservative 350 KB serialized ceiling for each initial page snapshot.
+Automated contract coverage verifies all 195 seed keys, source list cardinalities for the cleaned exceptions, deterministic item identity, the absence of migration metadata in public values, the 64/0 media accounting, all five external-source contracts, and a conservative 350 KB serialized ceiling for each initial page snapshot.

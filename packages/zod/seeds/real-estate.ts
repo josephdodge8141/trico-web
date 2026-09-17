@@ -426,19 +426,19 @@ export const realEstateV2SeedData = {
       'Shauna Ayers',
       'Shauna brings a warm, client-first approach to real estate, helping buyers and sellers navigate every transaction with confidence and care.',
       'shauna@tricoinc.com',
-      'placeholder-neutral.svg',
+      'shauna-thomas.png',
     ],
     [
       'Robert Ayers',
       'Robert brings strong local market knowledge and a client-first approach, helping buyers and sellers achieve their real estate goals with confidence.',
       'robert@tricoinc.com',
-      'placeholder-neutral.svg',
+      'robert-ayers.png',
     ],
     [
       'Stacie Papanikolas',
       'Stacie brings a warm, detail-oriented approach to real estate, guiding clients through every step of buying or selling with care and local expertise.',
       'stacie@tricoinc.com',
-      'placeholder-neutral.svg',
+      'stacie-papanikolas.jpg',
     ],
   ].map(([name, bio, email, image], n) => ({
     id: itemId('real-estate.team.agents', n),

@@ -197,6 +197,7 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "/real-estate"
     Then Real Estate Property Management and Development expose one shared profile card contract
+    And every frozen Real Estate agent portrait resolves from managed media
     And available portraits crop consistently while unavailable portraits use one neutral accessible fallback
     And profile cards remain balanced at desktop and mobile widths and retain their geometry in edit mode
 

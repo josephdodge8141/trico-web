@@ -952,7 +952,7 @@ Then(
 );
 
 const profileCardSamples = [
-  { route: '/real-estate', count: 9, available: 6, unavailable: 3 },
+  { route: '/real-estate', count: 9, available: 9, unavailable: 0 },
   { route: '/property-management', count: 4, available: 2, unavailable: 2 },
   { route: '/development', count: 3, available: 3, unavailable: 0 },
 ] as const;
@@ -1006,6 +1006,60 @@ Then(
         await expect(media.locator('img')).toHaveCount(0);
         await expect(media).not.toContainText('media/');
       }
+    }
+  },
+);
+
+Then(
+  'every frozen Real Estate agent portrait resolves from managed media',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.goto('/real-estate');
+    const expectedPortraits = [
+      ['Michael Thornton', 'michael-thornton', 'jpg'],
+      ['Ben Beesley', 'ben-beesley', 'jpg'],
+      ['Shauna Ayers', 'shauna-thomas', 'png'],
+      ['Robert Ayers', 'robert-ayers', 'png'],
+      ['Stacie Papanikolas', 'stacie-papanikolas', 'jpg'],
+    ] as const;
+
+    const cards = page.locator('.re-agent-grid [data-profile-card="true"]');
+    await expect(cards).toHaveCount(expectedPortraits.length);
+    for (const [name, fileStem, extension] of expectedPortraits) {
+      const card = cards.filter({ has: page.getByRole('heading', { name, exact: true }) });
+      await expect(card).toHaveCount(1);
+      const media = card.locator('[data-profile-media-state="available"]');
+      await expect(media).toHaveCount(1);
+      const portrait = media.locator('img');
+      await expect(portrait).toBeVisible();
+      const presentation = await portrait.evaluate((element) => {
+        if (!(element instanceof HTMLImageElement))
+          throw new Error('Agent portrait is not an image.');
+        const box = element.getBoundingClientRect();
+        return {
+          naturalWidth: element.naturalWidth,
+          objectFit: getComputedStyle(element).objectFit,
+          source: new URL(element.currentSrc).pathname,
+          width: box.width,
+          height: box.height,
+        };
+      });
+      assert.ok(presentation.naturalWidth > 0, `${name} portrait did not load.`);
+      assert.equal(presentation.objectFit, 'cover');
+      assert.ok(
+        Math.abs(presentation.width - 262) <= 1,
+        `${name} width was ${presentation.width}.`,
+      );
+      assert.ok(
+        Math.abs(presentation.height - 262) <= 1,
+        `${name} height was ${presentation.height}.`,
+      );
+      assert.match(
+        presentation.source,
+        new RegExp(`/assets/${fileStem}-[^/]+\\.${extension}$`),
+        `${name} did not resolve the managed ${fileStem}.${extension} asset.`,
+      );
     }
   },
 );

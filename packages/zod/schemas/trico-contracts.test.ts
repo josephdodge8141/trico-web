@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { z } from 'zod';
@@ -339,19 +341,59 @@ test('seed pages fit the conservative publication ceiling and omit migration met
 });
 
 test('media and source seed inventories account for supplied runtime inputs', () => {
-  assert.equal(mediaInventory.filter(({ disposition }) => disposition === 'upload').length, 61);
-  assert.equal(mediaInventory.filter((item) => 'sourceAssetId' in item).length, 10);
+  assert.equal(mediaInventory.filter(({ disposition }) => disposition === 'upload').length, 64);
+  assert.equal(mediaInventory.filter((item) => 'sourceAssetId' in item).length, 13);
   const placeholders = mediaInventory.filter(({ disposition }) => disposition === 'placeholder');
-  assert.equal(placeholders.length, 3);
-  assert.equal(
-    placeholders.every(
-      ({ placeholderKey }) => placeholderKey === 'media/seed/placeholder-neutral.svg',
-    ),
-    true,
-  );
+  assert.equal(placeholders.length, 0);
   assert.equal(externalSourceSeeds.length, 5);
   for (const source of externalSourceSeeds) {
     assert.equal(externalSourceSchema.safeParse(source).success, true);
+  }
+});
+
+test('recovered Real Estate portrait bytes match their immutable Lovable provenance', async () => {
+  const expected = [
+    {
+      originalFilename: 'shauna-thomas.png',
+      sourceAssetId: '53b95017-091d-494c-9a52-72f835e8a19f',
+      sha256: '858d36a1c6ce48cae3650581012c8d26d92f9840df974dc858f0b87010b85f71',
+      size: 2_315_953,
+      width: 1122,
+      height: 1402,
+    },
+    {
+      originalFilename: 'robert-ayers.png',
+      sourceAssetId: 'b68bcf6b-f860-463c-b1e4-69698067bc30',
+      sha256: '7f6760fd9ca96315219b4e1d6334d23b58e38ffa1010977f057ab6a70a46c914',
+      size: 2_741_172,
+      width: 1122,
+      height: 1402,
+    },
+    {
+      originalFilename: 'stacie-papanikolas.jpg',
+      sourceAssetId: 'bf1ec498-6451-42bb-a2af-37e8138149f9',
+      sha256: '51ffe1a92be2c55e74d0fa3ad48a1006b93257424ea7edfb82bfb7f5b34e0a85',
+      size: 444_883,
+      width: 1200,
+      height: 1500,
+    },
+  ] as const;
+  for (const expectedPortrait of expected) {
+    const inventoryItem = mediaInventory.find(
+      ({ originalFilename }) => originalFilename === expectedPortrait.originalFilename,
+    );
+    assert.ok(inventoryItem);
+    assert.equal(inventoryItem.disposition, 'upload');
+    assert.equal(inventoryItem.sourceAssetId, expectedPortrait.sourceAssetId);
+    assert.equal(inventoryItem.size, expectedPortrait.size);
+    assert.equal(inventoryItem.width, expectedPortrait.width);
+    assert.equal(inventoryItem.height, expectedPortrait.height);
+    assert.equal(inventoryItem.sha256, expectedPortrait.sha256);
+    const bytes = await readFile(
+      new URL(`../seeds/media/${expectedPortrait.originalFilename}`, import.meta.url),
+    );
+    assert.equal(bytes.length, expectedPortrait.size);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), expectedPortrait.sha256);
   }
 });
 
