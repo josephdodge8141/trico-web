@@ -4752,6 +4752,48 @@ Then(
 );
 
 Then(
+  'Real Estate listing photos preserve their frozen source identities',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.goto('/real-estate');
+
+    const listingImageSource = async (address: string): Promise<string> => {
+      const listing = page.locator('.re-listing').filter({ hasText: address });
+      await expect(listing).toHaveCount(1);
+      const source = await listing.locator('.re-listing-photo img').getAttribute('src');
+      assert.ok(source, `Listing photo source is missing for ${address}.`);
+      return source;
+    };
+
+    assert.equal(
+      await listingImageSource('9853 S 700 E'),
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop',
+    );
+    assert.equal(
+      await listingImageSource('2560 E 3300 S'),
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
+    );
+    assert.match(await listingImageSource('1457 N Whisper Hollow Cir'), /whisper-hollow-lot-119/);
+
+    await page.getByRole('tab', { name: 'Sold (5)', exact: true }).click();
+    assert.equal(
+      await listingImageSource('2200 State St'),
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
+    );
+    assert.equal(
+      await listingImageSource('Lot 5–8, Cedar Hills'),
+      'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop',
+    );
+    assert.equal(
+      await listingImageSource('750 Technology Way'),
+      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop',
+    );
+    await page.getByRole('tab', { name: 'Active Listings (5)', exact: true }).click();
+  },
+);
+
+Then(
   'listing directory actions and the contact call to action complete the gallery',
   async function (this: FrontendWorld) {
     const page = this.currentPage();

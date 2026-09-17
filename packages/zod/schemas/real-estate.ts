@@ -17,6 +17,21 @@ const text = (max: number) => z.string().trim().min(1).max(max);
 const optional = (max: number) => z.string().trim().max(max);
 const id = z.uuid();
 const image = z.strictObject({ kind: z.literal('managed'), key: text(1024) });
+export const realEstateApprovedListingImageUrlSchema = z.enum([
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop',
+]);
+const externalListingImage = z.strictObject({
+  kind: z.literal('external'),
+  url: realEstateApprovedListingImageUrlSchema,
+});
+export const realEstateListingImageSchema = z.discriminatedUnion('kind', [
+  image,
+  externalListingImage,
+]);
+export type RealEstateListingImage = z.infer<typeof realEstateListingImageSchema>;
 const optionalExternalUrl = z.union([z.literal(''), z.url().max(1000)]);
 const destination = z.enum(['services', 'process', 'team', 'about', 'faq', 'reviews', 'contact']);
 const icon = lucideIconNameSchema;
@@ -59,7 +74,7 @@ export const realEstateListingSchema = z.strictObject({
   detail: text(120),
   type: text(100),
   status: z.enum(['active', 'sold']),
-  image,
+  image: realEstateListingImageSchema,
   imageAltText: text(200),
   gallery: z.array(realEstateListingGalleryImageSchema),
   actionLabel: optional(80),

@@ -226,6 +226,7 @@ Feature: Published TriCo website
     When I open "/real-estate"
     Then the Real Estate listing gallery is centered and constrained at desktop width
     And listing cards preserve their intended image ratio at desktop and mobile widths
+    And Real Estate listing photos preserve their frozen source identities
     And listing tabs show the active and sold counts in a light segmented control
     And each available external listing action remains accessible but visually subordinate
     And Real Estate listings process and FAQ match their mounted desktop contracts

@@ -117,9 +117,15 @@ const imageByKey: Readonly<Record<string, string>> = {
   'media/seed/real-estate-property-2.jpeg': commercialTwoPhoto,
 };
 
-const imageSource = (key: string, fallback: string): string =>
-  imageByKey[key] ??
-  (key.startsWith('media/') && !key.startsWith('media/seed/') ? `/${key}` : fallback);
+const imageSource = (image: S.RealEstateListingImage, fallback: string): string => {
+  if (image.kind === 'external') return image.url;
+  return (
+    imageByKey[image.key] ??
+    (image.key.startsWith('media/') && !image.key.startsWith('media/seed/')
+      ? `/${image.key}`
+      : fallback)
+  );
+};
 const profileImageSource = (key: string): string | undefined =>
   key === 'media/seed/placeholder-neutral.svg'
     ? undefined
@@ -527,7 +533,7 @@ function RealEstateBody(): React.JSX.Element {
               <header className="re-header ui-header">
                 <div className="re-container ui-container re-header-inner ui-header-inner">
                   <Link to="/" className="re-brand ui-brand">
-                    <img src={imageSource(header.logo.key, tricoLogo)} alt={header.logoAltText} />
+                    <img src={imageSource(header.logo, tricoLogo)} alt={header.logoAltText} />
                     <strong>{header.divisionLabel}</strong>
                   </Link>
                   <nav>
@@ -696,7 +702,7 @@ function RealEstateBody(): React.JSX.Element {
                       >
                         <div className="re-listing-photo ui-listing-photo">
                           <img
-                            src={imageSource(listing.image.key, placeholderPhoto)}
+                            src={imageSource(listing.image, placeholderPhoto)}
                             alt={listing.imageAltText}
                           />
                           <span
@@ -747,7 +753,7 @@ function RealEstateBody(): React.JSX.Element {
                               {listing.gallery.map((photo) => (
                                 <img
                                   key={photo.id}
-                                  src={imageSource(photo.image.key, placeholderPhoto)}
+                                  src={imageSource(photo.image, placeholderPhoto)}
                                   alt={photo.imageAltText}
                                 />
                               ))}
@@ -1145,7 +1151,7 @@ function RealEstateBody(): React.JSX.Element {
                 const brand = S.realEstateFooterBrandSchema.parse(item);
                 return (
                   <div>
-                    <img src={imageSource(brand.logo.key, tricoLogo)} alt={brand.logoAltText} />
+                    <img src={imageSource(brand.logo, tricoLogo)} alt={brand.logoAltText} />
                     <p>{brand.description}</p>
                     <span>
                       <MapPin /> {brand.address}

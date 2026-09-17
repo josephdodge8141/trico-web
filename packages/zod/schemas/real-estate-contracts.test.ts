@@ -7,6 +7,7 @@ import {
   realEstateEntityDefinitions,
   realEstateEntityViewCatalog,
   realEstateHeroSchema,
+  realEstateListingSchema,
 } from './real-estate.js';
 import { realEstateV2SeedData } from '../seeds/real-estate.js';
 
@@ -72,6 +73,59 @@ test('Real Estate listings retain galleries and real external destinations', () 
     reviewDefinition?.editor.groups[0]?.fields.find(({ path }) => path[0] === 'externalUrl')
       ?.control.type,
     'link-builder',
+  );
+});
+
+test('Real Estate listings retain only their approved frozen external image sources', () => {
+  const listings = realEstateV2SeedData['real-estate.listings.items'];
+  assert.deepEqual(
+    listings
+      .filter(({ image }) => image.kind === 'external')
+      .map(({ address, image }) => ({ address, image })),
+    [
+      {
+        address: '9853 S 700 E',
+        image: {
+          kind: 'external',
+          url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop',
+        },
+      },
+      {
+        address: '2560 E 3300 S',
+        image: {
+          kind: 'external',
+          url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
+        },
+      },
+      {
+        address: '2200 State St',
+        image: {
+          kind: 'external',
+          url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
+        },
+      },
+      {
+        address: 'Lot 5–8, Cedar Hills',
+        image: {
+          kind: 'external',
+          url: 'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop',
+        },
+      },
+      {
+        address: '750 Technology Way',
+        image: {
+          kind: 'external',
+          url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop',
+        },
+      },
+    ],
+  );
+  assert.equal(
+    realEstateListingSchema.safeParse({
+      ...listings[0],
+      image: { kind: 'external', url: 'https://example.com/editor-entered-image.jpg' },
+    }).success,
+    false,
   );
 });
 
