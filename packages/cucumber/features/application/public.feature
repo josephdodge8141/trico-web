@@ -359,6 +359,8 @@ Feature: Published TriCo website
     Given an immutable frozen baseline or authenticated live reference
     When every rendered candidate pixel is compared perceptually across supported routes viewports and states
     Then color substitutions and geometry displacements are reported as bounded evidence regions
+    And every visible candidate gold use is inventoried independently of pixel alignment
+    And every changed pixel is reconciled into exactly one named accounting bucket
     And candidate elements include HTML SVG and pseudo-element presentation
     And matched CSS declarations are grouped into shared root causes with ambiguity stated explicitly
     And exact pixel colors remain distinct from semantic color roles

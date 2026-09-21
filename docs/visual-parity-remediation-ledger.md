@@ -1,12 +1,13 @@
 # Visual-parity remediation ledger
 
-This ledger records the reviewed output of the schema-v2 visual auditor. Generated evidence remains
+This ledger records the reviewed output of the visual auditor. Generated evidence remains
 under `artifacts/visual-audit/` and is intentionally untracked.
 
 ## Audit checkpoints
 
 - Baseline auditor: commit `f61f9a7`.
 - Hardened attribution and schema v2: commit `6d4e0c3`.
+- Schema v3 rendered-style inventory and exact pixel accounting: current worktree.
 - Before hardening: `artifacts/visual-audit/v2-before-{home,property-management,real-estate,construction,storage,development}/`.
 - Reviewed frozen output: `artifacts/visual-audit/{home,property-management,real-estate,construction,storage,development}-final/`.
 - The reviewed run completed all 51 capture recipes across the six routes and compared 209,985,790
@@ -29,9 +30,21 @@ candidate declaration and evidence crop are reviewed.
 - Covered actions: Property Management “Get Free Analysis”, Construction “Start Your Project” and
   “Request Your Bid”, Storage “Partner With Us”, and other callers of the shared action primitive.
 - Regression: the browser suite asserts the shared blue background and accessible white foreground.
-- Result: reference-blue to candidate-gold substitutions are zero on Home, Property Management, Real
-  Estate, Construction, and Storage. Development contains 59 ungrouped antialiased pixels and no
-  bounded CSS finding; it is not an actionable substitution.
+- The earlier conclusion that reference-blue to candidate-gold substitutions were effectively zero
+  was invalid. It relied on same-coordinate semantic pixel pairs and missed displaced foreground
+  elements. Schema v3 supersedes that conclusion with candidate-side rendered-style inventory.
+
+### Schema-v3 Home diagnostic
+
+- The first real desktop run inventories 106 visible gold property occurrences despite the bounded
+  pixel report labeling zero regions as gold.
+- Confirmed shared causes include all eight `.ui-timeline-card strong` labels and all three
+  `.ui-news-date` labels. The `.ui-accent-rule` gradient, timeline borders, icon gradients, and SVG
+  strokes are also present in the inventory.
+- The run reconciles 2,005,872 changed pixels into 1,056 attributed-style, 75,573 geometry, 21,531
+  asset/content, and 1,907,712 explicitly unresolved pixels. Nothing outside those buckets is implied
+  to be correct.
+- Evidence: `artifacts/visual-audit/v3-home-inventory/` (intentionally untracked).
 
 ### Auditor false root causes
 

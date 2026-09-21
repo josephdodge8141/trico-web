@@ -98,6 +98,7 @@ export type VisualFinding = Readonly<{
   type: DifferenceType;
   region: Readonly<{ x: number; y: number; width: number; height: number }>;
   changedPixels: number;
+  colorPixels?: number;
   verifiedPixels: number;
   referenceColor: string;
   candidateColor: string;
@@ -105,6 +106,36 @@ export type VisualFinding = Readonly<{
   evidenceAvailable: boolean;
   element?: ElementEvidence;
   attribution?: CssAttribution;
+}>;
+
+export type RenderedStyleOccurrence = Readonly<{
+  route: string;
+  viewport: AuditViewport;
+  state: string;
+  tag: string;
+  text: string;
+  selector: string;
+  rect: Readonly<{ x: number; y: number; width: number; height: number }>;
+  property: string;
+  computedValue: string;
+  resolvedColor: string;
+  semanticRole: SemanticColorRole;
+  pseudo?: '::before' | '::after';
+  declarationSelector?: string;
+  sourceLine?: number;
+  value?: string;
+  token?: string;
+  attributionConfidence?: 'high' | 'medium' | 'low';
+  attributionReason?: string;
+}>;
+
+export type PixelAccounting = Readonly<{
+  changedPixels: number;
+  attributedStylePixels: number;
+  geometryPixels: number;
+  assetContentPixels: number;
+  noisePixels: number;
+  unresolvedPixels: number;
 }>;
 
 export type FindingGroup = Readonly<{
@@ -123,7 +154,7 @@ export type FindingGroup = Readonly<{
 type AuditCapture = Readonly<{ capture: VisualCapture; baselineRoot: string }>;
 
 type VisualAuditReport = Readonly<{
-  schemaVersion: 2;
+  schemaVersion: 3;
   mode: 'frozen' | 'live';
   reference: string;
   candidate: string;
@@ -140,6 +171,8 @@ type VisualAuditReport = Readonly<{
   unattributedFindings: readonly VisualFinding[];
   substitutions: readonly (ColorSubstitution & Readonly<{ routes: readonly string[] }>)[];
   interactions: readonly InteractiveDifference[];
+  renderedStyles: readonly RenderedStyleOccurrence[];
+  accounting: PixelAccounting;
 }>;
 
 type InteractiveDifference = Readonly<{
@@ -234,11 +267,240 @@ function parseHex(value: string): Rgb {
   ];
 }
 
+function parseComputedColors(value: string): readonly Rgb[] {
+  const colors: Rgb[] = [];
+  for (const match of value.matchAll(
+    /rgba?\(\s*([\d.]+)[, ]+\s*([\d.]+)[, ]+\s*([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)/gu,
+  )) {
+    if (Number(match[4] ?? '1') === 0) continue;
+    const red = Number(match[1]);
+    const green = Number(match[2]);
+    const blue = Number(match[3]);
+    if ([red, green, blue].every(Number.isFinite)) colors.push([red, green, blue]);
+  }
+  return colors;
+}
+
 export function semanticColorRole(color: Rgb): SemanticColorRole | undefined {
   const semantic = semanticColors
     .map((candidate) => ({ ...candidate, delta: perceptualDelta(color, candidate.color) }))
     .sort((left, right) => left.delta - right.delta)[0];
   return semantic !== undefined && semantic.delta < 8 ? semantic.role : undefined;
+}
+
+export function reconcileChangedPixels(
+  input: Readonly<{
+    changedPixels: number;
+    attributedStylePixels: number;
+    geometryPixels: number;
+    assetContentPixels: number;
+    noisePixels: number;
+  }>,
+): PixelAccounting {
+  const classified =
+    input.attributedStylePixels +
+    input.geometryPixels +
+    input.assetContentPixels +
+    input.noisePixels;
+  if (classified > input.changedPixels)
+    throw new Error(
+      `Visual pixel accounting exceeds changed pixels: ${String(classified)} > ${String(input.changedPixels)}`,
+    );
+  return { ...input, unresolvedPixels: input.changedPixels - classified };
+}
+
+export async function collectRenderedStyleInventory(
+  page: Page,
+  capture: VisualCapture,
+  cdp?: CDPSession,
+): Promise<readonly RenderedStyleOccurrence[]> {
+  await page.evaluate('globalThis.__name = (target) => target');
+  const raw = await page.evaluate(() => {
+    type RawOccurrence = Readonly<{
+      tag: string;
+      text: string;
+      selector: string;
+      rect: { x: number; y: number; width: number; height: number };
+      property: string;
+      computedValue: string;
+      pseudo?: '::before' | '::after';
+    }>;
+    const selectorFor = (element: Element): string => {
+      const auditNode = element.getAttribute('data-visual-audit-node');
+      if (auditNode !== null) return `[data-visual-audit-node=${JSON.stringify(auditNode)}]`;
+      const parts: string[] = [];
+      let current: Element | null = element;
+      while (current !== null && parts.length < 5) {
+        if (current.id !== '') {
+          parts.unshift(`#${CSS.escape(current.id)}`);
+          break;
+        }
+        const tag = current.tagName.toLowerCase();
+        const parentElement: Element | null = current.parentElement;
+        const siblings: Element[] =
+          parentElement === null
+            ? []
+            : [...parentElement.children].filter(
+                (candidate) => candidate.tagName === current?.tagName,
+              );
+        const position = siblings.indexOf(current);
+        parts.unshift(`${tag}:nth-of-type(${String(position + 1)})`);
+        current = parentElement;
+      }
+      return parts.join(' > ');
+    };
+    const hasOwnText = (element: Element): boolean =>
+      [...element.childNodes].some(
+        (node) => node.nodeType === Node.TEXT_NODE && (node.textContent?.trim().length ?? 0) > 0,
+      ) || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'OPTION'].includes(element.tagName);
+    const visible = (element: Element, style: CSSStyleDeclaration): boolean => {
+      const rect = element.getBoundingClientRect();
+      return (
+        style.display !== 'none' &&
+        style.visibility !== 'hidden' &&
+        Number(style.opacity) !== 0 &&
+        rect.width > 0 &&
+        rect.height > 0 &&
+        element.getClientRects().length > 0
+      );
+    };
+    const isPaintedColor = (value: string): boolean =>
+      value !== '' &&
+      value !== 'none' &&
+      value !== 'transparent' &&
+      !/rgba\([^)]*,\s*0\s*\)$/u.test(value);
+    const entries: RawOccurrence[] = [];
+    const inspect = (
+      element: Element,
+      style: CSSStyleDeclaration,
+      pseudo?: '::before' | '::after',
+    ): void => {
+      const rect = element.getBoundingClientRect();
+      const base = {
+        tag: element.tagName.toLowerCase(),
+        text:
+          element.getAttribute('aria-label') ??
+          element.getAttribute('alt') ??
+          (element.textContent ?? '').trim().replace(/\s+/gu, ' ').slice(0, 120),
+        selector: selectorFor(element),
+        rect: {
+          x: Math.round(rect.x),
+          y: Math.round(rect.y + window.scrollY),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+        },
+        ...(pseudo === undefined ? {} : { pseudo }),
+      };
+      const add = (property: string, computedValue: string): void => {
+        if (isPaintedColor(computedValue)) entries.push({ ...base, property, computedValue });
+      };
+      if (
+        (pseudo === undefined && hasOwnText(element)) ||
+        (pseudo !== undefined && style.content !== 'none')
+      )
+        add('color', style.color);
+      add('background-color', style.backgroundColor);
+      if (style.backgroundImage !== 'none') add('background-image', style.backgroundImage);
+      if (style.boxShadow !== 'none') add('box-shadow', style.boxShadow);
+      if (style.textShadow !== 'none') add('text-shadow', style.textShadow);
+      if (style.borderTopStyle !== 'none' && Number.parseFloat(style.borderTopWidth) > 0)
+        add('border-top-color', style.borderTopColor);
+      if (style.borderRightStyle !== 'none' && Number.parseFloat(style.borderRightWidth) > 0)
+        add('border-right-color', style.borderRightColor);
+      if (style.borderBottomStyle !== 'none' && Number.parseFloat(style.borderBottomWidth) > 0)
+        add('border-bottom-color', style.borderBottomColor);
+      if (style.borderLeftStyle !== 'none' && Number.parseFloat(style.borderLeftWidth) > 0)
+        add('border-left-color', style.borderLeftColor);
+      if (style.outlineStyle !== 'none' && Number.parseFloat(style.outlineWidth) > 0)
+        add('outline-color', style.outlineColor);
+      if (style.textDecorationLine !== 'none')
+        add('text-decoration-color', style.textDecorationColor);
+      if (element instanceof SVGElement) {
+        add('fill', style.fill);
+        if (style.stroke !== 'none' && Number.parseFloat(style.strokeWidth) > 0)
+          add('stroke', style.stroke);
+      }
+    };
+    let auditNode = 0;
+    for (const element of document.querySelectorAll('*')) {
+      element.setAttribute('data-visual-audit-node', String(auditNode));
+      auditNode += 1;
+      const style = getComputedStyle(element);
+      if (!visible(element, style)) continue;
+      inspect(element, style);
+      for (const pseudo of ['::before', '::after'] as const) {
+        const pseudoStyle = getComputedStyle(element, pseudo);
+        if (pseudoStyle.content !== 'none' || isPaintedColor(pseudoStyle.backgroundColor))
+          inspect(element, pseudoStyle, pseudo);
+      }
+    }
+    return entries;
+  });
+  const occurrences = raw
+    .flatMap((entry): readonly RenderedStyleOccurrence[] => {
+      const seen = new Set<string>();
+      return parseComputedColors(entry.computedValue).flatMap((color) => {
+        const semanticRole = semanticColorRole(color);
+        const resolvedColor = rgbToHex(...color);
+        if (semanticRole === undefined || seen.has(`${semanticRole}:${resolvedColor}`)) return [];
+        seen.add(`${semanticRole}:${resolvedColor}`);
+        return [
+          {
+            route: capture.route,
+            viewport: capture.viewport.class,
+            state: capture.state,
+            ...entry,
+            resolvedColor,
+            semanticRole,
+          },
+        ];
+      });
+    })
+    .sort(
+      (left, right) =>
+        left.route.localeCompare(right.route) ||
+        left.viewport.localeCompare(right.viewport) ||
+        left.state.localeCompare(right.state) ||
+        left.selector.localeCompare(right.selector) ||
+        (left.pseudo ?? '').localeCompare(right.pseudo ?? '') ||
+        left.property.localeCompare(right.property),
+    );
+  if (cdp === undefined) return occurrences;
+  const enriched: RenderedStyleOccurrence[] = [];
+  for (const occurrence of occurrences) {
+    if (occurrence.semanticRole !== 'gold') {
+      enriched.push(occurrence);
+      continue;
+    }
+    const attribution = await inspectCdpAttribution(
+      cdp,
+      {
+        tag: occurrence.tag,
+        text: occurrence.text,
+        selector: occurrence.selector,
+        rect: occurrence.rect,
+      },
+      {
+        property: occurrence.property,
+        computedValue: occurrence.computedValue,
+        ...(occurrence.pseudo === undefined ? {} : { pseudo: occurrence.pseudo }),
+        confidence: 'high',
+        reason: 'Rendered-style inventory matched a visible semantic color.',
+      },
+    ).catch(() => undefined);
+    enriched.push({
+      ...occurrence,
+      ...(attribution?.selector === undefined ? {} : { declarationSelector: attribution.selector }),
+      ...(attribution?.sourceLine === undefined ? {} : { sourceLine: attribution.sourceLine }),
+      ...(attribution?.value === undefined ? {} : { value: attribution.value }),
+      ...(attribution?.token === undefined ? {} : { token: attribution.token }),
+      ...(attribution?.confidence === undefined
+        ? {}
+        : { attributionConfidence: attribution.confidence }),
+      ...(attribution?.reason === undefined ? {} : { attributionReason: attribution.reason }),
+    });
+  }
+  return enriched;
 }
 
 function substitutionKey(reference: string, candidate: string): string {
@@ -968,7 +1230,7 @@ async function inspectCdpAttribution(
           disabled !== true &&
           (name === attribution.property ||
             (attribution.property.startsWith('border-') && name === 'border') ||
-            (attribution.property === 'background-color' && name === 'background')),
+            (attribution.property.startsWith('background-') && name === 'background')),
       );
     if (declaration === undefined) continue;
     const value = declaration.value;
@@ -1511,7 +1773,67 @@ async function writeReports(outputRoot: string, report: VisualAuditReport): Prom
     path.join(outputRoot, 'color-substitutions.csv'),
     `${csvRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
   );
-  const summary = `# Browser visual-difference audit\n\nSchema: **2**  \nMode: **${report.mode}**  \nReference: \`${report.reference}\`  \nCandidate: \`${report.candidate}\`\n\n## Totals\n\n- ${report.totals.captures} captures\n- ${report.totals.comparedPixels.toLocaleString()} compared pixels\n- ${report.totals.changedPixels.toLocaleString()} perceptually changed pixels\n- ${report.totals.colorPixels.toLocaleString()} color pixels\n- ${report.totals.geometryPixels.toLocaleString()} likely displacement pixels\n- ${report.findings.length} bounded findings\n- ${report.groups.length} verified grouped root causes\n- ${report.unattributedFindings.length} asset, ambiguous, or low-confidence findings retained outside prioritization\n\n## Highest-impact verified root causes\n\n${report.groups
+  const styleRows: unknown[][] = [
+    [
+      'route',
+      'viewport',
+      'state',
+      'semanticRole',
+      'property',
+      'computedValue',
+      'resolvedColor',
+      'tag',
+      'text',
+      'selector',
+      'declarationSelector',
+      'sourceLine',
+      'value',
+      'token',
+      'attributionConfidence',
+      'pseudo',
+      'x',
+      'y',
+      'width',
+      'height',
+    ],
+  ];
+  for (const occurrence of report.renderedStyles)
+    styleRows.push([
+      occurrence.route,
+      occurrence.viewport,
+      occurrence.state,
+      occurrence.semanticRole,
+      occurrence.property,
+      occurrence.computedValue,
+      occurrence.resolvedColor,
+      occurrence.tag,
+      occurrence.text,
+      occurrence.selector,
+      occurrence.declarationSelector,
+      occurrence.sourceLine,
+      occurrence.value,
+      occurrence.token,
+      occurrence.attributionConfidence,
+      occurrence.pseudo,
+      occurrence.rect.x,
+      occurrence.rect.y,
+      occurrence.rect.width,
+      occurrence.rect.height,
+    ]);
+  await writeFile(
+    path.join(outputRoot, 'rendered-style-inventory.csv'),
+    `${styleRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
+  );
+  const goldOccurrences = report.renderedStyles.filter(
+    ({ semanticRole }) => semanticRole === 'gold',
+  );
+  const summary = `# Browser visual-difference audit\n\nSchema: **3**  \nMode: **${report.mode}**  \nReference: \`${report.reference}\`  \nCandidate: \`${report.candidate}\`\n\n## Totals\n\n- ${report.totals.captures} captures\n- ${report.totals.comparedPixels.toLocaleString()} compared pixels\n- ${report.totals.changedPixels.toLocaleString()} perceptually changed pixels\n- ${report.totals.colorPixels.toLocaleString()} color pixels\n- ${report.totals.geometryPixels.toLocaleString()} likely displacement pixels\n- ${report.findings.length} bounded findings\n- ${report.groups.length} verified grouped root causes\n- ${report.unattributedFindings.length} asset, ambiguous, or low-confidence findings retained outside prioritization\n- ${report.renderedStyles.length.toLocaleString()} rendered semantic style occurrences\n- ${goldOccurrences.length.toLocaleString()} visible gold occurrences independent of pixel alignment\n\n## Changed-pixel accounting\n\n- ${report.accounting.attributedStylePixels.toLocaleString()} attributed style pixels\n- ${report.accounting.geometryPixels.toLocaleString()} geometry pixels\n- ${report.accounting.assetContentPixels.toLocaleString()} asset/content pixels\n- ${report.accounting.noisePixels.toLocaleString()} explicitly classified noise pixels\n- ${report.accounting.unresolvedPixels.toLocaleString()} unresolved pixels\n\n## Visible candidate gold uses\n\n${goldOccurrences
+    .slice(0, 100)
+    .map(
+      (entry) =>
+        `- ${entry.route} (${entry.viewport}/${entry.state}) \`${entry.property}\` on \`${entry.selector}${entry.pseudo ?? ''}\`: ${entry.text || '[no label]'}`,
+    )
+    .join('\n')}\n\n## Highest-impact verified root causes\n\n${report.groups
     .slice(0, 50)
     .map(
       (group) =>
@@ -1607,6 +1929,7 @@ async function runAudit(
   }
   const decoder = new BrowserImageDecoder();
   const findings: VisualFinding[] = [];
+  const renderedStyles: RenderedStyleOccurrence[] = [];
   const substitutions = new Map<
     string,
     {
@@ -1673,6 +1996,7 @@ async function runAudit(
         await settlePage(page);
         await applyState(page, capture);
         const cdp = await context.newCDPSession(page);
+        renderedStyles.push(...(await collectRenderedStyleInventory(page, capture, cdp)));
         const evidenceRegions = analyzed.regions
           .filter(({ changedPixels }) => changedPixels >= 8)
           .slice(0, 250);
@@ -1703,6 +2027,7 @@ async function runAudit(
               height: region.height,
             },
             changedPixels: region.changedPixels,
+            colorPixels: region.colorPixels,
             verifiedPixels,
             referenceColor: region.referenceColor,
             candidateColor: region.candidateColor,
@@ -1828,8 +2153,22 @@ async function runAudit(
       b.changedPixels - a.changedPixels ||
       a.id.localeCompare(b.id),
   );
+  const attributedStylePixels = orderedFindings.reduce(
+    (sum, finding) =>
+      sum +
+      (finding.type === 'color' &&
+      finding.attribution !== undefined &&
+      finding.attribution.confidence !== 'low'
+        ? (finding.colorPixels ?? 0)
+        : 0),
+    0,
+  );
+  const assetContentPixels = orderedFindings.reduce(
+    (sum, finding) => sum + (finding.type === 'asset' ? (finding.colorPixels ?? 0) : 0),
+    0,
+  );
   const report: VisualAuditReport = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     mode,
     reference: referenceLabel,
     candidate: candidateUrl,
@@ -1858,6 +2197,22 @@ async function runAudit(
         a.state.localeCompare(b.state) ||
         a.property.localeCompare(b.property),
     ),
+    renderedStyles: renderedStyles.sort(
+      (left, right) =>
+        left.route.localeCompare(right.route) ||
+        left.viewport.localeCompare(right.viewport) ||
+        left.state.localeCompare(right.state) ||
+        left.selector.localeCompare(right.selector) ||
+        (left.pseudo ?? '').localeCompare(right.pseudo ?? '') ||
+        left.property.localeCompare(right.property),
+    ),
+    accounting: reconcileChangedPixels({
+      changedPixels: totals.changedPixels,
+      attributedStylePixels,
+      geometryPixels: totals.geometryPixels,
+      assetContentPixels,
+      noisePixels: 0,
+    }),
   };
   await writeReports(outputRoot, report);
   return report;

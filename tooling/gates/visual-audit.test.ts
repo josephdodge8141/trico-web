@@ -10,6 +10,8 @@ import {
   groupVisualFindings,
   inspectVisualRegion,
   isReportableSubstitution,
+  collectRenderedStyleInventory,
+  reconcileChangedPixels,
   rgbToHex,
   semanticColorRole,
   type PixelAuditInput,
@@ -77,6 +79,93 @@ test('reports a broad gold to blue substitution as color evidence', () => {
   assert.equal(result.substitutions[0]?.reference, '#00128a');
   assert.equal(result.substitutions[0]?.candidate, '#86622d');
   assert.equal(result.substitutions[0]?.pixels, 64);
+});
+
+test('reconciles every changed pixel without silently dropping bounded or unresolved evidence', () => {
+  const accounting = reconcileChangedPixels({
+    changedPixels: 1_000,
+    geometryPixels: 200,
+    attributedStylePixels: 250,
+    assetContentPixels: 100,
+    noisePixels: 50,
+  });
+
+  assert.deepEqual(accounting, {
+    changedPixels: 1_000,
+    attributedStylePixels: 250,
+    geometryPixels: 200,
+    assetContentPixels: 100,
+    noisePixels: 50,
+    unresolvedPixels: 400,
+  });
+  assert.equal(
+    accounting.attributedStylePixels +
+      accounting.geometryPixels +
+      accounting.assetContentPixels +
+      accounting.noisePixels +
+      accounting.unresolvedPixels,
+    accounting.changedPixels,
+  );
+});
+
+test('inventories visible gold presentation independently of screenshot alignment', async () => {
+  const server = createServer((_request, response) => {
+    response.setHeader('content-type', 'text/html');
+    response.end(`
+      <style>
+        :root { --accent: #86622d; }
+        body { margin: 0; }
+        .shifted { position: absolute; top: 40px; color: var(--accent); border-color: var(--accent); background-image: linear-gradient(90deg, var(--accent), #00128a); }
+        .shifted::before { content: ''; display: block; width: 30px; height: 4px; background: var(--accent); }
+        .hidden { display: none; color: var(--accent); }
+        .shape { fill: var(--accent); }
+      </style>
+      <a class="shifted" href="/next">Learn more</a>
+      <span class="hidden">Hidden gold</span>
+      <svg aria-label="Gold icon" width="20" height="20"><path class="shape" d="M0 0h20v20H0z"/></svg>
+    `);
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const address = server.address();
+    if (address === null || typeof address === 'string')
+      throw new Error('Fixture server has no port');
+    const page = await browser.newPage({ viewport: { width: 200, height: 120 } });
+    await page.goto(`http://127.0.0.1:${String(address.port)}`);
+    const inventory = await collectRenderedStyleInventory(page, fixtureCapture);
+    const gold = inventory.filter(({ semanticRole }) => semanticRole === 'gold');
+
+    assert.equal(
+      gold.some(({ text, property }) => text === 'Learn more' && property === 'color'),
+      true,
+    );
+    assert.equal(
+      gold.some(({ pseudo, property }) => pseudo === '::before' && property === 'background-color'),
+      true,
+    );
+    assert.equal(
+      gold.some(({ property }) => property === 'background-image'),
+      true,
+    );
+    assert.equal(
+      gold.some(({ tag, property }) => tag === 'path' && property === 'fill'),
+      true,
+    );
+    assert.equal(
+      gold.some(({ text }) => text === 'Hidden gold'),
+      false,
+    );
+    assert.equal(
+      gold.every(({ resolvedColor }) => resolvedColor === '#86622d'),
+      true,
+    );
+  } finally {
+    await browser.close();
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error === undefined ? resolve() : reject(error))),
+    );
+  }
 });
 
 test('uses the dominant changed color pair instead of the region center pixel', () => {
