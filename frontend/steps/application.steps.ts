@@ -764,6 +764,8 @@ Then(
     const page = this.currentPage();
     const samples = [
       { route: '/', selector: '.home-card-icon', expectedColor: 'rgb(94, 133, 186)' },
+      { route: '/', selector: '.ui-timeline-card strong', expectedColor: 'rgb(94, 133, 186)' },
+      { route: '/', selector: '.ui-news-date', expectedColor: 'rgb(94, 133, 186)' },
       {
         route: '/property-management',
         selector: '.pm-section-heading > span',

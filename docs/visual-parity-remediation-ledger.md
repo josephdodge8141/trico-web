@@ -45,6 +45,10 @@ candidate declaration and evidence crop are reviewed.
   asset/content, and 1,907,712 explicitly unresolved pixels. Nothing outside those buckets is implied
   to be correct.
 - Evidence: `artifacts/visual-audit/v3-home-inventory/` (intentionally untracked).
+- First shared-role remediation moves timeline labels, timeline dots, the journey line, and news dates
+  from gold to the blue highlight role. The same desktop inventory falls from 106 to 56 visible gold
+  property occurrences, with zero remaining gold occurrences for those four primitives. Evidence:
+  `artifacts/visual-audit/v3-home-after-blue/` (intentionally untracked).
 
 ### Auditor false root causes
 

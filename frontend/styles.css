@@ -1681,7 +1681,7 @@
   }
 
   .ui-timeline-card strong {
-    color: var(--trico-color-gold);
+    color: var(--trico-color-highlight);
     font-size: 1.05rem;
   }
 
@@ -1703,7 +1703,7 @@
   }
 
   .ui-news-date {
-    color: var(--trico-color-gold) !important;
+    color: var(--trico-color-highlight) !important;
     font-size: 0.78rem;
   }
 
@@ -3152,16 +3152,11 @@
     );
   }
   .ui-journey .editable-collection-items::before {
-    background: linear-gradient(
-      90deg,
-      var(--trico-surface-accent-emphasis),
-      var(--trico-surface-gold-emphasis),
-      var(--trico-surface-accent-emphasis)
-    );
+    background: var(--trico-surface-accent-emphasis);
     content: '';
   }
   .ui-timeline-dot {
-    border: 2px solid var(--trico-surface-gold-emphasis);
+    border: 2px solid var(--trico-color-highlight);
     border-radius: 50%;
     background: var(--trico-color-light);
   }
