@@ -183,7 +183,7 @@ test('uses the dominant changed color pair instead of the region center pixel', 
   assert.equal(result.regions[0]?.candidateRole, 'gold');
 });
 
-test('preserves exact colors while suppressing same-role substitutions from reports', () => {
+test('preserves and reports exact colors even when they share a semantic role', () => {
   const substitution = {
     reference: '#00128a',
     candidate: '#061892',
@@ -197,7 +197,7 @@ test('preserves exact colors while suppressing same-role substitutions from repo
   assert.equal(substitution.candidateRole, 'brand-blue');
   assert.equal(semanticColorRole([0, 18, 138]), 'brand-blue');
   assert.equal(semanticColorRole([6, 24, 146]), 'brand-blue');
-  assert.equal(isReportableSubstitution(substitution), false);
+  assert.equal(isReportableSubstitution(substitution), true);
   assert.notEqual(substitution.reference, substitution.candidate);
 });
 

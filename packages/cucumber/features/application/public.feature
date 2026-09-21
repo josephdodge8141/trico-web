@@ -357,14 +357,13 @@ Feature: Published TriCo website
     frontend-noop: The audit observes rendered frontend output without adding product behavior to the React application.
     browser-noop: The report-only audit owns its Playwright capture, image decoding, and CSS diagnostics rather than delegating source or shell access to a deployed browser agent.
     Given an immutable frozen baseline or authenticated live reference
-    When every rendered candidate pixel is compared perceptually across supported routes viewports and states
-    Then color substitutions and geometry displacements are reported as bounded evidence regions
-    And every visible candidate gold use is inventoried independently of pixel alignment
-    And every changed pixel is reconciled into exactly one named accounting bucket
-    And candidate elements include HTML SVG and pseudo-element presentation
-    And matched CSS declarations are grouped into shared root causes with ambiguity stated explicitly
-    And exact pixel colors remain distinct from semantic color roles
-    And asset and low-confidence findings remain outside prioritized CSS root causes
+    When every meaningful rendered element is compared across supported routes viewports and states
+    Then every element is accounted for as matched reference-only candidate-only ignored or ambiguous
+    And geometry typography paint content assets HTML SVG and pseudo-element presentation are compared directly
+    And exact computed values remain distinct from semantic presentation roles
+    And candidate author declarations identify their selector token stylesheet and source line when available
+    And inherited default composited shorthand and unsupported values retain explicit ambiguity
+    And screenshot pixels provide supporting crops and heatmaps without suppressing element differences
     And missing interactive-state controls fail with the named capture recipe
     And visual findings do not fail the report-only audit
 

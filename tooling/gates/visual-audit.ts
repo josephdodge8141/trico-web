@@ -16,6 +16,11 @@ import {
   type VisualBaselineManifest,
   type VisualCapture,
 } from './visual-baselines.js';
+import {
+  compareNativeVisualPages,
+  type AttributedVisualDifference,
+} from './visual-audit-native.js';
+import type { VisualElementAccounting, VisualNodeMatch } from './visual-audit-contract.js';
 
 export type AuditViewport = 'desktop' | 'tablet' | 'mobile';
 export type DifferenceType = 'color' | 'geometry' | 'typography' | 'asset' | 'content';
@@ -153,8 +158,18 @@ export type FindingGroup = Readonly<{
 
 type AuditCapture = Readonly<{ capture: VisualCapture; baselineRoot: string }>;
 
+type ElementAuditCapture = Readonly<{
+  route: string;
+  viewport: AuditViewport;
+  state: string;
+  accounting: VisualElementAccounting;
+  matches: readonly VisualNodeMatch[];
+  differences: readonly AttributedVisualDifference[];
+}>;
+
 type VisualAuditReport = Readonly<{
-  schemaVersion: 3;
+  schemaVersion: 4;
+  engine: 'native-element-cdp';
   mode: 'frozen' | 'live';
   reference: string;
   candidate: string;
@@ -172,6 +187,7 @@ type VisualAuditReport = Readonly<{
   substitutions: readonly (ColorSubstitution & Readonly<{ routes: readonly string[] }>)[];
   interactions: readonly InteractiveDifference[];
   renderedStyles: readonly RenderedStyleOccurrence[];
+  elementAudits: readonly ElementAuditCapture[];
   accounting: PixelAccounting;
 }>;
 
@@ -508,11 +524,7 @@ function substitutionKey(reference: string, candidate: string): string {
 }
 
 export function isReportableSubstitution(substitution: ColorSubstitution): boolean {
-  return (
-    substitution.referenceRole === undefined ||
-    substitution.candidateRole === undefined ||
-    substitution.referenceRole !== substitution.candidateRole
-  );
+  return substitution.reference !== substitution.candidate;
 }
 
 function isMasked(x: number, y: number, masks: readonly Rectangle[]): boolean {
@@ -1824,10 +1836,114 @@ async function writeReports(outputRoot: string, report: VisualAuditReport): Prom
     path.join(outputRoot, 'rendered-style-inventory.csv'),
     `${styleRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
   );
+  const elementAccountingRows: unknown[][] = [
+    [
+      'route',
+      'viewport',
+      'state',
+      'total',
+      'accounted',
+      'matched',
+      'referenceOnly',
+      'candidateOnly',
+      'ignored',
+      'ambiguous',
+    ],
+  ];
+  const propertyRows: unknown[][] = [
+    [
+      'route',
+      'viewport',
+      'state',
+      'category',
+      'tag',
+      'pseudo',
+      'property',
+      'referenceValue',
+      'candidateValue',
+      'selector',
+      'token',
+      'stylesheet',
+      'sourceLine',
+      'ambiguity',
+    ],
+  ];
+  const sourceRows: unknown[][] = [
+    ['route', 'viewport', 'state', 'property', 'selector', 'token', 'stylesheet', 'sourceLine'],
+  ];
+  for (const audit of report.elementAudits) {
+    elementAccountingRows.push([
+      audit.route,
+      audit.viewport,
+      audit.state,
+      audit.accounting.total,
+      audit.accounting.accounted,
+      audit.accounting.matched,
+      audit.accounting.referenceOnly,
+      audit.accounting.candidateOnly,
+      audit.accounting.ignored,
+      audit.accounting.ambiguous,
+    ]);
+    for (const difference of audit.differences) {
+      propertyRows.push([
+        audit.route,
+        audit.viewport,
+        audit.state,
+        difference.category,
+        difference.tag,
+        difference.pseudo,
+        difference.property,
+        difference.referenceValue,
+        difference.candidateValue,
+        difference.selector,
+        difference.token,
+        difference.stylesheet,
+        difference.sourceLine,
+        difference.ambiguity,
+      ]);
+      if (difference.selector !== undefined)
+        sourceRows.push([
+          audit.route,
+          audit.viewport,
+          audit.state,
+          difference.property,
+          difference.selector,
+          difference.token,
+          difference.stylesheet,
+          difference.sourceLine,
+        ]);
+    }
+  }
+  await Promise.all([
+    writeFile(
+      path.join(outputRoot, 'element-accounting.csv'),
+      `${elementAccountingRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
+    ),
+    writeFile(
+      path.join(outputRoot, 'property-differences.csv'),
+      `${propertyRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
+    ),
+    writeFile(
+      path.join(outputRoot, 'css-source-ledger.csv'),
+      `${sourceRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
+    ),
+  ]);
   const goldOccurrences = report.renderedStyles.filter(
     ({ semanticRole }) => semanticRole === 'gold',
   );
-  const summary = `# Browser visual-difference audit\n\nSchema: **3**  \nMode: **${report.mode}**  \nReference: \`${report.reference}\`  \nCandidate: \`${report.candidate}\`\n\n## Totals\n\n- ${report.totals.captures} captures\n- ${report.totals.comparedPixels.toLocaleString()} compared pixels\n- ${report.totals.changedPixels.toLocaleString()} perceptually changed pixels\n- ${report.totals.colorPixels.toLocaleString()} color pixels\n- ${report.totals.geometryPixels.toLocaleString()} likely displacement pixels\n- ${report.findings.length} bounded findings\n- ${report.groups.length} verified grouped root causes\n- ${report.unattributedFindings.length} asset, ambiguous, or low-confidence findings retained outside prioritization\n- ${report.renderedStyles.length.toLocaleString()} rendered semantic style occurrences\n- ${goldOccurrences.length.toLocaleString()} visible gold occurrences independent of pixel alignment\n\n## Changed-pixel accounting\n\n- ${report.accounting.attributedStylePixels.toLocaleString()} attributed style pixels\n- ${report.accounting.geometryPixels.toLocaleString()} geometry pixels\n- ${report.accounting.assetContentPixels.toLocaleString()} asset/content pixels\n- ${report.accounting.noisePixels.toLocaleString()} explicitly classified noise pixels\n- ${report.accounting.unresolvedPixels.toLocaleString()} unresolved pixels\n\n## Visible candidate gold uses\n\n${goldOccurrences
+  const totalElementNodes = report.elementAudits.reduce(
+    (sum, audit) => sum + audit.accounting.total,
+    0,
+  );
+  const accountedElementNodes = report.elementAudits.reduce(
+    (sum, audit) => sum + audit.accounting.accounted,
+    0,
+  );
+  const elementDifferences = report.elementAudits.reduce(
+    (sum, audit) => sum + audit.differences.length,
+    0,
+  );
+  const summary = `# Browser visual-difference audit\n\nSchema: **4**  \nEngine: **${report.engine}**  \nMode: **${report.mode}**  \nReference: \`${report.reference}\`  \nCandidate: \`${report.candidate}\`\n\n## Element audit\n\n- ${report.elementAudits.length} live element captures\n- ${accountedElementNodes.toLocaleString()} of ${totalElementNodes.toLocaleString()} visible nodes explicitly accounted for\n- ${elementDifferences.toLocaleString()} direct computed-property differences\n\n## Supporting pixel evidence\n\n- ${report.totals.captures} captures\n- ${report.totals.comparedPixels.toLocaleString()} compared pixels\n- ${report.totals.changedPixels.toLocaleString()} perceptually changed pixels\n- ${report.totals.colorPixels.toLocaleString()} color pixels\n- ${report.totals.geometryPixels.toLocaleString()} likely displacement pixels\n- ${report.findings.length} bounded findings\n- ${report.groups.length} verified grouped root causes\n- ${report.unattributedFindings.length} asset, ambiguous, or low-confidence findings retained outside prioritization\n- ${report.renderedStyles.length.toLocaleString()} rendered semantic style occurrences\n- ${goldOccurrences.length.toLocaleString()} visible gold occurrences independent of pixel alignment\n\n## Changed-pixel accounting\n\n- ${report.accounting.attributedStylePixels.toLocaleString()} attributed style pixels\n- ${report.accounting.geometryPixels.toLocaleString()} geometry pixels\n- ${report.accounting.assetContentPixels.toLocaleString()} asset/content pixels\n- ${report.accounting.noisePixels.toLocaleString()} explicitly classified noise pixels\n- ${report.accounting.unresolvedPixels.toLocaleString()} unresolved pixels\n\n## Visible candidate gold uses\n\n${goldOccurrences
     .slice(0, 100)
     .map(
       (entry) =>
@@ -1930,6 +2046,7 @@ async function runAudit(
   const decoder = new BrowserImageDecoder();
   const findings: VisualFinding[] = [];
   const renderedStyles: RenderedStyleOccurrence[] = [];
+  const elementAudits: ElementAuditCapture[] = [];
   const substitutions = new Map<
     string,
     {
@@ -1996,6 +2113,32 @@ async function runAudit(
         await settlePage(page);
         await applyState(page, capture);
         const cdp = await context.newCDPSession(page);
+        if (mode === 'live' && referenceUrl !== undefined) {
+          const referenceContext = await browser.newContext({
+            viewport: { width: capture.viewport.width, height: capture.viewport.height },
+            storageState,
+            reducedMotion: 'reduce',
+          });
+          try {
+            const referencePage = await referenceContext.newPage();
+            await referencePage.goto(new URL(capture.route, referenceUrl).href, {
+              waitUntil: 'domcontentloaded',
+            });
+            await settlePage(referencePage);
+            await applyState(referencePage, capture);
+            const elementComparison = await compareNativeVisualPages(referencePage, page, cdp);
+            elementAudits.push({
+              route: capture.route,
+              viewport: capture.viewport.class,
+              state: capture.state,
+              accounting: elementComparison.accounting,
+              matches: elementComparison.matches,
+              differences: elementComparison.differences,
+            });
+          } finally {
+            await referenceContext.close();
+          }
+        }
         renderedStyles.push(...(await collectRenderedStyleInventory(page, capture, cdp)));
         const evidenceRegions = analyzed.regions
           .filter(({ changedPixels }) => changedPixels >= 8)
@@ -2168,7 +2311,8 @@ async function runAudit(
     0,
   );
   const report: VisualAuditReport = {
-    schemaVersion: 3,
+    schemaVersion: 4,
+    engine: 'native-element-cdp',
     mode,
     reference: referenceLabel,
     candidate: candidateUrl,
@@ -2205,6 +2349,12 @@ async function runAudit(
         left.selector.localeCompare(right.selector) ||
         (left.pseudo ?? '').localeCompare(right.pseudo ?? '') ||
         left.property.localeCompare(right.property),
+    ),
+    elementAudits: elementAudits.sort(
+      (left, right) =>
+        left.route.localeCompare(right.route) ||
+        left.viewport.localeCompare(right.viewport) ||
+        left.state.localeCompare(right.state),
     ),
     accounting: reconcileChangedPixels({
       changedPixels: totals.changedPixels,

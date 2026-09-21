@@ -104,10 +104,12 @@ npm run visual:audit -- live \
 ```
 
 Open `report.html` for filtered, verified root causes and representative evidence crops.
-`report.json` schema version 3 preserves exact colors separately from semantic color roles, inventories
-visible rendered semantic styles independently of screenshot alignment, and reconciles every changed
-pixel into an explicit accounting bucket. Asset and low-confidence findings remain outside prioritized
-CSS groups, with attribution ambiguity retained. `summary.md`, `color-substitutions.csv`,
-`rendered-style-inventory.csv`, full heatmaps, and representative evidence crops are emitted beside it.
+`report.json` schema version 4 uses the native Playwright/CDP element engine selected by the local
+csstruth bakeoff. In live mode it accounts for every meaningful visible node and directly compares
+geometry, typography, paint, content, assets, SVG, and pseudo-elements before using screenshots as
+supporting evidence. Exact colors are never suppressed by semantic roles. Candidate cascade provenance
+and explicit ambiguity are retained in `property-differences.csv`, `element-accounting.csv`, and
+`css-source-ledger.csv`. `summary.md`, `color-substitutions.csv`, `rendered-style-inventory.csv`, full
+heatmaps, and representative evidence crops are emitted beside them.
 Visual findings return success in this report-only phase; missing state controls, authentication,
 capture, decoding, accounting, and report failures return nonzero.
