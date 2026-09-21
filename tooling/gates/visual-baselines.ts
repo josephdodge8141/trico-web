@@ -132,6 +132,7 @@ export async function captureVisualCandidates(
   baseUrl: string,
   outputRoot: string,
   manifest: VisualBaselineManifest,
+  options: Readonly<{ storageState?: string }> = {},
 ): Promise<CandidateCaptureReport> {
   const normalizedBaseUrl = new URL(baseUrl);
   const browser = await chromium.launch({ headless: true });
@@ -152,6 +153,7 @@ export async function captureVisualCandidates(
       const context = await browser.newContext({
         viewport: { width: first.viewport.width, height: first.viewport.height },
         reducedMotion: 'reduce',
+        ...(options.storageState === undefined ? {} : { storageState: options.storageState }),
       });
       const page = await context.newPage();
       try {

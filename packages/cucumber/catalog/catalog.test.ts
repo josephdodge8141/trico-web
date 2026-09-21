@@ -95,6 +95,7 @@ test('canonical feature files are the catalog source rather than copied text', a
       'public.dedicated-division-composition::development',
       'public.construction-empty',
       'public.visual-baseline',
+      'public.visual-difference-audit',
       'public.health',
     ],
   );

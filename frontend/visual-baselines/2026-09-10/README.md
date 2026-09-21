@@ -67,3 +67,43 @@ node --import tsx tooling/gates/visual-baselines.ts generate
 
 Form-state and edit-mode references were not part of the 51-image freeze and remain a separate
 capture task. They must not be silently treated as covered by this manifest.
+
+## Root-cause visual audit
+
+The report-only visual auditor analyzes every rendered pixel, separates likely displacement from
+perceptual color changes, attributes bounded regions to browser elements and CSS rules, and groups
+shared causes without weakening the strict baseline gate.
+
+Run an offline audit against the dated frozen captures:
+
+```bash
+npm run visual:audit -- frozen \
+  --candidate-url http://app.localhost:8088 \
+  --output artifacts/visual-audit/current
+```
+
+Limit a diagnostic run with `--route`, `--viewport`, or `--state`:
+
+```bash
+npm run visual:audit -- frozen \
+  --candidate-url http://app.localhost:8088 \
+  --output artifacts/visual-audit/home-desktop \
+  --route / --viewport desktop
+```
+
+For a live two-sided comparison, first create a private Playwright storage state. The file is
+written below the ignored `artifacts/` directory with owner-only permissions:
+
+```bash
+npm run visual:audit -- authorize \
+  --reference-url https://preview--trico-home-harmony.lovable.app/
+npm run visual:audit -- live \
+  --reference-url https://preview--trico-home-harmony.lovable.app/ \
+  --candidate-url http://app.localhost:8088 \
+  --output artifacts/visual-audit/live
+```
+
+Open `report.html` for filtered root causes and linked evidence crops. `summary.md`, `report.json`,
+`color-substitutions.csv`, full heatmaps, and per-finding reference/candidate/diff images are emitted
+beside it. Visual findings return success in this report-only phase; operational, authentication,
+capture, decoding, and report failures return nonzero.

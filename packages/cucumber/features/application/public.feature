@@ -351,6 +351,18 @@ Feature: Published TriCo website
     And mobile geometry differs by no more than 3 pixels
     And each unmasked comparison region has structural similarity of at least 0.98
 
+  @id:public.visual-difference-audit @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Attribute complete browser visual differences to shared styling causes
+    backend-noop: Pixel analysis and browser CSS attribution are repository tooling behaviors, not backend application behavior.
+    frontend-noop: The audit observes rendered frontend output without adding product behavior to the React application.
+    browser-noop: The report-only audit owns its Playwright capture, image decoding, and CSS diagnostics rather than delegating source or shell access to a deployed browser agent.
+    Given an immutable frozen baseline or authenticated live reference
+    When every rendered candidate pixel is compared perceptually across supported routes viewports and states
+    Then color substitutions and geometry displacements are reported as bounded evidence regions
+    And candidate elements include HTML SVG and pseudo-element presentation
+    And matched CSS declarations are grouped into shared root causes with ambiguity stated explicitly
+    And visual findings do not fail the report-only audit
+
   @id:public.health
   Scenario: Check the public backend health
     Given I am not signed in
