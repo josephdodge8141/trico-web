@@ -5,7 +5,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-import { chromium, type Browser, type Page } from '@playwright/test';
+import { chromium, type Browser, type CDPSession, type Locator, type Page } from '@playwright/test';
 
 import {
   captureVisualCandidates,
@@ -44,12 +44,16 @@ export type PixelRegion = Readonly<{
   type: 'color' | 'geometry';
   referenceColor: string;
   candidateColor: string;
+  referenceRole?: SemanticColorRole;
+  candidateRole?: SemanticColorRole;
   deltaE: number;
 }>;
 
 export type ColorSubstitution = Readonly<{
   reference: string;
   candidate: string;
+  referenceRole?: SemanticColorRole;
+  candidateRole?: SemanticColorRole;
   pixels: number;
   deltaE: number;
 }>;
@@ -81,6 +85,7 @@ type CssAttribution = Readonly<{
   token?: string;
   pseudo?: '::before' | '::after';
   confidence: 'high' | 'medium' | 'low';
+  reason: string;
   ambiguity?: string;
 }>;
 
@@ -93,9 +98,11 @@ export type VisualFinding = Readonly<{
   type: DifferenceType;
   region: Readonly<{ x: number; y: number; width: number; height: number }>;
   changedPixels: number;
+  verifiedPixels: number;
   referenceColor: string;
   candidateColor: string;
   deltaE: number;
+  evidenceAvailable: boolean;
   element?: ElementEvidence;
   attribution?: CssAttribution;
 }>;
@@ -109,15 +116,15 @@ export type FindingGroup = Readonly<{
   routes: readonly string[];
   findingIds: readonly string[];
   changedPixels: number;
+  verifiedPixels: number;
   severity: FindingSeverity;
 }>;
 
 type AuditCapture = Readonly<{ capture: VisualCapture; baselineRoot: string }>;
 
 type VisualAuditReport = Readonly<{
-  schemaVersion: 1;
+  schemaVersion: 2;
   mode: 'frozen' | 'live';
-  generatedAt: string;
   reference: string;
   candidate: string;
   thresholds: Readonly<{ deltaE: number; geometryRadius: number; cellSize: number }>;
@@ -130,6 +137,7 @@ type VisualAuditReport = Readonly<{
   }>;
   findings: readonly VisualFinding[];
   groups: readonly FindingGroup[];
+  unattributedFindings: readonly VisualFinding[];
   substitutions: readonly (ColorSubstitution & Readonly<{ routes: readonly string[] }>)[];
   interactions: readonly InteractiveDifference[];
 }>;
@@ -145,6 +153,28 @@ type InteractiveDifference = Readonly<{
 }>;
 
 type Rgb = readonly [number, number, number];
+const cdpDocumentRoots = new WeakMap<CDPSession, number>();
+const cdpAttributionCache = new WeakMap<CDPSession, Map<string, Partial<CssAttribution> | null>>();
+export type SemanticColorRole =
+  | 'brand-blue'
+  | 'deep-blue'
+  | 'light-blue'
+  | 'gold'
+  | 'ink'
+  | 'muted'
+  | 'surface'
+  | 'muted-surface';
+
+const semanticColors: ReadonlyArray<Readonly<{ role: SemanticColorRole; color: Rgb }>> = [
+  { role: 'brand-blue', color: [0, 18, 138] },
+  { role: 'deep-blue', color: [0, 10, 77] },
+  { role: 'light-blue', color: [94, 133, 186] },
+  { role: 'gold', color: [134, 98, 45] },
+  { role: 'ink', color: [15, 23, 41] },
+  { role: 'muted', color: [107, 114, 128] },
+  { role: 'surface', color: [255, 255, 255] },
+  { role: 'muted-surface', color: [243, 244, 246] },
+];
 
 export function rgbToHex(red: number, green: number, blue: number): string {
   return `#${[red, green, blue]
@@ -191,32 +221,36 @@ function colorAt(pixels: Uint8ClampedArray, width: number, x: number, y: number)
 }
 
 function quantizedHex(color: Rgb): string {
-  const semanticColors: readonly Rgb[] = [
-    [0, 18, 138],
-    [0, 10, 77],
-    [94, 133, 186],
-    [134, 98, 45],
-    [15, 23, 41],
-    [107, 114, 128],
-    [255, 255, 255],
-    [243, 244, 246],
-  ];
-  const semantic = semanticColors
-    .map((candidate) => ({ candidate, delta: perceptualDelta(color, candidate) }))
-    .sort((left, right) => left.delta - right.delta)[0];
-  if (semantic !== undefined && semantic.delta < 8) return rgbToHex(...semantic.candidate);
   return rgbToHex(
     ...(color.map((channel) => Math.round(channel / 16) * 16) as [number, number, number]),
   );
 }
 
-function substitutionKey(reference: string, candidate: string): string {
-  const parse = (value: string): Rgb => [
+function parseHex(value: string): Rgb {
+  return [
     Number.parseInt(value.slice(1, 3), 16),
     Number.parseInt(value.slice(3, 5), 16),
     Number.parseInt(value.slice(5, 7), 16),
   ];
-  return `${quantizedHex(parse(reference))}>${quantizedHex(parse(candidate))}`;
+}
+
+export function semanticColorRole(color: Rgb): SemanticColorRole | undefined {
+  const semantic = semanticColors
+    .map((candidate) => ({ ...candidate, delta: perceptualDelta(color, candidate.color) }))
+    .sort((left, right) => left.delta - right.delta)[0];
+  return semantic !== undefined && semantic.delta < 8 ? semantic.role : undefined;
+}
+
+function substitutionKey(reference: string, candidate: string): string {
+  return `${reference}>${candidate}`;
+}
+
+export function isReportableSubstitution(substitution: ColorSubstitution): boolean {
+  return (
+    substitution.referenceRole === undefined ||
+    substitution.candidateRole === undefined ||
+    substitution.referenceRole !== substitution.candidateRole
+  );
 }
 
 function isMasked(x: number, y: number, masks: readonly Rectangle[]): boolean {
@@ -256,6 +290,8 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
   const changedCells = new Uint8Array(gridWidth * gridHeight);
   const colorCells = new Uint32Array(gridWidth * gridHeight);
   const geometryCells = new Uint32Array(gridWidth * gridHeight);
+  const cellPairCandidates: string[] = [];
+  const cellPairVotes = new Int16Array(gridWidth * gridHeight);
   const substitutions = new Map<
     string,
     {
@@ -316,6 +352,15 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
         const referenceHex = quantizedHex(referenceColor);
         const candidateHex = quantizedHex(candidateColor);
         const key = `${referenceHex}>${candidateHex}`;
+        const currentCellPair = cellPairCandidates[cell];
+        if (currentCellPair === undefined || cellPairVotes[cell] === 0) {
+          cellPairCandidates[cell] = key;
+          cellPairVotes[cell] = 1;
+        } else if (currentCellPair === key) {
+          cellPairVotes[cell] = (cellPairVotes[cell] ?? 0) + 1;
+        } else {
+          cellPairVotes[cell] = (cellPairVotes[cell] ?? 0) - 1;
+        }
         const current = substitutions.get(key) ?? {
           referenceTotals: [0, 0, 0],
           candidateTotals: [0, 0, 0],
@@ -348,6 +393,9 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
     let maxY = 0;
     let regionColor = 0;
     let regionGeometry = 0;
+    const regionPairs = new Map<string, number>();
+    const seedIsGeometry = (geometryCells[index] ?? 0) > (colorCells[index] ?? 0);
+    const seedPair = cellPairCandidates[index];
     while (cursor < queue.length) {
       const cell = queue[cursor];
       cursor += 1;
@@ -360,13 +408,20 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
       maxY = Math.max(maxY, cellY);
       regionColor += colorCells[cell] ?? 0;
       regionGeometry += geometryCells[cell] ?? 0;
+      const pair = cellPairCandidates[cell];
+      if (pair !== undefined)
+        regionPairs.set(pair, (regionPairs.get(pair) ?? 0) + (colorCells[cell] ?? 0));
       for (let dy = -1; dy <= 1; dy += 1) {
         for (let dx = -1; dx <= 1; dx += 1) {
           const nextX = cellX + dx;
           const nextY = cellY + dy;
           if (nextX < 0 || nextY < 0 || nextX >= gridWidth || nextY >= gridHeight) continue;
           const next = nextY * gridWidth + nextX;
-          if (changedCells[next] === 1 && visited[next] === 0) {
+          const nextIsGeometry = (geometryCells[next] ?? 0) > (colorCells[next] ?? 0);
+          const compatible = seedIsGeometry
+            ? nextIsGeometry
+            : !nextIsGeometry && cellPairCandidates[next] === seedPair;
+          if (changedCells[next] === 1 && visited[next] === 0 && compatible) {
             visited[next] = 1;
             queue.push(next);
           }
@@ -380,10 +435,14 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
     const regionWidth = Math.min(width - x, (maxX - minX + 1) * input.cellSize);
     const localY = minY * input.cellSize;
     const regionHeight = Math.min(height - localY, (maxY - minY + 1) * input.cellSize);
-    const centerX = Math.min(width - 1, Math.floor(x + regionWidth / 2));
-    const centerY = Math.min(height - 1, Math.floor(localY + regionHeight / 2));
-    const referenceColor = colorAt(reference, width, centerX, centerY);
-    const candidateColor = colorAt(candidate, width, centerX, centerY);
+    const dominantPair = [...regionPairs.entries()].sort(
+      (left, right) => right[1] - left[1] || left[0].localeCompare(right[0]),
+    )[0]?.[0];
+    const [referenceHex = '#000000', candidateHex = '#000000'] = dominantPair?.split('>') ?? [];
+    const referenceColor = parseHex(referenceHex);
+    const candidateColor = parseHex(candidateHex);
+    const referenceRole = semanticColorRole(referenceColor);
+    const candidateRole = semanticColorRole(candidateColor);
     regions.push({
       x,
       y,
@@ -393,11 +452,41 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
       colorPixels: regionColor,
       geometryPixels: regionGeometry,
       type: regionColor >= regionGeometry ? 'color' : 'geometry',
-      referenceColor: quantizedHex(referenceColor),
-      candidateColor: quantizedHex(candidateColor),
+      referenceColor: referenceHex,
+      candidateColor: candidateHex,
+      ...(referenceRole === undefined ? {} : { referenceRole }),
+      ...(candidateRole === undefined ? {} : { candidateRole }),
       deltaE: Number(perceptualDelta(referenceColor, candidateColor).toFixed(2)),
     });
   }
+
+  const regionsByPair = new Map<string, PixelRegion[]>();
+  for (const region of regions) {
+    const key = `${region.referenceColor}>${region.candidateColor}`;
+    const entries = regionsByPair.get(key) ?? [];
+    entries.push(region);
+    regionsByPair.set(key, entries);
+  }
+  const boxGap = (left: PixelRegion, right: PixelRegion): number => {
+    const horizontal = Math.max(
+      0,
+      left.x - (right.x + right.width),
+      right.x - (left.x + left.width),
+    );
+    const vertical = Math.max(
+      0,
+      left.y - (right.y + right.height),
+      right.y - (left.y + left.height),
+    );
+    return Math.hypot(horizontal, vertical);
+  };
+  const classifiedRegions = regions.map((region) => {
+    if (region.type === 'geometry') return region;
+    const reversed = regionsByPair.get(`${region.candidateColor}>${region.referenceColor}`) ?? [];
+    return reversed.some((candidate) => candidate !== region && boxGap(region, candidate) <= 32)
+      ? { ...region, type: 'geometry' as const }
+      : region;
+  });
 
   return {
     comparedPixels,
@@ -405,7 +494,7 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
     changedPixels,
     geometryPixels,
     colorPixels,
-    regions: regions.sort(
+    regions: classifiedRegions.sort(
       (left, right) =>
         right.changedPixels - left.changedPixels || left.y - right.y || left.x - right.x,
     ),
@@ -428,6 +517,15 @@ export function analyzePixelBuffers(input: PixelAuditInput): PixelAuditResult {
         pixels: entry.pixels,
         deltaE: Number((entry.delta / entry.pixels).toFixed(2)),
       }))
+      .map((entry) => {
+        const referenceRole = semanticColorRole(parseHex(entry.reference));
+        const candidateRole = semanticColorRole(parseHex(entry.candidate));
+        return {
+          ...entry,
+          ...(referenceRole === undefined ? {} : { referenceRole }),
+          ...(candidateRole === undefined ? {} : { candidateRole }),
+        };
+      })
       .filter(({ pixels }) => pixels >= 4)
       .sort(
         (left, right) =>
@@ -458,6 +556,12 @@ function findingRootKey(finding: VisualFinding): string {
 export function groupVisualFindings(findings: readonly VisualFinding[]): FindingGroup[] {
   const grouped = new Map<string, VisualFinding[]>();
   for (const finding of findings) {
+    if (
+      finding.type !== 'color' ||
+      finding.attribution === undefined ||
+      finding.attribution.confidence === 'low'
+    )
+      continue;
     const key = findingRootKey(finding);
     const values = grouped.get(key) ?? [];
     values.push(finding);
@@ -469,6 +573,7 @@ export function groupVisualFindings(findings: readonly VisualFinding[]): Finding
       if (first === undefined) throw new Error('Visual group cannot be empty');
       const routes = [...new Set(values.map(({ route }) => route))].sort();
       const pixels = values.reduce((sum, { changedPixels }) => sum + changedPixels, 0);
+      const verifiedPixels = values.reduce((sum, { verifiedPixels }) => sum + verifiedPixels, 0);
       const attribution = first.attribution;
       return {
         id: `cause-${createHash('sha256').update(key).digest('hex').slice(0, 12)}`,
@@ -479,7 +584,8 @@ export function groupVisualFindings(findings: readonly VisualFinding[]): Finding
         routes,
         findingIds: values.map(({ id }) => id).sort(),
         changedPixels: pixels,
-        severity: severityFor(pixels, routes.length),
+        verifiedPixels,
+        severity: severityFor(verifiedPixels, routes.length),
       };
     })
     .sort(
@@ -546,20 +652,29 @@ async function settlePage(page: Page): Promise<void> {
   });
 }
 
-async function applyState(page: Page, capture: VisualCapture): Promise<void> {
+export async function applyState(page: Page, capture: VisualCapture): Promise<void> {
   if (capture.state === 'page') return;
+  let target: Locator | undefined;
+  let description: string | undefined;
   if (capture.state.includes('mobile-menu-open')) {
-    const button = page.getByRole('button', { name: /menu|navigation/i }).first();
-    await button.click();
+    target = page.getByRole('button', { name: /toggle menu/i }).first();
+    description = 'mobile menu toggle button';
   } else if (capture.state.includes('listings-sold')) {
-    await page.getByRole('button', { name: /sold/i }).first().click();
+    target = page.getByRole('tab', { name: /sold/i }).first();
+    description = 'Sold listings tab';
   } else if (capture.state.includes('listings-active')) {
-    await page
-      .getByRole('button', { name: /active/i })
-      .first()
-      .click();
+    target = page.getByRole('tab', { name: /active/i }).first();
+    description = 'Active listings tab';
   } else if (capture.state.includes('faq-open')) {
-    await page.getByRole('button').filter({ hasText: /.+/ }).last().click();
+    target = page.locator('details > summary').first();
+    description = 'first FAQ summary';
+  }
+  if (target !== undefined && description !== undefined) {
+    if ((await target.count()) === 0)
+      throw new Error(
+        `State recipe ${capture.state} could not find ${description} on ${capture.route}`,
+      );
+    await target.click();
   }
   await page.waitForTimeout(150);
 }
@@ -814,22 +929,95 @@ class BrowserImageDecoder {
   }
 }
 
+async function inspectCdpAttribution(
+  cdp: CDPSession,
+  element: ElementEvidence,
+  attribution: CssAttribution,
+): Promise<Partial<CssAttribution> | undefined> {
+  const cache = cdpAttributionCache.get(cdp) ?? new Map<string, Partial<CssAttribution> | null>();
+  cdpAttributionCache.set(cdp, cache);
+  const cacheKey = `${element.selector}|${attribution.pseudo ?? ''}|${attribution.property}`;
+  if (cache.has(cacheKey)) return cache.get(cacheKey) ?? undefined;
+  let documentRoot = cdpDocumentRoots.get(cdp);
+  if (documentRoot === undefined) {
+    await Promise.all([cdp.send('DOM.enable'), cdp.send('CSS.enable')]);
+    const document = await cdp.send('DOM.getDocument', { depth: 1, pierce: true });
+    documentRoot = document.root.nodeId;
+    cdpDocumentRoots.set(cdp, documentRoot);
+  }
+  const resolved = await cdp.send('DOM.querySelector', {
+    nodeId: documentRoot,
+    selector: element.selector,
+  });
+  if (resolved.nodeId === 0) {
+    cache.set(cacheKey, null);
+    return undefined;
+  }
+  const styles = await cdp.send('CSS.getMatchedStylesForNode', { nodeId: resolved.nodeId });
+  const pseudoType = attribution.pseudo?.slice(2);
+  const matches =
+    pseudoType === undefined
+      ? (styles.matchedCSSRules ?? [])
+      : ((styles.pseudoElements ?? []).find(({ pseudoType: candidate }) => candidate === pseudoType)
+          ?.matches ?? []);
+  for (const match of [...matches].reverse()) {
+    const declaration = [...match.rule.style.cssProperties]
+      .reverse()
+      .find(
+        ({ name, disabled }) =>
+          disabled !== true &&
+          (name === attribution.property ||
+            (attribution.property.startsWith('border-') && name === 'border') ||
+            (attribution.property === 'background-color' && name === 'background')),
+      );
+    if (declaration === undefined) continue;
+    const value = declaration.value;
+    const token = /var\((--[\w-]+)/.exec(value)?.[1];
+    const range = declaration.range ?? match.rule.style.range;
+    const result: Partial<CssAttribution> = {
+      selector: match.rule.selectorList.text,
+      ...(range === undefined ? {} : { sourceLine: range.startLine + 1 }),
+      value,
+      ...(token === undefined ? {} : { token }),
+      confidence: 'high',
+      reason:
+        'Chromium CSS domain resolved the rendered property to the winning matched declaration.',
+    };
+    cache.set(cacheKey, result);
+    return result;
+  }
+  const result: Partial<CssAttribution> = {
+    confidence: attribution.confidence === 'high' ? 'medium' : attribution.confidence,
+    reason:
+      'Chromium CSS domain confirmed the element but could not resolve a winning author declaration.',
+    ambiguity:
+      attribution.ambiguity ?? 'The property may be inherited, composited, or shorthand-owned.',
+  };
+  cache.set(cacheKey, result);
+  return result;
+}
+
 export async function inspectVisualRegion(
   page: Page,
   region: PixelRegion,
   capture: VisualCapture,
+  cdp?: CDPSession,
 ): Promise<Readonly<{ element?: ElementEvidence; attribution?: CssAttribution }>> {
-  const globalY = capture.tile.y + region.y + region.height / 2;
-  const pointX = Math.max(
-    0,
-    Math.min(capture.viewport.width - 1, Math.floor(region.x + region.width / 2)),
-  );
+  const fractions = [
+    [0.5, 0.5],
+    [0.2, 0.2],
+    [0.8, 0.2],
+    [0.2, 0.8],
+    [0.8, 0.8],
+  ] as const;
+  const points = fractions.map(([x, y]) => ({
+    x: Math.max(0, Math.min(capture.viewport.width - 1, Math.floor(region.x + region.width * x))),
+    documentY: capture.tile.y + region.y + region.height * y,
+  }));
+  const globalY = points[0]?.documentY ?? capture.tile.y + region.y;
   await page.evaluate((targetY) => scrollTo(0, Math.max(0, targetY - innerHeight / 2)), globalY);
-  const result = await page.evaluate(
-    ({ x, documentY, candidateColor }) => {
-      const viewportY = documentY - scrollY;
-      const element = document.elementFromPoint(x, viewportY);
-      if (!(element instanceof Element)) return {};
+  const result = (await page.evaluate(
+    ({ points: samplePoints, candidateColor }) => {
       const escape = (value: string): string => CSS.escape(value);
       const selectorFor = (target: Element): string => {
         if (target.id.length > 0) return `#${escape(target.id)}`;
@@ -852,34 +1040,112 @@ export async function inspectVisualRegion(
         }
         return parts.join(' > ');
       };
+      const sampled = samplePoints
+        .map(({ x, documentY }, index) => {
+          const element = document.elementFromPoint(x, documentY - scrollY);
+          return element instanceof Element
+            ? { element, selector: selectorFor(element), index }
+            : undefined;
+        })
+        .filter((value): value is NonNullable<typeof value> => value !== undefined);
+      const occurrences = new Map<string, { count: number; index: number; element: Element }>();
+      for (const sample of sampled) {
+        const current = occurrences.get(sample.selector);
+        occurrences.set(sample.selector, {
+          count: (current?.count ?? 0) + 1,
+          index: current?.index ?? sample.index,
+          element: current?.element ?? sample.element,
+        });
+      }
+      const element = [...occurrences.values()].sort(
+        (left, right) => right.count - left.count || left.index - right.index,
+      )[0]?.element;
+      if (element === undefined) return {};
+      const selectedSamples = sampled.filter((sample) => sample.element === element);
+      const directTextPaintedAtSample = selectedSamples.some((sample) => {
+        const clientY = samplePoints[sample.index]?.documentY ?? 0;
+        const pointY = clientY - scrollY;
+        return [...element.childNodes].some((node) => {
+          if (!(node instanceof Text) || node.data.trim().length === 0) return false;
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          return [...range.getClientRects()].some(
+            (textRect) =>
+              samplePoints[sample.index] !== undefined &&
+              (samplePoints[sample.index]?.x ?? 0) >= textRect.left &&
+              (samplePoints[sample.index]?.x ?? 0) <= textRect.right &&
+              pointY >= textRect.top &&
+              pointY <= textRect.bottom,
+          );
+        });
+      });
+      const rect = element.getBoundingClientRect();
+      const elementEvidence = {
+        tag: element.tagName.toLowerCase(),
+        text: (element.getAttribute('aria-label') ?? element.textContent ?? '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 160),
+        selector: selectorFor(element),
+        rect: { x: rect.x, y: rect.y + scrollY, width: rect.width, height: rect.height },
+      };
+      if (['img', 'video', 'canvas'].includes(elementEvidence.tag)) {
+        return { element: elementEvidence };
+      }
       let computed = getComputedStyle(element);
+      const textPaintIsEligible =
+        directTextPaintedAtSample ||
+        ['input', 'textarea', 'select', 'option'].includes(elementEvidence.tag);
+      const svgPaintIsEligible =
+        element instanceof SVGElement || element.closest('svg') === element;
       const properties = [
-        'color',
         'background-color',
-        'border-top-color',
-        'border-right-color',
-        'border-bottom-color',
-        'border-left-color',
-        'outline-color',
-        'text-decoration-color',
-        'box-shadow',
-        'background-image',
-        'fill',
-        'stroke',
-        'filter',
+        ...(svgPaintIsEligible ? ['fill', 'stroke'] : []),
+        ...(textPaintIsEligible ? ['color', 'text-decoration-color'] : []),
+        ...(computed.borderTopStyle !== 'none' && Number.parseFloat(computed.borderTopWidth) > 0
+          ? ['border-top-color']
+          : []),
+        ...(computed.borderRightStyle !== 'none' && Number.parseFloat(computed.borderRightWidth) > 0
+          ? ['border-right-color']
+          : []),
+        ...(computed.borderBottomStyle !== 'none' &&
+        Number.parseFloat(computed.borderBottomWidth) > 0
+          ? ['border-bottom-color']
+          : []),
+        ...(computed.borderLeftStyle !== 'none' && Number.parseFloat(computed.borderLeftWidth) > 0
+          ? ['border-left-color']
+          : []),
+        ...(computed.outlineStyle !== 'none' && Number.parseFloat(computed.outlineWidth) > 0
+          ? ['outline-color']
+          : []),
+        ...(computed.boxShadow === 'none' ? [] : ['box-shadow']),
+        ...(computed.backgroundImage === 'none' ? [] : ['background-image']),
+        ...(computed.filter === 'none' ? [] : ['filter']),
       ];
-      let property = 'color';
+      let property = properties[0] ?? 'background-color';
       let computedValue = computed.getPropertyValue(property);
       let pseudo: '::before' | '::after' | undefined;
       let matchedPresentation = false;
+      const target = [
+        Number.parseInt(candidateColor.slice(1, 3), 16),
+        Number.parseInt(candidateColor.slice(3, 5), 16),
+        Number.parseInt(candidateColor.slice(5, 7), 16),
+      ];
       for (const owner of [undefined, '::before', '::after'] as const) {
         const ownerStyle = owner === undefined ? computed : getComputedStyle(element, owner);
         for (const name of properties) {
           const value = ownerStyle.getPropertyValue(name);
-          const match = /rgba?\((\d+)[, ]+(\d+)[, ]+(\d+)/.exec(value);
+          const match = /rgba?\((\d+)[, ]+(\d+)[, ]+(\d+)(?:[, /]+([\d.]+))?/.exec(value);
           if (match !== null) {
-            const hex = `#${[match[1], match[2], match[3]].map((part) => Number(part).toString(16).padStart(2, '0')).join('')}`;
-            if (hex.toLowerCase() === candidateColor.toLowerCase()) {
+            const alpha = match[4] === undefined ? 1 : Number(match[4]);
+            if (alpha <= 0.05) continue;
+            const rendered = [Number(match[1]), Number(match[2]), Number(match[3])];
+            const distance = Math.hypot(
+              (rendered[0] ?? 0) - (target[0] ?? 0),
+              (rendered[1] ?? 0) - (target[1] ?? 0),
+              (rendered[2] ?? 0) - (target[2] ?? 0),
+            );
+            if (distance <= 24) {
               property = name;
               computedValue = value;
               computed = ownerStyle;
@@ -955,23 +1221,25 @@ export async function inspectVisualRegion(
         }),
       ).then(() => {
         const selected = matched.at(-1);
-        const rect = element.getBoundingClientRect();
         return {
-          element: {
-            tag: element.tagName.toLowerCase(),
-            text: (element.getAttribute('aria-label') ?? element.textContent ?? '')
-              .replace(/\s+/g, ' ')
-              .trim()
-              .slice(0, 160),
-            selector: selectorFor(element),
-            rect: { x: rect.x, y: rect.y + scrollY, width: rect.width, height: rect.height },
-          },
+          element: elementEvidence,
           attribution: {
             property,
             computedValue,
             ...(selected === undefined ? {} : selected),
             ...(pseudo === undefined ? {} : { pseudo }),
-            confidence: matched.length === 1 ? 'high' : selected === undefined ? 'low' : 'medium',
+            confidence: !matchedPresentation
+              ? 'low'
+              : matched.length === 1
+                ? 'high'
+                : selected === undefined
+                  ? 'low'
+                  : 'medium',
+            reason: matchedPresentation
+              ? selected === undefined
+                ? 'Rendered property matched the candidate color but no author declaration was resolved.'
+                : 'Rendered property matched the candidate color and an author declaration participates in the cascade.'
+              : 'No rendered presentation property matched the candidate color within tolerance.',
             ...(matched.length <= 1
               ? {}
               : {
@@ -981,15 +1249,36 @@ export async function inspectVisualRegion(
         };
       });
     },
-    { x: pointX, documentY: globalY, candidateColor: region.candidateColor },
+    { points, candidateColor: region.candidateColor },
+  )) as Readonly<{ element?: ElementEvidence; attribution?: CssAttribution }>;
+  if (
+    result.element === undefined ||
+    result.attribution === undefined ||
+    result.attribution.confidence === 'low' ||
+    cdp === undefined
+  )
+    return result;
+  const cdpAttribution = await inspectCdpAttribution(cdp, result.element, result.attribution).catch(
+    () => undefined,
   );
-  return result;
+  return cdpAttribution === undefined
+    ? result
+    : { ...result, attribution: { ...result.attribution, ...cdpAttribution } };
 }
 
 function findingId(capture: VisualCapture, region: PixelRegion): string {
   return `visual-${createHash('sha256')
     .update(
-      `${capture.id}:${String(region.x)}:${String(region.y)}:${region.candidateColor}:${region.type}`,
+      [
+        capture.id,
+        region.x,
+        region.y,
+        region.width,
+        region.height,
+        region.referenceColor,
+        region.candidateColor,
+        region.type,
+      ].join(':'),
     )
     .digest('hex')
     .slice(0, 14)}`;
@@ -1205,11 +1494,15 @@ function csv(value: unknown): string {
 async function writeReports(outputRoot: string, report: VisualAuditReport): Promise<void> {
   await mkdir(outputRoot, { recursive: true });
   await writeFile(path.join(outputRoot, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
-  const csvRows: unknown[][] = [['reference', 'candidate', 'deltaE', 'pixels', 'routes']];
+  const csvRows: unknown[][] = [
+    ['reference', 'candidate', 'referenceRole', 'candidateRole', 'deltaE', 'pixels', 'routes'],
+  ];
   for (const substitution of report.substitutions)
     csvRows.push([
       substitution.reference,
       substitution.candidate,
+      substitution.referenceRole,
+      substitution.candidateRole,
       substitution.deltaE,
       substitution.pixels,
       substitution.routes.join(' '),
@@ -1218,11 +1511,11 @@ async function writeReports(outputRoot: string, report: VisualAuditReport): Prom
     path.join(outputRoot, 'color-substitutions.csv'),
     `${csvRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
   );
-  const summary = `# Browser visual-difference audit\n\nMode: **${report.mode}**  \nReference: \`${report.reference}\`  \nCandidate: \`${report.candidate}\`\n\n## Totals\n\n- ${report.totals.captures} captures\n- ${report.totals.comparedPixels.toLocaleString()} compared pixels\n- ${report.totals.changedPixels.toLocaleString()} perceptually changed pixels\n- ${report.totals.colorPixels.toLocaleString()} color pixels\n- ${report.totals.geometryPixels.toLocaleString()} likely displacement pixels\n- ${report.findings.length} bounded findings\n- ${report.groups.length} grouped root causes\n\n## Highest-impact root causes\n\n${report.groups
+  const summary = `# Browser visual-difference audit\n\nSchema: **2**  \nMode: **${report.mode}**  \nReference: \`${report.reference}\`  \nCandidate: \`${report.candidate}\`\n\n## Totals\n\n- ${report.totals.captures} captures\n- ${report.totals.comparedPixels.toLocaleString()} compared pixels\n- ${report.totals.changedPixels.toLocaleString()} perceptually changed pixels\n- ${report.totals.colorPixels.toLocaleString()} color pixels\n- ${report.totals.geometryPixels.toLocaleString()} likely displacement pixels\n- ${report.findings.length} bounded findings\n- ${report.groups.length} verified grouped root causes\n- ${report.unattributedFindings.length} asset, ambiguous, or low-confidence findings retained outside prioritization\n\n## Highest-impact verified root causes\n\n${report.groups
     .slice(0, 50)
     .map(
       (group) =>
-        `- **${group.severity}** \`${group.property}\` = \`${group.candidateValue}\` via \`${group.selector}\`${group.token === undefined ? '' : ` / \`${group.token}\``}: ${group.changedPixels.toLocaleString()} pixels across ${group.routes.join(', ')}`,
+        `- **${group.severity}** \`${group.property}\` = \`${group.candidateValue}\` via \`${group.selector}\`${group.token === undefined ? '' : ` / \`${group.token}\``}: ${group.verifiedPixels.toLocaleString()} verified pixels across ${group.routes.join(', ')}`,
     )
     .join('\n')}\n\n## Dominant color substitutions\n\n${report.substitutions
     .slice(0, 50)
@@ -1233,7 +1526,7 @@ async function writeReports(outputRoot: string, report: VisualAuditReport): Prom
     .join('\n')}\n`;
   await writeFile(path.join(outputRoot, 'summary.md'), summary);
   const payload = JSON.stringify(report).replaceAll('<', '\\u003c');
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>TriCo visual audit</title><style>body{font-family:system-ui;margin:2rem;color:#0f1729}table{border-collapse:collapse;width:100%;margin-bottom:3rem}th,td{padding:.5rem;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}code{font-size:.8rem}.P0,.P1{font-weight:700;color:#b42318}input{padding:.6rem;width:24rem}.evidence a{margin-right:.5rem}</style></head><body><h1>TriCo visual audit</h1><p>${report.totals.changedPixels.toLocaleString()} changed pixels · ${report.findings.length} findings · ${report.groups.length} root causes</p><input id="filter" placeholder="Filter route, selector, token, color"><h2>Grouped root causes</h2><table><thead><tr><th>Priority</th><th>Routes</th><th>Property</th><th>Candidate</th><th>Selector/token</th><th>Pixels</th></tr></thead><tbody id="groups"></tbody></table><h2>Bounded findings</h2><table><thead><tr><th>Priority</th><th>Route/state</th><th>Colors</th><th>Element/rule</th><th>Pixels</th><th>Evidence</th></tr></thead><tbody id="findings"></tbody></table><script>const report=${payload};const groups=document.querySelector('#groups');const findings=document.querySelector('#findings');const input=document.querySelector('#filter');const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function render(){const q=input.value.toLowerCase();groups.innerHTML=report.groups.filter(g=>JSON.stringify(g).toLowerCase().includes(q)).map(g=>\`<tr><td class="\${g.severity}">\${g.severity}</td><td>\${g.routes.join(', ')}</td><td><code>\${esc(g.property)}</code></td><td><code>\${esc(g.candidateValue)}</code></td><td><code>\${esc(g.selector)}\${g.token?' / '+esc(g.token):''}</code></td><td>\${g.changedPixels.toLocaleString()}</td></tr>\`).join('');findings.innerHTML=report.findings.filter(f=>JSON.stringify(f).toLowerCase().includes(q)).map(f=>\`<tr><td class="\${f.severity}">\${f.severity}</td><td>\${esc(f.route)}<br><small>\${esc(f.viewport)} / \${esc(f.state)}</small></td><td><code>\${esc(f.referenceColor)} → \${esc(f.candidateColor)}</code></td><td>\${esc(f.element?.text||f.element?.selector||'unattributed')}<br><code>\${esc(f.attribution?.selector||'')}</code></td><td>\${f.changedPixels.toLocaleString()}</td><td class="evidence"><a href="evidence/\${f.id}/reference.png">reference</a><a href="evidence/\${f.id}/candidate.png">candidate</a><a href="evidence/\${f.id}/diff.png">diff</a></td></tr>\`).join('')}input.addEventListener('input',render);render();</script></body></html>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>TriCo visual audit</title><style>body{font-family:system-ui;margin:2rem;color:#0f1729}table{border-collapse:collapse;width:100%;margin-bottom:3rem}th,td{padding:.5rem;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}code{font-size:.8rem}.P0,.P1{font-weight:700;color:#b42318}input{padding:.6rem;width:24rem}.evidence a{margin-right:.5rem}</style></head><body><h1>TriCo visual audit</h1><p>${report.totals.changedPixels.toLocaleString()} changed pixels · ${report.findings.length} findings · ${report.groups.length} verified root causes · ${report.unattributedFindings.length} unprioritized</p><input id="filter" placeholder="Filter route, selector, token, color"><h2>Verified grouped root causes</h2><table><thead><tr><th>Priority</th><th>Routes</th><th>Property</th><th>Candidate</th><th>Selector/token</th><th>Verified pixels</th></tr></thead><tbody id="groups"></tbody></table><h2>All bounded findings</h2><table><thead><tr><th>Priority</th><th>Route/state</th><th>Colors</th><th>Element/rule</th><th>Confidence</th><th>Pixels</th><th>Evidence</th></tr></thead><tbody id="findings"></tbody></table><script>const report=${payload};const groups=document.querySelector('#groups');const findings=document.querySelector('#findings');const input=document.querySelector('#filter');const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function render(){const q=input.value.toLowerCase();groups.innerHTML=report.groups.filter(g=>JSON.stringify(g).toLowerCase().includes(q)).map(g=>\`<tr><td class="\${g.severity}">\${g.severity}</td><td>\${g.routes.join(', ')}</td><td><code>\${esc(g.property)}</code></td><td><code>\${esc(g.candidateValue)}</code></td><td><code>\${esc(g.selector)}\${g.token?' / '+esc(g.token):''}</code></td><td>\${g.verifiedPixels.toLocaleString()}</td></tr>\`).join('');findings.innerHTML=report.findings.filter(f=>JSON.stringify(f).toLowerCase().includes(q)).map(f=>\`<tr><td class="\${f.severity}">\${f.severity}</td><td>\${esc(f.route)}<br><small>\${esc(f.viewport)} / \${esc(f.state)}</small></td><td><code>\${esc(f.referenceColor)} (\${esc(f.referenceRole||'unclassified')}) → \${esc(f.candidateColor)} (\${esc(f.candidateRole||'unclassified')})</code></td><td>\${esc(f.element?.text||f.element?.selector||'unattributed')}<br><code>\${esc(f.attribution?.selector||'')}</code></td><td>\${esc(f.attribution?.confidence||'unattributed')}<br><small>\${esc(f.attribution?.reason||'')}</small></td><td>\${f.changedPixels.toLocaleString()}</td><td class="evidence">\${f.evidenceAvailable?'<a href="evidence/'+esc(f.id)+'/reference.png">reference</a><a href="evidence/'+esc(f.id)+'/candidate.png">candidate</a><a href="evidence/'+esc(f.id)+'/diff.png">diff</a>':'representative omitted'}</td></tr>\`).join('')}input.addEventListener('input',render);render();</script></body></html>`;
   await writeFile(path.join(outputRoot, 'report.html'), html);
 }
 
@@ -1316,7 +1609,15 @@ async function runAudit(
   const findings: VisualFinding[] = [];
   const substitutions = new Map<
     string,
-    { reference: string; candidate: string; pixels: number; deltaE: number; routes: Set<string> }
+    {
+      reference: string;
+      candidate: string;
+      referenceRole?: SemanticColorRole;
+      candidateRole?: SemanticColorRole;
+      pixels: number;
+      deltaE: number;
+      routes: Set<string>;
+    }
   >();
   const totals = {
     captures: 0,
@@ -1326,6 +1627,7 @@ async function runAudit(
     colorPixels: 0,
   };
   const browser = await chromium.launch({ headless: true });
+  const evidenceCounts = new Map<string, number>();
   try {
     for (const descriptor of captures) {
       const capture = descriptor.capture;
@@ -1370,20 +1672,30 @@ async function runAudit(
         });
         await settlePage(page);
         await applyState(page, capture);
+        const cdp = await context.newCDPSession(page);
         const evidenceRegions = analyzed.regions
           .filter(({ changedPixels }) => changedPixels >= 8)
           .slice(0, 250);
         const evidenceEntries: { id: string; region: PixelRegion }[] = [];
         for (const region of evidenceRegions) {
-          const evidence = await inspectVisualRegion(page, region, capture);
+          const evidence = await inspectVisualRegion(page, region, capture, cdp);
           const id = findingId(capture, region);
-          findings.push({
+          const type = ['img', 'video', 'canvas'].includes(evidence.element?.tag ?? '')
+            ? 'asset'
+            : region.type;
+          const verifiedPixels =
+            type !== 'asset' &&
+            evidence.attribution !== undefined &&
+            evidence.attribution.confidence !== 'low'
+              ? region.changedPixels
+              : 0;
+          const draft: VisualFinding = {
             id,
             severity: severityFor(region.changedPixels),
             route: capture.route,
             viewport: capture.viewport.class,
             state: capture.state,
-            type: evidence.element?.tag === 'img' ? 'asset' : region.type,
+            type,
             region: {
               x: region.x,
               y: capture.tile.y + region.y,
@@ -1391,12 +1703,26 @@ async function runAudit(
               height: region.height,
             },
             changedPixels: region.changedPixels,
+            verifiedPixels,
             referenceColor: region.referenceColor,
             candidateColor: region.candidateColor,
             deltaE: region.deltaE,
+            evidenceAvailable: false,
             ...evidence,
-          });
-          evidenceEntries.push({ id, region });
+          };
+          const evidenceKey =
+            draft.type === 'asset'
+              ? `asset|${draft.route}|${draft.element?.tag ?? 'unknown'}`
+              : draft.attribution?.confidence === 'low' || draft.attribution === undefined
+                ? `unattributed|${draft.route}|${draft.type}`
+                : findingRootKey(draft);
+          const evidenceCount = evidenceCounts.get(evidenceKey) ?? 0;
+          const evidenceAvailable = evidenceCount < 3;
+          if (evidenceAvailable) {
+            evidenceCounts.set(evidenceKey, evidenceCount + 1);
+            evidenceEntries.push({ id, region });
+          }
+          findings.push({ ...draft, evidenceAvailable });
         }
         await Promise.all([
           decoder.renderRegions(
@@ -1503,19 +1829,28 @@ async function runAudit(
       a.id.localeCompare(b.id),
   );
   const report: VisualAuditReport = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     mode,
-    generatedAt: new Date().toISOString(),
     reference: referenceLabel,
     candidate: candidateUrl,
     thresholds: { deltaE: 4, geometryRadius: 2, cellSize: 4 },
     totals,
     findings: orderedFindings,
     groups: groupVisualFindings(orderedFindings),
+    unattributedFindings: orderedFindings.filter(
+      ({ type, attribution }) =>
+        type === 'asset' || attribution === undefined || attribution.confidence === 'low',
+    ),
     substitutions: [...substitutions.values()]
       .map(({ routes, ...entry }) => ({ ...entry, routes: [...routes].sort() }))
+      .filter(isReportableSubstitution)
       .filter(({ pixels }) => pixels >= 8)
-      .sort((a, b) => b.pixels - a.pixels),
+      .sort(
+        (a, b) =>
+          b.pixels - a.pixels ||
+          a.reference.localeCompare(b.reference) ||
+          a.candidate.localeCompare(b.candidate),
+      ),
     interactions: interactions.sort(
       (a, b) =>
         a.route.localeCompare(b.route) ||

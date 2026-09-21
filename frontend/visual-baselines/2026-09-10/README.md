@@ -103,7 +103,10 @@ npm run visual:audit -- live \
   --output artifacts/visual-audit/live
 ```
 
-Open `report.html` for filtered root causes and linked evidence crops. `summary.md`, `report.json`,
-`color-substitutions.csv`, full heatmaps, and per-finding reference/candidate/diff images are emitted
-beside it. Visual findings return success in this report-only phase; operational, authentication,
-capture, decoding, and report failures return nonzero.
+Open `report.html` for filtered, verified root causes and representative evidence crops.
+`report.json` schema version 2 preserves exact colors separately from semantic color roles, keeps
+asset and low-confidence findings outside prioritized CSS groups, and records why each attribution
+is trusted or ambiguous. `summary.md`, `color-substitutions.csv`, full heatmaps, and up to three
+reference/candidate/diff crops per root cause are emitted beside it. Visual findings return success
+in this report-only phase; missing state controls, authentication, capture, decoding, and report
+failures return nonzero.

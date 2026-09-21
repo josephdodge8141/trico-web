@@ -361,6 +361,9 @@ Feature: Published TriCo website
     Then color substitutions and geometry displacements are reported as bounded evidence regions
     And candidate elements include HTML SVG and pseudo-element presentation
     And matched CSS declarations are grouped into shared root causes with ambiguity stated explicitly
+    And exact pixel colors remain distinct from semantic color roles
+    And asset and low-confidence findings remain outside prioritized CSS root causes
+    And missing interactive-state controls fail with the named capture recipe
     And visual findings do not fail the report-only audit
 
   @id:public.health
