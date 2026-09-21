@@ -42,12 +42,23 @@ function matchingNode(
   )?.candidate;
 }
 
+function getMatchedStyles(cdp: CDPSession, nodeId: number) {
+  return cdp.send('CSS.getMatchedStylesForNode', { nodeId });
+}
+
+type MatchedStyles = Awaited<ReturnType<typeof getMatchedStyles>>;
+type AttributionCache = Readonly<{
+  nodeIds: Map<string, Promise<number>>;
+  styles: Map<number, Promise<MatchedStyles>>;
+}>;
+
 async function attributeDifference(
   cdp: CDPSession,
   rootNodeId: number,
   difference: VisualPropertyDifference,
   node: VisualNodeSnapshot,
   styleSheets: ReadonlyMap<string, string>,
+  cache: AttributionCache,
 ): Promise<AttributedVisualDifference> {
   if (difference.category === 'geometry' && difference.property.startsWith('box-'))
     return {
@@ -59,21 +70,30 @@ async function attributeDifference(
       ...difference,
       ambiguity: 'Content and intrinsic asset values are not CSS declarations.',
     };
-  const resolved = await cdp.send('DOM.querySelector', {
-    nodeId: rootNodeId,
-    selector: node.selector,
-  });
-  if (resolved.nodeId === 0)
+  let nodeId = cache.nodeIds.get(node.selector);
+  if (nodeId === undefined) {
+    nodeId = cdp
+      .send('DOM.querySelector', { nodeId: rootNodeId, selector: node.selector })
+      .then(({ nodeId: resolved }) => resolved);
+    cache.nodeIds.set(node.selector, nodeId);
+  }
+  const resolvedNodeId = await nodeId;
+  if (resolvedNodeId === 0)
     return { ...difference, ambiguity: 'The candidate node could not be resolved through CDP.' };
-  const response = await cdp.send('CSS.getMatchedStylesForNode', { nodeId: resolved.nodeId });
+  let response = cache.styles.get(resolvedNodeId);
+  if (response === undefined) {
+    response = getMatchedStyles(cdp, resolvedNodeId);
+    cache.styles.set(resolvedNodeId, response);
+  }
+  const matchedStyles = await response;
   const pseudoType = node.pseudo?.slice(2);
   const matches =
     pseudoType === undefined
-      ? (response.matchedCSSRules ?? [])
-      : ((response.pseudoElements ?? []).find(({ pseudoType: type }) => type === pseudoType)
+      ? (matchedStyles.matchedCSSRules ?? [])
+      : ((matchedStyles.pseudoElements ?? []).find(({ pseudoType: type }) => type === pseudoType)
           ?.matches ?? []);
   const candidates = shorthandCandidates(difference.property);
-  const inline = response.inlineStyle?.cssProperties
+  const inline = matchedStyles.inlineStyle?.cssProperties
     .filter(({ disabled, name }) => disabled !== true && candidates.includes(name))
     .at(-1);
   if (inline !== undefined) {
@@ -137,13 +157,21 @@ export async function compareNativeVisualPages(
   ]);
   const comparison = compareVisualSnapshots(reference, candidate);
   const document = await cdp.send('DOM.getDocument', { depth: 1, pierce: true });
+  const cache: AttributionCache = { nodeIds: new Map(), styles: new Map() };
   const differences: AttributedVisualDifference[] = [];
   for (const difference of comparison.differences) {
     const node = matchingNode(difference, comparison.matches);
     differences.push(
       node === undefined
         ? { ...difference, ambiguity: 'The matched candidate node was unavailable.' }
-        : await attributeDifference(cdp, document.root.nodeId, difference, node, styleSheets),
+        : await attributeDifference(
+            cdp,
+            document.root.nodeId,
+            difference,
+            node,
+            styleSheets,
+            cache,
+          ),
     );
   }
   return { ...comparison, differences };

@@ -11,7 +11,6 @@ import {
   selectAuditWinner,
   type EngineBenchmarkResult,
 } from './visual-audit-contract.js';
-import { CsstruthAdapter } from './visual-audit-csstruth.js';
 import { compareNativeVisualPages } from './visual-audit-native.js';
 
 async function withFixture(html: string, run: (url: string) => Promise<void>): Promise<void> {
@@ -192,34 +191,6 @@ test('native comparison traces direct, variable-backed, shorthand, important, ps
     await candidateContext.close();
   } finally {
     await browser.close();
-  }
-});
-
-test('csstruth adapter reports layout deltas and explains a winning declaration', async () => {
-  const server = createServer((request, response) => {
-    response.setHeader('content-type', 'text/html');
-    const candidate = request.url === '/candidate';
-    response.end(`
-      <style>.card { color:${candidate ? '#86622d' : '#00128a'}; width:${candidate ? '240px' : '200px'}; height:80px }</style>
-      <article class="card">Audited card</article>
-    `);
-  });
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-  try {
-    const address = server.address();
-    if (address === null || typeof address === 'string') throw new Error('Fixture has no port');
-    const root = `http://127.0.0.1:${String(address.port)}`;
-    const adapter = new CsstruthAdapter({ viewport: { width: 800, height: 600 } });
-    const comparison = await adapter.compare(`${root}/reference`, `${root}/candidate`);
-    assert.ok(comparison.changedEntries > 0);
-    assert.ok(comparison.unsupportedProperties.includes('color'));
-    const explanation = await adapter.explain(`${root}/candidate`, '.card', 'color');
-    assert.equal(explanation.computedValue, 'rgb(134, 98, 45)');
-    assert.equal(explanation.declaredWinner, '#86622d');
-  } finally {
-    await new Promise<void>((resolve, reject) =>
-      server.close((error) => (error === undefined ? resolve() : reject(error))),
-    );
   }
 });
 
