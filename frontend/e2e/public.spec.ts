@@ -140,6 +140,23 @@ test('uses corrected real-estate and storage anchors', async ({ page }) => {
   await expect(page.locator('#features')).toBeVisible();
 });
 
+test('uses the shared blue action role for ordinary primary calls to action', async ({ page }) => {
+  const actions = [
+    { route: '/property-management', role: 'link' as const, name: 'Get Free Analysis' },
+    { route: '/construction', role: 'link' as const, name: 'Start Your Project' },
+    { route: '/construction', role: 'button' as const, name: /Request Your Bid/ },
+    { route: '/storage', role: 'link' as const, name: 'Partner With Us' },
+  ];
+
+  for (const action of actions) {
+    await page.goto(action.route);
+    const target = page.getByRole(action.role, { name: action.name }).first();
+    await expect(target).toBeVisible();
+    await expect(target).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+    await expect(target).toHaveCSS('color', 'rgb(255, 255, 255)');
+  }
+});
+
 test('keeps division calls to action readable and the mobile edit launcher clear of them', async ({
   page,
 }) => {
@@ -568,16 +585,15 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
 
   await expect(primary).toHaveAttribute('href', '#contact');
   await expect(secondary).toHaveAttribute('href', '#services');
-  await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+  await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
   await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(secondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(secondary).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
-  expect(contrastRatio([255, 255, 255], [134, 98, 45])).toBeGreaterThanOrEqual(4.5);
   expect(contrastRatio([255, 255, 255], [0, 18, 138])).toBeGreaterThanOrEqual(4.5);
 
   await primary.hover();
-  await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+  await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
   await secondary.hover();
   await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
   await primary.focus();

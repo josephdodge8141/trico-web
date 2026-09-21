@@ -3817,7 +3817,7 @@
   .ui-theme-storage .ui-split-hero .ui-actions a:first-child,
   .ui-theme-storage .ui-about a {
     color: var(--trico-color-surface);
-    background: var(--trico-color-gold);
+    background: var(--trico-color-action);
   }
   .ui-theme-storage .ui-split-hero .ui-actions a:nth-child(2) {
     color: var(--trico-color-dark);
@@ -4958,10 +4958,13 @@
     color: var(--trico-color-surface);
     background: var(--trico-color-deep);
   }
-  .surface-gold,
-  .ui-button-accent {
+  .surface-gold {
     color: var(--trico-color-surface);
     background: var(--trico-color-gold);
+  }
+  .ui-button-accent {
+    color: var(--trico-color-surface);
+    background: var(--trico-color-action);
   }
   .surface-brand-gradient {
     color: var(--trico-color-surface);

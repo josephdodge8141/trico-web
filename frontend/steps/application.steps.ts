@@ -2710,14 +2710,14 @@ Then(
     const secondary = page.locator('.pm-hero .pm-actions a').nth(1);
     await expect(primary).toHaveAttribute('href', '#contact');
     await expect(secondary).toHaveAttribute('href', '#services');
-    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+    await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
     await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(secondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(secondary).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
 
     await primary.hover();
-    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+    await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
     await secondary.hover();
     await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
     await primary.focus();
@@ -3987,13 +3987,13 @@ Then(
     );
     await expect(aboutLayout).toHaveCSS('column-gap', '48px');
 
-    await expect(heroPrimary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+    await expect(heroPrimary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
     await expect(heroPrimary).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(heroSecondary).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(aboutHeading).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(aboutLead).toHaveCSS('color', 'rgba(255, 255, 255, 0.8)');
     await expect(aboutLead).toHaveCSS('font-weight', '500');
-    await expect(aboutAction).toHaveCSS('background-color', 'rgb(134, 98, 45)');
+    await expect(aboutAction).toHaveCSS('background-color', 'rgb(0, 18, 138)');
     await expect(aboutAction).toHaveCSS('color', 'rgb(255, 255, 255)');
 
     const serviceGrid = page.locator('.storage-services .editable-collection-items');
@@ -4381,7 +4381,7 @@ Then(
     assert.match(aboutPresentation.backgroundImage, /rgb\(0, 18, 138\)/u);
     assert.match(aboutPresentation.backgroundImage, /rgb\(30, 64, 175\)/u);
     assert.equal(aboutPresentation.titleColor, 'rgb(255, 255, 255)');
-    assert.equal(aboutPresentation.actionBackground, 'rgb(134, 98, 45)');
+    assert.equal(aboutPresentation.actionBackground, 'rgb(0, 18, 138)');
   },
 );
 
@@ -4644,7 +4644,7 @@ Then(
     );
     await expect(bid.getByRole('button', { name: 'Request Your Bid' })).toHaveCSS(
       'background-color',
-      'rgb(134, 98, 45)',
+      'rgb(0, 18, 138)',
     );
     await expect(bid.getByRole('link', { name: '(801) 571-8833' })).toHaveAttribute(
       'href',
