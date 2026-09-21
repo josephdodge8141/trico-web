@@ -2096,6 +2096,7 @@ async function runAudit(
   const findings: VisualFinding[] = [];
   const renderedStyles: RenderedStyleOccurrence[] = [];
   const elementAudits: ElementAuditCapture[] = [];
+  const elementAuditKeys = new Set<string>();
   const substitutions = new Map<
     string,
     {
@@ -2162,7 +2163,13 @@ async function runAudit(
         await settlePage(page);
         await applyState(page, capture);
         const cdp = await context.newCDPSession(page);
-        if (mode === 'live' && referenceUrl !== undefined) {
+        const elementAuditKey = `${capture.route}|${String(capture.viewport.width)}x${String(capture.viewport.height)}|${capture.state}`;
+        if (
+          mode === 'live' &&
+          referenceUrl !== undefined &&
+          !elementAuditKeys.has(elementAuditKey)
+        ) {
+          elementAuditKeys.add(elementAuditKey);
           const referenceContext = await browser.newContext({
             viewport: { width: capture.viewport.width, height: capture.viewport.height },
             storageState,
