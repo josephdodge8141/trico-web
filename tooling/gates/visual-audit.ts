@@ -1850,6 +1850,29 @@ async function writeReports(outputRoot: string, report: VisualAuditReport): Prom
       'ambiguous',
     ],
   ];
+  const elementLedgerRows: unknown[][] = [
+    [
+      'route',
+      'viewport',
+      'state',
+      'status',
+      'evidence',
+      'referenceTag',
+      'referenceText',
+      'referenceSelector',
+      'referenceX',
+      'referenceY',
+      'referenceWidth',
+      'referenceHeight',
+      'candidateTag',
+      'candidateText',
+      'candidateSelector',
+      'candidateX',
+      'candidateY',
+      'candidateWidth',
+      'candidateHeight',
+    ],
+  ];
   const propertyRows: unknown[][] = [
     [
       'route',
@@ -1884,6 +1907,28 @@ async function writeReports(outputRoot: string, report: VisualAuditReport): Prom
       audit.accounting.ignored,
       audit.accounting.ambiguous,
     ]);
+    for (const match of audit.matches)
+      elementLedgerRows.push([
+        audit.route,
+        audit.viewport,
+        audit.state,
+        match.status,
+        match.evidence,
+        match.reference?.tag,
+        match.reference?.ownText || match.reference?.accessibleName,
+        match.reference?.selector,
+        match.reference?.rect.x,
+        match.reference?.rect.y,
+        match.reference?.rect.width,
+        match.reference?.rect.height,
+        match.candidate?.tag,
+        match.candidate?.ownText || match.candidate?.accessibleName,
+        match.candidate?.selector,
+        match.candidate?.rect.x,
+        match.candidate?.rect.y,
+        match.candidate?.rect.width,
+        match.candidate?.rect.height,
+      ]);
     for (const difference of audit.differences) {
       propertyRows.push([
         audit.route,
@@ -1918,6 +1963,10 @@ async function writeReports(outputRoot: string, report: VisualAuditReport): Prom
     writeFile(
       path.join(outputRoot, 'element-accounting.csv'),
       `${elementAccountingRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
+    ),
+    writeFile(
+      path.join(outputRoot, 'element-ledger.csv'),
+      `${elementLedgerRows.map((row) => row.map(csv).join(',')).join('\n')}\n`,
     ),
     writeFile(
       path.join(outputRoot, 'property-differences.csv'),

@@ -108,8 +108,9 @@ Open `report.html` for filtered, verified root causes and representative evidenc
 csstruth bakeoff. In live mode it accounts for every meaningful visible node and directly compares
 geometry, typography, paint, content, assets, SVG, and pseudo-elements before using screenshots as
 supporting evidence. Exact colors are never suppressed by semantic roles. Candidate cascade provenance
-and explicit ambiguity are retained in `property-differences.csv`, `element-accounting.csv`, and
-`css-source-ledger.csv`. `summary.md`, `color-substitutions.csv`, `rendered-style-inventory.csv`, full
-heatmaps, and representative evidence crops are emitted beside them.
+and explicit ambiguity are retained in `property-differences.csv`, `element-accounting.csv`,
+`element-ledger.csv`, and `css-source-ledger.csv`. `summary.md`, `color-substitutions.csv`,
+`rendered-style-inventory.csv`, full heatmaps, and representative evidence crops are emitted beside
+them.
 Visual findings return success in this report-only phase; missing state controls, authentication,
 capture, decoding, accounting, and report failures return nonzero.
