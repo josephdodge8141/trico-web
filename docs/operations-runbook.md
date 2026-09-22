@@ -83,3 +83,5 @@ Do not enable application deployment until the identity and DKIM status are succ
 6. Restore workflow access only after the trust policy, repository ruleset, environment protections, and audit trail have been reviewed.
 
 The operations SNS topic is `trico-web-operations`. Confirm its email subscription after creation so alarms and cost-anomaly notifications are delivered.
+
+GitHub's customized OIDC subject includes the immutable owner and repository database IDs as well as the environment. If the repository is transferred or recreated, update those IDs through a reviewed delivery-foundation change before re-enabling deployment workflows.

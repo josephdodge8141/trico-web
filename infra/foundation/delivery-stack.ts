@@ -193,12 +193,14 @@ export class DeliveryFoundationStack extends Stack {
     );
 
     const roles = new Map<DeploymentEnvironment, Role>();
+    const [repositoryOwner, repositoryName] = config.repository.split('/');
+    const repositorySubject = `${repositoryOwner}@${config.repositoryOwnerId}/${repositoryName}@${config.repositoryId}`;
     for (const environment of ['preview', 'dev', 'prod'] as const) {
       const role = new Role(this, `${environment}DeploymentRole`, {
         assumedBy: new WebIdentityPrincipal(oidc.openIdConnectProviderArn, {
           StringEquals: {
             'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
-            'token.actions.githubusercontent.com:sub': `repo:${config.repository}:environment:${environment}`,
+            'token.actions.githubusercontent.com:sub': `repo:${repositorySubject}:environment:${environment}`,
           },
         }),
         description: `GitHub ${environment} deployment role for ${config.repository}`,
