@@ -47,6 +47,7 @@ npm run proof:docker
 - [Migration ledger](docs/migration-ledger.md)
 - [Initialization and bootstrap](docs/initialization.md)
 - [Preview operations](docs/preview-operations.md)
+- [Operations runbook](docs/operations-runbook.md)
 - [AWS preview adapter](docs/aws-preview-adapter.md)
 - [Dev and production delivery](docs/production.md)
 
