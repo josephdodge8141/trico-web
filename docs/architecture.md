@@ -8,7 +8,7 @@ Public content is a versioned manifest plus immutable page JSON in S3-compatible
 
 CDK has two distinct responsibilities:
 
-- `TricoWebDeliveryFoundation` owns GitHub OIDC trust, environment deployment roles, immutable release storage, the delegated preview zone, SES authentication records, alerts and the monthly budget. `TricoWebEdgeFoundation` owns the `us-east-1` CloudFront certificates and subscribes the operations email to the account's existing cost-anomaly monitor.
+- `TricoWebDeliveryFoundation` owns GitHub OIDC trust, environment deployment roles, immutable release storage, the delegated preview zone, SES authentication records, alerts, the monthly budget, an account Access Analyzer, and a validated multi-region management-event trail. `TricoWebEdgeFoundation` owns the `us-east-1` CloudFront certificates and subscribes the operations email to the account's existing cost-anomaly monitor.
 - `FullstackTsPreviewFoundation` synthesizes retained shared network, ECS, ECR, lifecycle-state and DNS references. It contains no per-PR task or record.
 - `TricoWeb-dev` and `TricoWeb-prod` synthesize isolated Lambda/API Gateway, DynamoDB, S3/CloudFront, EventBridge, SES/Bedrock IAM, logs and alarms. Backend images must be supplied by immutable ECR digest.
 

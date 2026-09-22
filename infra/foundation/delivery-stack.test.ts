@@ -19,8 +19,10 @@ function deliveryTemplate(): Template {
 test('factory.delivery.foundation creates environment-scoped OIDC roles and protected release stores', () => {
   const template = deliveryTemplate();
   template.resourceCountIs('Custom::AWSCDKOpenIdConnectProvider', 1);
+  template.resourceCountIs('AWS::AccessAnalyzer::Analyzer', 1);
+  template.resourceCountIs('AWS::CloudTrail::Trail', 1);
   template.resourceCountIs('AWS::ECR::Repository', 1);
-  template.resourceCountIs('AWS::S3::Bucket', 1);
+  template.resourceCountIs('AWS::S3::Bucket', 2);
   template.resourceCountIs('AWS::SNS::Topic', 1);
   template.resourceCountIs('AWS::Budgets::Budget', 1);
   template.resourceCountIs('AWS::Route53::HostedZone', 1);
@@ -38,6 +40,17 @@ test('factory.delivery.foundation creates environment-scoped OIDC roles and prot
       RestrictPublicBuckets: true,
     },
     VersioningConfiguration: { Status: 'Enabled' },
+  });
+  template.hasResourceProperties('AWS::AccessAnalyzer::Analyzer', {
+    AnalyzerName: 'trico-web-account-access',
+    Type: 'ACCOUNT',
+  });
+  template.hasResourceProperties('AWS::CloudTrail::Trail', {
+    EnableLogFileValidation: true,
+    IncludeGlobalServiceEvents: true,
+    IsLogging: true,
+    IsMultiRegionTrail: true,
+    TrailName: 'trico-web-account-management',
   });
 });
 
