@@ -4,7 +4,7 @@
 
 Production durable resources use retain policies. Dev resources use destroy policies but do not auto-delete bucket objects. Neither stack creates a hosted zone or validates an SES identity. CloudFront provides the public endpoint; a custom domain and DNS activation require an independently validated hosted-zone/certificate enrollment.
 
-The `Application deployment` workflow runs the full repository gate and then synthesizes the selected stack under its GitHub environment OIDC identity. Required variables in both `dev` and `prod` environments are:
+The `Application deployment` workflow runs the deterministic CI repository gate and then synthesizes the selected stack under its GitHub environment OIDC identity. The dedicated visual audit remains a local review gate. Required variables in both `dev` and `prod` environments are:
 
 - `AWS_REGION`
 - `APPLICATION_DEPLOY_ROLE_ARN`
@@ -17,7 +17,7 @@ The `Application deployment` workflow runs the full repository gate and then syn
 - `BEDROCK_MODEL_ID`
 - `ALERT_TOPIC_ARN`
 
-The workflow derives one `RELEASE_SHA`, runs the complete repository gate, publishes the dev Lambda image and frontend archive, then writes a strict manifest containing the exact digest, object key and checksum. Both development and production validate and consume that manifest. Production dispatch requires an explicit tested main-branch SHA and contains no application build or artifact publication path. Before a production mutation it creates a DynamoDB backup when an existing table is present.
+The workflow derives one `RELEASE_SHA`, runs the deterministic CI gate, publishes the dev Lambda image and frontend archive, then writes a strict manifest containing the exact digest, object key and checksum. Both development and production validate and consume that manifest. Production dispatch requires an explicit tested main-branch SHA and contains no application build or artifact publication path. Before a production mutation it creates a DynamoDB backup when an existing table is present.
 
 Required environment configuration is `AWS_REGION`, `APPLICATION_DEPLOY_ROLE_ARN`, `BACKEND_REPOSITORY_URI`, `RELEASE_ARTIFACT_BUCKET`, `PUBLIC_ORIGIN`, `CUSTOM_DOMAIN`, `HOSTED_ZONE_ID`, `HOSTED_ZONE_NAME`, `CLOUDFRONT_CERTIFICATE_ARN`, `SES_IDENTITY_DOMAIN`, `BEDROCK_MODEL_ID`, `ALERT_TOPIC_ARN`, `REVIEWER_EMAIL`, and the protected `REVIEWER_PASSWORD` secret. `APPLICATION_DEPLOY_ENABLED` is a repository variable and remains absent or false until enrollment is complete. The CloudFront certificate must be in `us-east-1`.
 
