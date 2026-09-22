@@ -99,6 +99,19 @@ export function assertReceiptOwnership(
   }
 }
 
+export function isObsoleteDnsDelete(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    error.name === 'InvalidChangeBatch' &&
+    'message' in error &&
+    typeof error.message === 'string' &&
+    (error.message.includes('not found') ||
+      error.message.includes('values provided do not match the current values'))
+  );
+}
+
 export class DynamoLifecycleStateStore implements LifecycleStateStore {
   public constructor(
     private readonly database: DynamoDBDocumentClient,
@@ -401,16 +414,7 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
         }),
       );
     } catch (error) {
-      const missingDelete =
-        action === 'DELETE' &&
-        typeof error === 'object' &&
-        error !== null &&
-        'name' in error &&
-        error.name === 'InvalidChangeBatch' &&
-        'message' in error &&
-        typeof error.message === 'string' &&
-        error.message.includes('not found');
-      if (!missingDelete) throw error;
+      if (action !== 'DELETE' || !isObsoleteDnsDelete(error)) throw error;
     }
   }
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { assertReceiptOwnership } from './aws-preview.js';
+import { assertReceiptOwnership, isObsoleteDnsDelete } from './aws-preview.js';
 
 const receipt = {
   recordType: 'generation' as const,
@@ -31,4 +31,20 @@ test('factory.lifecycle.provider-ownership rejects every mismatched ownership di
   ]) {
     assert.throws(() => assertReceiptOwnership(receipt, ownership), /ownership/);
   }
+});
+
+test('generation cleanup leaves a replacement DNS value untouched', () => {
+  for (const message of [
+    'record set was not found',
+    'the values provided do not match the current values',
+  ]) {
+    assert.equal(
+      isObsoleteDnsDelete(Object.assign(new Error(message), { name: 'InvalidChangeBatch' })),
+      true,
+    );
+  }
+  assert.equal(
+    isObsoleteDnsDelete(Object.assign(new Error('access denied'), { name: 'AccessDenied' })),
+    false,
+  );
 });
