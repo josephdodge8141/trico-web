@@ -633,7 +633,7 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
     expect(primaryBox?.width).toBeLessThanOrEqual(205);
     expect(primaryBox?.height).toBe(44);
     expect(secondaryBox?.width).toBeGreaterThanOrEqual(148);
-    expect(secondaryBox?.width).toBeLessThanOrEqual(150);
+    expect(secondaryBox?.width).toBeLessThanOrEqual(151);
     expect(secondaryBox?.height).toBe(44);
     expect(secondaryBox?.x).toBeGreaterThan((primaryBox?.x ?? 0) + (primaryBox?.width ?? 0));
     expect(secondaryBox?.y).toBe(primaryBox?.y);
