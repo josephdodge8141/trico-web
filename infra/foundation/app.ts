@@ -28,6 +28,9 @@ const deliveryConfig = parseDeliveryConfig({
     app.node.tryGetContext('delivery:productionDomain') ?? exampleDeliveryConfig.productionDomain,
   sesIdentityDomain:
     app.node.tryGetContext('delivery:sesIdentityDomain') ?? exampleDeliveryConfig.sesIdentityDomain,
+  costAnomalyMonitorArn:
+    app.node.tryGetContext('delivery:costAnomalyMonitorArn') ??
+    exampleDeliveryConfig.costAnomalyMonitorArn,
   monthlyBudgetUsd:
     app.node.tryGetContext('delivery:monthlyBudgetUsd') ?? exampleDeliveryConfig.monthlyBudgetUsd,
   releaseRetentionDays:

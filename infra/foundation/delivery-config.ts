@@ -18,6 +18,9 @@ export const deliveryConfigSchema = z
     devDomain: z.string().regex(dnsName),
     productionDomain: z.string().regex(dnsName),
     sesIdentityDomain: z.string().regex(dnsName),
+    costAnomalyMonitorArn: z
+      .string()
+      .regex(/^arn:aws[a-zA-Z-]*:ce::\d{12}:anomalymonitor\/[A-Za-z0-9-]+$/),
     monthlyBudgetUsd: contextInteger(1, 10_000),
     releaseRetentionDays: contextInteger(1, 3_650),
   })
@@ -57,6 +60,8 @@ export const exampleDeliveryConfig: DeliveryConfig = {
   devDomain: 'dev.trico.example.com',
   productionDomain: 'trico.example.com',
   sesIdentityDomain: 'example.com',
+  costAnomalyMonitorArn:
+    'arn:aws:ce::123456789012:anomalymonitor/00000000-0000-0000-0000-000000000000',
   monthlyBudgetUsd: 50,
   releaseRetentionDays: 35,
 };

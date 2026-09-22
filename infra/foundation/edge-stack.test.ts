@@ -13,8 +13,11 @@ test('edge foundation creates separate DNS-validated dev and production certific
     }),
   );
   template.resourceCountIs('AWS::CertificateManager::Certificate', 2);
-  template.resourceCountIs('AWS::CE::AnomalyMonitor', 1);
+  template.resourceCountIs('AWS::CE::AnomalyMonitor', 0);
   template.resourceCountIs('AWS::CE::AnomalySubscription', 1);
+  template.hasResourceProperties('AWS::CE::AnomalySubscription', {
+    MonitorArnList: [exampleDeliveryConfig.costAnomalyMonitorArn],
+  });
   template.hasResourceProperties('AWS::CertificateManager::Certificate', {
     DomainName: 'dev.trico.example.com',
     ValidationMethod: 'DNS',
