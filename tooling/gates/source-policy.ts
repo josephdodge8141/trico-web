@@ -8,6 +8,7 @@ const SKIPPED_DIRECTORIES = new Set([
   '.claude',
   '.git',
   'artifacts',
+  'cdk.out',
   'dist',
   'node_modules',
 ]);
@@ -20,12 +21,23 @@ const BACKEND_LAYERS: Readonly<Record<string, number>> = {
   routes: 3,
 };
 const REQUIRED_PROJECTS = ['backend', 'frontend', 'infra', 'packages/zod', 'packages/cucumber'];
+const PAGE_STYLES = [
+  'construction.css',
+  'development.css',
+  'home.css',
+  'property-management.css',
+  'real-estate.css',
+  'storage.css',
+] as const;
 const ROOT_SOURCE_FILES = {
   backend: [
     'app.test.ts',
     'app.ts',
     'index.test.ts',
     'index.ts',
+    'lambda.ts',
+    'seed.ts',
+    'seed.test.ts',
     'shutdown-abort-failure-child.ts',
     'shutdown-child.ts',
   ],
@@ -43,6 +55,92 @@ const ROOT_SOURCE_FILES = {
 const SUPPRESSION = new RegExp(
   ['@ts-(?:ignore|expect-error|nocheck)', 'eslint' + '-disable'].join('|'),
 );
+const PAGE_SELECTOR = /\.(?:home|pm|re|co|storage|dev)-[\w-]+/g;
+const PAGE_LAYOUT_PROPERTIES = new Set([
+  'align-content',
+  'align-items',
+  'align-self',
+  'aspect-ratio',
+  'bottom',
+  'column-gap',
+  'display',
+  'flex',
+  'flex-basis',
+  'flex-direction',
+  'flex-flow',
+  'flex-grow',
+  'flex-shrink',
+  'flex-wrap',
+  'gap',
+  'grid',
+  'grid-area',
+  'grid-auto-columns',
+  'grid-auto-flow',
+  'grid-auto-rows',
+  'grid-column',
+  'grid-column-end',
+  'grid-column-start',
+  'grid-row',
+  'grid-row-end',
+  'grid-row-start',
+  'grid-template',
+  'grid-template-areas',
+  'grid-template-columns',
+  'grid-template-rows',
+  'height',
+  'inset',
+  'inset-block',
+  'inset-block-end',
+  'inset-block-start',
+  'inset-inline',
+  'inset-inline-end',
+  'inset-inline-start',
+  'justify-content',
+  'justify-items',
+  'justify-self',
+  'left',
+  'margin',
+  'margin-block',
+  'margin-block-end',
+  'margin-block-start',
+  'margin-bottom',
+  'margin-inline',
+  'margin-inline-end',
+  'margin-inline-start',
+  'margin-left',
+  'margin-right',
+  'margin-top',
+  'max-height',
+  'max-width',
+  'min-height',
+  'min-width',
+  'object-fit',
+  'object-position',
+  'order',
+  'overflow',
+  'overflow-x',
+  'overflow-y',
+  'padding',
+  'padding-block',
+  'padding-block-end',
+  'padding-block-start',
+  'padding-bottom',
+  'padding-inline',
+  'padding-inline-end',
+  'padding-inline-start',
+  'padding-left',
+  'padding-right',
+  'padding-top',
+  'place-content',
+  'place-items',
+  'place-self',
+  'position',
+  'right',
+  'row-gap',
+  'top',
+  'width',
+  'z-index',
+]);
 
 export async function checkSourcePolicy(root: string): Promise<string[]> {
   const files = await sourceFiles(root);
@@ -59,8 +157,110 @@ export async function checkSourcePolicy(root: string): Promise<string[]> {
       errors.push(`${entry.file} contains a TypeScript or ESLint suppression directive`);
     }
   }
+  errors.push(...(await pageStyleColorErrors(root)));
+  errors.push(...(await sharedStyleErrors(root)));
+  errors.push(...(await fontContractErrors(root)));
   errors.push(...(await projectCoverageErrors(root, files)));
   return errors.sort((left, right) => left.localeCompare(right));
+}
+
+async function sharedStyleErrors(root: string): Promise<string[]> {
+  const errors: string[] = [];
+  const shared = await optionalFile(root, 'frontend/styles.css');
+  if (shared !== undefined) {
+    const selectors = [...new Set(shared.match(PAGE_SELECTOR) ?? [])].sort();
+    if (selectors.length > 0) {
+      errors.push(`frontend/styles.css contains page-prefixed selectors: ${selectors.join(', ')}`);
+    }
+  }
+  for (const fileName of PAGE_STYLES) {
+    const file = path.posix.join('frontend/pages', fileName);
+    const source = await optionalFile(root, file);
+    if (source === undefined) continue;
+    const properties = cssProperties(source).filter(
+      (property) => !PAGE_LAYOUT_PROPERTIES.has(property),
+    );
+    const unique = [...new Set(properties)].sort();
+    if (unique.length > 0) {
+      errors.push(`${file} contains non-layout declarations: ${unique.join(', ')}`);
+    }
+  }
+  return errors;
+}
+
+async function fontContractErrors(root: string): Promise<string[]> {
+  const source = await optionalFile(root, 'frontend/main.tsx');
+  if (source === undefined) return [];
+  const imports = [...source.matchAll(/@fontsource\/([^/'"]+)\/latin-(\d+)\.css/g)].map(
+    (match) => ({ family: match[1] ?? '', weight: match[2] ?? '' }),
+  );
+  const errors: string[] = [];
+  if (imports.some(({ family }) => family !== 'open-sans' && family !== 'lato')) {
+    errors.push('frontend/main.tsx must not load typefaces other than Open Sans and Lato');
+  }
+  const weights = imports
+    .filter(({ family }) => family === 'open-sans')
+    .map(({ weight }) => weight)
+    .sort();
+  if (weights.join(',') !== '400,500,600,700') {
+    errors.push('frontend/main.tsx must load Open Sans weights 400, 500, 600, and 700 exactly');
+  }
+  const headingWeights = imports
+    .filter(({ family }) => family === 'lato')
+    .map(({ weight }) => weight)
+    .sort();
+  if (headingWeights.join(',') !== '400,700') {
+    errors.push('frontend/main.tsx must load Lato weights 400 and 700 exactly');
+  }
+  return errors;
+}
+
+async function optionalFile(root: string, file: string): Promise<string | undefined> {
+  try {
+    return await readFile(path.join(root, file), 'utf8');
+  } catch {
+    return undefined;
+  }
+}
+
+function cssProperties(source: string): string[] {
+  const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, '');
+  const properties: string[] = [];
+  for (const block of withoutComments.matchAll(/\{([^{}]*)\}/g)) {
+    for (const declaration of (block[1] ?? '').matchAll(/(?:^|;)\s*([\w-]+)\s*:/g)) {
+      const property = declaration[1];
+      if (property !== undefined) properties.push(property);
+    }
+  }
+  return properties;
+}
+
+async function pageStyleColorErrors(root: string): Promise<string[]> {
+  const errors: string[] = [];
+  for (const fileName of PAGE_STYLES) {
+    const file = path.posix.join('frontend/pages', fileName);
+    let source: string;
+    try {
+      source = await readFile(path.join(root, file), 'utf8');
+    } catch {
+      continue;
+    }
+    const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, '');
+    const ownsColor =
+      /#[\da-f]{3,8}\b/i.test(withoutComments) ||
+      /\b(?:rgb|rgba|hsl|hsla|lab|lch|oklab|oklch|color)\(/i.test(withoutComments) ||
+      /(?<![-\w])(?:white|black|transparent)(?![-\w])/i.test(withoutComments) ||
+      /--(?:home|pm|re|co|sp|storage|dev)-(?:primary|navy|gold|blue|muted|tint|border)\b/.test(
+        withoutComments,
+      );
+    if (ownsColor) errors.push(`${file} contains page-owned color values or aliases`);
+    const ownsTypography =
+      /(?:^|[;{])\s*(?:color|font(?:-[\w-]+)?|line-height|letter-spacing|word-spacing|text-align|text-transform|text-decoration(?:-[\w-]+)?|text-indent|text-shadow|white-space|overflow-wrap|word-break|hyphens)\s*:/m.test(
+        withoutComments,
+      );
+    if (ownsTypography) errors.push(`${file} contains page-owned typography declarations`);
+  }
+  return errors;
 }
 
 async function sourceFiles(root: string, relative = ''): Promise<string[]> {
@@ -107,7 +307,10 @@ function knownDirectoryError(file: string): string[] {
   if (parts[0] === 'infra')
     return knownChild(file, parts, ROOT_SOURCE_FILES.infra, ['foundation', 'runtime']);
   if (parts[0] === 'packages' && parts[1] === 'zod')
-    return knownChild(file, parts.slice(1), ROOT_SOURCE_FILES['packages/zod'], ['schemas']);
+    return knownChild(file, parts.slice(1), ROOT_SOURCE_FILES['packages/zod'], [
+      'schemas',
+      'seeds',
+    ]);
   if (parts[0] === 'packages' && parts[1] === 'cucumber')
     return knownChild(file, parts.slice(1), ROOT_SOURCE_FILES['packages/cucumber'], ['catalog']);
   if (parts[0] === 'tooling' && (parts[1] === 'gates' || parts[1] === 'factory')) return [];

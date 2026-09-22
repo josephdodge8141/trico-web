@@ -1,0 +1,69 @@
+name: Preview cleanup
+
+on:
+  pull_request_target:
+    types: [closed]
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+permissions: {}
+concurrency:
+  group: preview-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: preview
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.PREVIEW_DEPLOY_ROLE_ARN }}
+      - name: Remove closed, expired, and failed-startup generations
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FOUNDATION_STACK: ${{ vars.PREVIEW_FOUNDATION_STACK }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY_ID: ${{ github.event.repository.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          outputs="$(aws cloudformation describe-stacks --stack-name "$FOUNDATION_STACK" --query 'Stacks[0].Outputs' --output json)"
+          output() { jq -r --arg key "$1" '.[] | select(.OutputKey == $key) | .OutputValue' <<<"$outputs"; }
+          export PREVIEW_CLUSTER_ARN="$(output ClusterArn)"
+          export PREVIEW_SUBNET_IDS="$(output PublicSubnetIds)"
+          export PREVIEW_SECURITY_GROUP_ID="$(output TaskSecurityGroupId)"
+          export PREVIEW_TASK_EXECUTION_ROLE_ARN="$(output TaskExecutionRoleArn)"
+          export PREVIEW_TASK_ROLE_ARN="$(output TaskRoleArn)"
+          export PREVIEW_LOG_GROUP_NAME="$(output LogGroupName)"
+          export PREVIEW_STATE_TABLE_NAME="$(output StateTableName)"
+          export PREVIEW_ZONE_ID="$(output PreviewZoneId)"
+          export PREVIEW_ZONE_NAME="$(output PreviewZoneName)"
+          export PREVIEW_EDITOR_SECRET_ARN="$(output PreviewEditorSecretArn)"
+          export COMMAND_ID="cleanup-${WORKFLOW_RUN_ID}-${WORKFLOW_RUN_ATTEMPT}"
+          export EVENT_SEQUENCE="${WORKFLOW_RUN_ID}0"
+          if test "$EVENT_NAME" = pull_request_target; then
+            node --import tsx infra/runtime/preview-cli.ts close
+          else
+            node --import tsx infra/runtime/preview-cli.ts sweep
+          fi
+      - name: Notify preview cleanup failure
+        if: failure()
+        env:
+          ALERT_TOPIC_ARN: ${{ vars.ALERT_TOPIC_ARN }}
+        run: aws sns publish --topic-arn "$ALERT_TOPIC_ARN" --subject 'TriCo preview cleanup failed' --message "Preview cleanup workflow ${GITHUB_RUN_ID} failed for ${GITHUB_REPOSITORY}." >/dev/null

@@ -24,7 +24,10 @@ test('public factory exports sorted tracked source without build artifacts', asy
   try {
     await mkdir(path.join(source, 'backend'), { recursive: true });
     await writeFile(path.join(source, 'README.md'), '# fixture\n');
-    await writeFile(path.join(source, 'backend', 'index.ts'), 'export {};\n');
+    await writeFile(
+      path.join(source, 'backend', 'index.ts'),
+      "export const previewPath = '/api/v1/pages/home/preview';\n",
+    );
     await execFileAsync('git', ['init', '--quiet'], { cwd: source });
     await execFileAsync('git', ['add', 'README.md', 'backend/index.ts'], { cwd: source });
     await execFileAsync(

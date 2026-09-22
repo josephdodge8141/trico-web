@@ -7,7 +7,7 @@
     "build": "tsc -b",
     "dev": "tsx index.ts",
     "start": "node dist/index.js",
-    "test": "node --import tsx --test app.test.ts index.test.ts",
+    "test": "node --import tsx --test app.test.ts index.test.ts seed.test.ts",
     "test:behaviors": "node --import tsx ../packages/cucumber/catalog/run-layer.ts backend steps/application.steps.ts"
   },
   "exports": {
@@ -22,17 +22,31 @@
     "./config/connections": {
       "types": "./dist/config/connections.d.ts",
       "default": "./dist/config/connections.js"
+    },
+    "./lambda": {
+      "types": "./dist/lambda.d.ts",
+      "default": "./dist/lambda.js"
     }
   },
   "dependencies": {
+    "@app/schemas": "0.1.0",
+    "@aws-crypto/sha256-js": "5.2.0",
+    "@aws-sdk/client-bedrock-runtime": "3.1126.0",
+    "@aws-sdk/client-dynamodb": "3.1126.0",
+    "@aws-sdk/client-s3": "3.1126.0",
+    "@aws-sdk/client-sesv2": "3.1126.0",
+    "@aws-sdk/lib-dynamodb": "3.1126.0",
+    "@aws-sdk/s3-request-presigner": "3.1126.0",
+    "@codegenie/serverless-express": "4.17.0",
+    "@node-rs/argon2": "2.0.2",
+    "@smithy/protocol-http": "5.6.2",
+    "@smithy/signature-v4": "5.7.3",
     "express": "5.2.1",
-    "express-session": "1.19.0",
     "helmet": "8.3.0",
-    "memorystore": "1.6.8",
-    "openid-client": "6.8.7",
-    "@app/schemas": "0.1.0"
+    "nodemailer": "10.0.1"
   },
   "devDependencies": {
-    "@app/behaviors": "0.1.0"
+    "@app/behaviors": "0.1.0",
+    "@types/nodemailer": "7.0.1"
   }
 }

@@ -12,9 +12,10 @@ test('the canonical catalog expands examples and preserves backgrounds and argum
   const invalidResult = catalog.cases.find(
     (catalogCase) => catalogCase.id === 'factory.accounting-invalid-outcome::missing-result',
   );
-  const invalidSignup = catalog.cases.find(
-    (catalogCase) => catalogCase.id === 'auth.signup-invalid::missing-email',
+  const invalidLogin = catalog.cases.find(
+    (catalogCase) => catalogCase.id === 'auth.login-nondisclosing::wrong-password',
   );
+  const publicHealth = catalog.cases.find((catalogCase) => catalogCase.id === 'public.health');
 
   assert.ok(invalidResult);
   assert.equal(
@@ -29,20 +30,18 @@ test('the canonical catalog expands examples and preserves backgrounds and argum
   assert.equal(invalidResult.steps[2]?.argument?.content, 'no linked result');
   assert.equal(invalidResult.example?.name, 'Invalid execution results');
   assert.equal(invalidResult.example?.values.reported_condition, 'no linked result');
-  assert.ok(invalidSignup);
-  assert.equal(invalidSignup.steps[2]?.argument?.type, 'dataTable');
-  assert.deepEqual(invalidSignup.steps[2]?.argument?.rows, [
-    ['field', 'value'],
-    ['email', '[blank]'],
-  ]);
+  assert.ok(invalidLogin);
+  assert.equal(invalidLogin.example?.values.credential_case, 'an incorrect password');
+  assert.equal(publicHealth?.steps[3]?.argument?.type, 'docString');
+  assert.equal(publicHealth?.steps[3]?.argument?.content, '{"status":"ok"}');
   assert.equal(
-    catalog.cases.filter((catalogCase) => catalogCase.scenarioId === 'auth.signup-invalid').length,
-    2,
+    catalog.cases.filter((catalogCase) => catalogCase.scenarioId === 'auth.login-nondisclosing')
+      .length,
+    3,
   );
   assert.equal(
-    catalog.cases.find((catalogCase) => catalogCase.id === 'auth.callback-rejection::invalid-state')
-      ?.noops.frontend,
-    'Callback protocol invariants are exercised at the backend provider boundary rather than through the hosted provider UI.',
+    invalidLogin.noops.frontend,
+    'The nondisclosing browser message is exercised by Compose Playwright and both credential cases are exercised by the backend adapter.',
   );
 });
 
@@ -54,7 +53,52 @@ test('canonical feature files are the catalog source rather than copied text', a
 
   assert.deepEqual(
     catalog.cases.map((catalogCase) => catalogCase.id),
-    ['public.hello', 'public.health'],
+    [
+      'public.pages::home',
+      'public.pages::property-management',
+      'public.pages::real-estate',
+      'public.pages::construction',
+      'public.pages::storage',
+      'public.pages::development',
+      'public.manifest-switch',
+      'public.home-mounted-composition',
+      'public.home-division-blue-treatment',
+      'public.home-anniversary-presentation',
+      'public.semantic-highlight-colors',
+      'public.division-hero-media-contract',
+      'public.shared-section-rhythm',
+      'public.shared-careers',
+      'public.review-platform-contract',
+      'public.development-measured-parity',
+      'public.development-supporting-surfaces',
+      'public.development-contact-form-presentation',
+      'public.development-partner-composition',
+      'public.development-about-composition',
+      'public.development-footer-presentation',
+      'public.shared-form-footer-geometry',
+      'public.accessible-select-field',
+      'public.home-broad-parity',
+      'public.property-management-broad-parity',
+      'public.profile-card-contract',
+      'public.property-management-mounted-composition',
+      'public.real-estate-card-geometry',
+      'public.real-estate-listing-gallery',
+      'public.real-estate-inverse-surfaces',
+      'public.construction-collection-geometry',
+      'public.construction-residual-composition',
+      'public.construction-footer-presentation',
+      'public.construction-bid-inverse-presentation',
+      'public.storage-about-rhythm',
+      'public.storage-centered-logo-masthead',
+      'public.storage-mounted-composition',
+      'public.dedicated-division-composition::real-estate',
+      'public.dedicated-division-composition::construction',
+      'public.dedicated-division-composition::development',
+      'public.construction-empty',
+      'public.visual-baseline',
+      'public.visual-difference-audit',
+      'public.health',
+    ],
   );
 });
 

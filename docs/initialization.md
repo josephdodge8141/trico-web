@@ -1,13 +1,30 @@
 # Initialization
 
-A generated repository starts locally with `docker compose up --build`; no `.env` copy or cloud credentials are required for the public Hello World and health route. Open `http://app.localhost:8088` and request `/api/v1/health` through the same origin.
+## Local
 
-For a shipped-factory proof, run `npm ci`, then `npm run check` and `npm run proof:clean-clone`. The latter exports only sorted Git-tracked files to a temporary clean clone, installs from the lockfile, and runs the root checks. Run `npm run proof:docker` when Docker is available to add Compose, real Keycloak-backed authentication behavior, and real-stack Playwright coverage.
+No AWS credentials are needed locally. Start the application with:
 
-Cloud preview initialization will be a separate, explicit operation. The current repository can validate and synthesize the generic permanent foundation with `npm run synth:foundation`; it does not deploy, inspect an AWS account, delegate DNS, enroll GitHub, configure OIDC, verify a Bedrock model or prove a live preview.
+```sh
+docker compose up --build
+```
 
-The initialization adapter must eventually validate repository and account configuration, inspect or create a compatible foundation, enroll the immutable repository identity, configure narrowly scoped GitHub OIDC roles, verify the existing preview child hosted zone and selected Bedrock model, and prove an actual preview before installing the required `factory/preview` status. See `aws-preview-adapter.md` for the resource and permission boundary.
+Open `http://app.localhost:8088` for the site and `http://app.localhost:8088/__mailpit/` for captured email. The local Mailpit basic-auth credentials are `local-editor` / `local-mailpit-password`; they protect only disposable local email and must never be reused in a deployed environment.
 
-The public template contains generic `.env.example` values. Account IDs, hosted-zone IDs, repository settings and synthetic preview credentials belong in repository variables, environments or secrets. Rerunning initialization must inspect and reuse compatible resources rather than create duplicates.
+The seed service invokes `backend/dist/seed.js`. It is idempotent and refuses to overwrite nonmatching existing state. DynamoDB and MinIO named volumes persist across ordinary restarts; `docker compose down --volumes` deliberately removes them.
 
-Use `.claude/skills/initialize/SKILL.md` when it exists in a generated repository. It records the exact local commands and evidence for this shipped version. It does not enroll GitHub, create AWS resources, configure DNS or deploy production.
+## AWS synthesis
+
+Install the locked dependencies and run `npx cdk synth --quiet`. This creates templates for the delivery, edge, preview, dev and production stacks without account lookup. The example repository, image, email and domains are syntactically valid placeholders and are not deployable configuration.
+
+For an environment-specific application synthesis, supply an immutable backend image digest and deployment configuration:
+
+```sh
+npx cdk synth TricoWeb-dev --quiet \
+  -c application:dev:backendImageUri=111111111111.dkr.ecr.us-east-1.amazonaws.com/trico-web-backend@sha256:REPLACE_WITH_64_HEX \
+  -c application:dev:publicOrigin=https://dev.example.com \
+  -c application:dev:sesIdentityDomain=example.com \
+  -c application:dev:bedrockModelId=REPLACE_WITH_MODEL_ID \
+  -c application:dev:alertTopicArn=arn:aws:sns:us-east-2:111111111111:trico-web-operations
+```
+
+Synthesis does not verify SES identity, Bedrock availability, DNS, IAM enrollment or deploy resources.

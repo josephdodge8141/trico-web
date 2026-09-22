@@ -21,5 +21,6 @@ COPY packages/cucumber/package.json ./packages/cucumber/package.json
 RUN npm ci --omit=dev
 COPY --from=build /app/backend/dist ./backend/dist
 COPY --from=build /app/packages/zod/dist ./packages/zod/dist
+COPY --from=build /app/packages/zod/seeds ./packages/zod/seeds
 EXPOSE 3000
 CMD ["node", "backend/dist/index.js"]

@@ -1,0 +1,564 @@
+@layer pages {
+  .co-page {
+    min-width: 320px;
+  }
+  .co-page h1,
+  .co-page h2,
+  .co-page h3 {
+    margin-top: 0;
+  }
+  .co-entity-slot,
+  .co-entity-slot > div:not([data-editor-state]):not([data-collection-layout='fill']),
+  .co-category [data-entity-boundary]:not([data-editor-state]),
+  .co-page .editable-collection-items > div:not(.editable-item) {
+    display: contents;
+  }
+  .co-hero-entity-slot > .editable-boundary > .editable-boundary-controls {
+    z-index: 75;
+    top: 156px;
+  }
+  .co-card-grid .editable-collection-items,
+  .co-plan-grid .editable-collection-items,
+  .co-team-grid .editable-collection-items,
+  .co-review-grid .editable-collection-items,
+  .co-pro-stats .editable-collection-items,
+  .co-checks .editable-collection-items {
+    display: grid;
+    gap: inherit;
+    grid-template-columns: inherit;
+  }
+  .co-plan-grid .editable-collection-items {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  .co-team-grid .editable-collection-items {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  .co-card-grid .editable-collection-items,
+  .co-review-grid .editable-collection-items {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .co-pro-stats .editable-collection-items {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .co-checks .editable-collection-items {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .co-project-grid .editable-collection-items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .co-project-card {
+    overflow: hidden;
+  }
+  .co-project-photo {
+    width: 100%;
+    height: 220px;
+    min-height: 220px;
+    display: grid;
+    place-items: center;
+    object-fit: cover;
+  }
+  .co-project-photo svg {
+    width: 48px;
+    height: 48px;
+  }
+  .co-project-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
+    margin: 1rem 0 0;
+  }
+  .co-project-details dd {
+    margin: 0.15rem 0 0;
+  }
+  .co-container {
+    width: min(100% - 2rem, 1400px);
+    margin-inline: auto;
+  }
+  .co-narrow {
+    max-width: 960px;
+  }
+  .co-anniversary {
+    position: fixed;
+    z-index: 60;
+    inset: 0 0 auto;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+  }
+  .co-header {
+    position: fixed;
+    z-index: 50;
+    inset: 52px 0 auto;
+  }
+  .co-header-inner {
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .co-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .co-brand img {
+    width: auto;
+    height: 56px;
+    object-fit: contain;
+  }
+  .co-brand strong {
+    margin-top: 0.1rem;
+  }
+  .co-header nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.7rem, 1.35vw, 1.7rem);
+  }
+  .co-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .co-header-actions > a:first-child {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .co-menu,
+  .co-mobile-nav {
+    display: none;
+  }
+  .co-button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+  }
+  .co-section {
+    padding: 96px 0;
+  }
+  .co-heading {
+    max-width: 780px;
+    margin: 0 auto 56px;
+  }
+  .co-heading > span,
+  .co-about-pill {
+    display: inline-flex;
+    padding: 0.45rem 0.95rem;
+  }
+  .co-heading h2 {
+    margin: 1rem 0 1.25rem;
+  }
+  .co-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .co-card i,
+  .co-contact-list i {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1.2rem;
+  }
+  .co-card i svg {
+    width: 25px;
+  }
+  .co-card h3 {
+    margin-bottom: 0.7rem;
+  }
+  .co-sector-grid {
+    max-width: 1150px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: auto;
+  }
+  .co-sector {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+  }
+  .co-sector h3 {
+    margin-bottom: 0.4rem;
+  }
+  .co-sector p {
+    flex: 1;
+    margin: 0 0 1rem;
+  }
+  .co-sector span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .co-header-actions svg,
+  .co-button svg,
+  .co-pills svg,
+  .co-sector svg {
+    width: 1rem;
+  }
+  .co-notice {
+    max-width: 896px;
+    display: flex;
+    gap: 1rem;
+    margin: 0 auto 3rem;
+    padding: 1.25rem;
+  }
+  .co-notice > svg {
+    flex: 0 0 auto;
+  }
+  .co-subheading {
+    max-width: 1024px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 auto 1.5rem;
+  }
+  .co-plan-grid {
+    max-width: 1024px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin: auto;
+  }
+  .co-plan header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .co-plan header i {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+  }
+  .co-plan b {
+    margin-left: auto;
+    padding: 0.25rem 0.55rem;
+  }
+  .co-plan > p {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .co-plan > p svg {
+    width: 0.95rem;
+  }
+  .co-plan button {
+    min-height: 36px;
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.75rem;
+  }
+  .co-plan button svg {
+    width: 0.9rem;
+  }
+  .co-plan-access {
+    width: min(100%, 560px);
+    margin: 3rem auto 0;
+    padding: 2rem;
+  }
+  .co-pro-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 4rem;
+    padding: 2rem;
+  }
+  .co-team-grid {
+    max-width: 896px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin: auto;
+  }
+  .co-project-card > div:last-child,
+  .co-plan,
+  .co-team-card {
+    padding: 1.5rem;
+  }
+  .co-team-card img {
+    width: 128px;
+    height: 128px;
+    object-fit: cover;
+    object-position: top;
+  }
+  .co-team-card h3 {
+    margin: 1rem 0 0.25rem;
+  }
+  .co-team-card a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+  .co-team-card svg {
+    width: 0.85rem;
+  }
+  .co-about-art {
+    position: relative;
+    aspect-ratio: 4/3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .co-about-art aside {
+    position: absolute;
+    right: -1.5rem;
+    bottom: -1.5rem;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+  }
+  .co-about h2 {
+    margin: 1rem 0 1.5rem;
+  }
+  .co-checks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin: 2rem 0;
+  }
+  .co-checks span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .co-checks svg {
+    width: 1.1rem;
+  }
+  .co-form {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .co-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .co-form label {
+    display: grid;
+    gap: 0.45rem;
+  }
+  .co-form input,
+  .co-form select,
+  .co-form textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.7rem 0.8rem;
+  }
+  .co-heading p,
+  .co-card p,
+  .co-notice h3,
+  .co-notice p,
+  .co-plan h3,
+  .co-form-success {
+    margin: 0;
+  }
+  .co-about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 4rem;
+  }
+  .co-review-grid {
+    max-width: 1024px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: auto;
+  }
+  .co-review-footer {
+    margin: 2.5rem auto 0;
+  }
+  .co-contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+  .co-contact .co-heading {
+    margin: 0 0 2rem;
+  }
+  .co-contact-list {
+    display: grid;
+    gap: 1.35rem;
+  }
+  .co-contact-list p {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 0;
+  }
+  .co-contact-list i {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+  .co-card-grid,
+  .co-plan-grid,
+  .co-team-grid,
+  .co-review-grid,
+  .co-pro-stats,
+  .co-checks,
+  .co-pro-stats strong,
+  .co-pro-stats span,
+  .co-team-card strong,
+  .co-contact-list strong,
+  .co-contact-list small,
+  .co-contact-list a {
+    display: block;
+  }
+  .co-card,
+  .co-bid .co-form,
+  .co-contact-form {
+    padding: 2rem;
+  }
+  .co-footer {
+    padding: 64px 0 0;
+  }
+  .co-footer-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr 0.8fr;
+    gap: 4rem;
+  }
+  .co-footer img {
+    height: 48px;
+  }
+  .co-footer nav,
+  .co-footer nav .editable-collection-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .co-legal {
+    margin: 3rem auto 0 !important;
+    padding: 2rem 1rem;
+  }
+  .co-category main {
+    min-height: 70vh;
+    padding: 212px 0 96px;
+  }
+  .co-category-back {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  .co-category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 0 0 3rem;
+  }
+  .co-category-tabs a {
+    padding: 0.55rem 1.15rem;
+  }
+  .co-project-empty {
+    max-width: 760px;
+    margin: auto;
+    padding: 4rem 2rem;
+  }
+  .co-project-empty svg {
+    width: 3rem;
+  }
+  @media (max-width: 1180px) {
+    .co-header nav,
+    .co-header-actions {
+      display: none;
+    }
+    .co-menu {
+      display: grid;
+      place-items: center;
+      padding: 0.5rem;
+    }
+    .co-mobile-nav {
+      display: flex !important;
+      align-items: stretch !important;
+      flex-direction: column;
+      gap: 0 !important;
+      padding: 0 1rem 1.25rem;
+    }
+    .co-mobile-nav a {
+      padding: 0.65rem 0;
+    }
+  }
+  @media (max-width: 1023px) {
+    .co-sector-grid,
+    .co-card-grid,
+    .co-card-grid .editable-collection-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .co-about-grid,
+    .co-contact-grid {
+      grid-template-columns: 1fr;
+    }
+    .co-about-art {
+      max-width: 720px;
+      width: 100%;
+      margin: auto;
+    }
+  }
+  @media (max-width: 767px) {
+    .co-header {
+      top: 48px;
+    }
+    .co-header-inner {
+      height: 84px;
+    }
+    .co-anniversary,
+    .co-brand img {
+      height: 48px;
+    }
+    .co-section {
+      padding: 72px 0;
+    }
+    .co-heading {
+      margin-bottom: 42px;
+    }
+    .co-pro-stats,
+    .co-pro-stats .editable-collection-items {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .co-card-grid,
+    .co-plan-grid,
+    .co-team-grid,
+    .co-review-grid,
+    .co-card-grid .editable-collection-items,
+    .co-plan-grid .editable-collection-items,
+    .co-team-grid .editable-collection-items,
+    .co-review-grid .editable-collection-items,
+    .co-project-grid .editable-collection-items,
+    .co-sector-grid,
+    .co-form-row,
+    .co-checks,
+    .co-checks .editable-collection-items {
+      grid-template-columns: 1fr;
+    }
+    .co-about-art aside {
+      right: 0.75rem;
+      bottom: -0.75rem;
+    }
+    .co-footer-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .co-category main {
+      padding-top: 176px;
+    }
+  }
+}

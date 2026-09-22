@@ -1,0 +1,238 @@
+@layer pages {
+  .storage-page {
+    min-width: 320px;
+  }
+  .storage-entity-slot {
+    display: contents;
+  }
+  .storage-hero-entity-slot > .editable-boundary > .editable-boundary-controls {
+    z-index: 75;
+    top: 156px;
+  }
+  .storage-header img {
+    height: 64px;
+    width: auto;
+  }
+  .storage-mobile-nav {
+    position: fixed;
+    z-index: 49;
+    top: 148px;
+    right: 0;
+    left: 0;
+    display: grid;
+    padding: 1rem;
+  }
+  .storage-mobile-nav a {
+    padding: 0.75rem;
+  }
+  .storage-notice {
+    margin: 148px 0 0;
+    padding: 0.6rem;
+  }
+  .storage-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: max-content;
+    padding: 0.45rem 0.9rem;
+  }
+  .storage-promise {
+    margin: 0.5rem 0 1rem;
+  }
+  .storage-about a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.7rem 1.1rem;
+  }
+  .storage-section {
+    padding-block: 6rem;
+  }
+  .storage-section-heading {
+    margin: 0 auto 4rem;
+  }
+  .storage-section-heading span {
+    display: inline-block;
+    padding: 0.45rem 0.9rem;
+  }
+  .storage-review-card > span:first-child {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+  }
+  .storage-about-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 5rem;
+  }
+  .storage-about {
+    padding: 6rem max(1rem, calc((100vw - 1400px) / 2));
+  }
+  .storage-about-mark {
+    position: relative;
+    aspect-ratio: 4/3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .storage-about-mark aside {
+    position: absolute;
+    right: -1.5rem;
+    bottom: -1.5rem;
+    display: grid;
+    padding: 1.25rem;
+  }
+  .storage-section-heading h2,
+  .storage-about h2 {
+    margin: 1rem 0;
+  }
+  .storage-about a {
+    margin-top: 0.5rem;
+  }
+  .storage-reviews .editable-collection-items {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: auto;
+  }
+  .storage-contact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+  .storage-contact .storage-section-heading {
+    margin: 0 0 2rem;
+  }
+  .storage-contact-details {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .storage-contact-details > div {
+    display: flex;
+    gap: 1rem;
+  }
+  .storage-contact-details > div > svg {
+    width: 48px;
+    height: 48px;
+    padding: 13px;
+  }
+  .storage-contact-details p {
+    display: grid;
+    margin: 0;
+  }
+  .storage-contact-form {
+    display: grid;
+    gap: 1rem;
+    padding: 2rem;
+  }
+  .storage-contact-form h3 {
+    margin: 0 0 0.5rem;
+  }
+  .storage-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .storage-contact-form label {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .storage-contact-form input,
+  .storage-contact-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+  }
+  .storage-contact-form button {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .storage-banner svg,
+  .storage-contact-form button svg {
+    width: 1rem;
+  }
+  .storage-footer {
+    padding: 4rem max(1rem, calc((100vw - 1400px) / 2)) 2rem;
+  }
+  .storage-footer-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 4rem;
+  }
+  .storage-footer img {
+    height: 64px;
+    max-width: 100%;
+    object-fit: contain;
+  }
+  .storage-footer address {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .storage-footer address a,
+  .storage-footer-link,
+  .storage-branding-option {
+    display: block;
+    padding: 0.25rem 0;
+  }
+  .storage-footer > small {
+    display: block;
+    margin-top: 3rem;
+    padding-top: 2rem;
+  }
+  .storage-footer .editable-collection-items {
+    display: grid;
+  }
+  @media (max-width: 1023px) {
+    .storage-about-layout,
+    .storage-contact {
+      grid-template-columns: 1fr;
+    }
+    .storage-footer-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .storage-mobile-nav {
+      display: none;
+    }
+  }
+  @media (max-width: 639px) {
+    .storage-header {
+      height: 82px;
+    }
+    .storage-header img {
+      height: 48px;
+    }
+    .storage-mobile-nav {
+      top: 134px;
+    }
+    .storage-about-mark aside {
+      right: 0.75rem;
+      bottom: -1rem;
+    }
+    .storage-section,
+    .storage-about,
+    .storage-contact {
+      padding: 4.5rem 1rem;
+    }
+    .storage-reviews .editable-collection-items,
+    .storage-form-row {
+      grid-template-columns: 1fr;
+    }
+    .storage-footer {
+      padding: 3rem 1rem 2rem;
+    }
+    .storage-footer-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+}

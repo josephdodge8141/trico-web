@@ -8,7 +8,7 @@ The React application, top-level pages and browser acceptance support.
 
 Keep most feature behavior in pages and validate every API response in services.
 
-Do not store provider tokens or replace real Keycloak with a fake auth UI in acceptance.
+Do not store browser tokens. Exercise the real TriCo cookie, origin, CSRF, DynamoDB Local, and Mailpit flows in acceptance.
 
 ## Working method
 

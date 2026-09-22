@@ -1,0 +1,157 @@
+name: Trusted preview admission
+
+on:
+  workflow_run:
+    workflows: ['Pull request candidate']
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: trusted-preview-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+jobs:
+  admit:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request_target' &&
+      github.event.workflow_run.pull_requests[0].number != null
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: preview
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: write
+      statuses: write
+    steps:
+      - name: Checkout reviewed control source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Download candidate artifacts without executing them
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: preview-candidate-${{ github.event.workflow_run.pull_requests[0].number }}-${{ github.event.workflow_run.head_sha }}
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: candidate
+      - name: Verify run, attempt, repository, PR and candidate identities
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPOSITORY_ID: ${{ github.event.repository.id }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          cd candidate
+          sha256sum --check artifact-sha256.txt
+          test "$(jq -r .candidateSha admission.json)" = "$CANDIDATE_SHA"
+          test "$(jq -r .repositoryId admission.json)" = "$REPOSITORY_ID"
+          test "$(jq -r .pullRequestNumber admission.json)" = "$PULL_REQUEST_NUMBER"
+          test "$(jq -r .workflowRunId admission.json)" = "$WORKFLOW_RUN_ID"
+          test "$(jq -r .workflowRunAttempt admission.json)" = "$WORKFLOW_RUN_ATTEMPT"
+      - name: Require maintainer admission for fork previews
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          if test "$HEAD_REPOSITORY" != "$GITHUB_REPOSITORY"; then
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels" --jq '.[].name' | grep -Fx preview-approved
+          fi
+      - name: Configure narrowly scoped preview identity
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.PREVIEW_DEPLOY_ROLE_ARN }}
+      - name: Load and publish candidate images without running them
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd
+        id: ecr
+      - id: publish
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          BACKEND_REPOSITORY: ${{ vars.PREVIEW_BACKEND_REPOSITORY }}
+          FRONTEND_REPOSITORY: ${{ vars.PREVIEW_FRONTEND_REPOSITORY }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          gzip -dc candidate/backend-image.tar.gz | docker load
+          gzip -dc candidate/frontend-image.tar.gz | docker load
+          tag="pr-${PULL_REQUEST_NUMBER}-${CANDIDATE_SHA}-${WORKFLOW_RUN_ID}-${WORKFLOW_RUN_ATTEMPT}"
+          docker tag "trico-candidate-backend:${CANDIDATE_SHA}" "${REGISTRY}/${BACKEND_REPOSITORY}:${tag}"
+          docker tag "trico-candidate-frontend:${CANDIDATE_SHA}" "${REGISTRY}/${FRONTEND_REPOSITORY}:${tag}"
+          docker push "${REGISTRY}/${BACKEND_REPOSITORY}:${tag}"
+          docker push "${REGISTRY}/${FRONTEND_REPOSITORY}:${tag}"
+          backend_digest="$(aws ecr describe-images --repository-name "$BACKEND_REPOSITORY" --image-ids "imageTag=${tag}" --query 'imageDetails[0].imageDigest' --output text)"
+          frontend_digest="$(aws ecr describe-images --repository-name "$FRONTEND_REPOSITORY" --image-ids "imageTag=${tag}" --query 'imageDetails[0].imageDigest' --output text)"
+          echo "backend=${REGISTRY}/${BACKEND_REPOSITORY}@${backend_digest}" >> "$GITHUB_OUTPUT"
+          echo "frontend=${REGISTRY}/${FRONTEND_REPOSITORY}@${frontend_digest}" >> "$GITHUB_OUTPUT"
+      - name: Admit one four-hour Fargate preview
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+          FOUNDATION_STACK: ${{ vars.PREVIEW_FOUNDATION_STACK }}
+          PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PREVIEW_BACKEND_IMAGE: ${{ steps.publish.outputs.backend }}
+          PREVIEW_FRONTEND_IMAGE: ${{ steps.publish.outputs.frontend }}
+          REPOSITORY_ID: ${{ github.event.repository.id }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${CANDIDATE_SHA}" -f state=pending -f context=factory/preview -f description='Starting four-hour ECS preview'
+          outputs="$(aws cloudformation describe-stacks --stack-name "$FOUNDATION_STACK" --query 'Stacks[0].Outputs' --output json)"
+          output() { jq -r --arg key "$1" '.[] | select(.OutputKey == $key) | .OutputValue' <<<"$outputs"; }
+          export PREVIEW_CLUSTER_ARN="$(output ClusterArn)"
+          export PREVIEW_SUBNET_IDS="$(output PublicSubnetIds)"
+          export PREVIEW_SECURITY_GROUP_ID="$(output TaskSecurityGroupId)"
+          export PREVIEW_TASK_EXECUTION_ROLE_ARN="$(output TaskExecutionRoleArn)"
+          export PREVIEW_TASK_ROLE_ARN="$(output TaskRoleArn)"
+          export PREVIEW_LOG_GROUP_NAME="$(output LogGroupName)"
+          export PREVIEW_STATE_TABLE_NAME="$(output StateTableName)"
+          export PREVIEW_ZONE_ID="$(output PreviewZoneId)"
+          export PREVIEW_ZONE_NAME="$(output PreviewZoneName)"
+          export PREVIEW_EDITOR_SECRET_ARN="$(output PreviewEditorSecretArn)"
+          export PREVIEW_DYNAMODB_IMAGE='amazon/dynamodb-local@sha256:1856c05cc66a0e49dc1099e483ad2851477eeebe2135250ac11a1d1227db54b1'
+          export PREVIEW_MINIO_IMAGE='quay.io/minio/minio@sha256:d249d1fb6966de4d8ad26c04754b545205ff15a62e4fd19ebd0f26fa5baacbc0'
+          export PREVIEW_MAILPIT_IMAGE='axllent/mailpit@sha256:6abc8e633df15eaf785cfcf38bae48e66f64beecdc03121e249d0f9ec15f0707'
+          export COMMAND_ID="admit-${WORKFLOW_RUN_ID}-${WORKFLOW_RUN_ATTEMPT}"
+          export EVENT_SEQUENCE="${WORKFLOW_RUN_ID}0"
+          node --import tsx infra/runtime/preview-cli.ts admit > preview-result.json
+          preview_url="$(jq -er .previewUrl preview-result.json)"
+          echo "PREVIEW_URL=$preview_url" >> "$GITHUB_ENV"
+          echo "PREVIEW_EDITOR_SECRET_ARN=$PREVIEW_EDITOR_SECRET_ARN" >> "$GITHUB_ENV"
+      - name: Run canonical browser adapters against the deployed candidate
+        env:
+          COMPOSE_BASE_URL: ${{ env.PREVIEW_URL }}
+          MAILPIT_PASSWORD: local-mailpit-password
+          MAILPIT_USERNAME: reviewer
+        run: |
+          reviewer="$(aws secretsmanager get-secret-value --secret-id "$PREVIEW_EDITOR_SECRET_ARN" --query SecretString --output text)"
+          export PREVIEW_EDITOR_EMAIL="$(jq -r .email <<<"$reviewer")"
+          export PREVIEW_EDITOR_PASSWORD="$(jq -r .password <<<"$reviewer")"
+          npm run test:behaviors:frontend:compose
+          npm run test:browser:compose -w @app/frontend
+      - name: Publish verified preview status
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${CANDIDATE_SHA}" -f state=success -f context=factory/preview -f description='ECS preview and canonical browser adapters passed' -f target_url="$PREVIEW_URL"
+      - name: Publish fail-closed preview status
+        if: failure()
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${CANDIDATE_SHA}" -f state=failure -f context=factory/preview -f description='Preview admission or health verification failed'

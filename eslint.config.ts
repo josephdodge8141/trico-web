@@ -5,7 +5,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['artifacts/**', '**/dist/**', '**/node_modules/**'] },
+  { ignores: ['artifacts/**', 'cdk.out/**', '**/dist/**', '**/node_modules/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -42,11 +42,15 @@ test('error, principal, and session contracts reject accidental wire fields', ()
 });
 
 test('auth input contracts apply strict email and password requirements', () => {
-  const valid = { email: 'person@example.test', password: 'long-enough-secret' };
+  const valid = { email: 'person@tricoinc.com', password: 'long-enough-secret' };
 
   assert.equal(loginRequestSchema.safeParse(valid).success, true);
   assert.equal(signupRequestSchema.safeParse(valid).success, true);
   assert.equal(signupRequestSchema.safeParse({ ...valid, email: 'invalid' }).success, false);
+  assert.equal(
+    signupRequestSchema.safeParse({ ...valid, email: 'person@example.test' }).success,
+    false,
+  );
   assert.equal(signupRequestSchema.safeParse({ ...valid, password: 'short' }).success, false);
   assert.equal(signupRequestSchema.safeParse({ ...valid, role: 'admin' }).success, false);
 });

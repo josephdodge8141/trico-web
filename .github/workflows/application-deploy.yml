@@ -1,0 +1,175 @@
+name: Application deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        required: true
+        default: dev
+        type: choice
+        options: [dev, prod]
+      release_sha:
+        description: Tested main-branch SHA to promote (required for prod)
+        required: false
+        type: string
+
+permissions: {}
+concurrency:
+  group: application-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch' || vars.APPLICATION_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: ${{ inputs.environment || 'dev' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Derive exact release identity
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_RELEASE_SHA: ${{ inputs.release_sha }}
+          INPUT_STAGE: ${{ inputs.environment }}
+          PUSH_SHA: ${{ github.sha }}
+        run: |
+          stage="${INPUT_STAGE:-dev}"
+          if test "$EVENT_NAME" = workflow_dispatch; then
+            test "$stage" != prod || test -n "$INPUT_RELEASE_SHA"
+            RELEASE_SHA="${INPUT_RELEASE_SHA:-$PUSH_SHA}"
+          else
+            RELEASE_SHA="$PUSH_SHA"
+          fi
+          test "$(printf '%s' "$RELEASE_SHA" | wc -c | tr -d ' ')" = 40
+          echo "sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "stage=$stage" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ steps.release.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Validate release identity
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          STAGE: ${{ steps.release.outputs.stage }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          git merge-base --is-ancestor "$RELEASE_SHA" origin/main
+      - run: npm ci
+      - run: npm run check
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.APPLICATION_DEPLOY_ROLE_ARN }}
+      - uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd
+        if: steps.release.outputs.stage == 'dev'
+      - name: Build and publish reviewed dev artifacts
+        if: steps.release.outputs.stage == 'dev'
+        env:
+          ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
+          BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          docker build --pull --tag "trico-lambda:${RELEASE_SHA}" --file backend/Dockerfile.lambda .
+          docker tag "trico-lambda:${RELEASE_SHA}" "${BACKEND_REPOSITORY_URI}:sha-${RELEASE_SHA}"
+          docker push "${BACKEND_REPOSITORY_URI}:sha-${RELEASE_SHA}"
+          backend_digest="$(aws ecr describe-images --repository-name "${BACKEND_REPOSITORY_URI#*/}" --image-ids "imageTag=sha-${RELEASE_SHA}" --query 'imageDetails[0].imageDigest' --output text)"
+          test "$backend_digest" != None
+          npm run build -w @app/frontend
+          tar -C frontend/dist -czf frontend-dist.tar.gz .
+          frontend_sha="$(sha256sum frontend-dist.tar.gz | cut -d ' ' -f 1)"
+          frontend_key="releases/${RELEASE_SHA}/frontend-dist.tar.gz"
+          jq -n --arg releaseSha "$RELEASE_SHA" --arg backendImageUri "${BACKEND_REPOSITORY_URI}@${backend_digest}" --arg key "$frontend_key" --arg sha256 "$frontend_sha" --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" '{version:1,releaseSha:$releaseSha,backendImageUri:$backendImageUri,frontend:{key:$key,sha256:$sha256},publishedAt:$publishedAt}' > release-manifest.json
+          node --import tsx infra/runtime/release-cli.ts verify release-manifest.json "$RELEASE_SHA" >/dev/null
+          aws s3 cp frontend-dist.tar.gz "s3://${ARTIFACT_BUCKET}/${frontend_key}" --only-show-errors
+          aws s3 cp release-manifest.json "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/release-manifest.json" --only-show-errors
+      - name: Resolve and verify immutable tested artifacts
+        id: artifacts
+        env:
+          ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          aws s3 cp "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/release-manifest.json" release-manifest.json --only-show-errors
+          node --import tsx infra/runtime/release-cli.ts verify release-manifest.json "$RELEASE_SHA" > validated-release.json
+          frontend_key="$(jq -r .frontend.key validated-release.json)"
+          frontend_sha="$(jq -r .frontend.sha256 validated-release.json)"
+          backend_image="$(jq -r .backendImageUri validated-release.json)"
+          aws s3 cp "s3://${ARTIFACT_BUCKET}/${frontend_key}" frontend-dist.tar.gz --only-show-errors
+          printf '%s  %s\n' "$frontend_sha" frontend-dist.tar.gz | sha256sum --check
+          repository="$(cut -d / -f 2- <<<"${backend_image%@*}")"
+          digest="${backend_image##*@}"
+          aws ecr batch-get-image --repository-name "$repository" --image-ids "imageDigest=$digest" --query 'images[0].imageId.imageDigest' --output text | grep -Fx "$digest"
+          echo "backend_image=$backend_image" >> "$GITHUB_OUTPUT"
+      - name: Snapshot existing production state
+        if: steps.release.outputs.stage == 'prod'
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          table="$(aws cloudformation describe-stacks --stack-name TricoWeb-prod --query "Stacks[0].Outputs[?OutputKey=='TableName'].OutputValue | [0]" --output text 2>/dev/null || true)"
+          if test -n "$table" && test "$table" != None; then aws dynamodb create-backup --table-name "$table" --backup-name "pre-${RELEASE_SHA}-$(date +%s)" >/dev/null; fi
+      - name: Deploy exact backend digest
+        env:
+          STAGE: ${{ steps.release.outputs.stage }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+          CUSTOM_DOMAIN: ${{ vars.CUSTOM_DOMAIN }}
+          HOSTED_ZONE_ID: ${{ vars.HOSTED_ZONE_ID }}
+          HOSTED_ZONE_NAME: ${{ vars.HOSTED_ZONE_NAME }}
+          CERTIFICATE_ARN: ${{ vars.CLOUDFRONT_CERTIFICATE_ARN }}
+          SES_IDENTITY_DOMAIN: ${{ vars.SES_IDENTITY_DOMAIN }}
+          BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
+          ALERT_TOPIC_ARN: ${{ vars.ALERT_TOPIC_ARN }}
+        run: |
+          context=(
+            -c "application:${STAGE}:backendImageUri=${BACKEND_IMAGE_URI}"
+            -c "application:${STAGE}:publicOrigin=${PUBLIC_ORIGIN}"
+            -c "application:${STAGE}:customDomain=${CUSTOM_DOMAIN}"
+            -c "application:${STAGE}:hostedZoneId=${HOSTED_ZONE_ID}"
+            -c "application:${STAGE}:hostedZoneName=${HOSTED_ZONE_NAME}"
+            -c "application:${STAGE}:certificateArn=${CERTIFICATE_ARN}"
+            -c "application:${STAGE}:sesIdentityDomain=${SES_IDENTITY_DOMAIN}"
+            -c "application:${STAGE}:alertTopicArn=${ALERT_TOPIC_ARN}"
+            -c "application:${STAGE}:externalSyncEnabled=false"
+          )
+          if test -n "$BEDROCK_MODEL_ID"; then context+=(-c "application:${STAGE}:bedrockModelId=${BEDROCK_MODEL_ID}"); fi
+          npx cdk deploy "TricoWeb-${STAGE}" --require-approval never --outputs-file cdk-outputs.json "${context[@]}"
+      - name: Checksum-safe bootstrap and frontend activation
+        env:
+          APP_ENV: ${{ steps.release.outputs.stage }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          EXTERNAL_SEED_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
+          PREVIEW_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
+          PREVIEW_EDITOR_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
+          PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+        run: |
+          stack="TricoWeb-${APP_ENV}"
+          export DYNAMODB_TABLE="$(jq -r ".\"${stack}\".TableName" cdk-outputs.json)"
+          export S3_BUCKET="$(jq -r ".\"${stack}\".ContentBucketName" cdk-outputs.json)"
+          export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
+          node backend/dist/seed.js
+          mkdir frontend-release && tar -C frontend-release -xzf frontend-dist.tar.gz
+          aws s3 sync frontend-release/ "s3://${S3_BUCKET}/" --delete --exclude 'content/*' --exclude 'media/*' --only-show-errors
+          distribution_id="$(jq -r ".\"${stack}\".DistributionId" cdk-outputs.json)"
+          invalidation_id="$(aws cloudfront create-invalidation --distribution-id "$distribution_id" --paths '/*' --query 'Invalidation.Id' --output text)"
+          aws cloudfront wait invalidation-completed --distribution-id "$distribution_id" --id "$invalidation_id"
+      - name: Verify six pages and protected session
+        env:
+          STACK_NAME: TricoWeb-${{ steps.release.outputs.stage }}
+          PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+          REVIEWER_EMAIL: ${{ vars.REVIEWER_EMAIL }}
+          REVIEWER_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
+        run: |
+          origin="$PUBLIC_ORIGIN"
+          for route in / /property-management /real-estate /construction /storage /development; do curl --fail --retry 12 --retry-all-errors --retry-delay 5 "${origin}${route}" >/dev/null; done
+          curl --fail --cookie-jar cookies.txt --header "Origin: ${origin}" --header 'Content-Type: application/json' --data "$(jq -nc --arg email "$REVIEWER_EMAIL" --arg password "$REVIEWER_PASSWORD" '{email:$email,password:$password}')" "${origin}/api/v1/auth/login" >/dev/null
+          curl --fail --cookie cookies.txt "${origin}/api/v1/auth/me" | jq -e '.authenticated == true' >/dev/null

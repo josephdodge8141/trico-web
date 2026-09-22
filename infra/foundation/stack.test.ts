@@ -28,7 +28,8 @@ test('factory.foundation.synth creates only reusable permanent resources', () =>
   template.resourceCountIs('AWS::DynamoDB::Table', 1);
   template.resourceCountIs('AWS::Logs::LogGroup', 1);
   template.resourceCountIs('AWS::EC2::SecurityGroup', 1);
-  template.resourceCountIs('AWS::IAM::Role', 1);
+  template.resourceCountIs('AWS::IAM::Role', 2);
+  template.resourceCountIs('AWS::SecretsManager::Secret', 1);
   template.resourceCountIs('AWS::IAM::ManagedPolicy', 0);
   template.hasResourceProperties('AWS::ECR::Repository', {
     ImageTagMutability: 'IMMUTABLE',
@@ -52,9 +53,11 @@ test('factory.foundation.synth exposes task execution and bounded image capabili
       'LogGroupName',
       'PreviewZoneId',
       'PreviewZoneName',
+      'PreviewEditorSecretArn',
       'PublicSubnetIds',
       'StateTableName',
       'TaskExecutionRoleArn',
+      'TaskRoleArn',
       'TaskSecurityGroupId',
       'VpcId',
     ].sort(),
