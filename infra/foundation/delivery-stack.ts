@@ -1,5 +1,7 @@
 import { CfnOutput, Duration, RemovalPolicy, Stack, Tags, type StackProps } from 'aws-cdk-lib';
+import { CfnAnalyzer } from 'aws-cdk-lib/aws-accessanalyzer';
 import { CfnBudget } from 'aws-cdk-lib/aws-budgets';
+import { ReadWriteType, Trail } from 'aws-cdk-lib/aws-cloudtrail';
 import { Repository, TagMutability } from 'aws-cdk-lib/aws-ecr';
 import {
   AccountPrincipal,
@@ -17,7 +19,7 @@ import {
   TxtRecord,
   ZoneDelegationRecord,
 } from 'aws-cdk-lib/aws-route53';
-import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket, BucketEncryption, type IBucket } from 'aws-cdk-lib/aws-s3';
 import { CfnEmailIdentity } from 'aws-cdk-lib/aws-ses';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
@@ -75,10 +77,40 @@ export class DeliveryFoundationStack extends Stack {
         {
           abortIncompleteMultipartUploadAfter: Duration.days(7),
           expiration: Duration.days(config.releaseRetentionDays),
+          noncurrentVersionExpiration: Duration.days(config.releaseRetentionDays),
         },
       ],
       removalPolicy: RemovalPolicy.RETAIN,
       versioned: true,
+    });
+
+    const auditBucket = new Bucket(this, 'AccountAuditBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      lifecycleRules: [
+        {
+          abortIncompleteMultipartUploadAfter: Duration.days(7),
+          expiration: Duration.days(config.releaseRetentionDays),
+          noncurrentVersionExpiration: Duration.days(config.releaseRetentionDays),
+        },
+      ],
+      removalPolicy: RemovalPolicy.RETAIN,
+      versioned: true,
+    });
+    new Trail(this, 'AccountManagementTrail', {
+      // CDK's concrete Bucket carries an exact-optional isWebsite property that its
+      // own Trail IBucket surface currently types as required.
+      bucket: auditBucket as unknown as IBucket,
+      enableFileValidation: true,
+      includeGlobalServiceEvents: true,
+      isMultiRegionTrail: true,
+      managementEvents: ReadWriteType.ALL,
+      trailName: `${config.applicationName}-account-management`,
+    });
+    const accessAnalyzer = new CfnAnalyzer(this, 'AccountAccessAnalyzer', {
+      analyzerName: `${config.applicationName}-account-access`,
+      type: 'ACCOUNT',
     });
 
     const alerts = new Topic(this, 'OperationsAlerts', {
@@ -187,6 +219,8 @@ export class DeliveryFoundationStack extends Stack {
     this.grantApplicationPermissions(prodRole, 'prod', releaseRepository, releaseBucket);
 
     new CfnOutput(this, 'AlertTopicArn', { value: alerts.topicArn });
+    new CfnOutput(this, 'AuditBucketName', { value: auditBucket.bucketName });
+    new CfnOutput(this, 'AccessAnalyzerArn', { value: accessAnalyzer.attrArn });
     new CfnOutput(this, 'DevDeploymentRoleArn', { value: devRole.roleArn });
     new CfnOutput(this, 'FoundationOwnerRoleArn', { value: ownerRole.roleArn });
     new CfnOutput(this, 'PreviewDeploymentRoleArn', { value: previewRole.roleArn });
