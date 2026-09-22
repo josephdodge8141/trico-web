@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
 const dnsName = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+const contextInteger = (minimum: number, maximum: number) =>
+  z
+    .union([z.number(), z.string().regex(/^\d+$/)])
+    .transform(Number)
+    .pipe(z.number().int().min(minimum).max(maximum));
 
 export const deliveryConfigSchema = z
   .object({
@@ -13,8 +18,8 @@ export const deliveryConfigSchema = z
     devDomain: z.string().regex(dnsName),
     productionDomain: z.string().regex(dnsName),
     sesIdentityDomain: z.string().regex(dnsName),
-    monthlyBudgetUsd: z.number().int().positive().max(10_000),
-    releaseRetentionDays: z.number().int().min(1).max(3_650),
+    monthlyBudgetUsd: contextInteger(1, 10_000),
+    releaseRetentionDays: contextInteger(1, 3_650),
   })
   .strict()
   .superRefine((value, context) => {

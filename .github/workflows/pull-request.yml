@@ -26,6 +26,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - name: Install the pinned browser runtime
+        run: npx playwright install --with-deps chromium
       - run: npm run check
 
   candidate-images:
