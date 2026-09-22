@@ -24,6 +24,7 @@ export interface DispatchResult {
   readonly decision: 'accepted' | 'duplicate' | 'rejected' | 'conflict';
   readonly reason: string;
   readonly effectsAttempted: number;
+  readonly effects: readonly LifecycleEffect[];
   readonly state: LifecycleState | null;
 }
 
@@ -44,7 +45,7 @@ export async function dispatchLifecycle(
   );
   const transition = transitionLifecycle({ command, now, state: previous });
   if (transition.decision === 'rejected' || transition.state === null) {
-    return { ...transition, effectsAttempted: 0 };
+    return { ...transition, effectsAttempted: 0, effects: transition.effects };
   }
   if (stateChanged(previous, transition.state)) {
     const outcome = await store.compareAndSwap(transition.state, previous?.stateRevision ?? null);
@@ -53,6 +54,7 @@ export async function dispatchLifecycle(
         decision: 'conflict',
         reason: 'state-compare-and-swap-conflict',
         effectsAttempted: 0,
+        effects: [],
         state: previous,
       };
     }
@@ -67,6 +69,7 @@ export async function dispatchLifecycle(
     decision: transition.decision,
     reason: transition.reason,
     effectsAttempted,
+    effects: transition.effects,
     state: transition.state,
   };
 }

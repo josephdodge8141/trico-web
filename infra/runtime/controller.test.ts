@@ -44,6 +44,15 @@ class RecordingProvider implements PreviewEffectProvider {
   }
 }
 
+class FailingCleanupProvider extends RecordingProvider {
+  public override async cleanupPreview(
+    effect: Extract<LifecycleEffect, { type: 'cleanup-preview' }>,
+  ): Promise<void> {
+    await super.cleanupPreview(effect);
+    throw new Error('provider cleanup failed');
+  }
+}
+
 const admit = {
   protocolVersion: 1,
   type: 'admit',
@@ -82,4 +91,30 @@ test('sweeper creates a generation-bound deadline command only when due', async 
   const command = dueDeadlineCommand(state, '2026-01-01T00:30:00.000Z');
   assert.equal(command?.type, 'deadline');
   assert.equal(command?.type === 'deadline' ? command.deadline : null, 'startup');
+});
+
+test('factory.lifecycle.provider-failure retains cleaning state for reconciliation', async () => {
+  const store = new MemoryStore();
+  await dispatchLifecycle(admit, '2026-01-01T00:00:00.000Z', store, new RecordingProvider());
+  const current = store.state;
+  assert.notEqual(current, null);
+  if (current === null) return;
+  await assert.rejects(
+    dispatchLifecycle(
+      {
+        protocolVersion: 1,
+        type: 'close',
+        commandId: 'close-1',
+        eventSequence: 2,
+        expectedStateRevision: current.stateRevision,
+        identity: current.identity,
+      },
+      '2026-01-01T00:01:00.000Z',
+      store,
+      new FailingCleanupProvider(),
+    ),
+    /provider cleanup failed/,
+  );
+  assert.equal(store.state?.active?.phase, 'cleaning');
+  assert.equal(store.state?.active?.cleanupReason, 'closed');
 });

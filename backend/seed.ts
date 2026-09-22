@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import {
   CreateTableCommand,
@@ -340,11 +341,12 @@ async function seedPreviewEditor(
   database: DynamoDBDocumentClient,
   tableName: string,
 ): Promise<void> {
-  const email = process.env.PREVIEW_EDITOR_EMAIL?.trim().toLowerCase();
+  const email = validateSeedEditorEmail(
+    process.env.PREVIEW_EDITOR_EMAIL,
+    process.env.EXTERNAL_SEED_EDITOR_EMAIL,
+  );
   const password = process.env.PREVIEW_EDITOR_PASSWORD;
   if (email === undefined || email === '' || password === undefined || password === '') return;
-  if (!email.endsWith('@tricoinc.com'))
-    throw new Error('PREVIEW_EDITOR_EMAIL must use @tricoinc.com');
   const existing = await database.send(
     new GetCommand({ TableName: tableName, Key: { pk: `EMAIL#${email}`, sk: 'USER' } }),
   );
@@ -376,6 +378,20 @@ async function seedPreviewEditor(
         ],
       },
     }),
+  );
+}
+
+export function validateSeedEditorEmail(
+  value: string | undefined,
+  externalAllowedValue: string | undefined,
+): string | undefined {
+  const email = value?.trim().toLowerCase();
+  if (email === undefined || email === '') return undefined;
+  if (email.endsWith('@tricoinc.com')) return email;
+  const externalAllowed = externalAllowedValue?.trim().toLowerCase();
+  if (externalAllowed === email) return email;
+  throw new Error(
+    'PREVIEW_EDITOR_EMAIL must use @tricoinc.com or match EXTERNAL_SEED_EDITOR_EMAIL',
   );
 }
 
@@ -411,4 +427,5 @@ async function main(): Promise<void> {
   }
 }
 
-void main();
+const invokedPath = process.argv[1];
+if (invokedPath !== undefined && import.meta.url === pathToFileURL(invokedPath).href) void main();

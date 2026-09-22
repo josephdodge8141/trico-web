@@ -49,3 +49,29 @@ Feature: Bounded preview lifecycle
     Given an active start or tracked cleanup remains required
     When reconciliation is requested with the current ordered state
     Then it re-emits only the currently required idempotent start or cleanup work
+
+  @id:factory.lifecycle.provider-ownership @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Refuse provider mutation without exact generation ownership
+    backend-noop: AWS preview ownership is factory runtime behavior outside the generated application backend.
+    frontend-noop: AWS preview ownership has no generated application frontend interaction.
+    browser-noop: Provider ownership checks are not observable through the public preview page.
+    Given provider resources for another repository pull request or generation
+    When replacement or cleanup is requested
+    Then no task DNS record task definition or lifecycle row is mutated
+    And the lifecycle command remains retryable for reconciliation
+
+  @id:factory.lifecycle.provider-failure @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario Outline: Retain authoritative state when one cleanup effect fails
+    backend-noop: AWS preview cleanup is factory runtime behavior outside the generated application backend.
+    frontend-noop: AWS preview cleanup has no generated application frontend interaction.
+    browser-noop: Cleanup retry state is not observable through the public preview page.
+    Given a generation whose owned resources require cleanup
+    When cleanup fails while removing the "<resource>"
+    Then the generation remains recorded as cleaning
+    And reconciliation retries only its ownership-checked cleanup
+
+    Examples: Provider cleanup failures
+      | case_id        | resource        |
+      | dns-failure    | DNS record      |
+      | task-missing   | ECS task        |
+      | task-def-fail  | task definition |

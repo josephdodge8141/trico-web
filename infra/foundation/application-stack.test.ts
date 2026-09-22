@@ -49,7 +49,11 @@ test('application stack exposes API and scheduled Lambda entrypoints', () => {
   template.resourceCountIs('AWS::Lambda::Function', 1);
   template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
   template.resourceCountIs('AWS::Events::Rule', 1);
-  template.resourceCountIs('AWS::CloudWatch::Alarm', 2);
+  template.resourceCountIs('AWS::CloudWatch::Alarm', 6);
+  template.resourceCountIs('AWS::CloudWatch::Dashboard', 1);
+  template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+    AlarmActions: ['arn:aws:sns:us-east-2:111111111111:trico-web-operations'],
+  });
   template.hasResourceProperties('AWS::Lambda::Function', {
     PackageType: 'Image',
     Environment: {

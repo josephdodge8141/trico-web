@@ -7,7 +7,7 @@
     "build": "tsc -b",
     "dev": "tsx index.ts",
     "start": "node dist/index.js",
-    "test": "node --import tsx --test app.test.ts index.test.ts",
+    "test": "node --import tsx --test app.test.ts index.test.ts seed.test.ts",
     "test:behaviors": "node --import tsx ../packages/cucumber/catalog/run-layer.ts backend steps/application.steps.ts"
   },
   "exports": {

@@ -8,6 +8,7 @@ const SKIPPED_DIRECTORIES = new Set([
   '.claude',
   '.git',
   'artifacts',
+  'cdk.out',
   'dist',
   'node_modules',
 ]);
@@ -36,6 +37,7 @@ const ROOT_SOURCE_FILES = {
     'index.ts',
     'lambda.ts',
     'seed.ts',
+    'seed.test.ts',
     'shutdown-abort-failure-child.ts',
     'shutdown-child.ts',
   ],

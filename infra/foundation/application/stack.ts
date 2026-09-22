@@ -8,7 +8,15 @@ import {
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { Alarm, ComparisonOperator, Metric, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
+import {
+  Alarm,
+  ComparisonOperator,
+  Dashboard,
+  GraphWidget,
+  Metric,
+  TreatMissingData,
+} from 'aws-cdk-lib/aws-cloudwatch';
+import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { CfnRule } from 'aws-cdk-lib/aws-events';
@@ -20,6 +28,7 @@ import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import type { IBucket } from 'aws-cdk-lib/aws-s3';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import type { Construct } from 'constructs';
 
 import { type ApplicationConfig, parseApplicationConfig } from './config.js';
@@ -34,6 +43,7 @@ export class ApplicationStack extends Stack {
     const config = parseApplicationConfig(props.config);
     const prefix = `${config.applicationName}-${config.stage}`;
     const durableRemoval = config.stage === 'prod' ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY;
+    const alertTopic = Topic.fromTopicArn(this, 'AlertTopic', config.alertTopicArn);
 
     Tags.of(this).add('trico:application', config.applicationName);
     Tags.of(this).add('trico:environment', config.stage);
@@ -218,17 +228,92 @@ export class ApplicationStack extends Stack {
       zone: hostedZone,
     });
 
-    this.functionAlarm(
+    const backendErrors = this.functionAlarm(
       'BackendErrors',
       prefix,
       'Errors',
       ComparisonOperator.GREATER_THAN_THRESHOLD,
     );
-    this.functionAlarm(
+    const backendThrottles = this.functionAlarm(
       'BackendThrottles',
       prefix,
       'Throttles',
       ComparisonOperator.GREATER_THAN_THRESHOLD,
+    );
+    const apiErrors = new Alarm(this, 'ApiServerErrors', {
+      comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 1,
+      metric: new Metric({
+        dimensionsMap: { ApiId: api.ref },
+        metricName: '5xx',
+        namespace: 'AWS/ApiGateway',
+        period: Duration.minutes(5),
+        statistic: 'Sum',
+      }),
+      threshold: 0,
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    const apiClientErrors = new Alarm(this, 'ApiClientErrors', {
+      comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 1,
+      metric: new Metric({
+        dimensionsMap: { ApiId: api.ref },
+        metricName: '4xx',
+        namespace: 'AWS/ApiGateway',
+        period: Duration.minutes(5),
+        statistic: 'Sum',
+      }),
+      threshold: 20,
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    const apiLatency = new Alarm(this, 'ApiLatency', {
+      comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      metric: new Metric({
+        dimensionsMap: { ApiId: api.ref },
+        metricName: 'Latency',
+        namespace: 'AWS/ApiGateway',
+        period: Duration.minutes(5),
+        statistic: 'Average',
+      }),
+      threshold: 3_000,
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    const distributionErrors = new Alarm(this, 'DistributionServerErrors', {
+      comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      metric: new Metric({
+        dimensionsMap: { DistributionId: distribution.distributionId, Region: 'Global' },
+        metricName: '5xxErrorRate',
+        namespace: 'AWS/CloudFront',
+        period: Duration.minutes(5),
+        statistic: 'Average',
+      }),
+      threshold: 1,
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    for (const alarm of [
+      backendErrors,
+      backendThrottles,
+      apiClientErrors,
+      apiErrors,
+      apiLatency,
+      distributionErrors,
+    ]) {
+      alarm.addAlarmAction(new SnsAction(alertTopic));
+    }
+    const dashboard = new Dashboard(this, 'OperationsDashboard', {
+      dashboardName: `${prefix}-operations`,
+    });
+    dashboard.addWidgets(
+      new GraphWidget({
+        left: [backendErrors.metric, backendThrottles.metric, apiErrors.metric, apiLatency.metric],
+        title: `${prefix} application health`,
+      }),
+      new GraphWidget({
+        left: [apiClientErrors.metric, distributionErrors.metric],
+        title: `${prefix} public edge`,
+      }),
     );
 
     new CfnOutput(this, 'ApiEndpoint', { value: api.attrApiEndpoint });
@@ -244,8 +329,8 @@ export class ApplicationStack extends Stack {
     functionName: string,
     metricName: string,
     comparisonOperator: ComparisonOperator,
-  ): void {
-    new Alarm(this, id, {
+  ): Alarm {
+    return new Alarm(this, id, {
       comparisonOperator,
       evaluationPeriods: 1,
       metric: new Metric({

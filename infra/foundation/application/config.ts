@@ -17,6 +17,7 @@ export const applicationConfigSchema = z
     certificateArn: z.string().startsWith('arn:').min(20),
     sesIdentityDomain: z.string().regex(dnsName),
     bedrockModelId: z.string().min(1).max(256),
+    alertTopicArn: z.string().startsWith('arn:').min(20),
     externalSyncEnabled: z.boolean(),
   })
   .strict();
@@ -36,6 +37,7 @@ export const exampleApplicationConfig = (stage: 'dev' | 'prod'): ApplicationConf
     'arn:aws:acm:us-east-1:111111111111:certificate/00000000-0000-0000-0000-000000000000',
   sesIdentityDomain: 'example.com',
   bedrockModelId: 'example.responses-compatible-model',
+  alertTopicArn: 'arn:aws:sns:us-east-2:111111111111:trico-web-operations',
   externalSyncEnabled: false,
 });
 

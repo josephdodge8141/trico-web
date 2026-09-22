@@ -25,6 +25,11 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
       - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
         with:
           aws-region: ${{ vars.AWS_REGION }}
@@ -35,26 +40,30 @@ jobs:
           FOUNDATION_STACK: ${{ vars.PREVIEW_FOUNDATION_STACK }}
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
           REPOSITORY_ID: ${{ github.event.repository.id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
         run: |
           outputs="$(aws cloudformation describe-stacks --stack-name "$FOUNDATION_STACK" --query 'Stacks[0].Outputs' --output json)"
           output() { jq -r --arg key "$1" '.[] | select(.OutputKey == $key) | .OutputValue' <<<"$outputs"; }
-          cluster="$(output ClusterArn)"; table="$(output StateTableName)"; zone_id="$(output PreviewZoneId)"; now="$(date +%s)"
+          export PREVIEW_CLUSTER_ARN="$(output ClusterArn)"
+          export PREVIEW_SUBNET_IDS="$(output PublicSubnetIds)"
+          export PREVIEW_SECURITY_GROUP_ID="$(output TaskSecurityGroupId)"
+          export PREVIEW_TASK_EXECUTION_ROLE_ARN="$(output TaskExecutionRoleArn)"
+          export PREVIEW_TASK_ROLE_ARN="$(output TaskRoleArn)"
+          export PREVIEW_LOG_GROUP_NAME="$(output LogGroupName)"
+          export PREVIEW_STATE_TABLE_NAME="$(output StateTableName)"
+          export PREVIEW_ZONE_ID="$(output PreviewZoneId)"
+          export PREVIEW_ZONE_NAME="$(output PreviewZoneName)"
+          export PREVIEW_EDITOR_SECRET_ARN="$(output PreviewEditorSecretArn)"
+          export COMMAND_ID="cleanup-${WORKFLOW_RUN_ID}-${WORKFLOW_RUN_ATTEMPT}"
+          export EVENT_SEQUENCE="${WORKFLOW_RUN_ID}0"
           if test "$EVENT_NAME" = pull_request_target; then
-            key="${REPOSITORY_ID}#${PULL_REQUEST_NUMBER}"
-            aws dynamodb get-item --table-name "$table" --key "{\"previewKey\":{\"S\":\"$key\"}}" --consistent-read --query Item --output json > candidates.json
-            jq -s 'map(select(length > 0))' candidates.json > rows.json
+            node --import tsx infra/runtime/preview-cli.ts close
           else
-            aws dynamodb scan --table-name "$table" --filter-expression 'expiresAt <= :now' --expression-attribute-values "{\":now\":{\"N\":\"$now\"}}" --query Items --output json > rows.json
+            node --import tsx infra/runtime/preview-cli.ts sweep
           fi
-          jq -c '.[]' rows.json | while read -r item; do
-            key="$(jq -r '.previewKey.S' <<<"$item")"; task="$(jq -r '.taskArn.S' <<<"$item")"; definition="$(jq -r '.taskDefinitionArn.S' <<<"$item")"
-            record="$(jq -r '.recordName.S' <<<"$item")"; ip="$(jq -r '.publicIp.S' <<<"$item")"; generation="$(jq -r '.generation.S' <<<"$item")"
-            tags="$(aws ecs list-tags-for-resource --resource-arn "$task" --query tags --output json 2>/dev/null || echo '[]')"
-            test "$(jq -r '.[] | select(.key=="trico:generation") | .value' <<<"$tags")" = "$generation" || continue
-            jq -n --arg name "$record" --arg ip "$ip" '{Comment:"generation cleanup",Changes:[{Action:"DELETE",ResourceRecordSet:{Name:$name,Type:"A",TTL:60,ResourceRecords:[{Value:$ip}]}}]}' > dns-delete.json
-            aws route53 change-resource-record-sets --hosted-zone-id "$zone_id" --change-batch file://dns-delete.json >/dev/null || true
-            aws ecs stop-task --cluster "$cluster" --task "$task" --reason preview-expired >/dev/null || true
-            aws ecs wait tasks-stopped --cluster "$cluster" --tasks "$task" || true
-            aws ecs deregister-task-definition --task-definition "$definition" >/dev/null || true
-            aws dynamodb delete-item --table-name "$table" --key "{\"previewKey\":{\"S\":\"$key\"}}" --condition-expression 'generation = :generation' --expression-attribute-values "{\":generation\":{\"S\":\"$generation\"}}"
-          done
+      - name: Notify preview cleanup failure
+        if: failure()
+        env:
+          ALERT_TOPIC_ARN: ${{ vars.ALERT_TOPIC_ARN }}
+        run: aws sns publish --topic-arn "$ALERT_TOPIC_ARN" --subject 'TriCo preview cleanup failed' --message "Preview cleanup workflow ${GITHUB_RUN_ID} failed for ${GITHUB_REPOSITORY}." >/dev/null
