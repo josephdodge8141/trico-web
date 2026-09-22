@@ -117,6 +117,7 @@ export function HomeResumeForm(): React.JSX.Element {
             name="name"
             autoComplete="name"
             maxLength={100}
+            placeholder="Jane Doe"
             value={value.name}
             onChange={(event) => update('name', event.target.value)}
             aria-invalid={errors.name === undefined ? undefined : true}
@@ -135,6 +136,7 @@ export function HomeResumeForm(): React.JSX.Element {
             type="email"
             autoComplete="email"
             maxLength={255}
+            placeholder="jane@example.com"
             value={value.email}
             onChange={(event) => update('email', event.target.value)}
             aria-invalid={errors.email === undefined ? undefined : true}
@@ -153,6 +155,7 @@ export function HomeResumeForm(): React.JSX.Element {
             type="tel"
             autoComplete="tel"
             maxLength={20}
+            placeholder="(801) 555-0100"
             value={value.phone}
             onChange={(event) => update('phone', event.target.value)}
             aria-invalid={errors.phone === undefined ? undefined : true}

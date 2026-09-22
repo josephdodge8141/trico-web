@@ -190,7 +190,7 @@ function DivisionCard({ item }: { readonly item: HomeDivisionItem }): React.JSX.
   return (
     <Link className="home-division-link ui-division-link" to={routeByPage[item.destination.pageId]}>
       <article
-        className={`home-division-card ui-division-card home-division-${item.destination.pageId}`}
+        className={`home-division-card ui-division-card home-division-${item.destination.pageId} ui-division-${item.destination.pageId}`}
       >
         <span className="home-card-icon ui-card-icon">
           <Icon aria-hidden="true" />
@@ -370,7 +370,7 @@ function HomePageBody(): React.JSX.Element {
         </section>
 
         <section
-          className="home-section ui-section home-tint ui-tint home-values ui-values"
+          className="home-section ui-section home-tint ui-tint ui-tint-flow home-values ui-values ui-values-seamless"
           id="values"
         >
           <div className="home-container ui-container ui-content-frame-standard">
@@ -396,7 +396,9 @@ function HomePageBody(): React.JSX.Element {
           <div className="home-container ui-container ui-content-frame-standard">
             <ObjectBoundary entityId="home.journey.header" value={content.journeyHeader}>
               <header className="home-section-heading ui-section-heading">
-                <span className="home-eyebrow ui-eyebrow">{content.journeyHeader.eyebrow}</span>
+                <span className="home-eyebrow ui-eyebrow ui-section-eyebrow">
+                  {content.journeyHeader.eyebrow}
+                </span>
                 <h2 className="type-section-title type-section-title-compact">
                   {content.journeyHeader.heading}
                 </h2>

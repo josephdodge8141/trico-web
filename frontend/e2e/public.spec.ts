@@ -157,6 +157,52 @@ test('uses the shared blue action role for ordinary primary calls to action', as
   }
 });
 
+test('preserves the manually audited Home and Real Estate presentation details', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  await expect(page.locator('.home-hero p')).toHaveCSS('color', 'rgb(107, 114, 128)');
+  await expect(page.locator('.home-accent-rule')).not.toHaveCSS('background-image', /134, 98, 45/);
+
+  const divisionIconBackgrounds = await page
+    .locator('.home-card-icon')
+    .evaluateAll((icons) => icons.map((icon) => getComputedStyle(icon).backgroundImage));
+  expect(new Set(divisionIconBackgrounds).size).toBeGreaterThan(1);
+
+  const firstValue = page.locator('.home-value').first();
+  await expect(firstValue).toHaveCSS('border-top-width', '0px');
+  await expect(firstValue).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(page.locator('.home-value-icon').first()).toHaveCSS('background-image', 'none');
+
+  await expect(page.locator('.home-eyebrow')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(page.locator('.home-timeline-dot').first()).toHaveCSS(
+    'background-color',
+    'rgb(37, 99, 235)',
+  );
+
+  const firstCareer = page.locator('.home-career-card').first();
+  await expect(firstCareer.locator('h3 svg')).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(firstCareer.locator('p svg').first()).toHaveCSS('color', 'rgb(107, 114, 128)');
+  await expect(firstCareer.locator('> a')).toHaveCSS('font-weight', '500');
+  await expect(firstCareer.locator('> a')).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
+
+  await expect(page.locator('.home-file-control svg')).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(page.getByRole('button', { name: 'Submit Resume' })).toHaveCSS(
+    'background-color',
+    'rgb(37, 99, 235)',
+  );
+
+  await page.goto('/real-estate');
+  const heroMedia = page.locator('[data-division-hero-media="true"]').first();
+  await expect(heroMedia).toBeVisible();
+  expect((await heroMedia.boundingBox())?.width ?? 0).toBeGreaterThan(400);
+  await expect(page.locator('.re-hero .ui-pill')).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(page.locator('.re-about-visual > strong')).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(page.locator('.re-check-grid svg').first()).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(page.locator('.re-careers .ui-pill')).toHaveCSS('color', 'rgb(94, 133, 186)');
+});
+
 test('keeps division calls to action readable and the mobile edit launcher clear of them', async ({
   page,
 }) => {
@@ -172,11 +218,9 @@ test('keeps division calls to action readable and the mobile edit launcher clear
       const styles = window.getComputedStyle(element);
       return { foreground: styles.color, background: styles.backgroundColor };
     });
-    expect(colors.foreground).toBe(
-      route === '/real-estate' ? 'rgb(0, 10, 77)' : 'rgb(255, 255, 255)',
-    );
+    expect(colors.foreground).toBe('rgb(255, 255, 255)');
     expect(colors.background).toBe(
-      route === '/real-estate' ? 'rgb(255, 255, 255)' : 'rgb(0, 18, 138)',
+      route === '/real-estate' ? 'rgb(134, 98, 45)' : 'rgb(0, 18, 138)',
     );
   }
 

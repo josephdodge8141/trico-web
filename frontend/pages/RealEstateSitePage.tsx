@@ -599,14 +599,14 @@ function RealEstateBody(): React.JSX.Element {
                 <section className="re-hero ui-hero ui-split-hero">
                   <div className="re-container ui-container re-hero-grid ui-hero-grid">
                     <div className="re-hero-copy ui-hero-copy">
-                      <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
+                      <span className="re-pill ui-pill re-pill-blue ui-pill-blue">
                         <MapPin aria-hidden="true" /> {hero.badge}
                       </span>
                       <h1 className="type-display">{hero.heading}</h1>
                       <p>{hero.description}</p>
                       <div className="re-actions ui-actions">
                         <a
-                          className="re-button ui-button re-button-light ui-button-light"
+                          className="re-button ui-button re-button-gold ui-button-gold"
                           href="#contact"
                         >
                           {hero.primaryActionLabel} <ArrowRight />
@@ -870,14 +870,14 @@ function RealEstateBody(): React.JSX.Element {
                     </div>
                     <div>
                       <>
-                        <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
+                        <span className="re-pill ui-pill re-pill-blue ui-pill-blue">
                           {about.eyebrow}
                         </span>
                         <h2 className="type-section-title">{about.heading}</h2>
                         <p className="ui-inverse-prose-lead">{about.introduction}</p>
                         <p className="ui-inverse-prose">{about.detail}</p>
                         <a
-                          className="re-button ui-button re-button-light ui-button-light"
+                          className="re-button ui-button re-button-gold ui-button-gold"
                           href="#contact"
                         >
                           {about.actionLabel}
@@ -947,7 +947,7 @@ function RealEstateBody(): React.JSX.Element {
                 <section className="re-section ui-section re-careers ui-careers ui-align-start">
                   <div className="re-container ui-container re-careers-grid ui-careers-grid">
                     <div>
-                      <span className="re-pill ui-pill re-pill-gold ui-pill-gold">
+                      <span className="re-pill ui-pill re-pill-blue ui-pill-blue">
                         {careers.eyebrow}
                       </span>
                       <h2 className="type-section-title type-section-title-compact">
@@ -962,7 +962,7 @@ function RealEstateBody(): React.JSX.Element {
                         ))}
                       </ul>
                       <a
-                        className="re-button ui-button re-button-gold ui-button-gold"
+                        className="re-button ui-button re-button-blue ui-button-highlight"
                         href={`mailto:${careers.email}`}
                       >
                         {careers.actionLabel} <ArrowRight />

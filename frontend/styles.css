@@ -1616,6 +1616,10 @@
     font-size: 1.1rem;
   }
 
+  .ui-hero-plain p {
+    color: var(--trico-color-muted);
+  }
+
   .ui-section-heading h2 {
     font-weight: 700;
     letter-spacing: normal;
@@ -1638,8 +1642,8 @@
     border-radius: 12px;
     background: linear-gradient(
       135deg,
-      var(--trico-surface-accent-emphasis),
-      var(--trico-surface-gold-subtle)
+      var(--trico-surface-accent-subtle),
+      var(--trico-surface-muted-emphasis)
     );
   }
 
@@ -1647,11 +1651,7 @@
     color: var(--trico-color-highlight);
     border: 1px solid var(--trico-surface-accent-emphasis);
     border-radius: 50%;
-    background: linear-gradient(
-      135deg,
-      var(--trico-surface-accent-emphasis),
-      var(--trico-surface-gold-subtle)
-    );
+    background: var(--trico-surface-accent-subtle);
   }
 
   .ui-division-card h3 {
@@ -1727,10 +1727,15 @@
   .ui-career-card > a {
     color: var(--trico-color-light);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     text-decoration: none;
-    border: 1px solid var(--trico-surface-accent-emphasis);
+    border: 1px solid transparent;
     border-radius: 6px;
+  }
+
+  .ui-career-card > a:hover,
+  .ui-career-card > a:focus-visible {
+    border-color: var(--trico-surface-accent-emphasis);
   }
 
   .ui-resume-heading h3 {
@@ -1774,9 +1779,9 @@
   .ui-resume-success button {
     color: var(--trico-color-surface);
     font-weight: 700;
-    border: 1px solid var(--trico-color-light);
+    border: 1px solid var(--trico-color-banner-vivid);
     border-radius: 6px;
-    background: var(--trico-color-light);
+    background: var(--trico-color-banner-vivid);
     cursor: pointer;
   }
 
@@ -2311,7 +2316,7 @@
     font-size: 1.05rem;
   }
   .ui-about-visual > strong {
-    color: var(--trico-color-gold);
+    color: var(--trico-color-highlight);
     font: 700 4rem var(--trico-font-family);
   }
   .ui-about-visual > span {
@@ -2991,12 +2996,8 @@
     color: var(--trico-color-muted);
     text-align: center;
   }
-  .ui-career-card h3 svg,
-  .ui-career-card p svg,
-  .ui-file-control svg,
   .ui-contact a:hover,
   .ui-anniversary svg,
-  .ui-check-grid svg,
   .ui-form-success > svg,
   .ui-footer-grid svg,
   .ui-notice > svg,
@@ -3007,6 +3008,14 @@
   .ui-partner-footer a,
   .ui-review-footer a {
     color: var(--trico-color-gold);
+  }
+  .ui-career-card h3 svg,
+  .ui-file-control svg,
+  .ui-check-grid svg {
+    color: var(--trico-color-highlight);
+  }
+  .ui-career-card p svg {
+    color: var(--trico-color-muted);
   }
   .ui-about-grid h2,
   .ui-contact h2 {
@@ -3085,9 +3094,9 @@
   .ui-accent-rule {
     background: linear-gradient(
       90deg,
+      var(--trico-color-banner-vivid),
       var(--trico-color-light),
-      var(--trico-color-gold),
-      var(--trico-color-light)
+      var(--trico-color-banner-vivid)
     );
   }
   .ui-tint {
@@ -3096,6 +3105,14 @@
       var(--trico-surface-brand-subtle),
       var(--trico-surface-muted-emphasis),
       var(--trico-surface-brand-subtle)
+    );
+  }
+  .ui-tint-flow {
+    background: linear-gradient(
+      90deg,
+      var(--trico-surface-brand-emphasis),
+      var(--trico-surface-muted-subtle),
+      var(--trico-color-surface)
     );
   }
   .ui-supporting-surface-strong {
@@ -3156,9 +3173,9 @@
     content: '';
   }
   .ui-timeline-dot {
-    border: 2px solid var(--trico-color-highlight);
+    border: 2px solid var(--trico-surface-accent-emphasis);
     border-radius: 50%;
-    background: var(--trico-color-light);
+    background: var(--trico-color-banner-vivid);
   }
   .ui-leader-photo {
     background: linear-gradient(
@@ -3672,6 +3689,12 @@
   }
 }
 @layer utilities {
+  .ui-values-seamless article {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
   .ui-centered-logo-banner {
     position: fixed;
     z-index: 60;
@@ -4653,22 +4676,17 @@
     text-align: left;
   }
   .ui-split-hero .division-hero-media {
-    position: absolute;
-    left: 50%;
-    bottom: 3.375rem;
-    width: 12rem;
-    height: 12rem;
-    aspect-ratio: auto;
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
     margin: 0;
-    border: 0;
+    border: 1px solid var(--trico-surface-accent-emphasis);
     border-radius: 16px;
     background: var(--trico-surface-accent-emphasis);
-    box-shadow: none;
-  }
-  .ui-split-hero .division-hero-media > img,
-  .ui-split-hero .division-hero-media > figcaption,
-  .ui-split-hero .division-hero-media-placeholder > * {
-    opacity: 0;
+    box-shadow: 0 24px 55px var(--trico-shadow-emphasis);
   }
   .ui-split-hero .division-hero-media-placeholder {
     background: var(--trico-surface-accent-emphasis);
@@ -4928,6 +4946,7 @@
   .ui-section-eyebrow {
     display: inline-block;
     border-width: 0;
+    background: transparent;
   }
   .text-uppercase {
     text-transform: uppercase;
@@ -4960,6 +4979,10 @@
   .ui-button-accent {
     color: var(--trico-color-surface);
     background: var(--trico-color-action);
+  }
+  .ui-button-highlight {
+    color: var(--trico-color-surface);
+    background: var(--trico-color-highlight);
   }
   .surface-brand-gradient {
     color: var(--trico-color-surface);
@@ -5127,7 +5150,7 @@
   }
   .ui-button-gold {
     color: var(--trico-color-surface) !important;
-    background: var(--trico-color-action);
+    background: var(--trico-color-gold);
   }
   .ui-button-primary,
   .ui-button-blue,
