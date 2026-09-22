@@ -100,58 +100,11 @@
     justify-content: center;
     padding: 0.7rem 1.25rem;
   }
-  .pm-hero .pm-actions .pm-button {
-    gap: 0.5rem;
-  }
   .pm-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
     padding: 0.45rem 0.9rem;
-  }
-  .pm-hero {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    padding: 176px 0 0;
-  }
-  .pm-hero-grid {
-    width: min(100%, 1400px);
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 3rem;
-    padding-inline: 1rem;
-  }
-  .pm-hero-grid > div:first-child {
-    padding-right: 3rem;
-  }
-  .pm-hero h1 {
-    margin: 1.5rem 0;
-  }
-  .pm-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 0;
-  }
-  .pm-hero .editable-collection-items {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.2rem;
-    margin-top: 3rem;
-    padding-top: 2rem;
-  }
-  .pm-stat {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    column-gap: 0.4rem;
-  }
-  .pm-stat svg {
-    width: 1.2rem;
-  }
-  .pm-stat span {
-    grid-column: 1 / -1;
   }
   .pm-section {
     padding: var(--trico-section-spacing) 0;
@@ -343,7 +296,6 @@
   .pm-about-grid > div:last-child > p:first-of-type {
     margin: 0 0 1.5rem;
   }
-  .pm-hero-grid > div:first-child > p,
   .pm-about-grid > div:last-child > p:last-of-type {
     margin: 0 0 2rem;
   }
@@ -404,7 +356,6 @@
     display: flex;
     margin-top: 0.8rem;
   }
-  .pm-hero .pm-button svg,
   .pm-pill svg,
   .pm-stars svg {
     width: 1rem;
@@ -506,7 +457,6 @@
   .pm-contact-detail h3 {
     margin-bottom: 0.25rem;
   }
-  .pm-hero-image,
   .pm-section-heading p,
   .pm-process-step p,
   .pm-property-card p,
@@ -597,20 +547,6 @@
     overflow: hidden;
   }
 
-  @media (min-width: 768px) {
-    .pm-hero .pm-actions a:first-child {
-      width: 202px;
-    }
-    .pm-hero .pm-actions a:last-child {
-      width: 149px;
-    }
-    .pm-hero .pm-actions .pm-button {
-      height: 44px;
-      min-height: 44px;
-      padding: 0 2rem;
-    }
-  }
-
   @media (max-width: 1279px) {
     #services > .pm-container,
     .pm-process > .pm-container,
@@ -655,12 +591,6 @@
       gap: 0.8rem !important;
       padding: 1rem;
     }
-    .pm-hero-grid {
-      grid-template-columns: 1fr;
-    }
-    .pm-hero-grid > div:first-child {
-      padding-right: 0;
-    }
     #services .editable-collection-items,
     #managed-properties
       > .pm-container
@@ -686,22 +616,6 @@
     }
     .pm-brand img {
       height: 56px;
-    }
-    .pm-hero {
-      padding-top: 176px;
-    }
-    .pm-hero .pm-actions {
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-inline: 0;
-    }
-    .pm-hero .pm-actions .pm-button {
-      width: 100%;
-      min-height: 44px;
-      padding-block: 0.5rem;
-    }
-    .pm-hero .editable-collection-items {
-      gap: 0.7rem;
     }
     .pm-section {
       padding: var(--trico-section-spacing-compact) 0;

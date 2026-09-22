@@ -9,7 +9,6 @@ import {
   FileText,
   Handshake,
   Home,
-  ImageIcon,
   Mail,
   MapPin,
   Menu,
@@ -68,6 +67,7 @@ import whisperBoxwoodPhoto from '../assets/images/whisper-hollow-lot-boxwood.jpg
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
 import { CareersSection } from '../components/CareersSection.js';
+import { DivisionHero } from '../components/DivisionHero.js';
 import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
@@ -628,60 +628,43 @@ function RealEstateBody(): React.JSX.Element {
             {(item) => {
               const hero = S.realEstateHeroSchema.parse(item);
               return (
-                <section className="re-hero ui-hero ui-split-hero">
-                  <div className="re-container ui-container re-hero-grid ui-hero-grid">
-                    <div className="re-hero-copy ui-hero-copy">
-                      <span className="re-pill ui-pill re-pill-blue ui-pill-blue">
-                        <MapPin aria-hidden="true" /> {hero.badge}
-                      </span>
-                      <h1 className="type-display">{hero.heading}</h1>
-                      <p>{hero.description}</p>
-                      <div className="re-actions ui-actions">
-                        <a
-                          className="re-button ui-button re-button-gold ui-button-gold"
-                          href="#contact"
-                        >
-                          {hero.primaryActionLabel} <ArrowRight />
-                        </a>
-                        <a
-                          className="re-button ui-button re-button-outline ui-button-outline"
-                          href="#services"
-                        >
-                          {hero.secondaryActionLabel}
-                        </a>
-                      </div>
-                      <CollectionBoundary
-                        className="re-hero-stats ui-hero-stats"
-                        id="real-estate.hero.stats"
-                        renderItem={(item) => {
-                          const stat = S.realEstateHeroStatSchema.parse(item);
-                          const Icon = iconByName[stat.icon] ?? TrendingUp;
-                          return (
-                            <div>
-                              <Icon />
-                              <strong>{stat.value}</strong>
-                              <span>{stat.label}</span>
-                            </div>
-                          );
-                        }}
-                      />
-                    </div>
-                    <div
-                      className="re-hero-visual ui-hero-visual division-hero-media"
-                      data-division-hero-media="true"
-                      data-media-state="unavailable"
-                    >
-                      <div
-                        className="division-hero-media-placeholder"
-                        role="img"
-                        aria-label={hero.heading}
-                      >
-                        <ImageIcon aria-hidden="true" />
-                        <span>Photo coming soon</span>
-                      </div>
-                    </div>
-                  </div>
-                </section>
+                <DivisionHero
+                  labelledBy="real-estate-hero-heading"
+                  badges={[{ label: hero.badge, icon: <MapPin aria-hidden="true" /> }]}
+                  heading={hero.heading}
+                  description={hero.description}
+                  actions={[
+                    {
+                      label: hero.primaryActionLabel,
+                      href: '#contact',
+                      variant: 'primary',
+                      icon: <ArrowRight aria-hidden="true" />,
+                    },
+                    {
+                      label: hero.secondaryActionLabel,
+                      href: '#services',
+                      variant: 'secondary',
+                    },
+                  ]}
+                  stats={
+                    <CollectionBoundary
+                      className="ui-division-hero-stat-items"
+                      id="real-estate.hero.stats"
+                      renderItem={(statItem) => {
+                        const stat = S.realEstateHeroStatSchema.parse(statItem);
+                        const Icon = iconByName[stat.icon] ?? TrendingUp;
+                        return (
+                          <div className="ui-division-hero-stat">
+                            <Icon />
+                            <strong>{stat.value}</strong>
+                            <span>{stat.label}</span>
+                          </div>
+                        );
+                      }}
+                    />
+                  }
+                  media={{ alt: hero.heading, state: 'unavailable' }}
+                />
               );
             }}
           </Boundary>

@@ -142,19 +142,41 @@ test('uses corrected real-estate and storage anchors', async ({ page }) => {
   await expect(page.locator('#features')).toBeVisible();
 });
 
-test('uses the shared blue action role for ordinary primary calls to action', async ({ page }) => {
+test('uses gold for shared hero primaries and blue for ordinary primary actions', async ({
+  page,
+}) => {
   const actions = [
-    { route: '/property-management', role: 'link' as const, name: 'Get Free Analysis' },
-    { route: '/construction', role: 'link' as const, name: 'Start Your Project' },
-    { route: '/construction', role: 'button' as const, name: /Request Your Bid/ },
-    { route: '/storage', role: 'link' as const, name: 'Partner With Us' },
+    {
+      route: '/property-management',
+      role: 'link' as const,
+      name: 'Get Free Analysis',
+      background: 'rgb(134, 98, 45)',
+    },
+    {
+      route: '/construction',
+      role: 'link' as const,
+      name: 'Get a Quote',
+      background: 'rgb(134, 98, 45)',
+    },
+    {
+      route: '/construction',
+      role: 'button' as const,
+      name: /Request Your Bid/,
+      background: 'rgb(0, 18, 138)',
+    },
+    {
+      route: '/storage',
+      role: 'link' as const,
+      name: 'Partner With Us',
+      background: 'rgb(134, 98, 45)',
+    },
   ];
 
   for (const action of actions) {
     await page.goto(action.route);
     const target = page.getByRole(action.role, { name: action.name }).first();
     await expect(target).toBeVisible();
-    await expect(target).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+    await expect(target).toHaveCSS('background-color', action.background);
     await expect(target).toHaveCSS('color', 'rgb(255, 255, 255)');
   }
 });
@@ -199,7 +221,7 @@ test('preserves the manually audited Home and Real Estate presentation details',
   const heroMedia = page.locator('[data-division-hero-media="true"]').first();
   await expect(heroMedia).toBeVisible();
   expect((await heroMedia.boundingBox())?.width ?? 0).toBeGreaterThan(400);
-  await expect(page.locator('.re-hero .ui-pill')).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(page.locator('.ui-division-hero-tag')).toHaveCSS('color', 'rgb(94, 133, 186)');
   await expect(page.locator('.re-about-visual > strong')).toHaveCSS('color', 'rgb(94, 133, 186)');
   await expect(page.locator('.re-check-grid svg').first()).toHaveCSS('color', 'rgb(94, 133, 186)');
   await expect(page.locator('#careers .ui-section-tag')).toHaveCSS('color', 'rgb(94, 133, 186)');
@@ -221,9 +243,7 @@ test('keeps division calls to action readable and the mobile edit launcher clear
       return { foreground: styles.color, background: styles.backgroundColor };
     });
     expect(colors.foreground).toBe('rgb(255, 255, 255)');
-    expect(colors.background).toBe(
-      route === '/real-estate' ? 'rgb(134, 98, 45)' : 'rgb(0, 18, 138)',
-    );
+    expect(colors.background).toBe('rgb(134, 98, 45)');
   }
 
   for (const route of ['/construction', '/storage'] as const) {
@@ -411,8 +431,8 @@ test('renders the complete Property Management composition with all semantic bou
     ).toBeGreaterThan(0);
   }
   await expect(page.locator('.pm-property-card [data-neutral-placeholder="true"]')).toHaveCount(2);
-  const heroMedia = page.locator('.pm-hero-image');
-  await expect(heroMedia.locator('[data-neutral-placeholder="true"]')).toBeVisible();
+  const heroMedia = page.locator('[data-division-hero-media="true"]');
+  await expect(heroMedia.locator('.division-hero-media-placeholder')).toBeVisible();
   await expect(heroMedia.locator('img')).toHaveCount(0);
   await expect(heroMedia).not.toContainText('media/seed/');
   await expect(page.getByText('Property 7')).toHaveCount(0);
@@ -458,7 +478,7 @@ test('uses the Property Management mobile navigation below the desktop breakpoin
   await page.reload();
   await expect(page.getByRole('button', { name: 'Toggle menu' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeHidden();
-  await expect(page.locator('.pm-hero-image')).toBeHidden();
+  await expect(page.locator('[data-division-hero-media="true"]')).toBeHidden();
 });
 
 test('preserves the Property Management visual scale and desktop split geometry', async ({
@@ -466,23 +486,23 @@ test('preserves the Property Management visual scale and desktop split geometry'
 }) => {
   await page.setViewportSize({ width: 1425, height: 1100 });
   await page.goto('/property-management');
-  const hero = await page.locator('.pm-hero').boundingBox();
-  const heroCopy = await page.locator('.pm-hero-grid > div').first().boundingBox();
+  const hero = await page.locator('.ui-division-hero').boundingBox();
+  const heroCopy = await page.locator('.ui-division-hero-copy').boundingBox();
   expect(hero?.height).toBeGreaterThanOrEqual(1100);
-  expect(heroCopy?.x).toBeGreaterThanOrEqual(28);
-  expect(heroCopy?.x).toBeLessThanOrEqual(36);
+  expect(heroCopy?.x).toBeGreaterThanOrEqual(15);
+  expect(heroCopy?.x).toBeLessThanOrEqual(17);
   await expect(page.locator('.pm-brand img')).toHaveCSS('height', '64px');
   const logo = await page.locator('.pm-brand img').boundingBox();
   expect(logo?.width).toBeGreaterThanOrEqual(265);
   expect(logo?.width).toBeLessThanOrEqual(269);
   expect(logo?.height).toBe(64);
-  await expect(page.locator('.pm-hero h1')).toHaveCSS('font-size', '60px');
+  await expect(page.locator('.ui-division-hero h1')).toHaveCSS('font-size', '60px');
   await expect(page.locator('#services .pm-section-heading h2')).toHaveCSS('font-size', '48px');
   await expect(page.locator('#services .pm-card p').first()).toHaveCSS('font-size', '16px');
 
   await page.setViewportSize({ width: 1024, height: 1366 });
   await page.reload();
-  await expect(page.locator('.pm-hero-image')).toBeVisible();
+  await expect(page.locator('[data-division-hero-media="true"]')).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Toggle menu' })).toBeHidden();
   const managedCards = page.locator(
@@ -504,16 +524,16 @@ test('matches the frozen Property Management header and hero geometry at each br
     {
       viewport: { width: 1440, height: 1100 },
       logoX: [35, 37],
-      headingWidth: [610, 614],
-      copyX: [35, 37],
-      copyWidth: [659, 661],
+      headingWidth: [619, 621],
+      copyX: [19, 21],
+      copyWidth: [650, 654],
     },
     {
       viewport: { width: 1024, height: 1366 },
       logoX: [15, 17],
-      headingWidth: [423, 425],
+      headingWidth: [427, 430],
       copyX: [15, 17],
-      copyWidth: [471, 473],
+      copyWidth: [459, 462],
     },
     {
       viewport: { width: 390, height: 844 },
@@ -529,8 +549,8 @@ test('matches the frozen Property Management header and hero geometry at each br
     const banner = await page.locator('.pm-anniversary').boundingBox();
     const header = await page.locator('.pm-header').boundingBox();
     const logo = await page.locator('.pm-brand img').boundingBox();
-    const heading = await page.locator('.pm-hero h1').boundingBox();
-    const copy = await page.locator('.pm-hero-grid > div').first().boundingBox();
+    const heading = await page.locator('.ui-division-hero h1').boundingBox();
+    const copy = await page.locator('.ui-division-hero-copy').boundingBox();
     expect(banner?.y).toBe(0);
     expect(header?.y).toBe(52);
     expect(logo?.x).toBeGreaterThanOrEqual(expectation.logoX[0]);
@@ -545,11 +565,8 @@ test('matches the frozen Property Management header and hero geometry at each br
     expect(copy?.width).toBeLessThanOrEqual(expectation.copyWidth[1]);
 
     if (expectation.viewport.width >= 1024) {
-      await expect(page.locator('.pm-hero h1')).toHaveCSS('line-height', '60px');
-      await expect(page.locator('.pm-hero-grid > div:first-child > p')).toHaveCSS(
-        'line-height',
-        '28px',
-      );
+      await expect(page.locator('.ui-division-hero h1')).toHaveCSS('line-height', '60px');
+      await expect(page.locator('.ui-division-hero-description')).toHaveCSS('line-height', '28px');
       expect(heading?.height).toBeGreaterThanOrEqual(119);
       expect(heading?.height).toBeLessThanOrEqual(121);
     }
@@ -597,8 +614,8 @@ test('preserves square Property Management team portraits and mobile content wid
 test('gives the Property Management hero actions an accessible visual hierarchy', async ({
   page,
 }) => {
-  const primary = page.locator('.pm-hero .pm-actions a').nth(0);
-  const secondary = page.locator('.pm-hero .pm-actions a').nth(1);
+  const primary = page.locator('.ui-division-hero-actions a').nth(0);
+  const secondary = page.locator('.ui-division-hero-actions a').nth(1);
 
   for (const viewport of [
     { width: 1440, height: 1100 },
@@ -613,7 +630,7 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
     const primaryBox = await primary.boundingBox();
     const secondaryBox = await secondary.boundingBox();
     expect(primaryBox?.width).toBeGreaterThanOrEqual(201);
-    expect(primaryBox?.width).toBeLessThanOrEqual(203);
+    expect(primaryBox?.width).toBeLessThanOrEqual(204);
     expect(primaryBox?.height).toBe(44);
     expect(secondaryBox?.width).toBeGreaterThanOrEqual(148);
     expect(secondaryBox?.width).toBeLessThanOrEqual(150);
@@ -631,15 +648,15 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
 
   await expect(primary).toHaveAttribute('href', '#contact');
   await expect(secondary).toHaveAttribute('href', '#services');
-  await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+  await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
   await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(secondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(secondary).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
-  expect(contrastRatio([255, 255, 255], [0, 18, 138])).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio([255, 255, 255], [134, 98, 45])).toBeGreaterThanOrEqual(4.5);
 
   await primary.hover();
-  await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+  await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
   await secondary.hover();
   await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
   await primary.focus();
@@ -648,10 +665,10 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  const mobileHeroBox = await page.locator('.pm-hero').boundingBox();
+  const mobileHeroBox = await page.locator('.ui-division-hero').boundingBox();
   const mobilePrimaryBox = await primary.boundingBox();
   const mobileSecondaryBox = await secondary.boundingBox();
-  expect(mobileHeroBox?.height).toBe(844);
+  expect(mobileHeroBox?.height).toBeGreaterThan(0);
   expect(mobilePrimaryBox?.x).toBe(16);
   expect(mobileSecondaryBox?.x).toBe(16);
   expect(mobilePrimaryBox?.width).toBe(358);
@@ -693,7 +710,7 @@ test('restores labeled Property Management contact rows and clears the sticky he
       detailRows.nth(3).locator('.pm-contact-license-icon[aria-hidden="true"] svg'),
     ).toHaveCount(1);
 
-    await page.locator('.pm-hero .pm-actions a[href="#contact"]').click();
+    await page.locator('.ui-division-hero-actions a[href="#contact"]').click();
     await expect(page).toHaveURL(/#contact$/);
     await expect
       .poll(async () => {

@@ -21,7 +21,6 @@
   .co-plan-grid .editable-collection-items,
   .co-team-grid .editable-collection-items,
   .co-review-grid .editable-collection-items,
-  .co-hero-stats .editable-collection-items,
   .co-pro-stats .editable-collection-items,
   .co-checks .editable-collection-items {
     display: grid;
@@ -40,10 +39,6 @@
   .co-review-grid .editable-collection-items {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
-  }
-  .co-hero-stats .editable-collection-items {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
   }
   .co-pro-stats .editable-collection-items {
     grid-template-columns: repeat(4, 1fr);
@@ -151,60 +146,6 @@
     gap: 0.5rem;
     padding: 0.7rem 1.25rem;
   }
-  .co-hero {
-    min-height: 100vh;
-    padding: 196px 0 64px;
-  }
-  .co-hero-grid {
-    min-height: calc(100vh - 260px);
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 5rem;
-  }
-  .co-hero-grid > div:first-child {
-    padding-right: 1rem;
-  }
-  .co-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-  .co-pills span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.9rem;
-  }
-  .co-hero h1 {
-    margin-bottom: 0.25rem;
-  }
-  .co-hero h2 {
-    margin-bottom: 1.5rem;
-  }
-  .co-hero h3 {
-    margin-bottom: 1rem;
-  }
-  .co-hero p {
-    max-width: 620px;
-    margin: 0 0 2rem;
-  }
-  .co-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-  .co-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-    margin-top: 3rem;
-    padding-top: 2rem;
-  }
-  .co-hero-stats svg {
-    width: 1.15rem;
-  }
   .co-section {
     padding: 96px 0;
   }
@@ -310,7 +251,6 @@
     margin-left: auto;
     padding: 0.25rem 0.55rem;
   }
-  .co-hero-stats strong,
   .co-plan > p {
     display: flex;
     align-items: center;
@@ -473,10 +413,8 @@
   .co-plan-grid,
   .co-team-grid,
   .co-review-grid,
-  .co-hero-stats,
   .co-pro-stats,
   .co-checks,
-  .co-hero-stats span,
   .co-pro-stats strong,
   .co-pro-stats span,
   .co-team-card strong,
@@ -560,13 +498,6 @@
     }
   }
   @media (max-width: 1023px) {
-    .co-hero {
-      min-height: auto;
-    }
-    .co-hero-grid {
-      min-height: 670px;
-      grid-template-columns: 1fr;
-    }
     .co-sector-grid,
     .co-card-grid,
     .co-card-grid .editable-collection-items {
@@ -593,20 +524,11 @@
     .co-brand img {
       height: 48px;
     }
-    .co-hero {
-      padding: 176px 0 64px;
-    }
-    .co-hero-grid {
-      min-height: 620px;
-    }
     .co-section {
       padding: 72px 0;
     }
     .co-heading {
       margin-bottom: 42px;
-    }
-    .co-hero-stats {
-      gap: 0.6rem;
     }
     .co-pro-stats,
     .co-pro-stats .editable-collection-items {

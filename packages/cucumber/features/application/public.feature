@@ -67,7 +67,8 @@ Feature: Published TriCo website
     backend-noop: Hero media geometry, image cropping, fallback presentation, and responsive visibility are browser-owned behavior.
     Given the current content manifest is available
     When I open "/property-management"
-    Then Property Management Real Estate Construction and Storage expose one shared hero media contract
+    Then every division page except Home uses the shared Real Estate hero template
+    And shared division hero tags and actions use the Real Estate presentation contract
     And available division hero images crop consistently while missing images use one neutral fallback
     And division hero media remains visible at desktop width and yields to the content below 1024 pixels
 
@@ -101,6 +102,7 @@ Feature: Published TriCo website
     And every division navigation exposes Careers
     And retired legacy careers entities remain registered but are not rendered
     And Real Estate repeated section labels use one filled blue tag layout
+    And the shared careers layout is centered and clears every fixed division header
 
   @id:public.review-platform-contract @backend-noop
   Scenario: Present review destinations with one accessible platform contract

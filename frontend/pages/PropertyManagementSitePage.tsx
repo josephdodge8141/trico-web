@@ -92,6 +92,7 @@ import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
 import { CareersSection } from '../components/CareersSection.js';
+import { DivisionHero } from '../components/DivisionHero.js';
 import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
@@ -299,6 +300,7 @@ function PropertyManagementBody(): React.JSX.Element {
   );
   const header = value('property-management.header', propertyManagementHeaderSchema);
   const hero = value('property-management.hero', propertyManagementHeroSchema);
+  const heroImage = asset(hero.image.key);
   const heroStats = value('property-management.hero.stats', propertyManagementHeroStatsSchema);
   const servicesHeader = value(
     'property-management.services.header',
@@ -517,67 +519,48 @@ function PropertyManagementBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="property-management.hero" value={hero}>
-          <section className="pm-hero ui-hero ui-split-hero">
-            <div className="pm-container ui-container pm-hero-grid ui-hero-grid">
-              <div className="ui-hero-copy">
-                <span className="pm-pill ui-pill pm-pill-gold ui-pill-gold">
-                  <Building2 />
-                  {hero.eyebrow}
-                </span>
-                <h1 className="type-display">{hero.heading}</h1>
-                <p>{hero.description}</p>
-                <div className="pm-actions ui-actions">
-                  <a
-                    className="pm-button ui-button pm-button-gold ui-button-accent"
-                    href="#contact"
-                  >
-                    {hero.primaryActionLabel}
-                    <ArrowRight aria-hidden="true" />
-                  </a>
-                  <a
-                    className="pm-button ui-button pm-button-outline ui-button-outline"
-                    href="#services"
-                  >
-                    {hero.secondaryActionLabel}
-                  </a>
-                </div>
-                <CollectionBoundary
-                  id="property-management.hero.stats"
-                  value={heroStats}
-                  renderItem={(value) => {
-                    const stat = propertyManagementHeroStatsSchema.element.parse(value);
-                    const Icon = icon(stat.icon);
-                    return (
-                      <div className="pm-stat ui-stat">
-                        <Icon />
-                        <strong>{stat.value}</strong>
-                        <span>{stat.label}</span>
-                      </div>
-                    );
-                  }}
-                />
-              </div>
-              <div
-                className="pm-hero-image ui-hero-image division-hero-media"
-                data-division-hero-media="true"
-                data-media-state={asset(hero.image.key) === undefined ? 'unavailable' : 'available'}
-              >
-                {asset(hero.image.key) === undefined ? (
-                  <div
-                    className="pm-neutral-placeholder ui-neutral-placeholder division-hero-media-placeholder"
-                    data-neutral-placeholder="true"
-                    role="img"
-                    aria-label={hero.imageAltText}
-                  >
-                    <ImageIcon aria-hidden="true" />
-                    <span>Photo coming soon</span>
-                  </div>
-                ) : (
-                  <img src={asset(hero.image.key)} alt={hero.imageAltText} />
-                )}
-              </div>
-            </div>
-          </section>
+          <DivisionHero
+            labelledBy="property-management-hero-heading"
+            badges={[{ label: hero.eyebrow, icon: <Building2 aria-hidden="true" /> }]}
+            heading={hero.heading}
+            description={hero.description}
+            actions={[
+              {
+                label: hero.primaryActionLabel,
+                href: '#contact',
+                variant: 'primary',
+                icon: <ArrowRight aria-hidden="true" />,
+              },
+              {
+                label: hero.secondaryActionLabel,
+                href: '#services',
+                variant: 'secondary',
+              },
+            ]}
+            stats={
+              <CollectionBoundary
+                id="property-management.hero.stats"
+                value={heroStats}
+                renderItem={(value) => {
+                  const stat = propertyManagementHeroStatsSchema.element.parse(value);
+                  const Icon = icon(stat.icon);
+                  return (
+                    <div className="ui-division-hero-stat">
+                      <Icon />
+                      <strong>{stat.value}</strong>
+                      <span>{stat.label}</span>
+                    </div>
+                  );
+                }}
+              />
+            }
+            media={{
+              alt: hero.imageAltText,
+              ...(heroImage === undefined
+                ? { state: 'unavailable' as const }
+                : { src: heroImage, state: 'available' as const }),
+            }}
+          />
         </ObjectBoundary>
         <section className="pm-section ui-section pm-tint ui-tint ui-services" id="services">
           <div className="pm-container ui-container ui-content-frame-standard">

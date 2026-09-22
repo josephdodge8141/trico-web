@@ -93,6 +93,192 @@
     --trico-profile-editorial-shadow: rgb(0 0 0 / 5%);
   }
 }
+
+@layer components {
+  .ui-wide-frame,
+  .ui-division-hero-frame {
+    box-sizing: border-box;
+    width: min(calc(100% - 2rem), 1400px);
+    margin-inline: auto;
+  }
+
+  .ui-division-hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 196px 0 48px;
+  }
+
+  .ui-division-hero-frame {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: clamp(3rem, 7vw, 6rem);
+  }
+
+  .ui-division-hero-copy {
+    min-width: 0;
+    padding-right: 2rem;
+  }
+
+  .ui-division-hero-tags,
+  .ui-division-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .ui-division-hero-tags {
+    margin-bottom: 1rem;
+  }
+
+  .ui-division-hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
+  }
+
+  .ui-division-hero-tag svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .ui-division-hero h1 {
+    max-width: 660px;
+    margin: 0;
+  }
+
+  .ui-division-hero .ui-division-hero-description {
+    max-width: 670px;
+    margin: 1.5rem 0 2rem;
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .ui-division-hero-supporting > :is(h2, h3),
+  .ui-division-hero .ui-promise {
+    margin-block: 1rem 0;
+  }
+
+  .ui-division-hero-actions .ui-button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+  }
+
+  .ui-division-hero-actions .ui-button svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .ui-division-hero-stats {
+    margin-top: 3rem;
+    padding-top: 2rem;
+  }
+
+  .ui-division-hero-stats > .ui-entity-slot,
+  .ui-division-hero-stats
+    > .ui-entity-slot
+    > [data-entity-boundary='true']:not(.editable-boundary) {
+    display: contents;
+  }
+
+  .ui-division-hero-stats .editable-collection-items,
+  .ui-division-hero-stat-items .editable-collection-items {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .ui-division-hero-stat {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.15rem 0.45rem;
+  }
+
+  .ui-division-hero-stat > svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .ui-division-hero-stat > span {
+    grid-column: 1 / -1;
+  }
+
+  .ui-division-hero-media {
+    width: 100%;
+    height: auto;
+    margin: 0;
+  }
+
+  .ui-division-hero-media figcaption {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 3rem 1.5rem 1.5rem;
+    color: var(--trico-color-surface);
+    background: linear-gradient(transparent, var(--trico-overlay-deep));
+  }
+
+  @media (max-width: 1023px) {
+    .ui-division-hero {
+      min-height: auto;
+      padding: 176px 0 72px;
+    }
+
+    .ui-division-hero-frame {
+      display: block;
+    }
+
+    .ui-division-hero-copy {
+      max-width: 48rem;
+      margin-inline: auto;
+      padding-right: 0;
+      text-align: center;
+    }
+
+    .ui-division-hero h1,
+    .ui-division-hero-description {
+      margin-inline: auto;
+    }
+
+    .ui-division-hero-tags,
+    .ui-division-hero-actions {
+      justify-content: center;
+    }
+
+    .ui-division-hero-stats .editable-collection-items,
+    .ui-division-hero-stat-items .editable-collection-items {
+      text-align: left;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .ui-division-hero {
+      padding-top: 156px;
+    }
+
+    .ui-division-hero-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .ui-division-hero-actions .ui-button {
+      width: 100%;
+    }
+
+    .ui-division-hero-stats .editable-collection-items,
+    .ui-division-hero-stat-items .editable-collection-items {
+      grid-template-columns: 1fr;
+    }
+  }
+}
 @layer components {
   html {
     scroll-behavior: smooth;
@@ -3703,10 +3889,35 @@
     font-size: 1rem;
   }
   .ui-shared-careers {
-    scroll-margin-top: 6rem;
+    scroll-margin-top: 148px;
   }
-  .ui-careers-container {
-    max-width: 52rem;
+  .ui-shared-careers .ui-careers-container {
+    width: min(calc(100% - 2rem), 1400px);
+    max-width: 1400px;
+    margin-inline: auto;
+  }
+  .ui-shared-careers .ui-section-heading,
+  .ui-shared-careers .ui-resume-heading {
+    width: 100%;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .ui-shared-careers .ui-section-heading {
+    margin-bottom: var(--trico-section-heading-gap-compact);
+  }
+  .ui-shared-careers .ui-section-heading .ui-section-tag {
+    margin-inline: auto;
+  }
+  .ui-shared-careers .ui-careers-list,
+  .ui-shared-careers .ui-form-surface,
+  .ui-shared-careers .ui-careers-empty,
+  .ui-shared-careers > .ui-careers-container > .ui-entity-slot {
+    width: 100%;
+  }
+  .ui-shared-careers .ui-career-card,
+  .ui-shared-careers .ui-resume-form,
+  .ui-shared-careers .ui-resume-success {
+    text-align: left;
   }
   .ui-careers-list,
   .ui-shared-careers .editable-collection-items {
@@ -3891,11 +4102,20 @@
   .ui-centered-logo-header img {
     display: block;
   }
-  .ui-centered-logo-header > nav,
   .ui-centered-logo-header > button {
     display: none;
   }
+  .ui-centered-logo-header > nav {
+    position: absolute;
+    right: max(16px, calc((100vw - 1400px) / 2));
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
   @media (max-width: 1023px) {
+    .ui-centered-logo-header > nav {
+      display: none;
+    }
     .ui-centered-logo-header > button {
       position: absolute;
       right: 16px;
@@ -3908,15 +4128,6 @@
     --ui-division-primary-strong: rgb(30 64 175);
     --ui-division-accent: rgb(59 130 246);
     --ui-division-success: rgb(16 185 129);
-  }
-  .ui-theme-storage .ui-split-hero {
-    background: linear-gradient(
-      90deg,
-      var(--ui-division-primary) 0%,
-      var(--ui-division-primary) 50%,
-      var(--trico-color-surface-muted) 50%,
-      var(--trico-color-surface-muted) 100%
-    );
   }
   .ui-split-hero.ui-mounted-split-hero-surfaces {
     background:
@@ -3973,14 +4184,9 @@
   .ui-theme-storage .ui-split-hero .ui-promise {
     color: rgb(135 161 197);
   }
-  .ui-theme-storage .ui-split-hero .ui-actions a:first-child,
   .ui-theme-storage .ui-about a {
     color: var(--trico-color-surface);
     background: var(--trico-color-action);
-  }
-  .ui-theme-storage .ui-split-hero .ui-actions a:nth-child(2) {
-    color: var(--trico-color-dark);
-    background: var(--trico-color-surface);
   }
   .ui-on-dark .type-section-title,
   .ui-footer-copy-standard .type-footer-title {
@@ -5443,5 +5649,13 @@
     font-size: 14px;
     line-height: 20px;
     margin: 0;
+  }
+}
+
+@layer components {
+  @media (max-width: 767px) {
+    .ui-shared-careers {
+      scroll-margin-top: 140px;
+    }
   }
 }

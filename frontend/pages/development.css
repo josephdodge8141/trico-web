@@ -111,33 +111,6 @@
     margin-bottom: 1rem;
     padding: 0.45rem 1rem;
   }
-  .dev-hero {
-    padding: 208px 0 96px;
-    overflow: hidden;
-  }
-  .dev-hero-inner {
-    max-width: 900px;
-  }
-  .dev-hero-inner > p {
-    max-width: 700px;
-    margin: 1.5rem auto 2rem;
-  }
-  .dev-actions {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
-  }
-  .dev-stats {
-    max-width: 700px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-inline: auto;
-  }
-  .dev-stats svg {
-    width: 1.3rem;
-  }
   .dev-section {
     padding: var(--trico-section-spacing) 0;
   }
@@ -180,7 +153,6 @@
     margin-inline: auto;
     padding: 2rem;
   }
-  .dev-stats div,
   .dev-trust div {
     display: grid;
     justify-items: center;
@@ -443,20 +415,8 @@
     .dev-brand img {
       height: 50px;
     }
-    .dev-hero {
-      padding: 184px 0 72px;
-    }
-    .dev-actions {
-      flex-direction: column;
-    }
-    .dev-stats {
-      gap: 0.5rem;
-    }
     .dev-anniversary i,
     .dev-anniversary span,
-    .dev-stats svg {
-      display: none;
-    }
     .dev-section {
       padding: var(--trico-section-spacing-compact) 0;
     }

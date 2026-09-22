@@ -76,6 +76,7 @@ import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
 import { CareersSection } from '../components/CareersSection.js';
+import { DivisionHero } from '../components/DivisionHero.js';
 import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
@@ -474,59 +475,56 @@ function ConstructionBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="construction.hero" value={hero}>
-          <section className="co-hero ui-hero ui-split-hero">
-            <div className="co-container ui-container co-hero-grid ui-hero-grid">
-              <div className="ui-hero-copy">
-                <div className="co-pills ui-pills">
-                  <span>
-                    <HardHat /> {hero.primaryBadge}
-                  </span>
-                  <span>{hero.serviceAreaBadge}</span>
-                </div>
-                <h1 className="type-display">{hero.heading}</h1>
+          <DivisionHero
+            labelledBy="construction-hero-heading"
+            badges={[
+              { label: hero.primaryBadge, icon: <HardHat aria-hidden="true" /> },
+              { label: hero.serviceAreaBadge },
+            ]}
+            heading={hero.heading}
+            description={hero.description}
+            supportingContent={
+              <div className="ui-division-hero-supporting">
                 <h2 className="type-hero-location">{hero.locationHeading}</h2>
                 <h3 className="type-card-title">{hero.promise}</h3>
-                <p>{hero.description}</p>
-                <div className="co-actions ui-actions">
-                  <a className="co-button ui-button co-button-gold ui-button-gold" href="#contact">
-                    {hero.primaryActionLabel} <ArrowRight />
-                  </a>
-                  <a
-                    className="co-button ui-button co-button-outline ui-button-outline"
-                    href="#services"
-                  >
-                    {hero.secondaryActionLabel}
-                  </a>
-                </div>
-                <div className="co-hero-stats ui-hero-stats">
-                  <CollectionBoundary
-                    id="construction.hero.stats"
-                    value={heroStats}
-                    renderItem={(item) => {
-                      const stat = constructionHeroStatsSchema.element.parse(item);
-                      const StatIcon = icons[stat.icon] ?? Building;
-                      return (
-                        <div>
-                          <strong>
-                            <StatIcon />
-                            {stat.value}
-                          </strong>
-                          <span>{stat.label}</span>
-                        </div>
-                      );
-                    }}
-                  />
-                </div>
               </div>
-              <div
-                className="division-hero-media ui-split-hero-media-gold"
-                data-division-hero-media="true"
-                data-media-state="available"
-              >
-                <img src={constructionImage(hero.image.key, crewOne)} alt={hero.imageAltText} />
-              </div>
-            </div>
-          </section>
+            }
+            actions={[
+              {
+                label: hero.primaryActionLabel,
+                href: '#contact',
+                variant: 'primary',
+                icon: <ArrowRight aria-hidden="true" />,
+              },
+              {
+                label: hero.secondaryActionLabel,
+                href: '#services',
+                variant: 'secondary',
+              },
+            ]}
+            stats={
+              <CollectionBoundary
+                id="construction.hero.stats"
+                value={heroStats}
+                renderItem={(item) => {
+                  const stat = constructionHeroStatsSchema.element.parse(item);
+                  const StatIcon = icons[stat.icon] ?? Building;
+                  return (
+                    <div className="ui-division-hero-stat">
+                      <StatIcon />
+                      <strong>{stat.value}</strong>
+                      <span>{stat.label}</span>
+                    </div>
+                  );
+                }}
+              />
+            }
+            media={{
+              src: constructionImage(hero.image.key, crewOne),
+              alt: hero.imageAltText,
+              state: 'available',
+            }}
+          />
         </ObjectBoundary>
 
         <section className="co-section ui-section co-tint ui-tint ui-services" id="services">

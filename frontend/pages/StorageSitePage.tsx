@@ -65,6 +65,7 @@ import storageLogo from '../assets/images/trico-storage-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
 import { CareersSection } from '../components/CareersSection.js';
+import { DivisionHero } from '../components/DivisionHero.js';
 import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
@@ -297,27 +298,29 @@ function StorageBody(): React.JSX.Element {
       ) : null}
       <main id="storage-main">
         <ObjectBoundary id="storage.hero" value={hero}>
-          <section className="storage-hero ui-hero ui-split-hero ui-split-frame ui-on-dark ui-viewport-hero ui-mounted-split-hero-surfaces">
-            <div className="storage-hero-copy ui-hero-copy">
-              <div className="storage-badges ui-badges">
-                <span>
-                  <Warehouse />
-                  {hero.primaryBadge}
-                </span>
-                <span>{hero.serviceAreaBadge}</span>
-              </div>
-              <h1 className="type-display ui-mounted-split-hero-heading">{hero.heading}</h1>
-              <p className="storage-promise ui-promise">{hero.subheading}</p>
-              <p>{hero.description}</p>
-              <div className="storage-actions ui-actions">
-                <a className="ui-button" href="#contact">
-                  {hero.primaryActionLabel}
-                  <ArrowRight />
-                </a>
-                <a className="ui-button" href="#services">
-                  {hero.secondaryActionLabel}
-                </a>
-              </div>
+          <DivisionHero
+            labelledBy="storage-hero-heading"
+            badges={[
+              { label: hero.primaryBadge, icon: <Warehouse aria-hidden="true" /> },
+              { label: hero.serviceAreaBadge },
+            ]}
+            heading={hero.heading}
+            description={hero.description}
+            supportingContent={<p className="ui-promise">{hero.subheading}</p>}
+            actions={[
+              {
+                label: hero.primaryActionLabel,
+                href: '#contact',
+                variant: 'primary',
+                icon: <ArrowRight aria-hidden="true" />,
+              },
+              {
+                label: hero.secondaryActionLabel,
+                href: '#services',
+                variant: 'secondary',
+              },
+            ]}
+            stats={
               <CollectionBoundary
                 id="storage.hero.stats"
                 value={stats}
@@ -325,7 +328,7 @@ function StorageBody(): React.JSX.Element {
                   const stat = storageHeroStatSchema.parse(item);
                   const Icon = icons[stat.icon] ?? TrendingUp;
                   return (
-                    <article className="storage-stat ui-stat">
+                    <article className="ui-division-hero-stat">
                       <Icon />
                       <strong>{stat.value}</strong>
                       <span>{stat.label}</span>
@@ -333,16 +336,14 @@ function StorageBody(): React.JSX.Element {
                   );
                 }}
               />
-            </div>
-            <figure
-              className="division-hero-media ui-split-hero-media-success"
-              data-division-hero-media="true"
-              data-media-state="available"
-            >
-              <img src={managedImage(hero.image.key, storageHeroImage)} alt={hero.imageAltText} />
-              <figcaption>{hero.imageCaption}</figcaption>
-            </figure>
-          </section>
+            }
+            media={{
+              src: managedImage(hero.image.key, storageHeroImage),
+              alt: hero.imageAltText,
+              caption: hero.imageCaption,
+              state: 'available',
+            }}
+          />
         </ObjectBoundary>
         <section
           id="services"

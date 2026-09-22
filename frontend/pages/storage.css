@@ -29,25 +29,6 @@
     margin: 148px 0 0;
     padding: 0.6rem;
   }
-  .storage-hero {
-    min-height: 100vh;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding-top: 148px;
-  }
-  .storage-hero-copy {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 5rem clamp(1.25rem, 6vw, 6rem);
-  }
-  .storage-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-  .storage-badges span,
   .storage-pill {
     display: inline-flex;
     align-items: center;
@@ -55,21 +36,9 @@
     width: max-content;
     padding: 0.45rem 0.9rem;
   }
-  .storage-hero h1 {
-    margin: 0 0 1rem;
-  }
-  .storage-hero-copy > p {
-    max-width: 43rem;
-  }
   .storage-promise {
     margin: 0.5rem 0 1rem;
   }
-  .storage-actions {
-    display: flex;
-    gap: 1rem;
-    margin: 1.8rem 0 2rem;
-  }
-  .storage-actions a,
   .storage-about a {
     display: inline-flex;
     align-items: center;
@@ -77,30 +46,6 @@
     gap: 0.5rem;
     min-height: 48px;
     padding: 0.7rem 1.1rem;
-  }
-  .storage-hero figure {
-    margin: 4rem clamp(1.25rem, 5vw, 5rem);
-  }
-  .storage-hero figcaption {
-    position: absolute;
-    inset: auto 0 0;
-    padding: 3rem 1.5rem 1.5rem;
-  }
-  .storage-hero .editable-collection-items {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    padding-top: 1.5rem;
-  }
-  .storage-stat {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 0.15rem 0.5rem;
-  }
-  .storage-stat svg {
-    grid-row: span 2;
-    width: 1.3rem;
   }
   .storage-section {
     padding-block: 6rem;
@@ -211,8 +156,6 @@
     gap: 0.5rem;
   }
   .storage-banner svg,
-  .storage-badges svg,
-  .storage-actions svg,
   .storage-contact-form button svg {
     width: 1rem;
   }
@@ -248,11 +191,6 @@
     display: grid;
   }
   @media (max-width: 1023px) {
-    .storage-hero {
-      min-height: auto;
-      grid-template-columns: 1fr;
-      padding-top: 148px;
-    }
     .storage-about-layout,
     .storage-contact {
       grid-template-columns: 1fr;
@@ -275,18 +213,6 @@
     }
     .storage-mobile-nav {
       top: 134px;
-    }
-    .storage-hero {
-      padding-top: 134px;
-    }
-    .storage-hero-copy {
-      padding: 4rem 1rem;
-    }
-    .storage-actions {
-      flex-direction: column;
-    }
-    .storage-actions a {
-      width: 100%;
     }
     .storage-about-mark aside {
       right: 0.75rem;

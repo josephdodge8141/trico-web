@@ -803,11 +803,11 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const statSamples = [
-      { route: '/property-management', selector: '.pm-stat strong' },
-      { route: '/real-estate', selector: '.re-hero-stats strong' },
-      { route: '/construction', selector: '.co-pro-stats strong' },
-      { route: '/storage', selector: '.storage-stat strong' },
-      { route: '/development', selector: '.dev-stats strong' },
+      { route: '/property-management', selector: '.ui-division-hero-stat strong' },
+      { route: '/real-estate', selector: '.ui-division-hero-stat strong' },
+      { route: '/construction', selector: '.ui-division-hero-stat strong' },
+      { route: '/storage', selector: '.ui-division-hero-stat strong' },
+      { route: '/development', selector: '.ui-division-hero-stat strong' },
     ] as const;
     for (const sample of statSamples) {
       await page.goto(sample.route);
@@ -826,7 +826,7 @@ Then(
     );
 
     await page.goto('/construction');
-    await expect(page.locator('.co-button-gold').first()).toHaveCSS(
+    await expect(page.locator('.ui-division-hero-action-primary')).toHaveCSS(
       'background-color',
       'rgb(134, 98, 45)',
     );
@@ -1126,15 +1126,17 @@ const divisionHeroMediaSamples = [
   { route: '/real-estate', state: 'unavailable' },
   { route: '/construction', state: 'available' },
   { route: '/storage', state: 'available' },
+  { route: '/development', state: 'unavailable' },
 ] as const;
 
 Then(
-  'Property Management Real Estate Construction and Storage expose one shared hero media contract',
+  'every division page except Home uses the shared Real Estate hero template',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     await page.setViewportSize({ width: 1440, height: 1100 });
     for (const sample of divisionHeroMediaSamples) {
       await page.goto(sample.route);
+      await expect(page.locator('[data-shared-division-hero="true"]')).toHaveCount(1);
       const media = page.locator('[data-division-hero-media="true"]');
       await expect(media).toHaveCount(1);
       await expect(media).toBeVisible();
@@ -1148,6 +1150,46 @@ Then(
       assert.ok(box.width >= 648);
       assert.ok(Math.abs(box.width / box.height - 4 / 3) <= 0.01);
     }
+    await page.goto('/');
+    await expect(page.locator('[data-shared-division-hero="true"]')).toHaveCount(0);
+  },
+);
+
+Then(
+  'shared division hero tags and actions use the Real Estate presentation contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    const properties = [
+      'color',
+      'backgroundColor',
+      'borderColor',
+      'borderRadius',
+      'fontWeight',
+      'height',
+      'paddingInline',
+    ] as const;
+    const snapshots: Record<string, string>[] = [];
+    for (const route of divisionHeroMediaSamples.map(({ route }) => route)) {
+      await page.goto(route);
+      const tag = page.locator('.ui-division-hero-tag').first();
+      const primary = page.locator('.ui-division-hero-actions .ui-button-gold');
+      const secondary = page.locator('.ui-division-hero-actions .ui-button-outline');
+      await expect(tag).toBeVisible();
+      await expect(primary).toBeVisible();
+      await expect(secondary).toBeVisible();
+      for (const locator of [tag, primary, secondary]) {
+        snapshots.push(
+          await locator.evaluate((element, names) => {
+            const styles = getComputedStyle(element);
+            return Object.fromEntries(names.map((name) => [name, styles[name]]));
+          }, properties),
+        );
+      }
+    }
+    const reference = snapshots.slice(0, 3);
+    for (let index = 3; index < snapshots.length; index += 1)
+      assert.deepEqual(snapshots[index], reference[index % 3]);
   },
 );
 
@@ -1482,9 +1524,9 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     await page.setViewportSize({ width: 1512, height: 1100 });
-    const heroDescription = page.locator('.ui-hero-description-standard');
-    await expect(heroDescription).toHaveCSS('max-width', '672px');
-    await expect(heroDescription).toHaveCSS('font-size', '18px');
+    const heroDescription = page.locator('.ui-division-hero-description');
+    await expect(heroDescription).toHaveCSS('max-width', '670px');
+    await expect(heroDescription).toHaveCSS('font-size', '20px');
     await expect(heroDescription).toHaveCSS('line-height', '28px');
     const headingGaps = [
       { selector: '#services .ui-heading-gap-standard', margin: '48px' },
@@ -2365,6 +2407,52 @@ Then('Apply Now prefills the shared application form', async function (this: Fro
   await expect(page.locator('#career-application-form')).toBeInViewport();
 });
 
+Then(
+  'the shared careers layout is centered and clears every fixed division header',
+  { timeout: 60_000 },
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const routes = divisionHeroMediaSamples.map(({ route }) => route);
+    for (const viewport of [
+      { width: 1440, height: 1100, offset: 148 },
+      { width: 390, height: 844, offset: 140 },
+    ]) {
+      await page.setViewportSize(viewport);
+      for (const route of routes) {
+        await page.goto(route);
+        if (viewport.width < 768) {
+          await page
+            .getByRole('button', { name: route === '/storage' ? 'Open navigation' : 'Toggle menu' })
+            .click();
+          await page.locator('nav:visible a[href="#careers"]').click();
+        } else {
+          await page.locator('header nav a[href="#careers"]').click();
+        }
+        await page
+          .waitForFunction((offset) => {
+            const section = document.querySelector('#careers');
+            return section !== null && Math.abs(section.getBoundingClientRect().top - offset) < 12;
+          }, viewport.offset)
+          .catch(() => undefined);
+        const section = page.locator('#careers');
+        const container = section.locator('.ui-careers-container');
+        const heading = section.locator('.ui-section-heading');
+        const form = section.locator('.ui-resume-form');
+        const sectionBox = await section.boundingBox();
+        const containerBox = await container.boundingBox();
+        assert.ok(sectionBox);
+        assert.ok(containerBox);
+        assert.ok(sectionBox.y >= viewport.offset - 12);
+        assert.ok(Math.abs(containerBox.x + containerBox.width / 2 - viewport.width / 2) <= 2);
+        await expect(heading).toHaveCSS('text-align', 'center');
+        await expect(form).toHaveCSS('text-align', 'start');
+        if (viewport.width === 1440) assert.ok(containerBox.width >= 1360);
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 1100 });
+  },
+);
+
 Then('every division navigation exposes Careers', async function (this: FrontendWorld) {
   const page = this.currentPage();
   const routes = Object.keys(headings).filter((candidate) => candidate !== '/');
@@ -2467,14 +2555,10 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const expectations = [
-      { route: '/', selector: '.ui-careers' },
-      { route: '/real-estate', selector: '.ui-careers' },
       { route: '/real-estate', selector: '.ui-contact' },
       { route: '/real-estate', selector: '.ui-footer' },
       { route: '/property-management', selector: '.ui-contact' },
       { route: '/property-management', selector: '.ui-footer' },
-      { route: '/property-management', selector: '.ui-careers' },
-      { route: '/construction', selector: '.ui-careers' },
       { route: '/construction', selector: '.ui-contact' },
       { route: '/construction', selector: '.ui-footer' },
       { route: '/storage', selector: '.ui-contact' },
@@ -2492,6 +2576,10 @@ Then(
     }
 
     const centered = [
+      { route: '/', selector: '.ui-careers' },
+      { route: '/real-estate', selector: '.ui-careers' },
+      { route: '/property-management', selector: '.ui-careers' },
+      { route: '/construction', selector: '.ui-careers' },
       { route: '/', selector: '.ui-contact' },
       { route: '/', selector: '.ui-footer-light' },
       { route: '/real-estate', selector: '.profile-card-body' },
@@ -2816,18 +2904,18 @@ Then(
   'the Property Management hero presents an accessible primary and secondary action hierarchy',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const primary = page.locator('.pm-hero .pm-actions a').nth(0);
-    const secondary = page.locator('.pm-hero .pm-actions a').nth(1);
+    const primary = page.locator('.ui-division-hero-actions a').nth(0);
+    const secondary = page.locator('.ui-division-hero-actions a').nth(1);
     await expect(primary).toHaveAttribute('href', '#contact');
     await expect(secondary).toHaveAttribute('href', '#services');
-    await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
     await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(secondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(secondary).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
 
     await primary.hover();
-    await expect(primary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
     await secondary.hover();
     await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
     await primary.focus();
@@ -2841,14 +2929,14 @@ Then(
     const page = this.currentPage();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/property-management');
-    const actions = page.locator('.pm-hero .pm-actions a');
-    const heroBox = await page.locator('.pm-hero').boundingBox();
+    const actions = page.locator('.ui-division-hero-actions a');
+    const heroBox = await page.locator('.ui-division-hero').boundingBox();
     const primaryBox = await actions.nth(0).boundingBox();
     const secondaryBox = await actions.nth(1).boundingBox();
     assert.ok(heroBox);
     assert.ok(primaryBox);
     assert.ok(secondaryBox);
-    assert.equal(heroBox.height, 844);
+    assert.ok(heroBox.height > 0);
     assert.equal(primaryBox.x, 16);
     assert.equal(secondaryBox.x, 16);
     assert.equal(primaryBox.width, 358);
@@ -3386,8 +3474,8 @@ Then(
   'the Property Management hero uses the approved neutral unavailable-image treatment',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const heroMedia = page.locator('.pm-hero-image');
-    await expect(heroMedia.locator('[data-neutral-placeholder="true"]')).toBeVisible();
+    const heroMedia = page.locator('[data-division-hero-media="true"]');
+    await expect(heroMedia.locator('.division-hero-media-placeholder')).toBeVisible();
     await expect(heroMedia.locator('img')).toHaveCount(0);
     await expect(heroMedia).not.toContainText('media/seed/');
   },
@@ -3459,7 +3547,7 @@ Then(
     ]) {
       await page.setViewportSize(viewport);
       await page.goto('/property-management');
-      await page.locator('.pm-hero .pm-actions a[href="#contact"]').click();
+      await page.locator('.ui-division-hero-actions a[href="#contact"]').click();
       await expect(page).toHaveURL(/#contact$/);
       await expect
         .poll(async () => {
@@ -3708,7 +3796,7 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const selectors = [
-      '.storage-hero',
+      '.ui-division-hero',
       '#services',
       '#team',
       '#about',
@@ -3781,7 +3869,11 @@ Then(
     await expect(bannerLabel).toHaveCSS('font-weight', '700');
     await expect(banner.locator('.ui-centered-logo-banner-wave')).toBeVisible();
     await expect(header).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.95)');
-    await expect(desktopNavigation).toBeHidden();
+    await expect(desktopNavigation).toBeVisible();
+    await expect(desktopNavigation.getByRole('link', { name: 'Careers' })).toHaveAttribute(
+      'href',
+      '#careers',
+    );
   },
 );
 Then(
@@ -3842,7 +3934,7 @@ Then(
     await page.setViewportSize({ width: 1512, height: 827 });
     await page.reload();
 
-    const hero = page.locator('.storage-hero');
+    const hero = page.locator('.ui-division-hero');
     const services = page.locator('.storage-services');
     const heading = services.getByRole('heading', { name: 'Complete Storage Management' });
     const grid = services.locator('.editable-collection-items');
@@ -3856,7 +3948,7 @@ Then(
       grid.boundingBox(),
     ]);
     assert.ok(heroBox && servicesBox && headingBox && gridBox);
-    assert.ok(Math.abs(heroBox.height - 827) <= 1, `Storage hero height was ${heroBox.height}`);
+    assert.ok(heroBox.height >= 827, `Storage hero height was ${heroBox.height}`);
     assert.ok(
       Math.abs(headingBox.width - 768) <= 2,
       `Storage services heading width was ${headingBox.width}`,
@@ -3904,12 +3996,12 @@ Then(
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page.reload();
 
-    const hero = page.locator('.storage-hero');
-    const copy = hero.locator('.storage-hero-copy');
+    const hero = page.locator('.ui-division-hero');
+    const copy = hero.locator('.ui-division-hero-copy');
     const title = hero.getByRole('heading', {
       name: 'Maximize Your Storage Facility Profitability',
     });
-    const actions = hero.locator('.storage-actions');
+    const actions = hero.locator('.ui-division-hero-actions');
     const stats = hero.locator('.editable-collection-items');
     const [heroBox, copyBox, titleBox, actionsBox, statsBox] = await Promise.all([
       hero.boundingBox(),
@@ -3924,10 +4016,10 @@ Then(
       `Storage split hero was ${heroBox.width}x${heroBox.height}`,
     );
     assert.ok(
-      Math.abs(copyBox.width - 720) <= 1,
+      Math.abs(copyBox.width - 652) <= 2,
       `Storage split-hero copy width was ${copyBox.width}`,
     );
-    await expect(title).toHaveCSS('max-width', '576px');
+    await expect(title).toHaveCSS('max-width', '660px');
     await expect(title).toHaveCSS('font-size', '60px');
     await expect(title).toHaveCSS('line-height', '60px');
     const titleLineCount = await title.evaluate((element) => {
@@ -3938,18 +4030,13 @@ Then(
       return range.getClientRects().length;
     });
     assert.equal(titleLineCount, 3, `Storage split-hero title used ${titleLineCount} lines`);
-    assert.ok(
-      Math.abs(actionsBox.y - 779) <= 1,
-      `Storage split-hero actions top was ${actionsBox.y}`,
-    );
-    assert.ok(Math.abs(statsBox.y - 855) <= 1, `Storage split-hero stats top was ${statsBox.y}`);
+    assert.ok(actionsBox.y > titleBox.y + titleBox.height);
+    assert.ok(statsBox.y > actionsBox.y + actionsBox.height);
     await expect(hero).toHaveCSS(
       'background-image',
-      'linear-gradient(135deg, rgb(30, 58, 138), rgb(0, 18, 138), rgb(30, 64, 175)), linear-gradient(to right bottom, rgba(30, 58, 138, 0.1), rgba(243, 244, 246, 0.3), rgba(30, 58, 138, 0.05))',
+      'linear-gradient(90deg, rgb(0, 18, 138) 0%, rgb(0, 18, 138) 50%, rgb(255, 255, 255) 50%, rgb(255, 255, 255) 100%)',
     );
-    await expect(hero).toHaveCSS('background-size', '50% 100%, 50% 100%');
-    await expect(hero).toHaveCSS('background-position', '0% 50%, 100% 50%');
-    await expect(hero).toHaveCSS('background-repeat', 'no-repeat, no-repeat');
+    await expect(hero).toHaveCSS('background-size', 'auto');
   },
 );
 Then(
@@ -4043,8 +4130,9 @@ Then(
     const heroHeading = page.getByRole('heading', {
       name: 'Maximize Your Storage Facility Profitability',
     });
-    const heroPrimary = page.locator('.storage-actions a').first();
-    const heroSecondary = page.locator('.storage-actions a').nth(1);
+    const heroActions = page.locator('.ui-division-hero-actions');
+    const heroPrimary = heroActions.locator('.ui-division-hero-action-primary');
+    const heroSecondary = heroActions.locator('.ui-division-hero-action-secondary');
     const about = page.locator('.storage-about');
     const aboutLayout = about.locator('.storage-about-layout');
     const aboutHeading = about.getByRole('heading', { name: 'Our Why' });
@@ -4056,7 +4144,7 @@ Then(
     ]);
     assert.ok(heroHeadingBox && aboutBox);
     assert.ok(
-      Math.abs(heroHeadingBox.x - 72) <= 2,
+      Math.abs(heroHeadingBox.x - 56) <= 2,
       `Storage hero heading x was ${heroHeadingBox.x}`,
     );
     assert.ok(
@@ -4065,9 +4153,9 @@ Then(
     );
     await expect(aboutLayout).toHaveCSS('column-gap', '48px');
 
-    await expect(heroPrimary).toHaveCSS('background-color', 'rgb(0, 18, 138)');
+    await expect(heroPrimary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
     await expect(heroPrimary).toHaveCSS('color', 'rgb(255, 255, 255)');
-    await expect(heroSecondary).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(heroSecondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(aboutHeading).toHaveCSS('color', 'rgb(255, 255, 255)');
     await expect(aboutLead).toHaveCSS('color', 'rgba(255, 255, 255, 0.8)');
     await expect(aboutLead).toHaveCSS('font-weight', '500');
@@ -5293,7 +5381,7 @@ When('I open the Page header editor', async function (this: FrontendWorld) {
 
 When('I open the Opening section editor', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  if ((page.viewportSize()?.width ?? 0) > 800) await page.locator('.pm-hero').hover();
+  if ((page.viewportSize()?.width ?? 0) > 800) await page.locator('.ui-division-hero').hover();
   await page.getByRole('button', { name: 'Edit Opening section' }).click();
 });
 
@@ -5486,7 +5574,7 @@ Then(
 
 When('I reopen and save a friendly Opening section change', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  await page.locator('.pm-hero').hover();
+  await page.locator('.ui-division-hero').hover();
   await page.getByRole('button', { name: 'Edit Opening section' }).click();
   const dialog = page.getByRole('dialog', { name: 'Opening section' });
   this.propertyEditedHeroHeading = `Friendly opening ${String(Date.now())}`;

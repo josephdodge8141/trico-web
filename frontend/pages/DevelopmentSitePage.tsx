@@ -80,6 +80,7 @@ import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
 import { CareersSection } from '../components/CareersSection.js';
+import { DivisionHero } from '../components/DivisionHero.js';
 import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
@@ -319,42 +320,47 @@ function DevelopmentBody(): React.JSX.Element {
       ) : null}
       <main id="main-content">
         <ObjectBoundary id="development.hero" value={hero}>
-          <section className="dev-hero ui-hero">
-            <div className="dev-container ui-container dev-hero-inner ui-hero-inner">
-              <span className="dev-pill ui-pill">
-                <Mountain /> {hero.eyebrow}
-              </span>
-              <h1 className="type-display">
+          <DivisionHero
+            labelledBy="development-hero-heading"
+            badges={[{ label: hero.eyebrow, icon: <Mountain aria-hidden="true" /> }]}
+            heading={
+              <>
                 {hero.heading} <em>{hero.highlightedWord}</em>
-              </h1>
-              <p className="ui-hero-description-standard">{hero.description}</p>
-              <div className="dev-actions ui-actions">
-                <a className="dev-button ui-button dev-primary ui-primary" href="#projects">
-                  {hero.primaryActionLabel} <ArrowRight />
-                </a>
-                <a className="dev-button ui-button dev-outline ui-outline" href="#contact">
-                  {hero.secondaryActionLabel}
-                </a>
-              </div>
-              <div className="dev-stats ui-stats">
-                <CollectionBoundary
-                  id="development.hero.stats"
-                  value={heroStats}
-                  renderItem={(item) => {
-                    const stat = developmentHeroStatSchema.parse(item);
-                    const Icon = icons[stat.icon] ?? Map;
-                    return (
-                      <div>
-                        <Icon />
-                        <strong>{stat.value}</strong>
-                        <span>{stat.label}</span>
-                      </div>
-                    );
-                  }}
-                />
-              </div>
-            </div>
-          </section>
+              </>
+            }
+            description={hero.description}
+            actions={[
+              {
+                label: hero.primaryActionLabel,
+                href: '#projects',
+                variant: 'primary',
+                icon: <ArrowRight aria-hidden="true" />,
+              },
+              {
+                label: hero.secondaryActionLabel,
+                href: '#contact',
+                variant: 'secondary',
+              },
+            ]}
+            stats={
+              <CollectionBoundary
+                id="development.hero.stats"
+                value={heroStats}
+                renderItem={(item) => {
+                  const stat = developmentHeroStatSchema.parse(item);
+                  const Icon = icons[stat.icon] ?? Map;
+                  return (
+                    <div className="ui-division-hero-stat">
+                      <Icon />
+                      <strong>{stat.value}</strong>
+                      <span>{stat.label}</span>
+                    </div>
+                  );
+                }}
+              />
+            }
+            media={{ alt: `${hero.heading} ${hero.highlightedWord}`, state: 'unavailable' }}
+          />
         </ObjectBoundary>
 
         <section

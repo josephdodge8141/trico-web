@@ -159,8 +159,8 @@ export function CareersSection({ pageId }: { readonly pageId: PageId }): React.J
   );
 
   return (
-    <section id="careers" className="ui-section ui-careers ui-shared-careers ui-align-start">
-      <div className="ui-container ui-careers-container">
+    <section id="careers" className="ui-section ui-careers ui-shared-careers">
+      <div className="ui-wide-frame ui-careers-container">
         {editable ? (
           <div className="ui-entity-slot" data-home-entity-boundary="true">
             <EditableBoundary
