@@ -37,6 +37,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - name: Build shared runtime contracts
+        run: npm run build:contracts
       - run: npx playwright install --with-deps chromium
       - name: Download candidate artifacts without executing them
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
