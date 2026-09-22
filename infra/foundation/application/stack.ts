@@ -86,13 +86,15 @@ export class ApplicationStack extends Stack {
         ],
       }),
     );
-    functionRole.addToPolicy(
-      new PolicyStatement({
-        actions: ['bedrock-mantle:CreateInference'],
-        effect: Effect.ALLOW,
-        resources: ['*'],
-      }),
-    );
+    if (config.externalSyncEnabled && config.bedrockModelId !== undefined) {
+      functionRole.addToPolicy(
+        new PolicyStatement({
+          actions: ['bedrock-mantle:CreateInference'],
+          effect: Effect.ALLOW,
+          resources: ['*'],
+        }),
+      );
+    }
     table.grantReadWriteData(functionRole);
     contentBucket.grantReadWrite(functionRole);
     functionRole.addToPolicy(
@@ -103,16 +105,18 @@ export class ApplicationStack extends Stack {
         ],
       }),
     );
-    functionRole.addToPolicy(
-      new PolicyStatement({
-        actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
-        effect: Effect.ALLOW,
-        resources: [
-          `arn:${this.partition}:bedrock:${this.region}::foundation-model/${config.bedrockModelId}`,
-          `arn:${this.partition}:bedrock:${this.region}:${this.account}:inference-profile/${config.bedrockModelId}`,
-        ],
-      }),
-    );
+    if (config.externalSyncEnabled && config.bedrockModelId !== undefined) {
+      functionRole.addToPolicy(
+        new PolicyStatement({
+          actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
+          effect: Effect.ALLOW,
+          resources: [
+            `arn:${this.partition}:bedrock:${this.region}::foundation-model/${config.bedrockModelId}`,
+            `arn:${this.partition}:bedrock:${this.region}:${this.account}:inference-profile/${config.bedrockModelId}`,
+          ],
+        }),
+      );
+    }
 
     const backend = new CfnFunction(this, 'BackendFunction', {
       code: { imageUri: config.backendImageUri },
@@ -121,7 +125,9 @@ export class ApplicationStack extends Stack {
           APP_ENV: config.stage,
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
           BEDROCK_MODE: config.externalSyncEnabled ? 'web-search' : 'fixture',
-          BEDROCK_MODEL_ID: config.bedrockModelId,
+          ...(config.bedrockModelId === undefined
+            ? {}
+            : { BEDROCK_MODEL_ID: config.bedrockModelId }),
           COOKIE_SECURE: 'true',
           DYNAMODB_TABLE: table.tableName,
           EMAIL_FROM: `no-reply@${config.sesIdentityDomain}`,

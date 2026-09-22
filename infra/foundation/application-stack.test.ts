@@ -59,10 +59,18 @@ test('application stack exposes API and scheduled Lambda entrypoints', () => {
     Environment: {
       Variables: Match.objectLike({
         APP_ENV: 'dev',
+        BEDROCK_MODE: 'fixture',
         EXTERNAL_SYNC_ENABLED: 'false',
       }),
     },
   });
+  template.hasResourceProperties('AWS::Lambda::Function', {
+    Environment: {
+      Variables: Match.not(Match.objectLike({ BEDROCK_MODEL_ID: Match.anyValue() })),
+    },
+  });
+  const policies = template.findResources('AWS::IAM::Policy');
+  assert.doesNotMatch(JSON.stringify(policies), /bedrock(?:-mantle)?:/u);
 });
 
 test('production retains data while development can be intentionally destroyed', () => {

@@ -16,11 +16,20 @@ export const applicationConfigSchema = z
     hostedZoneName: z.string().regex(dnsName),
     certificateArn: z.string().startsWith('arn:').min(20),
     sesIdentityDomain: z.string().regex(dnsName),
-    bedrockModelId: z.string().min(1).max(256),
+    bedrockModelId: z.string().min(1).max(256).optional(),
     alertTopicArn: z.string().startsWith('arn:').min(20),
     externalSyncEnabled: z.boolean(),
   })
-  .strict();
+  .strict()
+  .superRefine((config, context) => {
+    if (config.externalSyncEnabled && config.bedrockModelId === undefined) {
+      context.addIssue({
+        code: 'custom',
+        message: 'bedrockModelId is required when external synchronization is enabled',
+        path: ['bedrockModelId'],
+      });
+    }
+  });
 
 export type ApplicationConfig = z.infer<typeof applicationConfigSchema>;
 
@@ -36,7 +45,6 @@ export const exampleApplicationConfig = (stage: 'dev' | 'prod'): ApplicationConf
   certificateArn:
     'arn:aws:acm:us-east-1:111111111111:certificate/00000000-0000-0000-0000-000000000000',
   sesIdentityDomain: 'example.com',
-  bedrockModelId: 'example.responses-compatible-model',
   alertTopicArn: 'arn:aws:sns:us-east-2:111111111111:trico-web-operations',
   externalSyncEnabled: false,
 });

@@ -130,7 +130,19 @@ jobs:
           BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
           ALERT_TOPIC_ARN: ${{ vars.ALERT_TOPIC_ARN }}
         run: |
-          npx cdk deploy "TricoWeb-${STAGE}" --require-approval never --outputs-file cdk-outputs.json -c "application:${STAGE}:backendImageUri=${BACKEND_IMAGE_URI}" -c "application:${STAGE}:publicOrigin=${PUBLIC_ORIGIN}" -c "application:${STAGE}:customDomain=${CUSTOM_DOMAIN}" -c "application:${STAGE}:hostedZoneId=${HOSTED_ZONE_ID}" -c "application:${STAGE}:hostedZoneName=${HOSTED_ZONE_NAME}" -c "application:${STAGE}:certificateArn=${CERTIFICATE_ARN}" -c "application:${STAGE}:sesIdentityDomain=${SES_IDENTITY_DOMAIN}" -c "application:${STAGE}:bedrockModelId=${BEDROCK_MODEL_ID}" -c "application:${STAGE}:alertTopicArn=${ALERT_TOPIC_ARN}"
+          context=(
+            -c "application:${STAGE}:backendImageUri=${BACKEND_IMAGE_URI}"
+            -c "application:${STAGE}:publicOrigin=${PUBLIC_ORIGIN}"
+            -c "application:${STAGE}:customDomain=${CUSTOM_DOMAIN}"
+            -c "application:${STAGE}:hostedZoneId=${HOSTED_ZONE_ID}"
+            -c "application:${STAGE}:hostedZoneName=${HOSTED_ZONE_NAME}"
+            -c "application:${STAGE}:certificateArn=${CERTIFICATE_ARN}"
+            -c "application:${STAGE}:sesIdentityDomain=${SES_IDENTITY_DOMAIN}"
+            -c "application:${STAGE}:alertTopicArn=${ALERT_TOPIC_ARN}"
+            -c "application:${STAGE}:externalSyncEnabled=false"
+          )
+          if test -n "$BEDROCK_MODEL_ID"; then context+=(-c "application:${STAGE}:bedrockModelId=${BEDROCK_MODEL_ID}"); fi
+          npx cdk deploy "TricoWeb-${STAGE}" --require-approval never --outputs-file cdk-outputs.json "${context[@]}"
       - name: Checksum-safe bootstrap and frontend activation
         env:
           APP_ENV: ${{ steps.release.outputs.stage }}

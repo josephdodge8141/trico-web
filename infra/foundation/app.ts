@@ -75,8 +75,11 @@ for (const stage of ['dev', 'prod'] as const) {
       app.node.tryGetContext(`application:${stage}:certificateArn`) ?? example.certificateArn,
     sesIdentityDomain:
       app.node.tryGetContext(`application:${stage}:sesIdentityDomain`) ?? example.sesIdentityDomain,
-    bedrockModelId:
-      app.node.tryGetContext(`application:${stage}:bedrockModelId`) ?? example.bedrockModelId,
+    ...(app.node.tryGetContext(`application:${stage}:bedrockModelId`) === undefined
+      ? {}
+      : {
+          bedrockModelId: app.node.tryGetContext(`application:${stage}:bedrockModelId`) as unknown,
+        }),
     alertTopicArn:
       app.node.tryGetContext(`application:${stage}:alertTopicArn`) ?? example.alertTopicArn,
     externalSyncEnabled:

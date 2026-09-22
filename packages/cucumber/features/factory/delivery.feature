@@ -31,6 +31,16 @@ Feature: Immutable application delivery
     Then it creates environment-scoped OIDC roles and protected release stores
     And routine workflows cannot assume the foundation owner role
 
+  @id:factory.delivery.disabled-external-sync @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Omit external AI access when synchronization is disabled
+    backend-noop: Disabled external synchronization is enforced by deployment configuration and IAM.
+    frontend-noop: No external synchronization control is exposed in the generated frontend.
+    browser-noop: The absence of an IAM grant is verified in the synthesized application template.
+    Given external synchronization is disabled for an application environment
+    When the factory synthesizes the application stack
+    Then the backend receives fixture-mode configuration without a model identifier
+    And the backend role receives no Bedrock inference permissions
+
   @id:factory.delivery.seeded-operator @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Seed one explicitly configured external operator
     backend-noop: The deployment bootstrap creates the operator before application behavior is exercised.
