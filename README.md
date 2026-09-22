@@ -32,7 +32,7 @@ Stop the stack with `docker compose down`. Add `--volumes` only when intentional
 
 ## Verification
 
-`npm run check` is the required credential-free repository gate. It builds every workspace; checks formatting, lint, TypeScript, instructions, and source boundaries; executes contract, backend, frontend, browser, infrastructure, and exact behavior-accounting tests; and synthesizes CDK.
+`npm run check` is the full local, credential-free repository gate. It builds every workspace; checks formatting, lint, TypeScript, instructions, and source boundaries; executes contract, backend, frontend, browser, infrastructure, exact behavior-accounting, and visual-audit tests; and synthesizes CDK. Pull requests run `npm run check:ci`, which keeps the deterministic build, browser, behavior, and infrastructure checks but leaves the dedicated visual audit for local review.
 
 Additional proofs:
 
