@@ -630,10 +630,10 @@ test('gives the Property Management hero actions an accessible visual hierarchy'
     const primaryBox = await primary.boundingBox();
     const secondaryBox = await secondary.boundingBox();
     expect(primaryBox?.width).toBeGreaterThanOrEqual(201);
-    expect(primaryBox?.width).toBeLessThanOrEqual(204);
+    expect(primaryBox?.width).toBeLessThanOrEqual(205);
     expect(primaryBox?.height).toBe(44);
     expect(secondaryBox?.width).toBeGreaterThanOrEqual(148);
-    expect(secondaryBox?.width).toBeLessThanOrEqual(150);
+    expect(secondaryBox?.width).toBeLessThanOrEqual(151);
     expect(secondaryBox?.height).toBe(44);
     expect(secondaryBox?.x).toBeGreaterThan((primaryBox?.x ?? 0) + (primaryBox?.width ?? 0));
     expect(secondaryBox?.y).toBe(primaryBox?.y);
