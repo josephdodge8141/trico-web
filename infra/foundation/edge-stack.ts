@@ -1,6 +1,6 @@
 import { CfnOutput, Stack, Tags, type StackProps } from 'aws-cdk-lib';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { CfnAnomalyMonitor, CfnAnomalySubscription } from 'aws-cdk-lib/aws-ce';
+import { CfnAnomalySubscription } from 'aws-cdk-lib/aws-ce';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import type { Construct } from 'constructs';
 
@@ -29,14 +29,9 @@ export class EdgeFoundationStack extends Stack {
       domainName: config.productionDomain,
       validation: CertificateValidation.fromDns(parentZone),
     });
-    const costMonitor = new CfnAnomalyMonitor(this, 'CostAnomalyMonitor', {
-      monitorDimension: 'SERVICE',
-      monitorName: `${config.applicationName}-services`,
-      monitorType: 'DIMENSIONAL',
-    });
     new CfnAnomalySubscription(this, 'CostAnomalySubscription', {
       frequency: 'DAILY',
-      monitorArnList: [costMonitor.attrMonitorArn],
+      monitorArnList: [config.costAnomalyMonitorArn],
       subscribers: [{ address: config.alertEmail, type: 'EMAIL' }],
       subscriptionName: `${config.applicationName}-daily-cost-anomalies`,
       threshold: 5,

@@ -28,4 +28,8 @@ test('delivery foundation rejects widened repository or domain configuration', (
     () => parseDeliveryConfig({ ...exampleDeliveryConfig, monthlyBudgetUsd: '50usd' }),
     /monthlyBudgetUsd/,
   );
+  assert.throws(
+    () => parseDeliveryConfig({ ...exampleDeliveryConfig, costAnomalyMonitorArn: 'monitor-id' }),
+    /costAnomalyMonitorArn/,
+  );
 });
