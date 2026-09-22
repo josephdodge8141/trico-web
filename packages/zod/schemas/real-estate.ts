@@ -33,7 +33,16 @@ export const realEstateListingImageSchema = z.discriminatedUnion('kind', [
 ]);
 export type RealEstateListingImage = z.infer<typeof realEstateListingImageSchema>;
 const optionalExternalUrl = z.union([z.literal(''), z.url().max(1000)]);
-const destination = z.enum(['services', 'process', 'team', 'about', 'faq', 'reviews', 'contact']);
+const destination = z.enum([
+  'services',
+  'process',
+  'team',
+  'about',
+  'faq',
+  'careers',
+  'reviews',
+  'contact',
+]);
 const icon = lucideIconNameSchema;
 const heading = z.strictObject({ eyebrow: text(120), heading: text(200), description: text(2000) });
 export const realEstateAnniversaryBannerSchema = z.strictObject({ message: text(120) });

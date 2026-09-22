@@ -384,6 +384,7 @@ export {
   LIST_ITEM_MIGRATION_NAMESPACE,
   pageDefinitions,
   registrySeedData,
+  retiredEntityIds,
   requireEntityDefinition,
   validateRegistry,
   type EntityDefinition,

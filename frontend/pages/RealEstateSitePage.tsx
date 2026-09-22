@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import {
   ArrowRight,
-  BriefcaseBusiness,
   Building2,
   CheckCircle2,
   ChevronDown,
@@ -68,6 +67,8 @@ import whisper119Photo from '../assets/images/whisper-hollow-lot-119.jpg';
 import whisperBoxwoodPhoto from '../assets/images/whisper-hollow-lot-boxwood.jpg';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { CareersSection } from '../components/CareersSection.js';
+import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ProfileCard } from '../components/ProfileCard.js';
@@ -455,28 +456,58 @@ function PersonCard({ item }: { readonly item: S.EditableValue }): React.JSX.Ele
     />
   );
 }
-function SemanticHeading({
-  item,
+function RealEstateSectionHeading({
+  eyebrow,
+  heading,
+  description,
+  level = 'h2',
   titleClassName = '',
   className = '',
-  eyebrowClassName = '',
+  tagClassName = '',
 }: {
-  readonly item: S.EditableValue;
+  readonly eyebrow: string;
+  readonly heading?: string;
+  readonly description?: string;
+  readonly level?: 'h2' | 'h3';
   readonly titleClassName?: string;
   readonly className?: string;
-  readonly eyebrowClassName?: string;
+  readonly tagClassName?: string;
 }): React.JSX.Element {
-  const heading = S.realEstateServicesHeaderSchema.parse(item);
+  const Title = level;
   return (
     <header
       className={`re-section-heading ui-section-heading ui-heading-measure-standard ${className}`}
     >
-      <span className={`re-pill ui-pill ui-section-eyebrow ${eyebrowClassName}`}>
-        {heading.eyebrow}
-      </span>
-      <h2 className={`type-section-title ${titleClassName}`}>{heading.heading}</h2>
-      <p>{heading.description}</p>
+      <span className={`re-pill ui-pill ${tagClassName}`}>{eyebrow}</span>
+      {heading === undefined ? null : (
+        <Title className={`type-section-title ${titleClassName}`}>{heading}</Title>
+      )}
+      {description === undefined ? null : <p>{description}</p>}
     </header>
+  );
+}
+
+function SemanticHeading({
+  item,
+  titleClassName = '',
+  className = '',
+  tagClassName = '',
+}: {
+  readonly item: S.EditableValue;
+  readonly titleClassName?: string;
+  readonly className?: string;
+  readonly tagClassName?: string;
+}): React.JSX.Element {
+  const heading = S.realEstateServicesHeaderSchema.parse(item);
+  return (
+    <RealEstateSectionHeading
+      eyebrow={heading.eyebrow}
+      heading={heading.heading}
+      description={heading.description}
+      titleClassName={titleClassName}
+      className={className}
+      tagClassName={tagClassName}
+    />
   );
 }
 
@@ -535,6 +566,7 @@ function RealEstateBody(): React.JSX.Element {
         <Boundary id="real-estate.header">
           {(item) => {
             const header = S.realEstateHeaderSchema.parse(item);
+            const navLinks = navigationWithCareers(header.navLinks);
             return (
               <header className="re-header ui-header">
                 <div className="re-container ui-container re-header-inner ui-header-inner">
@@ -543,7 +575,7 @@ function RealEstateBody(): React.JSX.Element {
                     <strong>{header.divisionLabel}</strong>
                   </Link>
                   <nav>
-                    {header.navLinks.map((link) => (
+                    {navLinks.map((link) => (
                       <a href={`#${link.destination}`} key={link.id}>
                         {link.label}
                       </a>
@@ -571,7 +603,7 @@ function RealEstateBody(): React.JSX.Element {
                 </div>
                 {menuOpen ? (
                   <nav className="re-mobile-menu ui-mobile-menu">
-                    {header.navLinks.map((link) => (
+                    {navLinks.map((link) => (
                       <a
                         href={`#${link.destination}`}
                         onClick={() => setMenuOpen(false)}
@@ -662,7 +694,7 @@ function RealEstateBody(): React.JSX.Element {
                     item={item}
                     titleClassName="type-section-title-large"
                     className="ui-heading-contract-mounted ui-heading-gap-standard"
-                    eyebrowClassName="ui-eyebrow-highlight"
+                    tagClassName="ui-eyebrow-highlight"
                   />
                 )}
               </Boundary>
@@ -828,7 +860,7 @@ function RealEstateBody(): React.JSX.Element {
                   <SemanticHeading
                     item={item}
                     className="ui-heading-contract-mounted"
-                    eyebrowClassName="ui-eyebrow-accent"
+                    tagClassName="ui-pill-blue ui-section-tag"
                   />
                 )}
               </Boundary>
@@ -909,13 +941,13 @@ function RealEstateBody(): React.JSX.Element {
               return (
                 <section id="team" className="re-section ui-section re-tint ui-tint">
                   <div className="re-container ui-container">
-                    <header className="re-section-heading ui-section-heading ui-heading-measure-standard">
-                      <span className="re-pill ui-pill ui-section-eyebrow">{heading.eyebrow}</span>
-                      <h2 className="type-section-title type-section-title-large">
-                        {heading.heading}
-                      </h2>
-                      <p>{heading.description}</p>
-                    </header>
+                    <RealEstateSectionHeading
+                      eyebrow={heading.eyebrow}
+                      heading={heading.heading}
+                      description={heading.description}
+                      titleClassName="type-section-title-large"
+                      tagClassName="ui-pill-blue ui-section-tag"
+                    />
                     <h3 className="re-group-title ui-group-title">{heading.leadershipLabel}</h3>
                     <CollectionBoundary
                       className="re-person-grid ui-person-grid ui-profile-grid-expanded"
@@ -928,7 +960,12 @@ function RealEstateBody(): React.JSX.Element {
                       id="real-estate.team.staff"
                       renderItem={(personItem) => <PersonCard item={personItem} />}
                     />
-                    <h3 className="re-group-title ui-group-title">{heading.agentsLabel}</h3>
+                    <RealEstateSectionHeading
+                      eyebrow={heading.agentsLabel}
+                      level="h3"
+                      className="ui-group-heading"
+                      tagClassName="ui-pill-blue ui-section-tag"
+                    />
                     <CollectionBoundary
                       className="re-person-grid re-agent-grid ui-person-grid ui-profile-grid-expanded"
                       id="real-estate.team.agents"
@@ -940,50 +977,14 @@ function RealEstateBody(): React.JSX.Element {
             }}
           </Boundary>
 
-          <Boundary id="real-estate.careers">
-            {(item) => {
-              const careers = S.realEstateCareersSchema.parse(item);
-              return (
-                <section className="re-section ui-section re-careers ui-careers ui-align-start">
-                  <div className="re-container ui-container re-careers-grid ui-careers-grid">
-                    <div>
-                      <span className="re-pill ui-pill re-pill-blue ui-pill-blue">
-                        {careers.eyebrow}
-                      </span>
-                      <h2 className="type-section-title type-section-title-compact">
-                        {careers.heading}
-                      </h2>
-                      <p>{careers.description}</p>
-                      <ul>
-                        {careers.benefits.map((benefit) => (
-                          <li key={benefit.id}>
-                            <BriefcaseBusiness /> {benefit.label}
-                          </li>
-                        ))}
-                      </ul>
-                      <a
-                        className="re-button ui-button re-button-blue ui-button-highlight"
-                        href={`mailto:${careers.email}`}
-                      >
-                        {careers.actionLabel} <ArrowRight />
-                      </a>
-                    </div>
-                    <aside>
-                      <BriefcaseBusiness />
-                      <h3 className="type-card-title">{careers.cardHeading}</h3>
-                      <p>{careers.cardDescription}</p>
-                      <a href={`mailto:${careers.email}`}>{careers.email}</a>
-                    </aside>
-                  </div>
-                </section>
-              );
-            }}
-          </Boundary>
+          <CareersSection pageId="real-estate" />
 
           <section className="re-section ui-section re-testimonials ui-testimonials">
             <div className="re-container ui-container">
               <Boundary id="real-estate.testimonials.header">
-                {(item) => <SemanticHeading item={item} />}
+                {(item) => (
+                  <SemanticHeading item={item} tagClassName="ui-pill-blue ui-section-tag" />
+                )}
               </Boundary>
               <CollectionBoundary
                 className="re-testimonial-grid ui-testimonial-grid ui-content-frame-standard"
@@ -1015,7 +1016,7 @@ function RealEstateBody(): React.JSX.Element {
                   <SemanticHeading
                     item={item}
                     className="ui-heading-contract-mounted ui-heading-gap-standard"
-                    eyebrowClassName="ui-eyebrow-brand"
+                    tagClassName="ui-eyebrow-brand"
                   />
                 )}
               </Boundary>

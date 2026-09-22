@@ -23,8 +23,7 @@
   .co-review-grid .editable-collection-items,
   .co-hero-stats .editable-collection-items,
   .co-pro-stats .editable-collection-items,
-  .co-checks .editable-collection-items,
-  .co-benefits .editable-collection-items {
+  .co-checks .editable-collection-items {
     display: grid;
     gap: inherit;
     grid-template-columns: inherit;
@@ -53,9 +52,6 @@
   .co-checks .editable-collection-items {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
-  }
-  .co-benefits .editable-collection-items {
-    gap: 1rem;
   }
   .co-project-grid .editable-collection-items {
     display: grid;
@@ -230,8 +226,7 @@
     gap: 1.5rem;
   }
   .co-card i,
-  .co-contact-list i,
-  .co-benefits i {
+  .co-contact-list i {
     width: 48px;
     height: 48px;
     display: grid;
@@ -436,39 +431,11 @@
   .co-form-success {
     margin: 0;
   }
-  .co-about-grid,
-  .co-career-grid {
+  .co-about-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
     gap: 4rem;
-  }
-  .co-benefits {
-    display: grid;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .co-benefits .editable-collection-items > div > div,
-  .co-benefits > div {
-    display: flex;
-    gap: 1rem;
-  }
-  .co-benefits i {
-    width: 40px;
-    height: 40px;
-    margin: 0;
-  }
-  .co-positions .editable-collection-items > div > div,
-  .co-positions > div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding: 1rem;
-  }
-  .co-positions span {
-    padding: 0.25rem 0.5rem;
   }
   .co-review-grid {
     max-width: 1024px;
@@ -485,7 +452,6 @@
     grid-template-columns: 1fr 1fr;
     gap: 4rem;
   }
-  .co-careers .co-heading,
   .co-contact .co-heading {
     margin: 0 0 2rem;
   }
@@ -510,13 +476,10 @@
   .co-hero-stats,
   .co-pro-stats,
   .co-checks,
-  .co-benefits,
   .co-hero-stats span,
   .co-pro-stats strong,
   .co-pro-stats span,
   .co-team-card strong,
-  .co-benefits span,
-  .co-benefits small,
   .co-contact-list strong,
   .co-contact-list small,
   .co-contact-list a {
@@ -524,7 +487,6 @@
   }
   .co-card,
   .co-bid .co-form,
-  .co-positions,
   .co-contact-form {
     padding: 2rem;
   }
@@ -611,7 +573,6 @@
       grid-template-columns: repeat(2, 1fr);
     }
     .co-about-grid,
-    .co-career-grid,
     .co-contact-grid {
       grid-template-columns: 1fr;
     }

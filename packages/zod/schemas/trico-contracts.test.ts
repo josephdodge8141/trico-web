@@ -22,6 +22,7 @@ import {
   pendingChangeSchema,
   publishRequestSchema,
   registrySeedData,
+  retiredEntityIds,
   scheduledSyncEventSchema,
   validateRegistry,
   type EditableValue,
@@ -93,6 +94,24 @@ test('the canonical registry contains exactly the reissued 195-entity inventory'
     entityDefinitions.some(({ id }) => id.startsWith('landing.')),
     false,
   );
+});
+
+test('five legacy careers entities are explicitly retired while 190 entities remain visible', () => {
+  assert.deepEqual([...retiredEntityIds].sort(), [
+    'construction.careers.benefits',
+    'construction.careers.header',
+    'construction.careers.open-positions',
+    'property-management.careers',
+    'real-estate.careers',
+  ]);
+  assert.equal(entityDefinitions.filter(({ id }) => !retiredEntityIds.has(id)).length, 190);
+  for (const entityId of retiredEntityIds) {
+    assert.equal(
+      entityDefinitions.some(({ id }) => id === entityId),
+      true,
+      `${entityId} must remain registered for history and audit`,
+    );
+  }
 });
 
 test('all 195 entities have strict novice editor contracts and primary visual slots', () => {

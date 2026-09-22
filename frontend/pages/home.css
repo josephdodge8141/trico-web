@@ -296,131 +296,9 @@
     margin: 0 0 0.45rem;
   }
 
-  .home-careers-container {
-    max-width: 52rem;
-  }
-
-  .home-career-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .home-career-card h3 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-  }
-
-  .home-career-card h3 svg,
-  .home-career-card p svg {
-    width: 0.9rem;
-  }
-
-  .home-career-card p,
-  .home-career-card p span {
-    display: flex;
-    align-items: center;
-  }
-
-  .home-career-card p {
-    gap: 1rem;
-    margin: 0.35rem 0 0;
-  }
-
-  .home-career-card p span {
-    gap: 0.3rem;
-  }
-
-  .home-career-card > a {
-    flex: none;
-    padding: 0.45rem 0.8rem;
-  }
-
-  .home-resume-heading {
-    margin: 3.5rem 0 1.7rem;
-  }
-
-  .home-resume-heading h3 {
-    margin: 0 0 0.4rem;
-  }
-
-  .home-resume-form,
-  .home-resume-success {
-    display: grid;
-    gap: 1.15rem;
-    padding: 2rem;
-  }
-
-  .home-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.15rem;
-  }
-
-  .home-resume-form > label,
-  .home-form-grid label {
-    display: grid;
-    gap: 0.4rem;
-  }
-
-  .home-resume-form input:not([type='file']),
-  .home-resume-form select,
-  .home-resume-form textarea {
-    width: 100%;
-    min-height: 2.7rem;
-    padding: 0.65rem 0.75rem;
-  }
-
-  .home-file-control {
-    position: relative;
-    min-height: 3.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.8rem 1rem;
-    overflow: hidden;
-  }
-
-  .home-file-control svg {
-    width: 1.2rem;
-  }
-
-  .home-file-control input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-  }
-
-  .home-submit-button,
-  .home-resume-success button {
-    min-height: 2.8rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.55rem;
-  }
-
   .home-card-link svg,
-  .home-news-date svg,
-  .home-submit-button svg {
+  .home-news-date svg {
     width: 1rem;
-  }
-
-  .home-resume-success {
-    place-items: center;
-  }
-
-  .home-resume-success > svg {
-    width: 3rem;
-    height: 3rem;
-  }
-
-  .home-resume-success button {
-    padding-inline: 1rem;
   }
 
   .home-contact h2 {
@@ -431,7 +309,6 @@
     margin: 0 0 1.8rem;
   }
 
-  .home-careers .editable-collection-items,
   .home-contact address {
     display: grid;
     gap: 1rem;
@@ -464,10 +341,6 @@
   .home-value p,
   .home-leader-card h3,
   .home-news-card > p:last-child,
-  .home-resume-heading p,
-  .home-form-note,
-  .home-resume-success h4,
-  .home-resume-success p,
   .home-footer p {
     margin: 0;
   }
@@ -502,8 +375,7 @@
     .home-divisions .editable-collection-items,
     .home-values .editable-collection-items,
     .home-leadership .editable-collection-items,
-    .home-news .editable-collection-items,
-    .home-form-grid {
+    .home-news .editable-collection-items {
       grid-template-columns: 1fr;
     }
 
@@ -521,11 +393,6 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .home-career-card {
-      align-items: stretch;
-      flex-direction: column;
-    }
-
     .home-anniversary > span,
     .home-contact-row i {
       display: none;
@@ -534,10 +401,6 @@
     .home-contact-row {
       align-items: center;
       flex-direction: column;
-    }
-
-    .home-resume-form {
-      padding: 1.25rem;
     }
   }
 

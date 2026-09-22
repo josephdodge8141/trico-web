@@ -431,26 +431,6 @@
     margin: 0;
     padding: 0 1.5rem 1.5rem;
   }
-  .pm-careers {
-    padding-block: 5rem;
-  }
-  .pm-careers h2 {
-    margin-bottom: 1rem;
-  }
-  .pm-careers > .pm-container > p {
-    margin-bottom: 2rem;
-  }
-  .pm-career-icon {
-    width: 4rem;
-    height: 4rem;
-    display: grid;
-    place-items: center;
-    margin: 0 auto 1rem;
-  }
-  .pm-career-card {
-    margin-top: 0;
-    padding: 2rem;
-  }
   .pm-new-client .pm-section-heading {
     margin-bottom: 2.3rem;
   }

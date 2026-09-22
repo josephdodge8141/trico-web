@@ -20,6 +20,7 @@ export const developmentV2SeedData = {
       { id: 'd36fae11-8674-508e-a9cc-44f0b112c702', label: 'Team', destination: 'team' },
       { id: 'd26fac7e-8774-5221-aacc-4683b212c895', label: 'About', destination: 'about' },
       { id: 'd56fb137-8874-53b4-afcc-4e62ab12bd90', label: 'Reviews', destination: 'reviews' },
+      { id: 'a53d18d1-3f2d-4c69-9cd8-e307a6955f60', label: 'Careers', destination: 'careers' },
       { id: 'd46fafa4-8974-5547-a0cc-4ff5ac12bf23', label: 'Contact', destination: 'contact' },
     ],
   },

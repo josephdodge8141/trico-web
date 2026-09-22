@@ -20,8 +20,10 @@ import {
   homeNewsItemsSchema,
   homeV2SeedData,
   developmentV2SeedData,
+  entityDefinitions,
   pendingChangesResponseSchema,
   previewPreferencesResponseSchema,
+  retiredEntityIds,
   type EditableValue,
   type PendingChange,
 } from '@app/schemas';
@@ -817,16 +819,17 @@ Then(
     await page.goto('/property-management');
     await expect(page.locator('.pm-stars svg').first()).toHaveCSS('color', 'rgb(94, 133, 186)');
 
-    for (const action of [
-      { route: '/real-estate', selector: '.re-careers .re-button-gold' },
-      { route: '/construction', selector: '.co-button-gold' },
-    ] as const) {
-      await page.goto(action.route);
-      await expect(page.locator(action.selector).first()).toHaveCSS(
-        'background-color',
-        'rgb(0, 18, 138)',
-      );
-    }
+    await page.goto('/real-estate');
+    await expect(page.locator('#careers .ui-submit-button')).toHaveCSS(
+      'background-color',
+      'rgb(37, 99, 235)',
+    );
+
+    await page.goto('/construction');
+    await expect(page.locator('.co-button-gold').first()).toHaveCSS(
+      'background-color',
+      'rgb(134, 98, 45)',
+    );
 
     await page.goto('/development');
     await expect(page.locator('.dev-brand strong')).toHaveCSS('color', 'rgb(134, 98, 45)');
@@ -1138,12 +1141,12 @@ Then(
       await expect(media).toHaveAttribute('data-media-state', sample.state);
       await expect(media).toHaveCSS('border-radius', '16px');
       await expect(media).toHaveCSS('overflow', 'hidden');
-      await expect(media).toHaveCSS('box-shadow', 'none');
+      await expect(media).toHaveCSS('box-shadow', 'rgba(15, 23, 41, 0.2) 0px 24px 55px 0px');
       const box = await media.boundingBox();
       assert.ok(box);
-      assert.equal(box.width, 192);
-      assert.equal(box.height, 192);
-      assert.equal(box.x, 720);
+      assert.ok(box.x >= 720);
+      assert.ok(box.width >= 648);
+      assert.ok(Math.abs(box.width / box.height - 4 / 3) <= 0.01);
     }
   },
 );
@@ -1362,17 +1365,17 @@ Then(
       { route: '/', selector: '.ui-resume-form input[name="name"]' },
       { route: '/', selector: '.ui-resume-form textarea[name="message"]' },
       { route: '/real-estate', selector: 'input[name="firstName"]' },
-      { route: '/real-estate', selector: 'textarea[name="message"]' },
+      { route: '/real-estate', selector: '#contact textarea[name="message"]' },
       { route: '/property-management', selector: 'input[name="firstName"]' },
-      { route: '/property-management', selector: 'textarea[name="message"]' },
+      { route: '/property-management', selector: '#contact textarea[name="message"]' },
       { route: '/development', selector: 'input[name="firstName"]' },
-      { route: '/development', selector: 'textarea[name="message"]' },
+      { route: '/development', selector: '#contact textarea[name="message"]' },
     ] as const;
     const standardControls = [
       { route: '/construction', selector: 'input[name="firstName"]' },
-      { route: '/construction', selector: 'textarea[name="message"]' },
+      { route: '/construction', selector: '#bid textarea[name="message"]' },
       { route: '/storage', selector: 'input[name="firstName"]' },
-      { route: '/storage', selector: 'textarea[name="message"]' },
+      { route: '/storage', selector: '#contact textarea[name="message"]' },
     ] as const;
 
     for (const expectation of compactControls) {
@@ -1818,7 +1821,7 @@ Then(
     await expect(heroDescription).toHaveCSS('max-width', '768px');
 
     const descriptions = page.locator(
-      '.home-divisions .home-section-heading > p, .home-values .home-section-heading > p, .home-leadership .home-section-heading > p, .home-news .home-section-heading > p, .home-careers .home-section-heading > p',
+      '.home-divisions .home-section-heading > p, .home-values .home-section-heading > p, .home-leadership .home-section-heading > p, .home-news .home-section-heading > p, .ui-shared-careers .ui-section-heading > p',
     );
     assert.equal(await descriptions.count(), 5);
     for (const description of await descriptions.all()) {
@@ -1831,7 +1834,7 @@ Then(
 
 Then('Home resume actions use one grid spacing contract', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  const form = page.locator('.home-resume-form');
+  const form = page.locator('.ui-resume-form');
   const action = form.getByRole('button', { name: 'Submit Resume' });
   await expect(form).toHaveCSS('row-gap', '20px');
   await expect(action).toHaveCSS('margin-top', '0px');
@@ -2290,15 +2293,7 @@ Then(
     const pages = [
       {
         route: '/real-estate',
-        labels: [
-          'Our Listings',
-          'Our Process',
-          'Our Team',
-          'Client Success Stories',
-          'FAQ',
-          'New Clients',
-          'Contact Us',
-        ],
+        labels: ['New Clients', 'Contact Us'],
       },
       {
         route: '/development',
@@ -2311,10 +2306,123 @@ Then(
       for (const label of expectation.labels) {
         const eyebrow = page.locator('span', { hasText: label }).filter({ hasText: label }).first();
         await expect(eyebrow).toBeVisible();
-        await expect(eyebrow).toHaveClass(/ui-section-eyebrow/);
         await expect(eyebrow).toHaveCSS('border-top-width', '0px');
+        await expect(eyebrow).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
         await expect(eyebrow).toHaveCSS('display', 'inline-block');
       }
+    }
+  },
+);
+
+Then(
+  'every public page renders the shared canonical careers section',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const route of Object.keys(headings)) {
+      await page.goto(route);
+      await expect(page.locator('#careers.ui-shared-careers')).toHaveCount(1);
+      await expect(page.locator('#careers .ui-resume-form')).toBeVisible();
+    }
+  },
+);
+
+Then(
+  'Home shows every opening while division pages show only applicable openings',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const expectations = [
+      {
+        route: '/',
+        titles: [
+          'Property Manager',
+          'Project Coordinator',
+          'Leasing Agent',
+          'Administrative Assistant',
+        ],
+      },
+      { route: '/property-management', titles: ['Property Manager'] },
+      { route: '/real-estate', titles: ['Leasing Agent'] },
+      { route: '/construction', titles: ['Project Coordinator'] },
+      { route: '/storage', titles: [] },
+      { route: '/development', titles: [] },
+    ] as const;
+    for (const expectation of expectations) {
+      await page.goto(expectation.route);
+      await expect(page.locator('#careers .ui-career-card')).toHaveCount(expectation.titles.length);
+      await expect(page.locator('#careers .ui-career-card h3')).toHaveText(expectation.titles);
+      if (expectation.titles.length === 0)
+        await expect(page.locator('#careers .ui-careers-empty')).toBeVisible();
+    }
+  },
+);
+
+Then('Apply Now prefills the shared application form', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.goto('/real-estate');
+  await page.locator('#careers .ui-career-card').getByRole('button', { name: 'Apply Now' }).click();
+  await expect(page.locator('input[name="position"]')).toHaveValue('Leasing Agent');
+  await expect(page.locator('select[name="division"]')).toHaveValue('Real Estate');
+  await expect(page.locator('#career-application-form')).toBeInViewport();
+});
+
+Then('every division navigation exposes Careers', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  const routes = Object.keys(headings).filter((candidate) => candidate !== '/');
+  for (const route of routes) {
+    await page.goto(route);
+    const link = page.locator('header nav a[href="#careers"]');
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveText('Careers');
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of routes) {
+    await page.goto(route);
+    await page
+      .getByRole('button', { name: route === '/storage' ? 'Open navigation' : 'Toggle menu' })
+      .click();
+    const mobileLink = page.locator('nav:visible a[href="#careers"]');
+    await expect(mobileLink).toHaveCount(1);
+    await expect(mobileLink).toHaveText('Careers');
+  }
+  await page.setViewportSize({ width: 1440, height: 1100 });
+});
+
+Then(
+  'retired legacy careers entities remain registered but are not rendered',
+  async function (this: FrontendWorld) {
+    assert.equal(entityDefinitions.length, 195);
+    assert.equal(retiredEntityIds.size, 5);
+    for (const entityId of retiredEntityIds)
+      assert.ok(entityDefinitions.some((definition) => definition.id === entityId));
+    const page = this.currentPage();
+    const retiredCopy = [
+      { route: '/real-estate', text: 'Competitive commission structure' },
+      { route: '/property-management', text: 'Careers at TriCo Property Management' },
+      { route: '/construction', text: 'Build Your Career With TriCo' },
+    ] as const;
+    for (const expectation of retiredCopy) {
+      await page.goto(expectation.route);
+      await expect(page.getByText(expectation.text, { exact: true })).toHaveCount(0);
+    }
+  },
+);
+
+Then(
+  'Real Estate repeated section labels use one filled blue tag layout',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.goto('/real-estate');
+    for (const label of [
+      'Our Process',
+      'Our Team',
+      'Our Agents',
+      'Client Success Stories',
+      'Careers',
+    ]) {
+      const tag = page.locator('.ui-section-tag', { hasText: label }).first();
+      await expect(tag).toBeVisible();
+      await expect(tag).toHaveCSS('color', 'rgb(94, 133, 186)');
+      await expect(tag).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     }
   },
 );
@@ -2897,10 +3005,10 @@ Then(
         .locator('#about .re-about-grid > div:last-child > p')
         .allTextContents(),
       profileBios: await page.locator('#team .profile-card-body > p').allTextContents(),
-      careersDescription: await page.locator('.re-careers-grid > div > p').innerText(),
-      careerBenefits: (await page.locator('.re-careers-grid li').allTextContents()).map((value) =>
-        value.trim(),
+      careerPositions: (await page.locator('#careers .ui-career-card h3').allTextContents()).map(
+        (value) => value.trim(),
       ),
+      resumeHeading: await page.locator('#careers .ui-resume-heading h3').innerText(),
       testimonialIntroduction: await page
         .locator('.re-testimonials .re-section-heading p')
         .innerText(),
@@ -2918,14 +3026,8 @@ Then(
         'From commercial sales and leasing to land acquisitions, new construction homes in our subdivisions or custom builds on your lot, and traditional residential transactions — our experienced team delivers results across every property type.',
       ],
       profileBios: expectedProfileBios,
-      careersDescription:
-        'Are you a motivated real estate professional looking to take your career to the next level? TriCo Real Estate is seeking talented agents who share our commitment to excellence and client satisfaction.',
-      careerBenefits: [
-        'Competitive commission structure',
-        'Comprehensive training and mentorship',
-        'Access to exclusive listings and leads',
-        '40+ years of market reputation',
-      ],
+      careerPositions: ['Leasing Agent'],
+      resumeHeading: 'Submit Your Resume',
       testimonialIntroduction:
         "Our clients' success is our greatest achievement. Here's what they have to say about working with TriCo Real Estate.",
       testimonials: expectedTestimonials,
@@ -2944,19 +3046,13 @@ Then(
       return { x: Math.round(box.x), width: Math.round(box.width) };
     };
     const heights = await Promise.all(
-      [
-        '#services',
-        '#about',
-        '#team',
-        '.re-careers',
-        '.re-testimonials',
-        '.re-reviews',
-        '.re-footer',
-      ].map(async (selector) => {
-        const box = await page.locator(selector).boundingBox();
-        assert.ok(box);
-        return Math.round(box.height);
-      }),
+      ['#services', '#about', '#team', '.re-testimonials', '.re-reviews', '.re-footer'].map(
+        async (selector) => {
+          const box = await page.locator(selector).boundingBox();
+          assert.ok(box);
+          return Math.round(box.height);
+        },
+      ),
     );
     const agentCards = await page
       .locator('.re-agent-grid [data-profile-card="true"]')
@@ -2976,7 +3072,6 @@ Then(
         contactGrid: await roundedBox('.re-contact-grid'),
         footerGrid: await roundedBox('.re-footer-grid'),
         serviceHeading: await roundedBox('#services .re-section-heading'),
-        careersGrid: await roundedBox('.re-careers-grid'),
         agentCards,
       },
       {
@@ -2987,7 +3082,6 @@ Then(
         contactGrid: { x: 72, width: 1368 },
         footerGrid: { x: 72, width: 1368 },
         serviceHeading: { x: 372, width: 768 },
-        careersGrid: { x: 308, width: 896 },
         agentCards: [
           { x: 180, width: 264 },
           { x: 476, width: 264 },
@@ -2996,7 +3090,7 @@ Then(
         ],
       },
     );
-    const referenceHeights = [1160, 784, 3241, 632, 762, 818, 517] as const;
+    const referenceHeights = [1160, 784, 3253, 762, 818, 517] as const;
     heights.forEach((height, index) => {
       assert.ok(
         Math.abs(height - referenceHeights[index]!) <= 10,
@@ -3187,7 +3281,7 @@ Then(
     await expect(prose.nth(1)).toHaveCSS('line-height', '24px');
     await expect(about.getByRole('link', { name: 'Let’s Talk Real Estate' })).toHaveCSS(
       'background-color',
-      'rgb(255, 255, 255)',
+      'rgb(134, 98, 45)',
     );
   },
 );
@@ -3478,30 +3572,12 @@ Then(
       textAlign: 'start',
     });
 
-    const box = async (selector: string): Promise<{ x: number; width: number; height: number }> => {
-      const bounds = await page.locator(selector).boundingBox();
-      assert.ok(bounds);
-      return {
-        x: Math.round(bounds.x),
-        width: Math.round(bounds.width),
-        height: Math.round(bounds.height),
-      };
-    };
-    assert.deepEqual(await box('.pm-careers'), { x: 0, width: 1512, height: 594 });
-    assert.deepEqual(await box('.pm-careers h2'), { x: 372, width: 768, height: 40 });
-    assert.deepEqual(await box('.pm-careers > .pm-container > p'), {
-      x: 372,
-      width: 768,
-      height: 56,
-    });
-    assert.deepEqual(await box('.pm-career-card h3'), { x: 405, width: 702, height: 28 });
-    assert.deepEqual(await box('.pm-career-card p'), { x: 405, width: 702, height: 24 });
-    assert.deepEqual(await style('.pm-careers'), {
-      color: 'rgb(15, 23, 41)',
-      backgroundColor: 'rgba(134, 98, 45, 0.3)',
-      backgroundImage: 'none',
-      textAlign: 'start',
-    });
+    await expect(page.locator('#careers .ui-career-card')).toHaveCount(1);
+    await expect(page.locator('#careers .ui-career-card h3')).toContainText('Property Manager');
+    await expect(page.locator('#careers select[name="division"]')).toHaveValue(
+      'Property Management',
+    );
+    await expect(page.locator('#careers .ui-resume-form')).toBeVisible();
   },
 );
 
@@ -4142,17 +4218,35 @@ Then(
       'Real Estate': {
         selector: '[data-real-estate-entity-boundary="true"]',
         heading: 'Commercial Real Estate & Land Experts',
-        sections: ['#listings', '#services', '#process', '#about', '#team', '#faq', '#contact'],
+        sections: [
+          '#listings',
+          '#services',
+          '#process',
+          '#about',
+          '#team',
+          '#careers',
+          '#faq',
+          '#contact',
+        ],
       },
       Construction: {
         selector: '[data-entity-boundary="true"]',
         heading: 'Building The Future',
-        sections: ['#services', '#projects', '#plan-room', '#team', '#about', '#bid', '#contact'],
+        sections: [
+          '#services',
+          '#projects',
+          '#plan-room',
+          '#team',
+          '#about',
+          '#bid',
+          '#careers',
+          '#contact',
+        ],
       },
       Development: {
         selector: '[data-development-entity-boundary="true"]',
         heading: 'Transforming Vision Into Reality',
-        sections: ['#services', '#projects', '#team', '#about', '#reviews', '#contact'],
+        sections: ['#services', '#projects', '#team', '#about', '#reviews', '#careers', '#contact'],
       },
     };
     const expectation = expectations[division];
@@ -4447,7 +4541,6 @@ Then(
     const sections = [
       { label: 'Plan Room', selector: '#plan-room', target: 1360 },
       { label: 'Bid', selector: '#bid', target: 1078 },
-      { label: 'Careers', selector: '#careers', target: 772 },
       { label: 'Reviews', selector: '#reviews', target: 818 },
       { label: 'Contact', selector: '#contact', target: 768 },
     ];
@@ -4460,7 +4553,7 @@ Then(
       );
     }
 
-    const [planDensity, bidDensity, careerGridBox, reviewFooterMargin, contactGap] =
+    const [planDensity, bidDensity, careerCards, reviewFooterMargin, contactGap] =
       await Promise.all([
         page.locator('#plan-room').evaluate((element) => {
           const heading = element.querySelector('.ui-heading');
@@ -4488,7 +4581,7 @@ Then(
             submitMarginTop: getComputedStyle(submit).marginTop,
           };
         }),
-        page.locator('#careers .ui-career-grid').boundingBox(),
+        page.locator('#careers .ui-career-card').count(),
         page
           .locator('#reviews .ui-review-footer')
           .evaluate((element) => getComputedStyle(element).marginTop),
@@ -4507,11 +4600,9 @@ Then(
       formGap: '24px',
       submitMarginTop: '0px',
     });
-    assert.ok(careerGridBox);
-    assert.ok(
-      Math.abs(careerGridBox.height - 580) <= 1,
-      `Construction career grid height was ${careerGridBox.height}`,
-    );
+    assert.equal(careerCards, 1);
+    await expect(page.locator('#careers .ui-career-card h3')).toContainText('Project Coordinator');
+    await expect(page.locator('#careers select[name="division"]')).toHaveValue('Construction');
     assert.equal(reviewFooterMargin, '52px');
     assert.equal(contactGap, '15px');
   },
@@ -5654,7 +5745,7 @@ Given(
     this.cleanup.push({ page, entityId: 'home.careers.open-positions' });
     await saveReplacement(page, 'home.careers.open-positions', []);
     await enterHomeEditMode(page);
-    await expect(page.locator('.home-careers .editable-item')).toHaveCount(0);
+    await expect(page.locator('.ui-shared-careers .editable-item')).toHaveCount(0);
   },
 );
 When('I use its add control and save the first item', async function (this: FrontendWorld) {

@@ -387,40 +387,7 @@
   .re-agent-grid .editable-collection-items {
     grid-template-columns: repeat(4, 1fr);
   }
-  .re-careers-grid {
-    max-width: 896px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
-  }
-  .re-careers p {
-    margin: 1.25rem 0;
-  }
-  .re-careers ul {
-    display: grid;
-    gap: 0.75rem;
-    margin: 0 0 2rem;
-    padding: 0;
-  }
-  .re-careers li {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-  }
-  .re-careers li svg {
-    width: 1.1rem;
-  }
-  .re-careers aside {
-    padding: 2.5rem;
-  }
-  .re-careers aside > svg {
-    width: 72px;
-    height: 72px;
-    padding: 17px;
-  }
-  .re-card h3,
-  .re-careers aside h3 {
+  .re-card h3 {
     margin-top: 1.25rem;
   }
   .re-listing-grid,
@@ -708,9 +675,6 @@
       right: 12px;
       bottom: -28px;
     }
-    .re-careers aside {
-      padding: 2rem 1.25rem;
-    }
     .re-form-card {
       padding: 1.25rem;
     }
@@ -719,7 +683,6 @@
     .re-testimonial-grid,
     .re-review-grid,
     .re-about-grid,
-    .re-careers-grid,
     .re-contact-grid,
     .re-field-grid,
     .re-listing-grid .editable-collection-items,

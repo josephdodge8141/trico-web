@@ -95,7 +95,9 @@ for (const publicPage of publicPages) {
   }) => {
     await page.goto(publicPage.route);
     await expect(page.getByRole('heading', { name: publicPage.heading })).toBeVisible();
-    await expect(page.getByRole('status')).toContainText('checked-in site content');
+    await expect(
+      page.getByRole('status').filter({ hasText: 'checked-in site content' }),
+    ).toBeVisible();
     expect(await page.locator('[data-entity-boundary="true"]').count()).toBeGreaterThanOrEqual(5);
   });
 }
@@ -181,13 +183,13 @@ test('preserves the manually audited Home and Real Estate presentation details',
     'rgb(37, 99, 235)',
   );
 
-  const firstCareer = page.locator('.home-career-card').first();
+  const firstCareer = page.locator('.ui-career-card').first();
   await expect(firstCareer.locator('h3 svg')).toHaveCSS('color', 'rgb(94, 133, 186)');
   await expect(firstCareer.locator('p svg').first()).toHaveCSS('color', 'rgb(107, 114, 128)');
-  await expect(firstCareer.locator('> a')).toHaveCSS('font-weight', '500');
-  await expect(firstCareer.locator('> a')).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
+  await expect(firstCareer.locator('> button')).toHaveCSS('font-weight', '500');
+  await expect(firstCareer.locator('> button')).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
 
-  await expect(page.locator('.home-file-control svg')).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(page.locator('.ui-file-control svg')).toHaveCSS('color', 'rgb(94, 133, 186)');
   await expect(page.getByRole('button', { name: 'Submit Resume' })).toHaveCSS(
     'background-color',
     'rgb(37, 99, 235)',
@@ -200,7 +202,7 @@ test('preserves the manually audited Home and Real Estate presentation details',
   await expect(page.locator('.re-hero .ui-pill')).toHaveCSS('color', 'rgb(94, 133, 186)');
   await expect(page.locator('.re-about-visual > strong')).toHaveCSS('color', 'rgb(94, 133, 186)');
   await expect(page.locator('.re-check-grid svg').first()).toHaveCSS('color', 'rgb(94, 133, 186)');
-  await expect(page.locator('.re-careers .ui-pill')).toHaveCSS('color', 'rgb(94, 133, 186)');
+  await expect(page.locator('#careers .ui-section-tag')).toHaveCSS('color', 'rgb(94, 133, 186)');
 });
 
 test('keeps division calls to action readable and the mobile edit launcher clear of them', async ({
@@ -305,14 +307,14 @@ for (const division of [
     name: 'Real Estate',
     route: '/real-estate',
     selector: '[data-real-estate-entity-boundary="true"]',
-    count: 31,
+    count: 30,
     sections: ['#listings', '#services', '#process', '#about', '#team', '#faq', '#contact'],
   },
   {
     name: 'Construction',
     route: '/construction',
     selector: '[data-entity-boundary="true"]',
-    count: 49,
+    count: 46,
     sections: ['#services', '#projects', '#plan-room', '#team', '#about', '#bid', '#contact'],
   },
   {
@@ -372,7 +374,7 @@ test('renders the complete Property Management composition with all semantic bou
   page,
 }) => {
   await page.goto('/property-management');
-  await expect(page.locator('[data-property-management-entity-boundary="true"]')).toHaveCount(35);
+  await expect(page.locator('[data-property-management-entity-boundary="true"]')).toHaveCount(34);
   for (const heading of [
     'What to Expect with TriCo',
     'The TriCo Experience',

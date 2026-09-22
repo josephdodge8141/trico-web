@@ -19,7 +19,15 @@ const text = (max: number) => z.string().trim().min(1).max(max);
 const optionalText = (max: number) => z.string().trim().max(max);
 const id = z.uuid();
 const image = z.strictObject({ kind: z.literal('managed'), key: text(1_024) });
-const destination = z.enum(['services', 'projects', 'team', 'about', 'reviews', 'contact']);
+const destination = z.enum([
+  'services',
+  'projects',
+  'team',
+  'about',
+  'reviews',
+  'careers',
+  'contact',
+]);
 const icon = lucideIconNameSchema;
 const sectionHeading = z.strictObject({
   eyebrow: text(120),

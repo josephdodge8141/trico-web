@@ -448,7 +448,7 @@ test('an empty Home collection exposes Add and hydrates its first saved item', a
   try {
     await saveReplacement(page, entityId, []);
     await enterHomeEditMode(page);
-    await expect(page.locator('.home-careers .editable-item')).toHaveCount(0);
+    await expect(page.locator('.ui-shared-careers .editable-item')).toHaveCount(0);
     await page.getByRole('button', { name: '+ Add position' }).click();
     const sheet = page.getByRole('dialog', { name: 'Add position' });
     await sheet.getByLabel('Position title').fill('First Playwright position');

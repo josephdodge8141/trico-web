@@ -33,8 +33,6 @@ import {
   constructionAboutSchema,
   constructionAnniversaryBannerSchema,
   constructionBidHeaderSchema,
-  constructionCareerBenefitsSchema,
-  constructionCareersHeaderSchema,
   constructionContactDetailsSchema,
   constructionContactHeaderSchema,
   constructionEntityDefinitions,
@@ -49,7 +47,6 @@ import {
   constructionPlanRoomHeaderSchema,
   constructionPlanRoomRequestSchema,
   constructionPlanSetsSchema,
-  constructionPositionsSchema,
   constructionProjectCategorySchema,
   constructionProjectsHeaderSchema,
   constructionProsHeaderSchema,
@@ -78,6 +75,8 @@ import randyPhoto from '../assets/images/randy-rimmer.png';
 import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { CareersSection } from '../components/CareersSection.js';
+import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
@@ -405,9 +404,6 @@ function ConstructionBody(): React.JSX.Element {
   const about = value('construction.about', constructionAboutSchema);
   const aboutFeatures = value('construction.about.features', constructionAboutFeaturesSchema);
   const bidHeader = value('construction.bid.header', constructionBidHeaderSchema);
-  const careersHeader = value('construction.careers.header', constructionCareersHeaderSchema);
-  const benefits = value('construction.careers.benefits', constructionCareerBenefitsSchema);
-  const positions = value('construction.careers.open-positions', constructionPositionsSchema);
   const reviewsHeader = value('construction.reviews.header', constructionReviewsHeaderSchema);
   const reviews = value('construction.reviews.platforms', constructionReviewPlatformsSchema);
   const reviewsFooter = value('construction.reviews.footer', constructionReviewsFooterSchema);
@@ -435,7 +431,7 @@ function ConstructionBody(): React.JSX.Element {
               <strong>{header.divisionLabel}</strong>
             </Link>
             <nav aria-label="Primary navigation">
-              {header.navLinks.map((item) => (
+              {navigationWithCareers(header.navLinks).map((item) => (
                 <a key={item.id} href={`#${item.destination}`}>
                   {item.label}
                 </a>
@@ -461,7 +457,7 @@ function ConstructionBody(): React.JSX.Element {
           </div>
           {menuOpen ? (
             <nav className="co-mobile-nav ui-mobile-nav" aria-label="Mobile navigation">
-              {header.navLinks.map((item) => (
+              {navigationWithCareers(header.navLinks).map((item) => (
                 <a key={item.id} href={`#${item.destination}`} onClick={() => setMenuOpen(false)}>
                   {item.label}
                 </a>
@@ -854,68 +850,7 @@ function ConstructionBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section
-          className="co-section ui-section co-careers ui-careers ui-align-start"
-          id="careers"
-        >
-          <div className="co-container ui-container co-career-grid ui-career-grid ui-split-panel-roomy">
-            <div>
-              <ObjectBoundary id="construction.careers.header" value={careersHeader}>
-                <Heading
-                  eyebrow={careersHeader.eyebrow}
-                  title={careersHeader.heading}
-                  copy={careersHeader.description}
-                  titleClassName="type-section-title-compact"
-                />
-              </ObjectBoundary>
-              <div className="co-benefits ui-benefits">
-                <CollectionBoundary
-                  id="construction.careers.benefits"
-                  value={benefits}
-                  renderItem={(item) => {
-                    const benefit = constructionCareerBenefitsSchema.element.parse(item);
-                    const Icon = icons[benefit.icon] ?? TrendingUp;
-                    return (
-                      <div>
-                        <i>
-                          <Icon />
-                        </i>
-                        <span>
-                          <strong>{benefit.title}</strong>
-                          <small>{benefit.description}</small>
-                        </span>
-                      </div>
-                    );
-                  }}
-                />
-              </div>
-              <a
-                className="co-button ui-button co-button-blue ui-button-blue"
-                href={`mailto:${careersHeader.email}`}
-              >
-                {careersHeader.actionLabel} <ArrowRight />
-              </a>
-            </div>
-            <aside className="co-positions ui-positions">
-              <h3 className="type-card-title type-card-title-lg">
-                {careersHeader.positionsHeading}
-              </h3>
-              <CollectionBoundary
-                id="construction.careers.open-positions"
-                value={positions}
-                renderItem={(item) => {
-                  const position = constructionPositionsSchema.element.parse(item);
-                  return (
-                    <div>
-                      <strong>{position.title}</strong>
-                      <span>{position.location}</span>
-                    </div>
-                  );
-                }}
-              />
-            </aside>
-          </div>
-        </section>
+        <CareersSection pageId="construction" />
 
         <section className="co-section ui-section co-reviews" id="reviews">
           <div className="co-container ui-container">

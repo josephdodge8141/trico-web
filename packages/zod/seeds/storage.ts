@@ -13,6 +13,7 @@ export const storageV2SeedData = {
         destination: 'features',
       },
       { id: '668ca850-f5a3-40da-8224-8d759e65e885', label: 'About', destination: 'about' },
+      { id: '9f73c6b5-0b11-4c21-8f3e-c48b7bb5f6a1', label: 'Careers', destination: 'careers' },
       { id: 'd182bd67-1343-4d64-919e-b7b2db1bc531', label: 'Contact', destination: 'contact' },
     ],
   },

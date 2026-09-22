@@ -1750,6 +1750,14 @@ export const entityRegistry = new Map(
   entityDefinitions.map((definition) => [definition.id, definition] as const),
 );
 
+export const retiredEntityIds: ReadonlySet<EntityId> = new Set([
+  'real-estate.careers',
+  'property-management.careers',
+  'construction.careers.header',
+  'construction.careers.benefits',
+  'construction.careers.open-positions',
+]);
+
 const uncheckedSeedData: Readonly<Record<string, unknown>> = legacyVisibleContentSeeds;
 const semanticHomeSeeds: Readonly<Record<string, EditableValue>> = homeV2SeedData;
 const semanticPropertyManagementSeeds: Readonly<Record<string, EditableValue>> =

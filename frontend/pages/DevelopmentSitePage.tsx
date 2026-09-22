@@ -79,6 +79,8 @@ import stevePhoto from '../assets/images/steve-tripp.png';
 import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { CareersSection } from '../components/CareersSection.js';
+import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ProfileCard } from '../components/ProfileCard.js';
@@ -276,7 +278,7 @@ function DevelopmentBody(): React.JSX.Element {
               <strong>{header.divisionLabel}</strong>
             </Link>
             <nav>
-              {header.navLinks.map((link) => (
+              {navigationWithCareers(header.navLinks).map((link) => (
                 <a href={anchor(link.destination)} key={link.id}>
                   {link.label}
                 </a>
@@ -301,7 +303,7 @@ function DevelopmentBody(): React.JSX.Element {
           </div>
           {menuOpen ? (
             <nav className="dev-mobile-menu ui-mobile-menu">
-              {header.navLinks.map((link) => (
+              {navigationWithCareers(header.navLinks).map((link) => (
                 <a href={anchor(link.destination)} key={link.id} onClick={() => setMenuOpen(false)}>
                   {link.label}
                 </a>
@@ -636,6 +638,8 @@ function DevelopmentBody(): React.JSX.Element {
             </ObjectBoundary>
           </div>
         </section>
+
+        <CareersSection pageId="development" />
 
         <section
           id="contact"

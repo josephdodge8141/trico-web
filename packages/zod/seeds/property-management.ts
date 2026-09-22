@@ -58,6 +58,7 @@ export const propertyManagementV2SeedData = {
       { id: id(5), label: 'About', destination: 'about' },
       { id: id(6), label: 'FAQ', destination: 'faq' },
       { id: id(7), label: 'Reviews', destination: 'reviews' },
+      { id: id(86), label: 'Careers', destination: 'careers' },
       { id: id(8), label: 'Contact', destination: 'contact' },
     ],
   },

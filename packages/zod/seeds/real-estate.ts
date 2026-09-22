@@ -47,15 +47,23 @@ export const realEstateV2SeedData = {
     divisionLabel: 'Real Estate',
     phone: '(801) 571-8833',
     actionLabel: 'Get Started',
-    navLinks: ['Services', 'Our Process', 'Team', 'About', 'FAQ', 'Reviews', 'Contact'].map(
-      (label, n) => ({
-        id: itemId('real-estate.header', n),
-        label,
-        destination:
-          (['services', 'process', 'team', 'about', 'faq', 'reviews', 'contact'] as const)[n] ??
-          'services',
-      }),
-    ),
+    navLinks: [
+      'Services',
+      'Our Process',
+      'Team',
+      'About',
+      'FAQ',
+      'Careers',
+      'Reviews',
+      'Contact',
+    ].map((label, n) => ({
+      id: itemId('real-estate.header', n),
+      label,
+      destination:
+        (['services', 'process', 'team', 'about', 'faq', 'careers', 'reviews', 'contact'] as const)[
+          n
+        ] ?? 'services',
+    })),
   },
   'real-estate.hero': {
     badge: 'Full-Service Real Estate Brokerage',

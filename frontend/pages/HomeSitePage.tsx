@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
 import {
   ArrowRight,
-  Briefcase,
   Building2,
   CalendarDays,
-  Clock3,
   HardHat,
   Heart,
   Home,
-  MapPin,
   Mountain,
   Shield,
   Target,
@@ -19,7 +16,6 @@ import {
 import { Link } from 'react-router-dom';
 import {
   editableValueSchema,
-  homeCareersOpenPositionsSchema,
   homeCoreValueItemSchema,
   homeDivisionItemSchema,
   homeEntityDefinitions,
@@ -27,7 +23,6 @@ import {
   homeNewsItemSchema,
   homeTimelineItemSchema,
   type EditableValue,
-  type HomeCareerPosition,
   type HomeCoreValueItem,
   type HomeDivisionItem,
   type HomeLeadershipMember,
@@ -41,6 +36,7 @@ import brookeMoorePhoto from '../assets/images/brooke-moore-landing.jpeg';
 import randyRimmerPhoto from '../assets/images/randy-rimmer.png';
 import steveTrippPhoto from '../assets/images/steve-tripp.png';
 import tricoLogo from '../assets/images/trico-logo.png';
+import { CareersSection } from '../components/CareersSection.js';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
 import { contentIconComponents } from '../components/contentIcons.js';
@@ -48,7 +44,6 @@ import { EditorToolbar } from '../components/EditorToolbar.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
-import { HomeResumeForm } from './HomeResumeForm.js';
 import {
   defaultHomePageDocument,
   parseHomePageDocument,
@@ -110,12 +105,6 @@ function formatNewsDate(date: string): string {
 
 function iconFor(name: string): LucideIcon {
   return iconByName[name] ?? Building2;
-}
-
-function parseCareerPosition(value: EditableValue): HomeCareerPosition {
-  const position = homeCareersOpenPositionsSchema.parse([value])[0];
-  if (position === undefined) throw new Error('A Home career position could not be rendered');
-  return position;
 }
 
 function ObjectBoundary({
@@ -255,27 +244,6 @@ function NewsCard({ item }: { readonly item: HomeNewsItem }): React.JSX.Element 
       </p>
       <h3 className="type-card-title">{item.title}</h3>
       <p>{item.description}</p>
-    </article>
-  );
-}
-
-function CareerCard({ item }: { readonly item: HomeCareerPosition }): React.JSX.Element {
-  return (
-    <article className="home-career-card ui-career-card">
-      <div>
-        <h3 className="type-card-title type-card-title-xs">
-          <Briefcase aria-hidden="true" /> {item.title}
-        </h3>
-        <p>
-          <span>
-            <MapPin aria-hidden="true" /> {item.division}
-          </span>
-          <span>
-            <Clock3 aria-hidden="true" /> {item.employmentType}
-          </span>
-        </p>
-      </div>
-      <a href="#resume-form">Apply Now</a>
     </article>
   );
 }
@@ -462,39 +430,7 @@ function HomePageBody(): React.JSX.Element {
           </div>
         </section>
 
-        <section
-          className="home-section ui-section home-tint ui-tint home-careers ui-careers ui-align-start"
-          id="careers"
-        >
-          <div className="home-container ui-container home-careers-container ui-careers-container">
-            <ObjectBoundary entityId="home.careers.header" value={content.careersHeader}>
-              <header className="home-section-heading ui-section-heading">
-                <h2 className="type-section-title type-section-title-compact">
-                  {content.careersHeader.heading}
-                </h2>
-                <p className="ui-section-description-standard">
-                  {content.careersHeader.description}
-                </p>
-              </header>
-            </ObjectBoundary>
-            <CollectionBoundary
-              entityId="home.careers.open-positions"
-              value={content.positions}
-              renderItem={(value) => <CareerCard item={parseCareerPosition(value)} />}
-            />
-            <ObjectBoundary entityId="home.careers.resume-intro" value={content.resumeIntro}>
-              <header className="home-resume-heading ui-resume-heading" id="resume-form">
-                <h3 className="type-card-title type-card-title-lg">
-                  {content.resumeIntro.heading}
-                </h3>
-                <p className="ui-section-description-standard">{content.resumeIntro.description}</p>
-              </header>
-            </ObjectBoundary>
-            <div className="ui-form-surface ui-form-surface--inquiry">
-              <HomeResumeForm />
-            </div>
-          </div>
-        </section>
+        <CareersSection pageId="home" />
 
         <ObjectBoundary entityId="home.contact" value={content.contact}>
           <section className="home-section ui-section home-contact ui-contact" id="contact">

@@ -40,7 +40,6 @@ import {
   propertyManagementAboutFeaturesSchema,
   propertyManagementAboutSchema,
   propertyManagementAnniversaryBannerSchema,
-  propertyManagementCareersSchema,
   propertyManagementContactDetailsSchema,
   propertyManagementContactHeaderSchema,
   propertyManagementEntityDefinitions,
@@ -92,6 +91,8 @@ import townSquarePhoto from '../assets/images/town-square.jpg';
 import tricoLogo from '../assets/images/trico-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { CareersSection } from '../components/CareersSection.js';
+import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ProfileCard } from '../components/ProfileCard.js';
@@ -365,7 +366,6 @@ function PropertyManagementBody(): React.JSX.Element {
   );
   const faqHeader = value('property-management.faq.header', propertyManagementFaqHeaderSchema);
   const faqs = value('property-management.faq.items', propertyManagementFaqItemsSchema);
-  const careers = value('property-management.careers', propertyManagementCareersSchema);
   const reviewsHeader = value(
     'property-management.reviews.header',
     propertyManagementReviewsHeaderSchema,
@@ -459,7 +459,7 @@ function PropertyManagementBody(): React.JSX.Element {
               <strong>{header.divisionLabel}</strong>
             </Link>
             <nav aria-label="Primary navigation">
-              {header.navLinks.map((link) => (
+              {navigationWithCareers(header.navLinks).map((link) => (
                 <a key={link.id} href={`#${link.destination}`}>
                   {link.label}
                 </a>
@@ -494,7 +494,7 @@ function PropertyManagementBody(): React.JSX.Element {
               className="pm-mobile-menu ui-mobile-menu"
               aria-label="Mobile navigation"
             >
-              {header.navLinks.map((link) => (
+              {navigationWithCareers(header.navLinks).map((link) => (
                 <a key={link.id} href={`#${link.destination}`} onClick={() => setMenuOpen(false)}>
                   {link.label}
                 </a>
@@ -808,28 +808,7 @@ function PropertyManagementBody(): React.JSX.Element {
             />
           </div>
         </section>
-        <ObjectBoundary id="property-management.careers" value={careers}>
-          <section
-            className="pm-section ui-section pm-tint ui-tint pm-careers ui-careers ui-careers-banner-accent"
-            id="careers"
-          >
-            <div className="pm-container ui-container pm-narrow ui-narrow">
-              <span className="pm-career-icon ui-career-icon">◆</span>
-              <h2 className="type-section-title type-section-title-compact">{careers.heading}</h2>
-              <p>{careers.description}</p>
-              <div className="pm-career-card ui-career-card ui-career-card-compact">
-                <h3 className="type-card-title">{careers.cardHeading}</h3>
-                <p>{careers.cardDescription}</p>
-                <a
-                  className="pm-button ui-button pm-button-primary ui-button-primary ui-career-apply-action"
-                  href={`mailto:${careers.email}`}
-                >
-                  {careers.email}
-                </a>
-              </div>
-            </div>
-          </section>
-        </ObjectBoundary>
+        <CareersSection pageId="property-management" />
         <PropertyManagementNewClientForm />
         <section
           className="pm-section ui-section pm-reviews ui-reviews ui-review-grid-standard ui-review-density-reference"

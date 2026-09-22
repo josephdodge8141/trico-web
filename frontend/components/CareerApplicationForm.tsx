@@ -1,16 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { CheckCircle2, Send, Upload } from 'lucide-react';
 
-import { SelectField } from '../components/SelectField.js';
-
-const divisions = [
-  'Real Estate',
-  'Property Management',
-  'Construction',
-  'Storage Management',
-  'Development',
-  'Other / General',
-] as const;
+import { SelectField } from './SelectField.js';
+import { careerDivisions, type CareerDivision } from './careerApplication.js';
 
 interface ResumeFormValue {
   readonly name: string;
@@ -48,10 +40,29 @@ function validate(value: ResumeFormValue): FormErrors {
   return errors;
 }
 
-export function HomeResumeForm(): React.JSX.Element {
-  const [value, setValue] = useState<ResumeFormValue>(emptyForm);
+export function CareerApplicationForm({
+  initialDivision = '',
+  initialPosition = '',
+}: {
+  readonly initialDivision?: CareerDivision | '';
+  readonly initialPosition?: string;
+}): React.JSX.Element {
+  const [value, setValue] = useState<ResumeFormValue>(() => ({
+    ...emptyForm,
+    division: initialDivision,
+    position: initialPosition,
+  }));
   const [errors, setErrors] = useState<FormErrors>({});
   const [submittedName, setSubmittedName] = useState<string>();
+
+  useEffect(() => {
+    setValue((current) => ({
+      ...current,
+      division: initialDivision,
+      position: initialPosition,
+    }));
+    setErrors({});
+  }, [initialDivision, initialPosition]);
 
   const update = (field: FormField, nextValue: string): void => {
     setValue((current) => ({ ...current, [field]: nextValue }));
@@ -84,7 +95,7 @@ export function HomeResumeForm(): React.JSX.Element {
 
   if (submittedName !== undefined) {
     return (
-      <div className="home-resume-success ui-resume-success" role="status">
+      <div className="ui-resume-success" role="status">
         <CheckCircle2 aria-hidden="true" />
         <h4>Thank you, {submittedName}!</h4>
         <p>
@@ -106,11 +117,12 @@ export function HomeResumeForm(): React.JSX.Element {
 
   return (
     <form
-      className="home-resume-form ui-resume-form ui-client-form ui-form-layout--inquiry ui-form-stack-spaced"
+      className="ui-resume-form ui-client-form ui-form-layout--inquiry ui-form-stack-spaced"
+      id="career-application-form"
       noValidate
       onSubmit={submit}
     >
-      <div className="home-form-grid ui-form-grid">
+      <div className="ui-form-grid">
         <label>
           <span>Full Name *</span>
           <input
@@ -121,10 +133,10 @@ export function HomeResumeForm(): React.JSX.Element {
             value={value.name}
             onChange={(event) => update('name', event.target.value)}
             aria-invalid={errors.name === undefined ? undefined : true}
-            aria-describedby={errors.name === undefined ? undefined : 'home-resume-name-error'}
+            aria-describedby={errors.name === undefined ? undefined : 'career-name-error'}
           />
           {errors.name === undefined ? null : (
-            <small id="home-resume-name-error" className="home-form-error ui-form-error">
+            <small id="career-name-error" className="ui-form-error">
               {errors.name}
             </small>
           )}
@@ -140,10 +152,10 @@ export function HomeResumeForm(): React.JSX.Element {
             value={value.email}
             onChange={(event) => update('email', event.target.value)}
             aria-invalid={errors.email === undefined ? undefined : true}
-            aria-describedby={errors.email === undefined ? undefined : 'home-resume-email-error'}
+            aria-describedby={errors.email === undefined ? undefined : 'career-email-error'}
           />
           {errors.email === undefined ? null : (
-            <small id="home-resume-email-error" className="home-form-error ui-form-error">
+            <small id="career-email-error" className="ui-form-error">
               {errors.email}
             </small>
           )}
@@ -159,25 +171,25 @@ export function HomeResumeForm(): React.JSX.Element {
             value={value.phone}
             onChange={(event) => update('phone', event.target.value)}
             aria-invalid={errors.phone === undefined ? undefined : true}
-            aria-describedby={errors.phone === undefined ? undefined : 'home-resume-phone-error'}
+            aria-describedby={errors.phone === undefined ? undefined : 'career-phone-error'}
           />
           {errors.phone === undefined ? null : (
-            <small id="home-resume-phone-error" className="home-form-error ui-form-error">
+            <small id="career-phone-error" className="ui-form-error">
               {errors.phone}
             </small>
           )}
         </label>
         <SelectField
-          id="home-resume-division"
+          id="career-application-division"
           name="division"
           label="Division of Interest *"
           placeholder="Select a division"
-          options={divisions.map((division) => ({ value: division, label: division }))}
+          options={careerDivisions.map((division) => ({ value: division, label: division }))}
           required
           value={value.division}
           onValueChange={(nextValue) => update('division', nextValue)}
           error={errors.division}
-          errorClassName="home-form-error ui-form-error"
+          errorClassName="ui-form-error"
         />
       </div>
       <label>
@@ -205,7 +217,7 @@ export function HomeResumeForm(): React.JSX.Element {
         <span>
           Resume * <small>(PDF or Word, max 10MB)</small>
         </span>
-        <span className="home-file-control ui-file-control">
+        <span className="ui-file-control">
           <Upload aria-hidden="true" />
           <span>{value.resumeName === '' ? 'Click to upload your resume' : value.resumeName}</span>
           <input
@@ -215,26 +227,24 @@ export function HomeResumeForm(): React.JSX.Element {
             onChange={(event) => selectFile(event.target.files?.[0])}
             aria-invalid={errors.resumeName === undefined ? undefined : true}
             aria-describedby={
-              errors.resumeName === undefined ? undefined : 'home-resume-file-error'
+              errors.resumeName === undefined ? undefined : 'career-resume-file-error'
             }
           />
         </span>
         {errors.resumeName === undefined ? null : (
-          <small id="home-resume-file-error" className="home-form-error ui-form-error">
+          <small id="career-resume-file-error" className="ui-form-error">
             {errors.resumeName}
           </small>
         )}
       </label>
       <button
-        className="home-submit-button ui-submit-button ui-submit-action ui-submit-action--full ui-submit-action--in-grid"
+        className="ui-submit-button ui-submit-action ui-submit-action--full ui-submit-action--in-grid"
         type="submit"
       >
         <Send aria-hidden="true" />
         Submit Resume
       </button>
-      <p className="home-form-note ui-form-note">
-        Your information is prepared locally in this browser.
-      </p>
+      <p className="ui-form-note">Your information is prepared locally in this browser.</p>
     </form>
   );
 }

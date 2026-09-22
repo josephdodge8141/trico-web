@@ -35,6 +35,7 @@ const sectionDestinationSchema = z.enum([
   'tenant-portal',
   'about',
   'faq',
+  'careers',
   'reviews',
   'contact',
 ]);

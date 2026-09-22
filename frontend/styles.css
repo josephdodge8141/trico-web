@@ -1724,17 +1724,20 @@
     color: var(--trico-color-muted);
   }
 
-  .ui-career-card > a {
+  .ui-career-card > :is(a, button) {
     color: var(--trico-color-light);
+    font-family: inherit;
     font-size: 0.75rem;
     font-weight: 500;
     text-decoration: none;
     border: 1px solid transparent;
     border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
   }
 
-  .ui-career-card > a:hover,
-  .ui-career-card > a:focus-visible {
+  .ui-career-card > :is(a, button):hover,
+  .ui-career-card > :is(a, button):focus-visible {
     border-color: var(--trico-surface-accent-emphasis);
   }
 
@@ -3686,6 +3689,144 @@
   .ui-select-option-check {
     position: absolute;
     right: 0.75rem;
+  }
+  .ui-section-tag {
+    padding: 0.5rem 1rem;
+    color: var(--trico-color-light);
+    border-color: transparent;
+    background: var(--trico-surface-accent-subtle);
+  }
+  .ui-group-heading {
+    margin-block: 2.5rem 1.5rem;
+  }
+  .ui-group-heading .ui-section-tag {
+    font-size: 1rem;
+  }
+  .ui-shared-careers {
+    scroll-margin-top: 6rem;
+  }
+  .ui-careers-container {
+    max-width: 52rem;
+  }
+  .ui-careers-list,
+  .ui-shared-careers .editable-collection-items {
+    display: grid;
+    gap: 1rem;
+  }
+  .ui-career-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .ui-career-card h3,
+  .ui-career-card p,
+  .ui-career-card p span {
+    display: flex;
+    align-items: center;
+  }
+  .ui-career-card h3 {
+    gap: 0.5rem;
+    margin: 0;
+  }
+  .ui-career-card h3 svg,
+  .ui-career-card p svg {
+    width: 0.9rem;
+  }
+  .ui-career-card p {
+    gap: 1rem;
+    margin: 0.35rem 0 0;
+  }
+  .ui-career-card p span {
+    gap: 0.3rem;
+  }
+  .ui-career-card > :is(a, button) {
+    flex: none;
+    padding: 0.45rem 0.8rem;
+  }
+  .ui-careers-empty {
+    margin-block: 1.5rem;
+    padding: 1rem;
+    color: var(--trico-color-muted);
+    text-align: center;
+    border: 1px solid var(--trico-color-border);
+    border-radius: 8px;
+    background: var(--trico-overlay-light);
+  }
+  .ui-shared-careers .ui-resume-heading {
+    margin: 3.5rem 0 1.7rem;
+  }
+  .ui-shared-careers .ui-resume-heading h3 {
+    margin: 0 0 0.4rem;
+  }
+  .ui-resume-form,
+  .ui-resume-success {
+    display: grid;
+    gap: 1.15rem;
+    padding: 2rem;
+  }
+  .ui-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.15rem;
+  }
+  .ui-resume-form > label,
+  .ui-form-grid label {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .ui-resume-form input:not([type='file']),
+  .ui-resume-form select,
+  .ui-resume-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 2.7rem;
+    padding: 0.65rem 0.75rem;
+  }
+  .ui-file-control {
+    position: relative;
+    min-height: 3.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    overflow: hidden;
+  }
+  .ui-file-control svg {
+    width: 1.2rem;
+  }
+  .ui-file-control input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+  }
+  .ui-submit-button,
+  .ui-resume-success button {
+    min-height: 2.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+  }
+  .ui-submit-button svg {
+    width: 1rem;
+  }
+  .ui-resume-success {
+    place-items: center;
+  }
+  .ui-resume-success > svg {
+    width: 3rem;
+    height: 3rem;
+  }
+  @media (max-width: 639px) {
+    .ui-career-card {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .ui-form-grid {
+      grid-template-columns: 1fr;
+    }
   }
 }
 @layer utilities {

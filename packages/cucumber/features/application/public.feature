@@ -90,6 +90,18 @@ Feature: Published TriCo website
     And Development uses the reference card and footer rhythm
     And shared section rhythm remains balanced at desktop and tablet widths
 
+  @id:public.shared-careers @backend-noop
+  Scenario: Reuse one canonical careers experience across every public page
+    backend-noop: Canonical career filtering, application prefill, navigation, and presentation are browser-owned behavior over published Home content.
+    Given the current content manifest is available
+    When I open "/"
+    Then every public page renders the shared canonical careers section
+    And Home shows every opening while division pages show only applicable openings
+    And Apply Now prefills the shared application form
+    And every division navigation exposes Careers
+    And retired legacy careers entities remain registered but are not rendered
+    And Real Estate repeated section labels use one filled blue tag layout
+
   @id:public.review-platform-contract @backend-noop
   Scenario: Present review destinations with one accessible platform contract
     backend-noop: Review-platform branding, rating color, card geometry, and responsive presentation are browser-owned visual behavior.
@@ -211,7 +223,7 @@ Feature: Published TriCo website
     And the Property Management hero uses the approved neutral unavailable-image treatment
     And the Property Management hero actions stack at full content width on mobile
     And Property Management cards and team portraits retain the intended responsive geometry
-    And all 35 Property Management entities have an editable visual boundary
+    And all 34 Property Management entities have an editable visual boundary
     And supplied Property Management portfolio images load while unavailable images use the neutral placeholder
     And the Property Management client-only forms validate locally without creating CMS entities
     And the Property Management contact details use labeled icon rows and remain visible after anchor navigation
@@ -327,8 +339,8 @@ Feature: Published TriCo website
 
     Examples: Dedicated divisions
       | case_id     | route          | division    | entity_count |
-      | real-estate | /real-estate   | Real Estate | 31           |
-      | construction | /construction | Construction | 49           |
+      | real-estate | /real-estate   | Real Estate | 30           |
+      | construction | /construction | Construction | 46           |
       | development | /development   | Development | 28           |
 
   @id:public.construction-empty @backend-noop

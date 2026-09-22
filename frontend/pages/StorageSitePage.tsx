@@ -64,6 +64,8 @@ import storageHeroImage from '../assets/images/storage-hero.png';
 import storageLogo from '../assets/images/trico-storage-logo.png';
 import { EditableBoundary, type EditorOwnership } from '../components/EditableBoundary.js';
 import { EditableCollection } from '../components/EditableCollection.js';
+import { CareersSection } from '../components/CareersSection.js';
+import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
@@ -263,7 +265,7 @@ function StorageBody(): React.JSX.Element {
             <img src={managedImage(header.logo.key, storageLogo)} alt={header.logoAltText} />
           </Link>
           <nav aria-label="Storage navigation">
-            {header.navLinks.map((item) => (
+            {navigationWithCareers(header.navLinks).map((item) => (
               <a key={item.id} href={anchor(item.destination)}>
                 {item.label}
               </a>
@@ -280,7 +282,7 @@ function StorageBody(): React.JSX.Element {
         </header>
         {menuOpen ? (
           <nav className="storage-mobile-nav ui-mobile-nav" aria-label="Mobile storage navigation">
-            {header.navLinks.map((item) => (
+            {navigationWithCareers(header.navLinks).map((item) => (
               <a key={item.id} href={anchor(item.destination)} onClick={() => setMenuOpen(false)}>
                 {item.label}
               </a>
@@ -464,6 +466,7 @@ function StorageBody(): React.JSX.Element {
             </p>
           </ObjectBoundary>
         </section>
+        <CareersSection pageId="storage" />
         <section
           id="contact"
           className="storage-section ui-section storage-contact ui-contact ui-align-start ui-contact-grid ui-contact-grid-standard"
