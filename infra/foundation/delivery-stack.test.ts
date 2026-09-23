@@ -102,3 +102,19 @@ test('dev deployment can resolve the immutable backend digest it publishes', () 
   assert.match(serialized, /ecr:DescribeImages/);
   assert.match(serialized, /ReleaseBackendRepository/);
 });
+
+test('application deployment roles can verify the exact CDK bootstrap version', () => {
+  const template = deliveryTemplate().toJSON();
+  const policies = Object.entries(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).filter(([, resource]) => resource.Type === 'AWS::IAM::Policy');
+  for (const environment of ['dev', 'prod']) {
+    const policy = policies.find(([, resource]) =>
+      JSON.stringify(resource.Properties?.Roles).includes(`${environment}DeploymentRole`),
+    );
+    assert.notEqual(policy, undefined);
+    const serialized = JSON.stringify(policy);
+    assert.match(serialized, /ssm:GetParameter/);
+    assert.match(serialized, /cdk-bootstrap\/hnb659fds\/version/);
+  }
+});
