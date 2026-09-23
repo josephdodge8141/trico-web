@@ -297,6 +297,12 @@ export class DeliveryFoundationStack extends Stack {
     bucket.grantRead(role, 'releases/*');
     if (environment === 'dev') {
       repository.grantPush(role);
+      role.addToPolicy(
+        new PolicyStatement({
+          actions: ['ecr:DescribeImages'],
+          resources: [repository.repositoryArn],
+        }),
+      );
       bucket.grantPut(role, 'releases/*');
     }
     role.addToPolicy(
