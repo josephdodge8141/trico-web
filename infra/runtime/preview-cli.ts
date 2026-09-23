@@ -5,7 +5,12 @@ import {
   type AwsPreviewConfig,
 } from './aws-preview.js';
 import { dispatchLifecycle, dueDeadlineCommand } from './controller.js';
-import type { LifecycleCommand, LifecycleEffect, LifecycleState } from './protocol.js';
+import {
+  commandEventSequence,
+  type LifecycleCommand,
+  type LifecycleEffect,
+  type LifecycleState,
+} from './protocol.js';
 
 function required(name: string): string {
   const value = process.env[name];
@@ -123,7 +128,11 @@ async function main(): Promise<void> {
         protocolVersion: 1,
         type: 'reconcile',
         commandId: `reconcile-${required('COMMAND_ID')}-${state.identity.repositoryId}-${String(state.identity.pullRequestNumber)}`,
-        eventSequence: Math.max(positiveInteger('EVENT_SEQUENCE'), state.lastEventSequence + 1),
+        eventSequence: commandEventSequence(
+          'reconcile',
+          positiveInteger('EVENT_SEQUENCE'),
+          state.lastEventSequence,
+        ),
         expectedStateRevision: state.stateRevision,
         identity: state.identity,
       };
@@ -142,12 +151,15 @@ async function main(): Promise<void> {
     process.stdout.write(`${JSON.stringify({ decision: 'absent' })}\n`);
     return;
   }
+  const commandType =
+    operation === 'admit' ? 'admit' : operation === 'close' ? 'close' : 'reconcile';
   const common = {
     protocolVersion: 1 as const,
     commandId: required('COMMAND_ID'),
-    eventSequence: Math.max(
+    eventSequence: commandEventSequence(
+      commandType,
       positiveInteger('EVENT_SEQUENCE'),
-      (previous?.lastEventSequence ?? 0) + 1,
+      previous?.lastEventSequence ?? 0,
     ),
     expectedStateRevision: previous?.stateRevision ?? null,
     identity,
