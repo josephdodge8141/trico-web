@@ -16,14 +16,16 @@ This dated status supplements the [historical buildout checklist](infrastructure
 - PR [#14](https://github.com/josephdodge8141/trico-web/pull/14) remains open for the scheduled preview-expiry proof. Its admitted revision `bbfb4f3` first became healthy at `2026-09-23T16:53:03.287Z`, setting fixed expiry to `2026-09-23T20:53:03.287Z`. The 15-minute scheduled sweeper's first run after expiry is due at approximately `21:00Z`. Cleanup has not yet been verified; do not treat the earlier successful sweeper runs as proof of expiry cleanup.
 - SES remains in the sandbox (`ProductionAccessEnabled=false`). The test send has not yet been confirmed in the recipient inbox, and production SES access is not enabled.
 - `APPLICATION_DEPLOY_ENABLED` is absent and recent automatic main-branch deployment attempts were skipped. The manual exact-SHA dev deployment path has succeeded; automatic dev deployment remains gated off.
-- Production application stack is absent. The apex `trico.joedodge.dev` currently returns Cloudflare 530; this is not a production deployment or a production smoke result.
+- Production application stack is absent. The planned production hostname `trico.joedodge.dev` currently returns Cloudflare 530; this is not a production deployment or a production smoke result.
 - `docker compose config` passed locally, but a full pull/start attempt is blocked: pulling `node:24-alpine` hit `DeadlineExceeded`, and a direct daemon pull stalled and was canceled. A Docker daemon restart is pending before retrying the local lifecycle proof.
 
 ## Owner decisions still needed
 
-- Confirm the intended production domain and cutover plan. The parent domain is Cloudflare-authoritative, so the plan's Route 53 assumption and any permanent aliases/certificate-validation steps need to follow the chosen DNS authority.
+- Confirm `trico.joedodge.dev` as the temporary production-validation hostname and resolve DNS/certificate steps against Cloudflare, which is authoritative for `joedodge.dev`. Separately decide whether any future `tricoinc.com` cutover is wanted; no Wix DNS change is included or authorized by this buildout.
 - Confirm the SES recipient inbox received the accepted test message; request SES production access only when ready to leave the sandbox.
 - Decide when to enable automatic dev deployment after the owner accepts the manual release workflow and its checks.
-- Restart Docker Desktop/daemon and repeat the Compose pull/start proof; then observe PR #14's scheduled cleanup after `21:00Z` and record the resource-level result.
+- Restart Docker Desktop/daemon and repeat the Compose pull/start proof.
+
+PR #14's scheduled cleanup remains a pending verification by the buildout work: after the first post-expiry sweep at approximately `21:00Z`, inspect and record the resource-level result.
 
 No production deployment, production smoke test, SES inbox delivery, or PR #14 expiry cleanup is claimed here.
