@@ -66,6 +66,8 @@ jobs:
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           git merge-base --is-ancestor "$RELEASE_SHA" origin/main
       - run: npm ci
+      - name: Install the pinned browser runtime
+        run: npx playwright install --with-deps chromium
       - run: npm run check:ci
       - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
         with:
