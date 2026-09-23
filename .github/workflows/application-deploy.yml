@@ -15,6 +15,12 @@ on:
         description: Tested main-branch SHA to promote (required for prod)
         required: false
         type: string
+      deployment_path:
+        description: Reuse an existing exact-SHA release in development
+        required: true
+        default: standard
+        type: choice
+        options: [standard, redeploy-existing]
 
 permissions: {}
 concurrency:
@@ -35,20 +41,37 @@ jobs:
         id: release
         env:
           EVENT_NAME: ${{ github.event_name }}
+          INPUT_DEPLOYMENT_PATH: ${{ inputs.deployment_path }}
           INPUT_RELEASE_SHA: ${{ inputs.release_sha }}
           INPUT_STAGE: ${{ inputs.environment }}
           PUSH_SHA: ${{ github.sha }}
         run: |
           stage="${INPUT_STAGE:-dev}"
+          path="${INPUT_DEPLOYMENT_PATH:-standard}"
+          case "$path" in
+            standard|redeploy-existing) ;;
+            *) echo "Unsupported deployment path: $path" >&2; exit 1 ;;
+          esac
           if test "$EVENT_NAME" = workflow_dispatch; then
-            test "$stage" != prod || test -n "$INPUT_RELEASE_SHA"
+            if test "$path" = redeploy-existing; then
+              test "$stage" = dev || { echo 'Existing-release reactivation is development-only' >&2; exit 1; }
+              test -n "$INPUT_RELEASE_SHA" || { echo 'Existing-release reactivation requires an explicit release_sha' >&2; exit 1; }
+            fi
+            if test "$stage" = prod; then
+              test "$path" = standard || { echo 'Production does not support the development reactivation path' >&2; exit 1; }
+              test -n "$INPUT_RELEASE_SHA"
+            fi
             RELEASE_SHA="${INPUT_RELEASE_SHA:-$PUSH_SHA}"
           else
             RELEASE_SHA="$PUSH_SHA"
           fi
-          test "$(printf '%s' "$RELEASE_SHA" | wc -c | tr -d ' ')" = 40
+          case "$RELEASE_SHA" in
+            *[!0-9a-f]*|'') echo 'Release SHA must be a 40-character lowercase hexadecimal commit' >&2; exit 1 ;;
+          esac
+          test "${#RELEASE_SHA}" = 40
           echo "sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
@@ -74,9 +97,9 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.APPLICATION_DEPLOY_ROLE_ARN }}
       - uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd
-        if: steps.release.outputs.stage == 'dev'
+        if: steps.release.outputs.stage == 'dev' && steps.release.outputs.path == 'standard'
       - name: Build and publish reviewed dev artifacts
-        if: steps.release.outputs.stage == 'dev'
+        if: steps.release.outputs.stage == 'dev' && steps.release.outputs.path == 'standard'
         env:
           ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
           BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
@@ -99,6 +122,7 @@ jobs:
         id: artifacts
         env:
           ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
+          BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           aws s3 cp "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/release-manifest.json" release-manifest.json --only-show-errors
@@ -106,12 +130,15 @@ jobs:
           frontend_key="$(jq -r .frontend.key validated-release.json)"
           frontend_sha="$(jq -r .frontend.sha256 validated-release.json)"
           backend_image="$(jq -r .backendImageUri validated-release.json)"
+          manifest_repository="${backend_image%@*}"
+          test "$manifest_repository" = "$BACKEND_REPOSITORY_URI"
           aws s3 cp "s3://${ARTIFACT_BUCKET}/${frontend_key}" frontend-dist.tar.gz --only-show-errors
           printf '%s  %s\n' "$frontend_sha" frontend-dist.tar.gz | sha256sum --check
           repository="$(cut -d / -f 2- <<<"${backend_image%@*}")"
           digest="${backend_image##*@}"
           aws ecr batch-get-image --repository-name "$repository" --image-ids "imageDigest=$digest" --query 'images[0].imageId.imageDigest' --output text | grep -Fx "$digest"
           echo "backend_image=$backend_image" >> "$GITHUB_OUTPUT"
+          echo "frontend_sha=$frontend_sha" >> "$GITHUB_OUTPUT"
       - name: Snapshot existing production state
         if: steps.release.outputs.stage == 'prod'
         env:
@@ -144,22 +171,34 @@ jobs:
           )
           if test -n "$BEDROCK_MODEL_ID"; then context+=(-c "application:${STAGE}:bedrockModelId=${BEDROCK_MODEL_ID}"); fi
           npx cdk deploy "TricoWeb-${STAGE}" --require-approval never --outputs-file cdk-outputs.json "${context[@]}"
-      - name: Checksum-safe bootstrap and frontend activation
+      - name: Bootstrap application data
+        if: steps.release.outputs.path == 'standard'
         env:
           APP_ENV: ${{ steps.release.outputs.stage }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           EXTERNAL_SEED_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           PREVIEW_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           PREVIEW_EDITOR_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
-          PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
         run: |
           stack="TricoWeb-${APP_ENV}"
           export DYNAMODB_TABLE="$(jq -r ".\"${stack}\".TableName" cdk-outputs.json)"
-          export S3_BUCKET="$(jq -r ".\"${stack}\".ContentBucketName" cdk-outputs.json)"
           export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
           node backend/dist/seed.js
+      - name: Activate frontend release
+        env:
+          APP_ENV: ${{ steps.release.outputs.stage }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          FRONTEND_SHA: ${{ steps.artifacts.outputs.frontend_sha }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          stack="TricoWeb-${APP_ENV}"
+          export S3_BUCKET="$(jq -r ".\"${stack}\".ContentBucketName" cdk-outputs.json)"
           mkdir frontend-release && tar -C frontend-release -xzf frontend-dist.tar.gz
           aws s3 sync frontend-release/ "s3://${S3_BUCKET}/" --delete --exclude 'content/*' --exclude 'media/*' --only-show-errors
+          if test "$APP_ENV" = dev; then
+            jq -n --arg releaseSha "$RELEASE_SHA" --arg frontendSha256 "$FRONTEND_SHA" '{version:1,releaseSha:$releaseSha,frontendSha256:$frontendSha256}' > deployment.json
+            aws s3 cp deployment.json "s3://${S3_BUCKET}/deployment.json" --content-type application/json --cache-control no-store --only-show-errors
+          fi
           distribution_id="$(jq -r ".\"${stack}\".DistributionId" cdk-outputs.json)"
           invalidation_id="$(aws cloudfront create-invalidation --distribution-id "$distribution_id" --paths '/*' --query 'Invalidation.Id' --output text)"
           aws cloudfront wait invalidation-completed --distribution-id "$distribution_id" --id "$invalidation_id"
@@ -167,10 +206,19 @@ jobs:
         env:
           STACK_NAME: TricoWeb-${{ steps.release.outputs.stage }}
           PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          FRONTEND_SHA: ${{ steps.artifacts.outputs.frontend_sha }}
           REVIEWER_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           REVIEWER_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
         run: |
           origin="$PUBLIC_ORIGIN"
+          if test "$STACK_NAME" = TricoWeb-dev; then
+            function_name="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='BackendFunctionName'].OutputValue | [0]" --output text)"
+            deployed_backend_image="$(aws lambda get-function --function-name "$function_name" --query 'Code.ImageUri' --output text)"
+            test "$deployed_backend_image" = "$BACKEND_IMAGE_URI"
+            curl --fail --retry 12 --retry-all-errors --retry-delay 5 "${origin}/deployment.json" | jq -e --arg releaseSha "$RELEASE_SHA" --arg frontendSha256 "$FRONTEND_SHA" '.version == 1 and .releaseSha == $releaseSha and .frontendSha256 == $frontendSha256' >/dev/null
+          fi
           for route in / /property-management /real-estate /construction /storage /development; do curl --fail --retry 12 --retry-all-errors --retry-delay 5 "${origin}${route}" >/dev/null; done
           curl --fail --cookie-jar cookies.txt --header "Origin: ${origin}" --header 'Content-Type: application/json' --data "$(jq -nc --arg email "$REVIEWER_EMAIL" --arg password "$REVIEWER_PASSWORD" '{email:$email,password:$password}')" "${origin}/api/v1/auth/login" >/dev/null
           curl --fail --cookie cookies.txt "${origin}/api/v1/auth/me" | jq -e '.authenticated == true' >/dev/null
