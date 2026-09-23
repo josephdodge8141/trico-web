@@ -12,6 +12,12 @@
     reverse_proxy {$MAILPIT_UPSTREAM:mailpit:8025}
   }
 
+  handle_path /__objects/* {
+    reverse_proxy {$OBJECT_UPSTREAM:minio:9000} {
+      header_up Host {$OBJECT_UPSTREAM:minio:9000}
+    }
+  }
+
   handle /content/* {
     uri replace /content/ /{$CONTENT_BUCKET:trico-web-local}/content/
     reverse_proxy {$OBJECT_UPSTREAM:minio:9000}
