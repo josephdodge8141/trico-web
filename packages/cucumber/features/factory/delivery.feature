@@ -124,3 +124,38 @@ Feature: Immutable application delivery
     When the workflow validates its deployment inputs
     Then it rejects the dev-only path before assuming the production deployment role
     And ordinary production promotion retains its pre-deployment state snapshot
+
+  @id:factory.delivery.dependency-audit @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario Outline: Block high or critical dependency advisories before privileged deployment
+    backend-noop: Dependency admission is enforced by factory CI and deployment workflows before backend activation.
+    frontend-noop: Dependency admission has no generated frontend interaction.
+    browser-noop: Dependency admission happens before a public release is deployed.
+    Given the dependency audit reports a "<severity>" vulnerability
+    When an unprivileged pull request candidate or application release is checked
+    Then the check fails before deployment credentials are issued
+    And no dependency vulnerability bypass is applied
+
+    Examples: Blocking vulnerability severities
+      | case_id  | severity |
+      | high     | high     |
+      | critical | critical |
+
+  @id:factory.delivery.dependency-audit-clear @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Continue admission when no high or critical dependency advisory is reported
+    backend-noop: Dependency admission is enforced by factory CI and deployment workflows before backend activation.
+    frontend-noop: Dependency admission has no generated frontend interaction.
+    browser-noop: Dependency admission happens before a public release is deployed.
+    Given the dependency audit reports no high or critical vulnerability
+    When an unprivileged pull request candidate or application release is checked
+    Then the check may continue to its remaining validations
+
+  @id:factory.delivery.dependency-audit-rollback @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Keep dependency admission fail-closed during existing-release reactivation
+    backend-noop: The workflow audits the selected release lockfile before deployment credentials are issued.
+    frontend-noop: Existing-release activation has no distinct dependency-audit frontend interaction.
+    browser-noop: A blocked reactivation does not change the public release.
+    Given an existing development release previously passed dependency admission
+    And the package registry now reports a high or critical advisory for its locked dependencies
+    When development selects the existing release SHA
+    Then dependency admission blocks reactivation before deployment credentials are issued
+    And the workflow has no silent advisory bypass

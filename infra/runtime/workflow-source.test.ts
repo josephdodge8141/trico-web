@@ -3,6 +3,38 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const workflowPath = new URL('../../.github/workflows/application-deploy.yml', import.meta.url);
+const pullRequestWorkflowPath = new URL(
+  '../../.github/workflows/pull-request.yml',
+  import.meta.url,
+);
+
+test('factory.delivery.dependency-audit gates unprivileged candidates and releases before credentials', async () => {
+  const [pullRequestWorkflow, applicationWorkflow] = await Promise.all([
+    readFile(pullRequestWorkflowPath, 'utf8'),
+    readFile(workflowPath, 'utf8'),
+  ]);
+  const auditCommand = 'npm audit --audit-level=high';
+  const candidateAudit = pullRequestWorkflow.indexOf(auditCommand);
+  const candidateInstall = pullRequestWorkflow.indexOf('run: npm ci');
+  const candidateChecks = pullRequestWorkflow.indexOf('npm run check:ci');
+  assert.ok(candidateAudit > candidateInstall);
+  assert.ok(candidateChecks > candidateAudit);
+  assert.match(pullRequestWorkflow, /permissions:\n {2}contents: read/);
+  assert.doesNotMatch(pullRequestWorkflow, /id-token:\s*write|configure-aws-credentials|secrets\./);
+
+  const releaseAudit = applicationWorkflow.indexOf(auditCommand);
+  const releaseInstall = applicationWorkflow.indexOf('run: npm ci');
+  const credentialAction = applicationWorkflow.indexOf(
+    'uses: aws-actions/configure-aws-credentials@',
+  );
+  assert.ok(releaseAudit > releaseInstall);
+  assert.ok(credentialAction > releaseAudit);
+  assert.doesNotMatch(
+    applicationWorkflow,
+    /audit[^\n]*continue-on-error|continue-on-error:[^\n]*audit/i,
+  );
+  assert.doesNotMatch(applicationWorkflow, /AUDIT_(?:BYPASS|IGNORE)|SKIP_?AUDIT/i);
+});
 
 test('factory.delivery.release-identity uses one derived release SHA and strict manifest', async () => {
   const workflow = await readFile(workflowPath, 'utf8');

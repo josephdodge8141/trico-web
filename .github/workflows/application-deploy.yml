@@ -89,6 +89,10 @@ jobs:
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           git merge-base --is-ancestor "$RELEASE_SHA" origin/main
       - run: npm ci
+      # A current advisory can block redeploy-existing for a previously accepted historical SHA.
+      # This gate intentionally has no bypass and runs before the AWS credentials action.
+      - name: Reject high and critical dependency vulnerabilities
+        run: npm audit --audit-level=high
       - name: Install the pinned browser runtime
         run: npx playwright install --with-deps chromium
       - run: npm run check:ci
