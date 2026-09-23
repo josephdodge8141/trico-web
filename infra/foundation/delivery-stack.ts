@@ -307,6 +307,18 @@ export class DeliveryFoundationStack extends Stack {
     }
     role.addToPolicy(
       new PolicyStatement({
+        actions: ['ssm:GetParameter'],
+        resources: [
+          this.formatArn({
+            service: 'ssm',
+            resource: 'parameter',
+            resourceName: 'cdk-bootstrap/hnb659fds/version',
+          }),
+        ],
+      }),
+    );
+    role.addToPolicy(
+      new PolicyStatement({
         actions: [
           'cloudformation:CreateChangeSet',
           'cloudformation:CreateStack',
