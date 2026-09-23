@@ -24,3 +24,11 @@ test('factory.delivery.promote-exact keeps production out of build and publicati
   assert.match(workflow, /if:.*workflow_dispatch/);
   assert.match(workflow, /APPLICATION_DEPLOY_ENABLED/);
 });
+
+test('factory.delivery installs the browser runtime before the CI gate', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  const installStep = workflow.indexOf('npx playwright install --with-deps chromium');
+  const checkStep = workflow.indexOf('npm run check:ci');
+  assert.ok(installStep >= 0);
+  assert.ok(checkStep > installStep);
+});
