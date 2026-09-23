@@ -100,6 +100,22 @@ jobs:
           frontend_digest="$(aws ecr describe-images --repository-name "$FRONTEND_REPOSITORY" --image-ids "imageTag=${tag}" --query 'imageDetails[0].imageDigest' --output text)"
           echo "backend=${REGISTRY}/${BACKEND_REPOSITORY}@${backend_digest}" >> "$GITHUB_OUTPUT"
           echo "frontend=${REGISTRY}/${FRONTEND_REPOSITORY}@${frontend_digest}" >> "$GITHUB_OUTPUT"
+      - name: Require clean ECR image scans before preview admission
+        env:
+          PREVIEW_BACKEND_IMAGE: ${{ steps.publish.outputs.backend }}
+          PREVIEW_FRONTEND_IMAGE: ${{ steps.publish.outputs.frontend }}
+        run: |
+          backend_reference="${PREVIEW_BACKEND_IMAGE#*/}"
+          frontend_reference="${PREVIEW_FRONTEND_IMAGE#*/}"
+          backend_repository="${backend_reference%@*}"
+          frontend_repository="${frontend_reference%@*}"
+          backend_digest="${PREVIEW_BACKEND_IMAGE##*@}"
+          frontend_digest="${PREVIEW_FRONTEND_IMAGE##*@}"
+          test "$backend_reference" != "$PREVIEW_BACKEND_IMAGE"
+          test "$frontend_reference" != "$PREVIEW_FRONTEND_IMAGE"
+          node --import tsx infra/runtime/ecr-image-scan-cli.ts \
+            "$backend_repository" "$backend_digest" \
+            "$frontend_repository" "$frontend_digest"
       - name: Admit one four-hour Fargate preview
         env:
           AWS_REGION: ${{ vars.AWS_REGION }}

@@ -35,6 +35,7 @@ test('factory.delivery.dependency-audit gates unprivileged candidates and releas
   );
   assert.doesNotMatch(applicationWorkflow, /AUDIT_(?:BYPASS|IGNORE)|SKIP_?AUDIT/i);
 });
+const previewWorkflowPath = new URL('../../.github/workflows/trusted-preview.yml', import.meta.url);
 
 test('factory.delivery.release-identity uses one derived release SHA and strict manifest', async () => {
   const workflow = await readFile(workflowPath, 'utf8');
@@ -130,4 +131,39 @@ test('factory.delivery.redeploy-existing validates and reactivates without build
   assert.match(verifyBlock, /Code\.ImageUri/);
   assert.match(verifyBlock, /deployment\.json/);
   assert.match(verifyBlock, /releaseSha/);
+});
+
+test('factory.delivery.image-scan-gate checks the exact release digest before backend deployment', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  const resolveStart = workflow.indexOf('name: Resolve and verify immutable tested artifacts');
+  const scanStart = workflow.indexOf('name: Require clean ECR image scan before activation');
+  const backupStart = workflow.indexOf('name: Snapshot existing production state');
+  const deployStart = workflow.indexOf('name: Deploy exact backend digest');
+  assert.ok(resolveStart >= 0);
+  assert.ok(scanStart > resolveStart);
+  assert.ok(backupStart > scanStart);
+  assert.ok(deployStart > scanStart);
+  const scanBlock = workflow.slice(scanStart, backupStart);
+  assert.match(scanBlock, /ecr-image-scan-cli\.ts/);
+  assert.match(scanBlock, /BACKEND_REPOSITORY_URI/);
+  assert.match(scanBlock, /BACKEND_IMAGE_URI/);
+  assert.match(scanBlock, /BACKEND_IMAGE_URI##\*@/);
+});
+
+test('factory.trusted-preview.image-scan-gate checks both exact image digests before admission', async () => {
+  const workflow = await readFile(previewWorkflowPath, 'utf8');
+  const publishStart = workflow.indexOf('id: publish');
+  const scanStart = workflow.indexOf(
+    'name: Require clean ECR image scans before preview admission',
+  );
+  const admitStart = workflow.indexOf('name: Admit one four-hour Fargate preview');
+  assert.ok(publishStart >= 0);
+  assert.ok(scanStart > publishStart);
+  assert.ok(admitStart > scanStart);
+  const scanBlock = workflow.slice(scanStart, admitStart);
+  assert.match(scanBlock, /ecr-image-scan-cli\.ts/);
+  assert.match(scanBlock, /PREVIEW_BACKEND_IMAGE/);
+  assert.match(scanBlock, /PREVIEW_FRONTEND_IMAGE/);
+  assert.match(scanBlock, /backend_digest/);
+  assert.match(scanBlock, /frontend_digest/);
 });

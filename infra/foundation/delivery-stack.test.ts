@@ -103,6 +103,41 @@ test('dev deployment can resolve the immutable backend digest it publishes', () 
   assert.match(serialized, /ReleaseBackendRepository/);
 });
 
+test('dev and prod image scan permissions are scoped to the immutable release repository', () => {
+  const template = deliveryTemplate().toJSON();
+  const policies = Object.entries(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).filter(([, resource]) => resource.Type === 'AWS::IAM::Policy');
+  for (const environment of ['dev', 'prod']) {
+    const policy = policies.find(([, resource]) =>
+      JSON.stringify(resource.Properties?.Roles).includes(`${environment}DeploymentRole`),
+    );
+    assert.notEqual(policy, undefined);
+    const serialized = JSON.stringify(policy);
+    assert.match(serialized, /ecr:DescribeImageScanFindings/);
+    assert.match(serialized, /ReleaseBackendRepository/);
+    assert.doesNotMatch(serialized, /"Action":"ecr:DescribeImageScanFindings","Resource":"\*"/);
+  }
+});
+
+test('preview image scan permission is scoped to backend and frontend repositories', () => {
+  const policies = Object.entries(
+    deliveryTemplate().toJSON().Resources as Record<
+      string,
+      { Type: string; Properties?: Record<string, unknown> }
+    >,
+  ).filter(([, resource]) => resource.Type === 'AWS::IAM::Policy');
+  const policy = policies.find(([, resource]) =>
+    JSON.stringify(resource.Properties?.Roles).includes('previewDeploymentRole'),
+  );
+  assert.notEqual(policy, undefined);
+  const serialized = JSON.stringify(policy);
+  assert.match(serialized, /ecr:DescribeImageScanFindings/);
+  assert.match(serialized, /trico-web-backend/);
+  assert.match(serialized, /trico-web-frontend/);
+  assert.doesNotMatch(serialized, /"Action":"ecr:DescribeImageScanFindings","Resource":"\*"/);
+});
+
 test('application deployment roles can verify CDK bootstrap and monitor their stack', () => {
   const template = deliveryTemplate().toJSON();
   const policies = Object.entries(

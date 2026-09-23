@@ -143,6 +143,16 @@ jobs:
           aws ecr batch-get-image --repository-name "$repository" --image-ids "imageDigest=$digest" --query 'images[0].imageId.imageDigest' --output text | grep -Fx "$digest"
           echo "backend_image=$backend_image" >> "$GITHUB_OUTPUT"
           echo "frontend_sha=$frontend_sha" >> "$GITHUB_OUTPUT"
+      - name: Require clean ECR image scan before activation
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
+        run: |
+          repository="${BACKEND_REPOSITORY_URI#*/}"
+          digest="${BACKEND_IMAGE_URI##*@}"
+          test "$digest" != "$BACKEND_IMAGE_URI"
+          node --import tsx infra/runtime/ecr-image-scan-cli.ts "$repository" "$digest"
       - name: Snapshot existing production state
         if: steps.release.outputs.stage == 'prod'
         env:

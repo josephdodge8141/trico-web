@@ -31,6 +31,11 @@ test('factory.foundation.synth creates only reusable permanent resources', () =>
   template.resourceCountIs('AWS::IAM::Role', 2);
   template.resourceCountIs('AWS::SecretsManager::Secret', 1);
   template.resourceCountIs('AWS::IAM::ManagedPolicy', 0);
+  const imageRepositories = Object.values(template.findResources('AWS::ECR::Repository'));
+  assert.equal(imageRepositories.length, 2);
+  for (const repository of imageRepositories) {
+    assert.deepEqual(repository.Properties.ImageScanningConfiguration, { ScanOnPush: true });
+  }
   template.hasResourceProperties('AWS::ECR::Repository', {
     ImageTagMutability: 'IMMUTABLE',
     LifecyclePolicy: Match.objectLike({}),

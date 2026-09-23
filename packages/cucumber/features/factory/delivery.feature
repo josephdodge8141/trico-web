@@ -159,3 +159,23 @@ Feature: Immutable application delivery
     When development selects the existing release SHA
     Then dependency admission blocks reactivation before deployment credentials are issued
     And the workflow has no silent advisory bypass
+
+  @id:factory.delivery.image-scan-gate @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario Outline: Gate release activation on the exact backend image scan
+    backend-noop: Release image scanning is deployment infrastructure behavior outside the generated backend.
+    frontend-noop: Release image scanning has no generated frontend interaction.
+    browser-noop: A rejected image never becomes the active release at the public origin.
+    Given a "<path>" activation selects one immutable backend digest
+    When the workflow checks that digest's ECR Basic Scan
+    Then it "<decision>" before application deployment
+
+    Examples: Release image scan outcomes
+      | case_id              | path                 | decision                                                      |
+      | dev-clean            | standard development | continues after COMPLETE with no HIGH or CRITICAL findings   |
+      | prod-clean           | production promotion | continues after COMPLETE with no HIGH or CRITICAL findings   |
+      | redeploy-clean       | existing dev release | continues after COMPLETE with no HIGH or CRITICAL findings   |
+      | high-finding         | production promotion | stops when COMPLETE reports a HIGH finding                   |
+      | critical-finding     | standard development | stops when COMPLETE reports a CRITICAL finding               |
+      | pending-timeout      | existing dev release | stops when the scan remains pending at the deadline          |
+      | unavailable-findings | production promotion | stops when scan findings are unavailable                     |
+      | findings-query-error | production promotion | stops when the findings query fails                         |
