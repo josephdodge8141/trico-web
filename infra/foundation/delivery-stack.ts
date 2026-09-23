@@ -324,6 +324,7 @@ export class DeliveryFoundationStack extends Stack {
           'cloudformation:CreateStack',
           'cloudformation:DeleteChangeSet',
           'cloudformation:DescribeChangeSet',
+          'cloudformation:DescribeStackEvents',
           'cloudformation:DescribeStacks',
           'cloudformation:ExecuteChangeSet',
           'cloudformation:GetTemplate',
