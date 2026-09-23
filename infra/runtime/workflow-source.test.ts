@@ -25,6 +25,18 @@ test('factory.delivery.promote-exact keeps production out of build and publicati
   assert.match(workflow, /APPLICATION_DEPLOY_ENABLED/);
 });
 
+test('factory.delivery production backup gate runs before deployment and fails closed', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  const backupStep = workflow.indexOf('name: Snapshot existing production state');
+  const deployStep = workflow.indexOf('name: Deploy exact backend digest');
+  assert.ok(backupStep >= 0);
+  assert.ok(deployStep > backupStep);
+  const backupBlock = workflow.slice(backupStep, deployStep);
+  assert.match(backupBlock, /production-backup-cli\.ts/);
+  assert.doesNotMatch(backupBlock, /\|\| true/);
+  assert.doesNotMatch(backupBlock, /if test -n "\$table"/);
+});
+
 test('factory.delivery installs the browser runtime before the CI gate', async () => {
   const workflow = await readFile(workflowPath, 'utf8');
   const installStep = workflow.indexOf('npx playwright install --with-deps chromium');

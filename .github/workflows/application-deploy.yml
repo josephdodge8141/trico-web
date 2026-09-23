@@ -117,8 +117,7 @@ jobs:
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
-          table="$(aws cloudformation describe-stacks --stack-name TricoWeb-prod --query "Stacks[0].Outputs[?OutputKey=='TableName'].OutputValue | [0]" --output text 2>/dev/null || true)"
-          if test -n "$table" && test "$table" != None; then aws dynamodb create-backup --table-name "$table" --backup-name "pre-${RELEASE_SHA}-$(date +%s)" >/dev/null; fi
+          node --import tsx infra/runtime/production-backup-cli.ts "$RELEASE_SHA"
       - name: Deploy exact backend digest
         env:
           STAGE: ${{ steps.release.outputs.stage }}
