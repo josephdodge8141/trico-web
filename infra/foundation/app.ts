@@ -30,6 +30,11 @@ const deliveryConfig = parseDeliveryConfig({
   devDomain: app.node.tryGetContext('delivery:devDomain') ?? exampleDeliveryConfig.devDomain,
   productionDomain:
     app.node.tryGetContext('delivery:productionDomain') ?? exampleDeliveryConfig.productionDomain,
+  ...(app.node.tryGetContext('delivery:productionSubdomainDomain') === undefined
+    ? {}
+    : {
+        productionSubdomainDomain: app.node.tryGetContext('delivery:productionSubdomainDomain'),
+      }),
   sesIdentityDomain:
     app.node.tryGetContext('delivery:sesIdentityDomain') ?? exampleDeliveryConfig.sesIdentityDomain,
   costAnomalyMonitorArn:
