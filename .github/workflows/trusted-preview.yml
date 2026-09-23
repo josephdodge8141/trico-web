@@ -8,8 +8,8 @@ on:
 permissions: {}
 
 concurrency:
-  group: trusted-preview-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
-  cancel-in-progress: true
+  group: preview-lifecycle-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: false
 
 jobs:
   admit:
