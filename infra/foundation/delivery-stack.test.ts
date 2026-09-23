@@ -103,7 +103,7 @@ test('dev deployment can resolve the immutable backend digest it publishes', () 
   assert.match(serialized, /ReleaseBackendRepository/);
 });
 
-test('application deployment roles can verify the exact CDK bootstrap version', () => {
+test('application deployment roles can verify CDK bootstrap and monitor their stack', () => {
   const template = deliveryTemplate().toJSON();
   const policies = Object.entries(
     template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
@@ -116,5 +116,7 @@ test('application deployment roles can verify the exact CDK bootstrap version', 
     const serialized = JSON.stringify(policy);
     assert.match(serialized, /ssm:GetParameter/);
     assert.match(serialized, /cdk-bootstrap\/hnb659fds\/version/);
+    assert.match(serialized, /cloudformation:DescribeStackEvents/);
+    assert.match(serialized, new RegExp(`TricoWeb-${environment}\\/\\*`));
   }
 });
