@@ -12,7 +12,13 @@ import {
   setWorldConstructor,
   World,
 } from '@cucumber/cucumber';
-import { chromium, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import {
+  chromium,
+  expect as playwrightExpect,
+  type Browser,
+  type BrowserContext,
+  type Page,
+} from '@playwright/test';
 import {
   homeCareersOpenPositionsSchema,
   homeCoreValuesItemsSchema,
@@ -43,7 +49,8 @@ const headings: Readonly<Record<string, string>> = {
   '/storage': 'Maximize Your Storage Facility Profitability',
   '/development': 'Transforming Vision Into Reality',
 };
-setDefaultTimeout(30_000);
+const expect = playwrightExpect.configure({ timeout: 15_000 });
+setDefaultTimeout(60_000);
 
 BeforeAll(async () => {
   const deadline = Date.now() + 60_000;

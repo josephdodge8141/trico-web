@@ -9,7 +9,7 @@ on:
 
 permissions: {}
 concurrency:
-  group: preview-cleanup
+  group: preview-lifecycle-${{ github.event.pull_request.number || 'sweep' }}
   cancel-in-progress: false
 
 jobs:

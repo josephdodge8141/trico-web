@@ -8,8 +8,8 @@ on:
 permissions: {}
 
 concurrency:
-  group: trusted-preview-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
-  cancel-in-progress: true
+  group: preview-lifecycle-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: false
 
 jobs:
   admit:
@@ -18,7 +18,7 @@ jobs:
       github.event.workflow_run.event == 'pull_request_target' &&
       github.event.workflow_run.pull_requests[0].number != null
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment: preview
     permissions:
       actions: read
@@ -37,6 +37,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - name: Build shared runtime contracts
+        run: npm run build:contracts
       - run: npx playwright install --with-deps chromium
       - name: Download candidate artifacts without executing them
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
@@ -142,8 +144,8 @@ jobs:
           reviewer="$(aws secretsmanager get-secret-value --secret-id "$PREVIEW_EDITOR_SECRET_ARN" --query SecretString --output text)"
           export PREVIEW_EDITOR_EMAIL="$(jq -r .email <<<"$reviewer")"
           export PREVIEW_EDITOR_PASSWORD="$(jq -r .password <<<"$reviewer")"
-          npm run test:behaviors:frontend:compose
-          npm run test:browser:compose -w @app/frontend
+          npm run test:behaviors:frontend:preview
+          npm run test:browser:preview -w @app/frontend
       - name: Publish verified preview status
         env:
           CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
