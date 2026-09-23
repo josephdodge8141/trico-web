@@ -58,6 +58,97 @@ test('factory.delivery.promote-exact keeps production out of build and publicati
   assert.match(workflow, /APPLICATION_DEPLOY_ENABLED/);
 });
 
+test('factory.delivery.automatic-main-delivery promotes only the verified exact dev release', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  assert.match(workflow, / {2}dev:\n/);
+  assert.match(workflow, /name: Promote verified main release to production/);
+  assert.match(workflow, /needs: dev/);
+  assert.match(workflow, /environment: prod/);
+  const prodStart = workflow.indexOf('name: Promote verified main release to production');
+  assert.ok(prodStart >= 0);
+  const prodBlock = workflow.slice(prodStart);
+  assert.match(
+    prodBlock,
+    /if: github\.event_name == 'push' && vars\.APPLICATION_DEPLOY_ENABLED == 'true'/,
+  );
+  assert.match(workflow, /needs\.dev\.outputs\.release_sha/);
+  assert.match(workflow, /needs\.dev\.outputs\.backend_image/);
+  assert.match(workflow, /needs\.dev\.outputs\.frontend_sha/);
+  assert.match(workflow, /Verify six pages and protected session/);
+  const devVerify = workflow.indexOf('name: Verify six pages and protected session');
+  assert.ok(devVerify >= 0 && devVerify < prodStart);
+  assert.doesNotMatch(
+    prodBlock,
+    /docker build|docker push|npm run build -w @app\/frontend|aws s3 cp frontend-dist\.tar\.gz/,
+  );
+});
+
+test('factory.delivery.automatic-main-disabled skips both environment deployment jobs', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  assert.match(workflow, /if:.*vars\.APPLICATION_DEPLOY_ENABLED == 'true'/);
+  assert.match(
+    workflow,
+    /if:.*github\.event_name == 'workflow_dispatch'.*APPLICATION_DEPLOY_ENABLED/s,
+  );
+});
+
+test('factory.delivery.automatic-main-stale rejects a superseded main SHA before environment mutation', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  assert.match(workflow, /gh api "repos\/\$\{GITHUB_REPOSITORY\}\/commits\/main" --jq \.sha/);
+  assert.match(workflow, /GH_TOKEN: \$\{\{ github\.token \}\}/);
+  assert.match(workflow, /current_main_sha.*RELEASE_SHA/s);
+  assert.match(workflow, /concurrency:\n {2}group: application-deploy/);
+});
+
+test('factory.delivery publishes the dev verification receipt only after smoke passes', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  const smokeStart = workflow.indexOf('name: Verify six pages and protected session');
+  const receiptStart = workflow.indexOf('name: Record successful development verification');
+  const prodStart = workflow.indexOf('  automatic-prod:');
+  assert.ok(smokeStart >= 0);
+  assert.ok(receiptStart > smokeStart && receiptStart < prodStart);
+  const receiptBlock = workflow.slice(receiptStart, prodStart);
+  assert.match(receiptBlock, /if: steps\.release\.outputs\.stage == 'dev'/);
+  assert.match(receiptBlock, /releases\/\$\{RELEASE_SHA\}\/dev-verification\.json/);
+  assert.match(
+    receiptBlock,
+    /version:1,releaseSha:\$releaseSha,backendImageUri:\$backendImageUri,frontendSha256:\$frontendSha256/,
+  );
+});
+
+test('factory.delivery requires an exact dev receipt before manual and automatic production gates', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  const resolveStart = workflow.indexOf('name: Resolve and verify immutable tested artifacts');
+  const scanStart = workflow.indexOf('name: Require clean ECR image scan before activation');
+  const prodStart = workflow.indexOf('name: Promote verified main release to production');
+  assert.ok(resolveStart >= 0 && scanStart > resolveStart);
+  const manualProductionResolution = workflow.slice(resolveStart, scanStart);
+  assert.match(manualProductionResolution, /if test "\$STAGE" = prod/);
+  assert.match(manualProductionResolution, /dev-verification\.json/);
+  assert.match(
+    manualProductionResolution,
+    /\(keys \| sort\) == \["backendImageUri","frontendSha256","releaseSha","version"\]/,
+  );
+  assert.match(manualProductionResolution, /\.backendImageUri == \$backendImageUri/);
+  assert.match(manualProductionResolution, /\.frontendSha256 == \$frontendSha256/);
+
+  const automaticProduction = workflow.slice(prodStart);
+  const automaticResolveStart = automaticProduction.indexOf(
+    'name: Resolve and verify the exact development-tested artifacts',
+  );
+  const automaticScanStart = automaticProduction.indexOf(
+    'name: Require clean ECR image scan before production activation',
+  );
+  assert.ok(automaticResolveStart >= 0 && automaticScanStart > automaticResolveStart);
+  const automaticResolution = automaticProduction.slice(automaticResolveStart, automaticScanStart);
+  assert.match(automaticResolution, /dev-verification\.json/);
+  assert.match(
+    automaticResolution,
+    /\(keys \| sort\) == \["backendImageUri","frontendSha256","releaseSha","version"\]/,
+  );
+  assert.doesNotMatch(automaticProduction, /aws s3 cp dev-verification\.json "s3:\/\//);
+});
+
 test('factory.delivery production backup gate runs before deployment and fails closed', async () => {
   const workflow = await readFile(workflowPath, 'utf8');
   const backupStep = workflow.indexOf('name: Snapshot existing production state');
@@ -199,7 +290,10 @@ test('factory.delivery.historical-control-tools runs both privileged control gat
   assert.match(workflow.slice(backupStart, deployStart), /cd "\$CONTROL_TOOLS_DIR"/);
   assert.match(workflow.slice(backupStart, deployStart), /production-backup-cli\.ts/);
   assert.match(workflow, /npx cdk deploy "TricoWeb-\$\{STAGE\}"/);
-  assert.doesNotMatch(workflow.slice(deployStart), /working-directory: \.workflow-control/);
+  assert.doesNotMatch(
+    workflow.slice(deployStart, workflow.indexOf('  automatic-prod:')),
+    /working-directory: \.workflow-control/,
+  );
 });
 
 test('factory.trusted-preview.image-scan-gate checks both exact image digests before admission', async () => {
