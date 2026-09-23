@@ -415,7 +415,10 @@ Configure secrets:
 - [ ] Confirm the DNS record points only to the current generation.
 - [ ] Confirm the old task definition is deregistered.
 - [ ] Close the PR and confirm cleanup.
-- [ ] Run another preview through four-hour expiry and confirm scheduled cleanup.
+- [x] Run another preview through four-hour expiry and confirm scheduled cleanup.
+  - Verified 2026-09-23 UTC for PR #14 generation `preview-1362078393-14-2`: its fixed expiry was `2026-09-23 20:53:03.287 UTC`; scheduled sweep run [35921330922](https://github.com/josephdodge8141/trico-web/actions/runs/35921330922) started at `21:15:48 UTC` and completed the sweep at `21:17:26 UTC`.
+  - At completion, lifecycle state `state#1362078393#14` had no active or retiring generation. The generation receipt was terminal `cleaned` with `expiresAt=1790803045` (`2026-09-30 21:17:25 UTC`, seven-day TTL). Its ECS task stopped at `21:17:19.895 UTC` with reason `expired`; the task definition was `INACTIVE`; ENI `eni-0733c7126c3bf22f6`, the Route 53 record, and public DNS were absent. No manual deletion was performed.
+  - This verifies scheduled four-hour expiry cleanup for this generation only; it does not complete the other Phase 8 lifecycle checks.
 - [ ] Inspect for orphaned:
   - ECS tasks
   - Task definitions
