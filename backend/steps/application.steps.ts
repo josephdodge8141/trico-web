@@ -22,6 +22,7 @@ import {
   realEstateV2SeedData,
   registrySeedData,
   requireEntityDefinition,
+  signupRequestSchema,
   validateEntityViewCatalog,
   type EditableValue,
   type EntityDefinition,
@@ -102,6 +103,7 @@ class BackendWorld extends World {
   error: unknown;
   email = 'editor@tricoinc.com';
   token = '';
+  passwordAccepted: boolean | undefined;
   session: SessionCredentials | undefined;
   sessions: SessionCredentials[] = [];
   beforeValue: EditableValue | undefined;
@@ -288,6 +290,27 @@ When('I register with a valid password', async function (this: BackendWorld) {
 Given('an unused email address outside @tricoinc.com', function (this: BackendWorld) {
   this.email = 'outsider@example.com';
 });
+
+Given('I am entering a new editor password', function (this: BackendWorld) {
+  this.email = 'new-editor@tricoinc.com';
+});
+
+When(
+  'I enter a password with {int} characters',
+  function (this: BackendWorld, characterCount: number) {
+    this.passwordAccepted = signupRequestSchema.safeParse({
+      email: this.email,
+      password: 'p'.repeat(characterCount),
+    }).success;
+  },
+);
+
+Then(
+  'registration considers the password {string}',
+  function (this: BackendWorld, validity: string) {
+    assert.equal(this.passwordAccepted, validity === 'valid');
+  },
+);
 
 When('I attempt to register', async function (this: BackendWorld) {
   await capture(this, () => this.auth.register(this.email, PASSWORD));

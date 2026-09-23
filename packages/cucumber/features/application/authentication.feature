@@ -54,6 +54,17 @@ Feature: TriCo editor authentication
     Then registration is rejected with FORBIDDEN_EMAIL_DOMAIN
     And no account is created
 
+  @id:auth.password-minimum
+  Scenario Outline: Enforce the editor password minimum
+    Given I am entering a new editor password
+    When I enter a password with <character_count> characters
+    Then registration considers the password "<validity>"
+
+    Examples: Password lengths
+      | case_id   | character_count | validity |
+      | minimum   | 8               | valid    |
+      | too-short | 7               | invalid  |
+
   @id:auth.verify-single-use @frontend-noop
   Scenario: Verify an account exactly once
     frontend-noop: The browser verification journey is covered by Compose Playwright and single-use enforcement is exercised by the backend adapter.
