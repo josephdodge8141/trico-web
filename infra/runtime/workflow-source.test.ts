@@ -46,6 +46,56 @@ test('factory.delivery.release-identity uses one derived release SHA and strict 
   assert.match(workflow, /release-cli\.ts/);
 });
 
+test('factory.delivery.bootstrap-environment-bucket binds the exact environment bucket and fails closed', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  const sharedBootstrapStart = workflow.indexOf('name: Bootstrap application data');
+  const sharedBootstrapEnd = workflow.indexOf(
+    'name: Confirm main is still at the selected automatic release SHA',
+    sharedBootstrapStart,
+  );
+  const automaticBootstrapStart = workflow.indexOf('name: Bootstrap production application data');
+  const automaticBootstrapEnd = workflow.indexOf(
+    'name: Activate production frontend release',
+    automaticBootstrapStart,
+  );
+  assert.ok(sharedBootstrapStart >= 0 && sharedBootstrapEnd > sharedBootstrapStart);
+  assert.ok(automaticBootstrapStart >= 0 && automaticBootstrapEnd > automaticBootstrapStart);
+
+  const sharedBootstrap = workflow.slice(sharedBootstrapStart, sharedBootstrapEnd);
+  const automaticBootstrap = workflow.slice(automaticBootstrapStart, automaticBootstrapEnd);
+  assert.match(sharedBootstrap, /APP_ENV: \$\{\{ steps\.release\.outputs\.stage \}\}/);
+  assert.match(sharedBootstrap, /DYNAMODB_TABLE="\$\(jq -er /);
+  assert.match(sharedBootstrap, /DYNAMODB_TABLE=.*select\(type == .*string.* and length > 0\)/);
+  assert.match(sharedBootstrap, /ContentBucketName/);
+  assert.match(sharedBootstrap, /S3_BUCKET/);
+  assert.match(sharedBootstrap, /test -n "\$S3_BUCKET"/);
+  assert.match(sharedBootstrap, /test "\$S3_BUCKET" != null/);
+  assert.ok(
+    sharedBootstrap.indexOf('DYNAMODB_TABLE=') <
+      sharedBootstrap.indexOf('node backend/dist/seed.js'),
+  );
+  assert.ok(
+    sharedBootstrap.indexOf('ContentBucketName') <
+      sharedBootstrap.indexOf('node backend/dist/seed.js'),
+  );
+
+  assert.match(automaticBootstrap, /APP_ENV: prod/);
+  assert.match(automaticBootstrap, /DYNAMODB_TABLE="\$\(jq -er /);
+  assert.match(automaticBootstrap, /DYNAMODB_TABLE=.*select\(type == .*string.* and length > 0\)/);
+  assert.match(automaticBootstrap, /ContentBucketName/);
+  assert.match(automaticBootstrap, /S3_BUCKET/);
+  assert.match(automaticBootstrap, /test -n "\$S3_BUCKET"/);
+  assert.match(automaticBootstrap, /test "\$S3_BUCKET" != null/);
+  assert.ok(
+    automaticBootstrap.indexOf('DYNAMODB_TABLE=') <
+      automaticBootstrap.indexOf('node --import tsx backend/seed.ts'),
+  );
+  assert.ok(
+    automaticBootstrap.indexOf('ContentBucketName') <
+      automaticBootstrap.indexOf('node --import tsx backend/seed.ts'),
+  );
+});
+
 test('factory.delivery.promote-exact keeps production out of build and publication steps', async () => {
   const workflow = await readFile(workflowPath, 'utf8');
   const buildStep = workflow.indexOf('name: Build and publish reviewed dev artifacts');

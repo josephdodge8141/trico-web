@@ -147,6 +147,16 @@ Feature: Immutable application delivery
     Then only that exact external address may bypass the TriCo seed-domain check
     And ordinary self-registration remains restricted to @tricoinc.com
 
+  @id:factory.delivery.bootstrap-environment-bucket @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Bootstrap each application environment against its own content bucket
+    backend-noop: Deployment bootstrap environment selection is repository workflow behavior outside the generated backend.
+    frontend-noop: Environment-specific bootstrap storage has no generated frontend interaction.
+    browser-noop: Bootstrap bucket selection is verified from workflow source before live environment deployment.
+    Given a deployment workflow bootstraps development or production application data
+    When it resolves the content bucket from that environment's CloudFormation outputs
+    Then it passes the exact non-empty table and bucket names and environment to the seed process
+    And it stops before seeding when either environment resource output is missing
+
   @id:factory.delivery.redeploy-existing @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Redeploy an existing exact development release
     backend-noop: Release reactivation is deployment workflow behavior outside the generated application backend.

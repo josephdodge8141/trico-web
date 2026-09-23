@@ -258,7 +258,11 @@ jobs:
           PREVIEW_EDITOR_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
         run: |
           stack="TricoWeb-${APP_ENV}"
-          export DYNAMODB_TABLE="$(jq -r ".\"${stack}\".TableName" cdk-outputs.json)"
+          DYNAMODB_TABLE="$(jq -er ".\"${stack}\".TableName | select(type == \"string\" and length > 0)" cdk-outputs.json)" || { echo "Missing application table output for ${stack}; refusing to seed" >&2; exit 1; }
+          test -n "$DYNAMODB_TABLE" && test "$DYNAMODB_TABLE" != null || { echo "Invalid application table output for ${stack}; refusing to seed" >&2; exit 1; }
+          S3_BUCKET="$(jq -er ".\"${stack}\".ContentBucketName | select(type == \"string\" and length > 0)" cdk-outputs.json)" || { echo "Missing content bucket output for ${stack}; refusing to seed" >&2; exit 1; }
+          test -n "$S3_BUCKET" && test "$S3_BUCKET" != null || { echo "Invalid content bucket output for ${stack}; refusing to seed" >&2; exit 1; }
+          export DYNAMODB_TABLE S3_BUCKET
           export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
           node backend/dist/seed.js
       - name: Confirm main is still at the selected automatic release SHA
@@ -473,12 +477,17 @@ jobs:
           test "$current_main_sha" = "$RELEASE_SHA" || { echo 'Automatic production promotion is stale because main advanced' >&2; exit 1; }
       - name: Bootstrap production application data
         env:
+          APP_ENV: prod
           AWS_REGION: ${{ vars.AWS_REGION }}
           EXTERNAL_SEED_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           PREVIEW_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           PREVIEW_EDITOR_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
         run: |
-          export DYNAMODB_TABLE="$(jq -r '."TricoWeb-prod".TableName' cdk-outputs.json)"
+          DYNAMODB_TABLE="$(jq -er '."TricoWeb-prod".TableName | select(type == "string" and length > 0)' cdk-outputs.json)" || { echo 'Missing application table output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          test -n "$DYNAMODB_TABLE" && test "$DYNAMODB_TABLE" != null || { echo 'Invalid application table output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          S3_BUCKET="$(jq -er '."TricoWeb-prod".ContentBucketName | select(type == "string" and length > 0)' cdk-outputs.json)" || { echo 'Missing content bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          test -n "$S3_BUCKET" && test "$S3_BUCKET" != null || { echo 'Invalid content bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          export DYNAMODB_TABLE S3_BUCKET
           export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
           node --import tsx backend/seed.ts
       - name: Activate production frontend release
