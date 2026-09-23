@@ -13,7 +13,7 @@ import {
   WebIdentityPrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import {
-  CnameRecord,
+  CfnRecordSet,
   HostedZone,
   PublicHostedZone,
   TxtRecord,
@@ -155,11 +155,12 @@ export class DeliveryFoundationStack extends Stack {
       ['Two', identity.attrDkimDnsTokenName2, identity.attrDkimDnsTokenValue2],
       ['Three', identity.attrDkimDnsTokenName3, identity.attrDkimDnsTokenValue3],
     ] as const) {
-      new CnameRecord(this, `SesDkim${index}`, {
-        recordName: name,
-        domainName: value,
-        ttl: Duration.minutes(5),
-        zone: parentZone,
+      new CfnRecordSet(this, `SesDkim${index}`, {
+        hostedZoneId: parentZone.hostedZoneId,
+        name,
+        resourceRecords: [value],
+        ttl: '300',
+        type: 'CNAME',
       });
     }
     new TxtRecord(this, 'SesSpf', {

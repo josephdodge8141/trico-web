@@ -52,6 +52,16 @@ test('factory.delivery.foundation creates environment-scoped OIDC roles and prot
     IsMultiRegionTrail: true,
     TrailName: 'trico-web-account-management',
   });
+  const dkimRecords = Object.values(template.findResources('AWS::Route53::RecordSet')).filter(
+    (resource) => resource.Properties?.Type === 'CNAME',
+  );
+  assert.equal(dkimRecords.length, 3);
+  for (const record of dkimRecords) {
+    const name = record.Properties?.Name as { readonly 'Fn::GetAtt'?: readonly unknown[] };
+    assert.deepEqual(Object.keys(name), ['Fn::GetAtt']);
+    assert.equal(name['Fn::GetAtt']?.[0], 'SesIdentity');
+    assert.match(String(name['Fn::GetAtt']?.[1]), /^DkimDNSTokenName[123]$/);
+  }
 });
 
 test('delivery OIDC trust binds each routine role to its GitHub environment', () => {
