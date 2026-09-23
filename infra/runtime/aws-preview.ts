@@ -14,11 +14,11 @@ import {
 } from '@aws-sdk/client-ecs';
 import { ChangeResourceRecordSetsCommand, Route53Client } from '@aws-sdk/client-route-53';
 import {
-  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
   ScanCommand,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { z } from 'zod';
 
@@ -40,7 +40,7 @@ const receiptSchema = z
     taskDefinitionArn: z.string().min(1),
     recordName: z.string().min(1),
     publicIp: z.string().min(1),
-    status: z.enum(['launching', 'healthy']),
+    status: z.enum(['launching', 'healthy', 'cleaned']),
     expiresAt: z.number().int().positive(),
   })
   .strict();
@@ -207,6 +207,9 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
     const existing = await this.receipt(effect.ownership);
     if (existing !== null) {
       assertReceiptOwnership(existing, effect.ownership);
+      if (existing.status === 'cleaned') {
+        throw new Error('cannot ensure a cleaned generation');
+      }
       await this.waitForHealth(existing.recordName);
       return;
     }
@@ -310,8 +313,12 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
       new PutCommand({
         TableName: this.config.stateTableName,
         Item: { previewKey: receiptKey(effect.ownership), ...receipt, status: 'healthy' },
-        ConditionExpression: 'generation = :generation',
-        ExpressionAttributeValues: { ':generation': effect.ownership.generation },
+        ConditionExpression: 'generation = :generation AND #status = :launching',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: {
+          ':generation': effect.ownership.generation,
+          ':launching': 'launching',
+        },
       }),
     );
   }
@@ -322,7 +329,7 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
     const receipt = await this.receipt(effect.ownership);
     if (receipt === null) return;
     assertReceiptOwnership(receipt, effect.ownership);
-    await this.changeDns('DELETE', receipt);
+    if (receipt.status === 'cleaned') return;
     const described = await this.clients.ecs.send(
       new DescribeTasksCommand({
         cluster: this.config.clusterArn,
@@ -344,6 +351,9 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
       ) {
         throw new Error('ECS task ownership tags do not match cleanup generation');
       }
+    }
+    await this.changeDns('DELETE', receipt);
+    if (task !== undefined) {
       if (task.lastStatus !== 'STOPPED') {
         await this.clients.ecs.send(
           new StopTaskCommand({
@@ -358,15 +368,23 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
         );
       }
     }
-    await this.clients.ecs.send(
-      new DeregisterTaskDefinitionCommand({ taskDefinition: receipt.taskDefinitionArn }),
-    );
+    await this.deregisterTaskDefinition(receipt.taskDefinitionArn);
     await this.clients.database.send(
-      new DeleteCommand({
+      new UpdateCommand({
         TableName: this.config.stateTableName,
         Key: { previewKey: receiptKey(effect.ownership) },
-        ConditionExpression: 'generation = :generation',
-        ExpressionAttributeValues: { ':generation': effect.ownership.generation },
+        UpdateExpression: 'SET #status = :cleaned, expiresAt = :expiresAt',
+        ConditionExpression:
+          'recordType = :recordType AND repositoryId = :repositoryId AND pullRequestNumber = :pullRequestNumber AND generation = :generation',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: {
+          ':recordType': 'generation',
+          ':repositoryId': effect.ownership.repositoryId,
+          ':pullRequestNumber': effect.ownership.pullRequestNumber,
+          ':generation': effect.ownership.generation,
+          ':cleaned': 'cleaned',
+          ':expiresAt': Math.floor(Date.now() / 1_000) + 7 * 24 * 60 * 60,
+        },
       }),
     );
   }
@@ -375,7 +393,29 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
     const receipt = await this.receipt(ownership);
     if (receipt === null) return null;
     assertReceiptOwnership(receipt, ownership);
+    if (receipt.status === 'cleaned') return null;
     return `https://${receipt.recordName}`;
+  }
+
+  private async deregisterTaskDefinition(taskDefinitionArn: string): Promise<void> {
+    try {
+      await this.clients.ecs.send(
+        new DeregisterTaskDefinitionCommand({ taskDefinition: taskDefinitionArn }),
+      );
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'name' in error &&
+        error.name === 'ClientException' &&
+        'message' in error &&
+        typeof error.message === 'string' &&
+        /already inactive|does not exist|not found/i.test(error.message)
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   private async receipt(ownership: PreviewOwnership): Promise<GenerationReceipt | null> {
