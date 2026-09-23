@@ -7,6 +7,7 @@ import {
   STARTUP_DURATION_MS,
   lifecycleCommandSchema,
   lifecycleStateSchema,
+  commandEventSequence,
   transitionLifecycle,
   type AdmitCommand,
   type CleanupCompleteCommand,
@@ -492,3 +493,228 @@ function stateAfter(result: ReturnType<typeof transitionLifecycle>): LifecycleSt
   assert.ok(result.state);
   return result.state;
 }
+
+function expiredAndCleanedState(revision = REVISION_A): LifecycleState {
+  let state = accepted(null, admit('expired-admit', 1, null, revision), T0);
+  const generation = state.active;
+  assert.ok(generation);
+  state = accepted(
+    state,
+    command<HealthCommand>(state, {
+      type: 'healthy',
+      commandId: 'expired-health',
+      eventSequence: 2,
+      generation: generation.id,
+    }),
+    T1,
+  );
+  const expiry = state.active?.expiresAt;
+  assert.ok(expiry);
+  state = accepted(
+    state,
+    command<DeadlineCommand>(state, {
+      type: 'deadline',
+      commandId: 'expired-deadline',
+      eventSequence: 3,
+      generation: generation.id,
+      deadline: 'expiry',
+    }),
+    expiry,
+  );
+  state = accepted(
+    state,
+    command<LifecycleCommand>(state, {
+      type: 'reconcile',
+      commandId: 'expired-reconcile',
+      eventSequence: 4,
+    }),
+    expiry,
+  );
+  return accepted(
+    state,
+    command<CleanupCompleteCommand>(state, {
+      type: 'cleanup-complete',
+      commandId: 'expired-cleanup-complete',
+      eventSequence: 5,
+      generation: generation.id,
+    }),
+    expiry,
+  );
+}
+
+test('factory.lifecycle.readmit-after-expiry admits a different SHA after cleanup', () => {
+  const expired = expiredAndCleanedState();
+  const result = apply(
+    expired,
+    admit('admit-next-revision', 6, expired.stateRevision, REVISION_B),
+    T2,
+  );
+  assert.equal(result.decision, 'accepted');
+  assert.equal(result.state?.generationCounter, 2);
+  assert.equal(result.state?.active?.id, 'preview-987654321-12-2');
+  assert.equal(result.state?.active?.revision, REVISION_B);
+  assert.deepEqual(
+    result.effects.map((effect) => effect.type),
+    ['ensure-preview'],
+  );
+});
+
+test('factory.lifecycle.same-sha-expiry-fence does not restart a successful SHA', () => {
+  const expired = expiredAndCleanedState();
+  const result = apply(
+    expired,
+    admit('retry-expired-revision', 6, expired.stateRevision, REVISION_A),
+    T2,
+  );
+  assert.equal(result.decision, 'duplicate');
+  assert.equal(result.reason, 'revision-already-admitted');
+  assert.equal(result.state?.active, null);
+  assert.equal(result.state?.generationCounter, 1);
+  assert.equal(result.state?.lastSuccessfulRevision, REVISION_A);
+  assert.deepEqual(result.effects, []);
+});
+
+test('factory.lifecycle.closed-cleanup-fence keeps a cleaned closed preview closed', () => {
+  let state = accepted(null, admit('closed-admit', 1, null), T0);
+  const generation = state.active;
+  assert.ok(generation);
+  const close = apply(
+    state,
+    command<CloseCommand>(state, { type: 'close', commandId: 'close-first', eventSequence: 2 }),
+    T1,
+  );
+  state = accepted(
+    close.state ?? null,
+    command<CleanupCompleteCommand>(stateAfter(close), {
+      type: 'cleanup-complete',
+      commandId: 'closed-cleanup-complete',
+      eventSequence: 3,
+      generation: generation.id,
+    }),
+    T2,
+  );
+  const result = apply(state, admit('late-closed-admit', 4, state.stateRevision, REVISION_B), T2);
+  assert.equal(result.decision, 'rejected');
+  assert.equal(result.reason, 'preview-is-closed');
+  assert.deepEqual(result.effects, []);
+});
+
+test('factory.lifecycle.wait-for-retiring-cleanup blocks re-admission retryably', () => {
+  let state = accepted(null, admit('retiring-first', 1, null), T0);
+  const first = state.active;
+  assert.ok(first);
+  state = accepted(state, admit('retiring-second', 2, state.stateRevision, REVISION_B), T1);
+  const second = state.active;
+  assert.ok(second);
+  state = accepted(
+    state,
+    command<HealthCommand>(state, {
+      type: 'healthy',
+      commandId: 'retiring-second-health',
+      eventSequence: 3,
+      generation: second.id,
+    }),
+    T2,
+  );
+  const expiry = state.active?.expiresAt;
+  assert.ok(expiry);
+  state = accepted(
+    state,
+    command<DeadlineCommand>(state, {
+      type: 'deadline',
+      commandId: 'retiring-second-expiry',
+      eventSequence: 4,
+      generation: second.id,
+      deadline: 'expiry',
+    }),
+    expiry,
+  );
+  state = accepted(
+    state,
+    command<LifecycleCommand>(state, {
+      type: 'reconcile',
+      commandId: 'retiring-reconcile',
+      eventSequence: 5,
+    }),
+    expiry,
+  );
+  state = accepted(
+    state,
+    command<CleanupCompleteCommand>(state, {
+      type: 'cleanup-complete',
+      commandId: 'retiring-active-done',
+      eventSequence: 6,
+      generation: second.id,
+    }),
+    expiry,
+  );
+  assert.equal(state.active, null);
+  assert.equal(state.retiring?.id, first.id);
+
+  const blocked = apply(state, admit('retiring-third', 7, state.stateRevision, REVISION_C), T2);
+  assert.equal(blocked.decision, 'rejected');
+  assert.equal(blocked.reason, 'retiring-cleanup-pending');
+  assert.equal(blocked.retryable, true);
+  assert.deepEqual(blocked.effects, []);
+});
+
+test('factory.lifecycle.delayed-admission-fence preserves both source ordering and revision checks', () => {
+  const state = expiredAndCleanedState();
+  const staleEvent = apply(
+    state,
+    admit('older-run', state.lastEventSequence - 1, state.stateRevision, REVISION_B),
+    T2,
+  );
+  assert.equal(staleEvent.decision, 'rejected');
+  assert.equal(staleEvent.reason, 'event-is-not-newer');
+
+  const staleRevision = apply(
+    state,
+    admit('stale-state-read', state.lastEventSequence + 1, state.stateRevision - 1, REVISION_B),
+    T2,
+  );
+  assert.equal(staleRevision.decision, 'rejected');
+  assert.equal(staleRevision.reason, 'state-revision-mismatch');
+
+  const delayedClose = apply(
+    state,
+    command<CloseCommand>(state, {
+      type: 'close',
+      commandId: 'delayed-close',
+      eventSequence: state.lastEventSequence - 1,
+    }),
+    T2,
+  );
+  assert.equal(delayedClose.decision, 'rejected');
+  assert.equal(delayedClose.reason, 'event-is-not-newer');
+  assert.ok(delayedClose.state);
+  assert.equal(delayedClose.state.closed, false);
+  assert.equal(delayedClose.state.active, null);
+  assert.deepEqual(delayedClose.effects, []);
+  assert.equal(state.active, null);
+  assert.equal(state.generationCounter, 1);
+});
+
+test('factory.lifecycle.legacy-state-schema accepts PR lifecycle rows without a revision fence', () => {
+  const state = expiredAndCleanedState();
+  const legacyState = {
+    protocolVersion: state.protocolVersion,
+    identity: state.identity,
+    stateRevision: state.stateRevision,
+    generationCounter: state.generationCounter,
+    lastEventSequence: state.lastEventSequence,
+    lastCommandId: state.lastCommandId,
+    closed: state.closed,
+    active: state.active,
+    retiring: state.retiring,
+  };
+  const parsed = lifecycleStateSchema.parse(legacyState);
+  assert.equal(parsed.lastSuccessfulRevision, null);
+  assert.equal(parsed.active, null);
+});
+
+test('source command sequencing never promotes delayed admit or close events', () => {
+  assert.equal(commandEventSequence('admit', 100, 200), 100);
+  assert.equal(commandEventSequence('close', 100, 200), 100);
+  assert.equal(commandEventSequence('reconcile', 100, 200), 201);
+});

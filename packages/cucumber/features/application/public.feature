@@ -25,6 +25,30 @@ Feature: Published TriCo website
     When a replacement release has not completed
     Then every manifest page still resolves to the previous complete release
 
+  @id:public.seed-if-empty-preserves-edits @frontend-noop
+  Scenario: Preserve valid published edits during checksum-safe bootstrap
+    frontend-noop: Re-running the backend bootstrap has no separate frontend execution path; existing page rendering scenarios cover the visible content.
+    Given a current entity has valid published edits and another registered entity is missing
+    When deployment reruns seed-if-empty
+    Then bootstrap succeeds without rewriting the existing entity
+    And the missing entity receives its registered seed
+
+  @id:public.seed-if-empty-rejects-unsafe-current @frontend-noop
+  Scenario Outline: Refuse incompatible current entities during checksum-safe bootstrap
+    frontend-noop: Rejecting malformed persisted entity rows is a backend bootstrap invariant with no independent frontend behavior.
+    Given a current entity row has unsafe "<incompatibility>" data
+    When deployment reruns seed-if-empty
+    Then bootstrap rejects the unsafe current entity
+    And the existing current row remains unchanged
+
+    Examples: Unsafe current rows
+      | case_id                 | incompatibility         |
+      | wrong-entity-id         | entity ID               |
+      | wrong-page              | page ID                 |
+      | invalid-value           | registered value schema |
+      | invalid-version         | entity version          |
+      | epoch-baseline-mismatch | pristine baseline value |
+
   @id:public.home-mounted-composition @backend-noop
   Scenario: Render the complete mounted Home composition
     backend-noop: Home composition, responsive presentation, and the client-only resume form are browser-owned behavior.
