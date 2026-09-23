@@ -48,6 +48,12 @@ test('application stack exposes API and scheduled Lambda entrypoints', () => {
   const template = applicationTemplate();
   template.resourceCountIs('AWS::Lambda::Function', 1);
   template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
+  template.hasResourceProperties('AWS::ApiGatewayV2::Stage', {
+    DefaultRouteSettings: {
+      ThrottlingBurstLimit: 100,
+      ThrottlingRateLimit: 50,
+    },
+  });
   template.resourceCountIs('AWS::Events::Rule', 1);
   template.resourceCountIs('AWS::CloudWatch::Alarm', 6);
   template.resourceCountIs('AWS::CloudWatch::Dashboard', 1);

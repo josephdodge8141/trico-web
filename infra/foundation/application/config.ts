@@ -4,6 +4,9 @@ const applicationName = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const imageUri =
   /^[0-9]{12}\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com\/[a-z0-9][a-z0-9._/-]*@sha256:[0-9a-f]{64}$/;
 const dnsName = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+const contextBoolean = z
+  .union([z.boolean(), z.enum(['true', 'false'])])
+  .transform((value) => value === true || value === 'true');
 
 export const applicationConfigSchema = z
   .object({
@@ -18,7 +21,7 @@ export const applicationConfigSchema = z
     sesIdentityDomain: z.string().regex(dnsName),
     bedrockModelId: z.string().min(1).max(256).optional(),
     alertTopicArn: z.string().startsWith('arn:').min(20),
-    externalSyncEnabled: z.boolean(),
+    externalSyncEnabled: contextBoolean,
   })
   .strict()
   .superRefine((config, context) => {
