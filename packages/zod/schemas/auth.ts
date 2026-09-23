@@ -7,7 +7,7 @@ export const emailSchema = z
 export const tricoEmailSchema = emailSchema.refine((email) => email.endsWith('@tricoinc.com'), {
   message: 'Email must use the @tricoinc.com domain',
 });
-const passwordSchema = z.string().min(12).max(128);
+const passwordSchema = z.string().min(8).max(128);
 
 export const authPrincipalSchema = z.strictObject({
   subject: z.string().trim().min(1).max(255),

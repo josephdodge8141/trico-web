@@ -51,7 +51,8 @@ test('auth input contracts apply strict email and password requirements', () => 
     signupRequestSchema.safeParse({ ...valid, email: 'person@example.test' }).success,
     false,
   );
-  assert.equal(signupRequestSchema.safeParse({ ...valid, password: 'short' }).success, false);
+  assert.equal(signupRequestSchema.safeParse({ ...valid, password: '12345678' }).success, true);
+  assert.equal(signupRequestSchema.safeParse({ ...valid, password: '1234567' }).success, false);
   assert.equal(signupRequestSchema.safeParse({ ...valid, role: 'admin' }).success, false);
 });
 

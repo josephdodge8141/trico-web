@@ -102,7 +102,7 @@ export function AuthPage({ mode }: { readonly mode: AuthMode }): React.JSX.Eleme
             <input
               type="password"
               required
-              minLength={12}
+              minLength={8}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
