@@ -160,6 +160,16 @@ Feature: Immutable application delivery
     Then dependency admission blocks reactivation before deployment credentials are issued
     And the workflow has no silent advisory bypass
 
+  @id:factory.delivery.trusted-control-dependency-audit @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Audit the independent trusted workflow-control dependency tree
+    backend-noop: Trusted workflow-control dependencies are deployment orchestration behavior.
+    frontend-noop: Trusted workflow-control dependency admission has no generated frontend behavior.
+    browser-noop: Dependency rejection happens before any release mutation.
+    Given deployment installs dependencies for a separate trusted workflow-control checkout
+    When the control dependency lockfile is audited
+    Then HIGH and CRITICAL advisories block before deployment credentials are issued
+    And the trusted control dependency audit has no bypass
+
   @id:factory.delivery.image-scan-gate @backend-noop @frontend-noop @browser-noop-eligible
   Scenario Outline: Gate release activation on the exact backend image scan
     backend-noop: Release image scanning is deployment infrastructure behavior outside the generated backend.

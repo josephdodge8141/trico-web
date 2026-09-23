@@ -114,6 +114,10 @@ jobs:
       - name: Install trusted workflow-control dependencies
         working-directory: .workflow-control
         run: npm ci
+      # The separately installed current-main control tools get the same fail-closed audit.
+      - name: Reject high and critical trusted workflow-control vulnerabilities
+        working-directory: .workflow-control
+        run: npm audit --audit-level=high
       - name: Move trusted workflow control outside the release workspace
         env:
           CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}

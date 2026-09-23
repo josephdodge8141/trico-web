@@ -156,6 +156,9 @@ test('factory.delivery.historical-control-tools runs both privileged control gat
   const releaseCheckout = workflow.indexOf('ref: ${{ steps.release.outputs.sha }}');
   const controlCheckout = workflow.indexOf('path: .workflow-control');
   const controlInstall = workflow.indexOf('name: Install trusted workflow-control dependencies');
+  const controlAudit = workflow.indexOf(
+    'name: Reject high and critical trusted workflow-control vulnerabilities',
+  );
   const controlMove = workflow.indexOf(
     'name: Move trusted workflow control outside the release workspace',
   );
@@ -172,7 +175,9 @@ test('factory.delivery.historical-control-tools runs both privileged control gat
   assert.ok(releaseCheckout > identityStart);
   assert.ok(controlCheckout > releaseCheckout);
   assert.ok(controlInstall > controlCheckout);
+  assert.ok(controlAudit > controlInstall);
   assert.ok(controlMove > controlInstall);
+  assert.ok(controlMove > controlAudit);
   assert.ok(candidateChecks > controlMove);
   assert.ok(publishStart > controlMove);
   assert.ok(credentials > controlInstall);
@@ -186,6 +191,9 @@ test('factory.delivery.historical-control-tools runs both privileged control gat
   assert.match(controlBlock, /ref: \$\{\{ steps\.release\.outputs\.control_sha \}\}/);
   assert.match(identityBlock, /test "\$GITHUB_REF" = refs\/heads\/main/);
   assert.match(controlBlock, /npm ci/);
+  assert.match(controlBlock, /run: npm audit --audit-level=high/);
+  assert.match(controlBlock, /working-directory: \.workflow-control/);
+  assert.doesNotMatch(controlBlock, /audit[^\n]*continue-on-error|continue-on-error:[^\n]*audit/i);
   assert.match(workflow.slice(scanStart, backupStart), /cd "\$CONTROL_TOOLS_DIR"/);
   assert.match(workflow.slice(scanStart, backupStart), /ecr-image-scan-cli\.ts/);
   assert.match(workflow.slice(backupStart, deployStart), /cd "\$CONTROL_TOOLS_DIR"/);
