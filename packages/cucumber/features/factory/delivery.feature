@@ -83,9 +83,9 @@ Feature: Immutable application delivery
     frontend-noop: The existing authenticated editor interface accepts the resulting verified principal.
     browser-noop: The deployed smoke suite covers login for the protected seeded operator.
     Given a protected environment configures one external operator email
-  When deployment performs checksum-safe bootstrap
-  Then only that exact external address may bypass the TriCo seed-domain check
-  And ordinary self-registration remains restricted to @tricoinc.com
+    When deployment performs checksum-safe bootstrap
+    Then only that exact external address may bypass the TriCo seed-domain check
+    And ordinary self-registration remains restricted to @tricoinc.com
 
   @id:factory.delivery.redeploy-existing @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Redeploy an existing exact development release
