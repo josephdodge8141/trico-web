@@ -87,3 +87,18 @@ test('routine workflows cannot assume the human foundation owner role', () => {
   assert.notEqual(owner, undefined);
   assert.doesNotMatch(JSON.stringify(owner), /token\.actions\.githubusercontent\.com/);
 });
+
+test('dev deployment can resolve the immutable backend digest it publishes', () => {
+  const template = deliveryTemplate().toJSON();
+  const devPolicy = Object.entries(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).find(
+    ([, resource]) =>
+      resource.Type === 'AWS::IAM::Policy' &&
+      JSON.stringify(resource.Properties?.Roles).includes('devDeploymentRole'),
+  );
+  assert.notEqual(devPolicy, undefined);
+  const serialized = JSON.stringify(devPolicy);
+  assert.match(serialized, /ecr:DescribeImages/);
+  assert.match(serialized, /ReleaseBackendRepository/);
+});
