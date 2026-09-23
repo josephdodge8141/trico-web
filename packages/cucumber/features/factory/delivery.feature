@@ -83,6 +83,44 @@ Feature: Immutable application delivery
     frontend-noop: The existing authenticated editor interface accepts the resulting verified principal.
     browser-noop: The deployed smoke suite covers login for the protected seeded operator.
     Given a protected environment configures one external operator email
-    When deployment performs checksum-safe bootstrap
-    Then only that exact external address may bypass the TriCo seed-domain check
-    And ordinary self-registration remains restricted to @tricoinc.com
+  When deployment performs checksum-safe bootstrap
+  Then only that exact external address may bypass the TriCo seed-domain check
+  And ordinary self-registration remains restricted to @tricoinc.com
+
+  @id:factory.delivery.redeploy-existing @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Redeploy an existing exact development release
+    backend-noop: Release reactivation is deployment workflow behavior outside the generated application backend.
+    frontend-noop: Release reactivation does not add a separate generated application frontend interaction.
+    browser-noop: The workflow verifies the public release marker and protected session after activating both artifacts.
+    Given an immutable backend image and frontend archive exist for a main branch SHA
+    When development redeployment selects that exact SHA
+    Then the workflow verifies the strict manifest backend digest and frontend checksum before deployment
+    And it builds and publishes no artifacts and does not run the checked-out release seed bootstrap
+    And the deployed backend and served frontend identify the same release SHA
+
+  @id:factory.delivery.redeploy-existing-rejects @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario Outline: Reject an incomplete or substituted existing release before activation
+    backend-noop: Existing release verification is deployment workflow behavior before generated backend interaction.
+    frontend-noop: Rejected release artifacts are not activated in the generated frontend.
+    browser-noop: A deployment that fails artifact verification does not expose a new public release marker.
+    Given an existing development release has an invalid "<failure>"
+    When development redeployment selects that release SHA
+    Then deployment stops before CloudFormation and frontend activation
+    And it does not build, publish, or seed the selected release
+
+    Examples: Existing release failures
+      | case_id                  | failure                   |
+      | missing-manifest         | manifest is missing       |
+      | substituted-sha          | manifest SHA differs      |
+      | corrupt-frontend-archive | frontend checksum differs |
+      | missing-backend-image    | backend digest is missing |
+
+  @id:factory.delivery.redeploy-existing-dev-only @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Reject existing-release reactivation for production
+    backend-noop: Dev-only release reactivation is rejected before application stack mutation.
+    frontend-noop: The rejected dev-only path does not change production frontend files.
+    browser-noop: The production deployment path retains its independent backup and promotion checks.
+    Given existing-release reactivation was selected for production
+    When the workflow validates its deployment inputs
+    Then it rejects the dev-only path before assuming the production deployment role
+    And ordinary production promotion retains its pre-deployment state snapshot
