@@ -9,7 +9,9 @@
     "test:unit": "node --import tsx --test services/*.test.ts",
     "test:browser": "npm --prefix .. run build:contracts && npm --prefix .. run build -w @app/backend && npm run build && playwright test",
     "test:browser:compose": "playwright test --config playwright.compose.config.ts",
+    "test:browser:preview": "playwright test --config playwright.compose.config.ts auth.compose.spec.ts",
     "test:behaviors:compose": "node --import tsx ../packages/cucumber/catalog/run-layer.ts frontend steps/application.steps.ts",
+    "test:behaviors:preview": "cucumber-js --import steps/application.steps.ts --tags '@id:public.pages or @id:public.health or @id:auth.public-before-login or @id:auth.edit-mode-login-resume or @id:auth.edit-mode-reload-resume or @id:media.editor-select or @id:content.collection-reorder-undo or @id:content.empty-list-add or @id:content.editor-ownership-state or @id:content.editor-stale-conflict or @id:content.preview-hydration or @id:content.novice-inline-editor or @id:content.searchable-icon-library' ../packages/cucumber/features/application",
     "preview:test": "vite preview"
   },
   "dependencies": {

@@ -40,6 +40,7 @@
     "test:backend": "npm test -w @app/backend",
     "test:behaviors:backend": "npm run test:behaviors -w @app/backend",
     "test:behaviors:frontend:compose": "npm run test:behaviors:compose -w @app/frontend",
+    "test:behaviors:frontend:preview": "npm run test:behaviors:preview -w @app/frontend",
     "test:frontend:unit": "npm run test:unit -w @app/frontend",
     "test:frontend:browser": "npm run test:browser -w @app/frontend"
   },
