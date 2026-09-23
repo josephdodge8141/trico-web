@@ -269,6 +269,18 @@ export class DeliveryFoundationStack extends Stack {
     );
     role.addToPolicy(
       new PolicyStatement({
+        actions: ['ecr:DescribeImageScanFindings'],
+        resources: ['backend', 'frontend'].map((image) =>
+          this.formatArn({
+            service: 'ecr',
+            resource: 'repository',
+            resourceName: `${config.applicationName}-${image}`,
+          }),
+        ),
+      }),
+    );
+    role.addToPolicy(
+      new PolicyStatement({
         actions: ['route53:ChangeResourceRecordSets', 'route53:GetChange'],
         resources: [zoneArn, 'arn:aws:route53:::change/*'],
       }),
@@ -294,6 +306,12 @@ export class DeliveryFoundationStack extends Stack {
     bucket: Bucket,
   ): void {
     repository.grantPull(role);
+    role.addToPolicy(
+      new PolicyStatement({
+        actions: ['ecr:DescribeImageScanFindings'],
+        resources: [repository.repositoryArn],
+      }),
+    );
     bucket.grantRead(role, 'releases/*');
     if (environment === 'dev') {
       repository.grantPush(role);

@@ -159,3 +159,48 @@ Feature: Immutable application delivery
     When development selects the existing release SHA
     Then dependency admission blocks reactivation before deployment credentials are issued
     And the workflow has no silent advisory bypass
+
+  @id:factory.delivery.trusted-control-dependency-audit @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Audit the independent trusted workflow-control dependency tree
+    backend-noop: Trusted workflow-control dependencies are deployment orchestration behavior.
+    frontend-noop: Trusted workflow-control dependency admission has no generated frontend behavior.
+    browser-noop: Dependency rejection happens before any release mutation.
+    Given deployment installs dependencies for a separate trusted workflow-control checkout
+    When the control dependency lockfile is audited
+    Then HIGH and CRITICAL advisories block before deployment credentials are issued
+    And the trusted control dependency audit has no bypass
+
+  @id:factory.delivery.image-scan-gate @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario Outline: Gate release activation on the exact backend image scan
+    backend-noop: Release image scanning is deployment infrastructure behavior outside the generated backend.
+    frontend-noop: Release image scanning has no generated frontend interaction.
+    browser-noop: A rejected image never becomes the active release at the public origin.
+    Given a "<path>" activation selects one immutable backend digest
+    When the workflow checks that digest's ECR Basic Scan
+    Then it "<decision>" before application deployment
+
+    Examples: Release image scan outcomes
+      | case_id              | path                 | decision                                                      |
+      | dev-clean            | standard development | continues after COMPLETE with no HIGH or CRITICAL findings   |
+      | prod-clean           | production promotion | continues after COMPLETE with no HIGH or CRITICAL findings   |
+      | redeploy-clean       | existing dev release | continues after COMPLETE with no HIGH or CRITICAL findings   |
+      | high-finding         | production promotion | stops when COMPLETE reports a HIGH finding                   |
+      | critical-finding     | standard development | stops when COMPLETE reports a CRITICAL finding               |
+      | pending-timeout      | existing dev release | stops when the scan remains pending at the deadline          |
+      | unavailable-findings | production promotion | stops when scan findings are unavailable                     |
+      | findings-query-error | production promotion | stops when the findings query fails                         |
+
+  @id:factory.delivery.historical-control-tools @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario Outline: Run release control gates from trusted workflow source for a historical SHA
+    backend-noop: Release tool provenance is deployment workflow behavior outside the generated backend.
+    frontend-noop: Release tool provenance has no generated frontend interaction.
+    browser-noop: The release stays unchanged if trusted control tools are unavailable.
+    Given a tested main release SHA predating the required control tools
+    When the workflow activates that exact SHA for "<path>"
+    Then it runs "<gates>" from the trusted workflow control checkout
+    And application code, CDK synthesis, and artifacts remain pinned to the selected SHA
+
+    Examples: Historical release activation paths
+      | case_id                          | path                    | gates                                 |
+      | historical-dev-redeploy-control  | development reactivation | ECR scan gate                         |
+      | historical-prod-promotion-control | production promotion    | ECR scan and production backup gates |
