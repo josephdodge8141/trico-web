@@ -59,7 +59,7 @@ test('delivery OIDC trust binds each routine role to its GitHub environment', ()
   for (const environment of ['preview', 'dev', 'prod']) {
     assert.match(
       serialized,
-      new RegExp(`repo:josephdodge8141/trico-web:environment:${environment}`),
+      new RegExp(`repo:josephdodge8141@34195877/trico-web@1362078393:environment:${environment}`),
     );
   }
   assert.match(serialized, /sts\.amazonaws\.com/);

@@ -186,8 +186,9 @@ export const uploadMedia = async (
   browserOrigin: string | undefined = globalThis.location?.origin,
 ): Promise<void> => {
   const signedUrl = new URL(uploadUrl);
+  const privateObjectHost = ['minio', '127.0.0.1', 'localhost'].includes(signedUrl.hostname);
   const requestUrl =
-    browserOrigin !== undefined && signedUrl.hostname === 'minio'
+    browserOrigin !== undefined && privateObjectHost
       ? `${browserOrigin}/__objects${signedUrl.pathname}${signedUrl.search}`
       : uploadUrl;
   const response = await fetchImpl(requestUrl, {

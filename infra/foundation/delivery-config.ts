@@ -11,6 +11,8 @@ export const deliveryConfigSchema = z
   .object({
     applicationName: z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/),
     repository: z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/),
+    repositoryOwnerId: z.string().regex(/^\d+$/),
+    repositoryId: z.string().regex(/^\d+$/),
     alertEmail: z.email(),
     parentZoneId: z.string().regex(/^Z[A-Z0-9]{5,31}$/),
     parentZoneName: z.string().regex(dnsName),
@@ -53,6 +55,8 @@ export type DeliveryConfig = z.infer<typeof deliveryConfigSchema>;
 export const exampleDeliveryConfig: DeliveryConfig = {
   applicationName: 'trico-web',
   repository: 'josephdodge8141/trico-web',
+  repositoryOwnerId: '34195877',
+  repositoryId: '1362078393',
   alertEmail: 'operator@example.com',
   parentZoneId: 'Z0123456789EXAMPLE',
   parentZoneName: 'example.com',

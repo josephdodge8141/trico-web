@@ -16,6 +16,10 @@ const deliveryConfig = parseDeliveryConfig({
   applicationName:
     app.node.tryGetContext('delivery:applicationName') ?? exampleDeliveryConfig.applicationName,
   repository: app.node.tryGetContext('delivery:repository') ?? exampleDeliveryConfig.repository,
+  repositoryOwnerId:
+    app.node.tryGetContext('delivery:repositoryOwnerId') ?? exampleDeliveryConfig.repositoryOwnerId,
+  repositoryId:
+    app.node.tryGetContext('delivery:repositoryId') ?? exampleDeliveryConfig.repositoryId,
   alertEmail: app.node.tryGetContext('delivery:alertEmail') ?? exampleDeliveryConfig.alertEmail,
   parentZoneId:
     app.node.tryGetContext('delivery:parentZoneId') ?? exampleDeliveryConfig.parentZoneId,

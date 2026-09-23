@@ -21,6 +21,10 @@ test('delivery foundation rejects widened repository or domain configuration', (
     /repository/,
   );
   assert.throws(
+    () => parseDeliveryConfig({ ...exampleDeliveryConfig, repositoryId: 'R_kgDOUS-quQ' }),
+    /repositoryId/,
+  );
+  assert.throws(
     () => parseDeliveryConfig({ ...exampleDeliveryConfig, previewZoneName: 'example.com' }),
     /previewZoneName/,
   );

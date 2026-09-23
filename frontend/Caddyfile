@@ -1,14 +1,21 @@
 {$SITE_ADDRESS::80} {
   encode zstd gzip
 
-  @api path /api/*
-  reverse_proxy @api {$BACKEND_UPSTREAM:backend:3000}
+  handle /api/* {
+    reverse_proxy {$BACKEND_UPSTREAM:backend:3000}
+  }
 
   handle /__mailpit/* {
     basic_auth {
       {$MAILPIT_USERNAME:local-editor} {$MAILPIT_PASSWORD_HASH}
     }
     reverse_proxy {$MAILPIT_UPSTREAM:mailpit:8025}
+  }
+
+  handle_path /__objects/* {
+    reverse_proxy {$OBJECT_UPSTREAM:minio:9000} {
+      header_up Host {$OBJECT_UPSTREAM:minio:9000}
+    }
   }
 
   handle /content/* {
@@ -21,9 +28,11 @@
     reverse_proxy {$OBJECT_UPSTREAM:minio:9000}
   }
 
-  root * /srv
-  try_files {path} /index.html
-  file_server
+  handle {
+    root * /srv
+    try_files {path} /index.html
+    file_server
+  }
 
   header {
     X-Content-Type-Options nosniff
