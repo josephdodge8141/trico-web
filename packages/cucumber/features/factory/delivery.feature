@@ -179,3 +179,18 @@ Feature: Immutable application delivery
       | pending-timeout      | existing dev release | stops when the scan remains pending at the deadline          |
       | unavailable-findings | production promotion | stops when scan findings are unavailable                     |
       | findings-query-error | production promotion | stops when the findings query fails                         |
+
+  @id:factory.delivery.historical-control-tools @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario Outline: Run release control gates from trusted workflow source for a historical SHA
+    backend-noop: Release tool provenance is deployment workflow behavior outside the generated backend.
+    frontend-noop: Release tool provenance has no generated frontend interaction.
+    browser-noop: The release stays unchanged if trusted control tools are unavailable.
+    Given a tested main release SHA predating the required control tools
+    When the workflow activates that exact SHA for "<path>"
+    Then it runs "<gates>" from the trusted workflow control checkout
+    And application code, CDK synthesis, and artifacts remain pinned to the selected SHA
+
+    Examples: Historical release activation paths
+      | case_id                          | path                    | gates                                 |
+      | historical-dev-redeploy-control  | development reactivation | ECR scan gate                         |
+      | historical-prod-promotion-control | production promotion    | ECR scan and production backup gates |

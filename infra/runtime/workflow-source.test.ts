@@ -150,6 +150,50 @@ test('factory.delivery.image-scan-gate checks the exact release digest before ba
   assert.match(scanBlock, /BACKEND_IMAGE_URI##\*@/);
 });
 
+test('factory.delivery.historical-control-tools runs both privileged control gates from trusted source', async () => {
+  const workflow = await readFile(workflowPath, 'utf8');
+  const identityStart = workflow.indexOf('name: Derive exact release identity');
+  const releaseCheckout = workflow.indexOf('ref: ${{ steps.release.outputs.sha }}');
+  const controlCheckout = workflow.indexOf('path: .workflow-control');
+  const controlInstall = workflow.indexOf('name: Install trusted workflow-control dependencies');
+  const controlMove = workflow.indexOf(
+    'name: Move trusted workflow control outside the release workspace',
+  );
+  const publishStart = workflow.indexOf('name: Build and publish reviewed dev artifacts');
+  const candidateChecks = workflow.indexOf('- run: npm run check:ci');
+  const credentials = workflow.indexOf('uses: aws-actions/configure-aws-credentials@');
+  const scanStart = workflow.indexOf('name: Require clean ECR image scan before activation');
+  const backupStart = workflow.indexOf('name: Snapshot existing production state');
+  const deployStart = workflow.indexOf('name: Deploy exact backend digest');
+  assert.ok(releaseCheckout >= 0);
+  assert.ok(identityStart >= 0);
+  const identityBlock = workflow.slice(identityStart, releaseCheckout);
+  assert.match(identityBlock, /GITHUB_REF.*refs\/heads\/main|refs\/heads\/main.*GITHUB_REF/);
+  assert.ok(releaseCheckout > identityStart);
+  assert.ok(controlCheckout > releaseCheckout);
+  assert.ok(controlInstall > controlCheckout);
+  assert.ok(controlMove > controlInstall);
+  assert.ok(candidateChecks > controlMove);
+  assert.ok(publishStart > controlMove);
+  assert.ok(credentials > controlInstall);
+  assert.ok(credentials > controlMove);
+  assert.ok(scanStart > credentials);
+  assert.ok(backupStart > scanStart);
+  assert.ok(deployStart > backupStart);
+
+  const controlBlock = workflow.slice(controlCheckout, credentials);
+  assert.match(workflow, /CONTROL_SHA: \$\{\{ github\.workflow_sha \}\}/);
+  assert.match(controlBlock, /ref: \$\{\{ steps\.release\.outputs\.control_sha \}\}/);
+  assert.match(identityBlock, /test "\$GITHUB_REF" = refs\/heads\/main/);
+  assert.match(controlBlock, /npm ci/);
+  assert.match(workflow.slice(scanStart, backupStart), /cd "\$CONTROL_TOOLS_DIR"/);
+  assert.match(workflow.slice(scanStart, backupStart), /ecr-image-scan-cli\.ts/);
+  assert.match(workflow.slice(backupStart, deployStart), /cd "\$CONTROL_TOOLS_DIR"/);
+  assert.match(workflow.slice(backupStart, deployStart), /production-backup-cli\.ts/);
+  assert.match(workflow, /npx cdk deploy "TricoWeb-\$\{STAGE\}"/);
+  assert.doesNotMatch(workflow.slice(deployStart), /working-directory: \.workflow-control/);
+});
+
 test('factory.trusted-preview.image-scan-gate checks both exact image digests before admission', async () => {
   const workflow = await readFile(previewWorkflowPath, 'utf8');
   const publishStart = workflow.indexOf('id: publish');

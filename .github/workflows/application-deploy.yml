@@ -41,11 +41,19 @@ jobs:
         id: release
         env:
           EVENT_NAME: ${{ github.event_name }}
+          CONTROL_SHA: ${{ github.workflow_sha }}
           INPUT_DEPLOYMENT_PATH: ${{ inputs.deployment_path }}
           INPUT_RELEASE_SHA: ${{ inputs.release_sha }}
           INPUT_STAGE: ${{ inputs.environment }}
           PUSH_SHA: ${{ github.sha }}
         run: |
+          if test "$EVENT_NAME" = workflow_dispatch; then
+            test "$GITHUB_REF" = refs/heads/main || { echo 'Privileged deployment must use the main workflow control source' >&2; exit 1; }
+          fi
+          case "$CONTROL_SHA" in
+            *[!0-9a-f]*|'') echo 'Workflow control SHA must be a 40-character lowercase hexadecimal commit' >&2; exit 1 ;;
+          esac
+          test "${#CONTROL_SHA}" = 40
           stage="${INPUT_STAGE:-dev}"
           path="${INPUT_DEPLOYMENT_PATH:-standard}"
           case "$path" in
@@ -70,6 +78,7 @@ jobs:
           esac
           test "${#RELEASE_SHA}" = 40
           echo "sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "control_sha=$CONTROL_SHA" >> "$GITHUB_OUTPUT"
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
           echo "path=$path" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -77,18 +86,40 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           ref: ${{ steps.release.outputs.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: .node-version
-          cache: npm
-      - name: Validate release identity
+      - name: Validate selected release identity and reserve control checkout path
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
-          STAGE: ${{ steps.release.outputs.stage }}
         run: |
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           git merge-base --is-ancestor "$RELEASE_SHA" origin/main
+          test ! -e .workflow-control
+      - name: Checkout trusted workflow control source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          path: .workflow-control
+          persist-credentials: false
+          ref: ${{ steps.release.outputs.control_sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .workflow-control/.node-version
+          cache: npm
+      - name: Validate trusted workflow control identity
+        env:
+          CONTROL_SHA: ${{ steps.release.outputs.control_sha }}
+        run: |
+          test "$(git -C .workflow-control rev-parse HEAD)" = "$CONTROL_SHA"
+          git -C .workflow-control merge-base --is-ancestor "$CONTROL_SHA" origin/main
       - run: npm ci
+      - name: Install trusted workflow-control dependencies
+        working-directory: .workflow-control
+        run: npm ci
+      - name: Move trusted workflow control outside the release workspace
+        env:
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          test ! -e "$CONTROL_TOOLS_DIR"
+          mv .workflow-control "$CONTROL_TOOLS_DIR"
       # A current advisory can block redeploy-existing for a previously accepted historical SHA.
       # This gate intentionally has no bypass and runs before the AWS credentials action.
       - name: Reject high and critical dependency vulnerabilities
@@ -148,16 +179,20 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
           BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           repository="${BACKEND_REPOSITORY_URI#*/}"
           digest="${BACKEND_IMAGE_URI##*@}"
           test "$digest" != "$BACKEND_IMAGE_URI"
+          cd "$CONTROL_TOOLS_DIR"
           node --import tsx infra/runtime/ecr-image-scan-cli.ts "$repository" "$digest"
       - name: Snapshot existing production state
         if: steps.release.outputs.stage == 'prod'
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
+          cd "$CONTROL_TOOLS_DIR"
           node --import tsx infra/runtime/production-backup-cli.ts "$RELEASE_SHA"
       - name: Deploy exact backend digest
         env:

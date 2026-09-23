@@ -12,6 +12,15 @@ Feature: Trusted source boundary
     And orchestration evaluator browser code and dependency installation come from the control revision
     And no candidate-controlled executable runs with privileged credentials
 
+  @id:factory.trusted-source.reject-non-main-deployment-control @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Reject privileged deployment dispatch from a non-main control revision
+    backend-noop: Workflow-ref admission is factory orchestration behavior outside the backend.
+    frontend-noop: Workflow-ref admission is factory orchestration behavior outside the frontend.
+    browser-noop: Rejected workflow control source never reaches an application deployment.
+    Given a privileged deployment is manually dispatched from a non-main ref
+    When the workflow derives its release identity
+    Then it rejects the control ref before checking out application code or requesting deployment credentials
+
   @id:factory.trusted-preview.image-scan-gate @backend-noop @frontend-noop @browser-noop-eligible
   Scenario Outline: Gate preview admission on both exact candidate image scans
     backend-noop: Candidate image scanning is trusted preview infrastructure behavior.
