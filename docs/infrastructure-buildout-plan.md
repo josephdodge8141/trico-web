@@ -1,5 +1,7 @@
 # TriCo Infrastructure Buildout Plan
 
+> This plan preserves the original buildout checklist as a historical baseline. See the [2026-09-23 verified status](infrastructure-buildout-status-2026-09-23.md) for current evidence and remaining decisions; do not interpret unchanged checkboxes below as the latest status.
+
 ## Objective
 
 Build, secure, validate, and operate the complete TriCo delivery platform from pull-request preview through development and production promotion.
