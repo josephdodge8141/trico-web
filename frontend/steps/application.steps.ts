@@ -5783,7 +5783,8 @@ When('I delete and undo the deletion', async function (this: FrontendWorld) {
     .catch(() => undefined);
   const deleteButton = item.getByRole('button', { name: 'Delete Browser-edited value' });
   assert.equal(await deleteButton.isEnabled(), true, 'Delete remained disabled after reorder.');
-  await deleteButton.click();
+  await deleteButton.focus();
+  await page.keyboard.press('Enter');
   const deletionResponse = await deletion;
   const operationErrors = await page.locator('.home-values .editor-error').allTextContents();
   assert.equal(deletionResponse?.status(), 204, operationErrors.join(' '));
