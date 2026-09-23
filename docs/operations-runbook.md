@@ -85,3 +85,13 @@ Do not enable application deployment until the identity and DKIM status are succ
 The operations SNS topic is `trico-web-operations`. Confirm its email subscription after creation so alarms and cost-anomaly notifications are delivered.
 
 GitHub's customized OIDC subject includes the immutable owner and repository database IDs as well as the environment. If the repository is transferred or recreated, update those IDs through a reviewed delivery-foundation change before re-enabling deployment workflows.
+
+## Initial operational objectives and security decisions
+
+- Recovery point objective: five minutes for DynamoDB application data, one successfully written version for S3 content and release artifacts, and zero rebuild drift for immutable release artifacts. DynamoDB PITR and S3 versioning are the controls that satisfy these objectives.
+- Recovery time objective: four hours for development and production rollback or data restoration. A production release is not accepted until an operator has demonstrated both the restore and immutable-release rollback procedures.
+- Retain DynamoDB PITR for the AWS-managed window. Retain on-demand pre-production-release backups for 90 days and always retain at least the three newest successful production recovery points; review the exact backup ARN before any deletion. Production tables and content buckets remain retained by CloudFormation.
+- The HTTP API applies a 50-request-per-second steady-state limit with a 100-request burst limit. Revisit those values using observed development traffic before public production cutover.
+- CloudFront WAF is deferred for the initial low-traffic validation host. API Gateway throttling, application origin/CSRF checks, CloudFront security headers, and alarms are the initial controls. Add WAF before a public marketing launch if traffic, abuse, or compliance requirements justify its recurring cost.
+- GuardDuty and Security Hub are not account requirements for the initial private validation environments and remain disabled. Reconsider both before public production cutover or if the account begins hosting additional workloads. CloudTrail, IAM Access Analyzer, dependency alerts, ECR scanning, and least-privilege OIDC roles remain mandatory.
+- CloudFront and API access logs are initially disabled to avoid retaining visitor data and incurring low-value storage cost before traffic exists. Lambda logs, CloudWatch metrics and alarms, and account CloudTrail remain enabled with environment-specific retention. Revisit edge and API access logs during development soak and before public production cutover.

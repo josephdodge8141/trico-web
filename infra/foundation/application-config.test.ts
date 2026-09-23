@@ -6,6 +6,18 @@ import { exampleApplicationConfig, parseApplicationConfig } from './application/
 test('application config accepts explicit immutable deployment inputs', () => {
   const config = exampleApplicationConfig('dev');
   assert.deepEqual(parseApplicationConfig(config), config);
+  assert.equal(
+    parseApplicationConfig({ ...config, externalSyncEnabled: 'false' }).externalSyncEnabled,
+    false,
+  );
+  assert.equal(
+    parseApplicationConfig({
+      ...config,
+      bedrockModelId: 'example-model',
+      externalSyncEnabled: 'true',
+    }).externalSyncEnabled,
+    true,
+  );
 });
 
 test('application config rejects mutable images and unknown deployment stages', () => {
@@ -15,4 +27,8 @@ test('application config rejects mutable images and unknown deployment stages', 
     /backendImageUri/,
   );
   assert.throws(() => parseApplicationConfig({ ...config, stage: 'preview' }), /stage/);
+  assert.throws(
+    () => parseApplicationConfig({ ...config, externalSyncEnabled: 'False' }),
+    /externalSyncEnabled/,
+  );
 });

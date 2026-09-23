@@ -171,6 +171,10 @@ export class ApplicationStack extends Stack {
     new CfnStage(this, 'DefaultStage', {
       apiId: api.ref,
       autoDeploy: true,
+      defaultRouteSettings: {
+        throttlingBurstLimit: 100,
+        throttlingRateLimit: 50,
+      },
       stageName: '$default',
     });
     new CfnPermission(this, 'ApiInvokePermission', {
