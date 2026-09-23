@@ -60,6 +60,32 @@ AWS_PROFILE=mine aws sesv2 get-email-identity \
 
 Do not enable application deployment until the identity and DKIM status are successful. While the account remains in the SES sandbox, recipient addresses must also be verified. Request production access only after the public site, sender identity, bounce/complaint handling, and operational contact are ready.
 
+After deploying `TricoWebDeliveryFoundation`, configure the verified SES identity to publish bounce and complaint notifications to the stack's operations topic. The CDK topic policy permits `sns:Publish` from SES only when the source account and SES identity ARN match the delivery account and configured identity. The commands below can be rerun safely; they set the same notification targets each time. Set `TRICO_SES_IDENTITY` to the verified identity name used by the delivery stack.
+
+```sh
+TRICO_SES_IDENTITY='<verified-identity-name>'
+TRICO_OPERATIONS_TOPIC_ARN="$(AWS_PROFILE=mine aws cloudformation describe-stacks \
+  --region us-east-2 \
+  --stack-name TricoWebDeliveryFoundation \
+  --query "Stacks[0].Outputs[?OutputKey=='AlertTopicArn'].OutputValue | [0]" \
+  --output text)"
+
+for TRICO_NOTIFICATION_TYPE in Bounce Complaint; do
+  AWS_PROFILE=mine aws ses set-identity-notification-topic \
+    --region us-east-2 \
+    --identity "$TRICO_SES_IDENTITY" \
+    --notification-type "$TRICO_NOTIFICATION_TYPE" \
+    --sns-topic "$TRICO_OPERATIONS_TOPIC_ARN"
+done
+
+AWS_PROFILE=mine aws ses set-identity-feedback-forwarding-enabled \
+  --region us-east-2 \
+  --identity "$TRICO_SES_IDENTITY" \
+  --forwarding-enabled
+```
+
+The final command explicitly keeps SES email feedback forwarding enabled alongside SNS publishing. Keep the operations topic email subscription confirmed and monitor bounce and complaint notices before requesting production sending access.
+
 ## Editor access recovery
 
 - Development and production use distinct protected `REVIEWER_PASSWORD` secrets. Never reuse the local, preview, development, or production password.

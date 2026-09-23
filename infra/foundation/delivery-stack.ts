@@ -1,4 +1,12 @@
-import { CfnOutput, Duration, RemovalPolicy, Stack, Tags, type StackProps } from 'aws-cdk-lib';
+import {
+  ArnFormat,
+  CfnOutput,
+  Duration,
+  RemovalPolicy,
+  Stack,
+  Tags,
+  type StackProps,
+} from 'aws-cdk-lib';
 import { CfnAnalyzer } from 'aws-cdk-lib/aws-accessanalyzer';
 import { CfnBudget } from 'aws-cdk-lib/aws-budgets';
 import { ReadWriteType, Trail } from 'aws-cdk-lib/aws-cloudtrail';
@@ -150,6 +158,26 @@ export class DeliveryFoundationStack extends Stack {
       emailIdentity: config.sesIdentityDomain,
       dkimAttributes: { signingEnabled: true },
     });
+    alerts.addToResourcePolicy(
+      new PolicyStatement({
+        actions: ['sns:Publish'],
+        conditions: {
+          ArnEquals: {
+            'aws:SourceArn': this.formatArn({
+              arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              region: this.region,
+              resource: 'identity',
+              resourceName: config.sesIdentityDomain,
+              service: 'ses',
+            }),
+          },
+          StringEquals: { 'aws:SourceAccount': this.account },
+        },
+        effect: Effect.ALLOW,
+        principals: [new ServicePrincipal('ses.amazonaws.com')],
+        resources: [alerts.topicArn],
+      }),
+    );
     for (const [index, name, value] of [
       ['One', identity.attrDkimDnsTokenName1, identity.attrDkimDnsTokenValue1],
       ['Two', identity.attrDkimDnsTokenName2, identity.attrDkimDnsTokenValue2],
@@ -269,6 +297,18 @@ export class DeliveryFoundationStack extends Stack {
     );
     role.addToPolicy(
       new PolicyStatement({
+        actions: ['ecr:DescribeImageScanFindings'],
+        resources: ['backend', 'frontend'].map((image) =>
+          this.formatArn({
+            service: 'ecr',
+            resource: 'repository',
+            resourceName: `${config.applicationName}-${image}`,
+          }),
+        ),
+      }),
+    );
+    role.addToPolicy(
+      new PolicyStatement({
         actions: ['route53:ChangeResourceRecordSets', 'route53:GetChange'],
         resources: [zoneArn, 'arn:aws:route53:::change/*'],
       }),
@@ -294,6 +334,12 @@ export class DeliveryFoundationStack extends Stack {
     bucket: Bucket,
   ): void {
     repository.grantPull(role);
+    role.addToPolicy(
+      new PolicyStatement({
+        actions: ['ecr:DescribeImageScanFindings'],
+        resources: [repository.repositoryArn],
+      }),
+    );
     bucket.grantRead(role, 'releases/*');
     if (environment === 'dev') {
       repository.grantPush(role);

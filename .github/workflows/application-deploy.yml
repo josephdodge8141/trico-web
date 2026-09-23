@@ -15,18 +15,28 @@ on:
         description: Tested main-branch SHA to promote (required for prod)
         required: false
         type: string
+      deployment_path:
+        description: Reuse an existing exact-SHA release in development
+        required: true
+        default: standard
+        type: choice
+        options: [standard, redeploy-existing]
 
 permissions: {}
 concurrency:
-  group: application-${{ inputs.environment || 'dev' }}
+  group: application-deploy
   cancel-in-progress: false
 
 jobs:
-  release:
+  dev:
     if: github.event_name == 'workflow_dispatch' || vars.APPLICATION_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     environment: ${{ inputs.environment || 'dev' }}
+    outputs:
+      release_sha: ${{ steps.release.outputs.sha }}
+      backend_image: ${{ steps.artifacts.outputs.backend_image }}
+      frontend_sha: ${{ steps.artifacts.outputs.frontend_sha }}
     permissions:
       contents: read
       id-token: write
@@ -35,37 +45,100 @@ jobs:
         id: release
         env:
           EVENT_NAME: ${{ github.event_name }}
+          CONTROL_SHA: ${{ github.workflow_sha }}
+          AUTOMATIC_RELEASE: ${{ github.event_name == 'push' }}
+          INPUT_DEPLOYMENT_PATH: ${{ inputs.deployment_path }}
           INPUT_RELEASE_SHA: ${{ inputs.release_sha }}
           INPUT_STAGE: ${{ inputs.environment }}
           PUSH_SHA: ${{ github.sha }}
         run: |
-          stage="${INPUT_STAGE:-dev}"
           if test "$EVENT_NAME" = workflow_dispatch; then
-            test "$stage" != prod || test -n "$INPUT_RELEASE_SHA"
+            test "$GITHUB_REF" = refs/heads/main || { echo 'Privileged deployment must use the main workflow control source' >&2; exit 1; }
+          fi
+          case "$CONTROL_SHA" in
+            *[!0-9a-f]*|'') echo 'Workflow control SHA must be a 40-character lowercase hexadecimal commit' >&2; exit 1 ;;
+          esac
+          test "${#CONTROL_SHA}" = 40
+          stage="${INPUT_STAGE:-dev}"
+          path="${INPUT_DEPLOYMENT_PATH:-standard}"
+          case "$path" in
+            standard|redeploy-existing) ;;
+            *) echo "Unsupported deployment path: $path" >&2; exit 1 ;;
+          esac
+          if test "$EVENT_NAME" = workflow_dispatch; then
+            if test "$path" = redeploy-existing; then
+              test "$stage" = dev || { echo 'Existing-release reactivation is development-only' >&2; exit 1; }
+              test -n "$INPUT_RELEASE_SHA" || { echo 'Existing-release reactivation requires an explicit release_sha' >&2; exit 1; }
+            fi
+            if test "$stage" = prod; then
+              test "$path" = standard || { echo 'Production does not support the development reactivation path' >&2; exit 1; }
+              test -n "$INPUT_RELEASE_SHA"
+            fi
             RELEASE_SHA="${INPUT_RELEASE_SHA:-$PUSH_SHA}"
           else
             RELEASE_SHA="$PUSH_SHA"
           fi
-          test "$(printf '%s' "$RELEASE_SHA" | wc -c | tr -d ' ')" = 40
+          case "$RELEASE_SHA" in
+            *[!0-9a-f]*|'') echo 'Release SHA must be a 40-character lowercase hexadecimal commit' >&2; exit 1 ;;
+          esac
+          test "${#RELEASE_SHA}" = 40
           echo "sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "control_sha=$CONTROL_SHA" >> "$GITHUB_OUTPUT"
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
           persist-credentials: false
           ref: ${{ steps.release.outputs.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: .node-version
-          cache: npm
-      - name: Validate release identity
+      - name: Validate selected release identity and reserve control checkout path
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
-          STAGE: ${{ steps.release.outputs.stage }}
+          AUTOMATIC_RELEASE: ${{ github.event_name == 'push' }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           git merge-base --is-ancestor "$RELEASE_SHA" origin/main
+          if test "$AUTOMATIC_RELEASE" = true; then
+            current_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+            test "$current_main_sha" = "$RELEASE_SHA" || { echo 'Automatic deployment is stale because main advanced' >&2; exit 1; }
+          fi
+          test ! -e .workflow-control
+      - name: Checkout trusted workflow control source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          path: .workflow-control
+          persist-credentials: false
+          ref: ${{ steps.release.outputs.control_sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .workflow-control/.node-version
+          cache: npm
+      - name: Validate trusted workflow control identity
+        env:
+          CONTROL_SHA: ${{ steps.release.outputs.control_sha }}
+        run: |
+          test "$(git -C .workflow-control rev-parse HEAD)" = "$CONTROL_SHA"
+          git -C .workflow-control merge-base --is-ancestor "$CONTROL_SHA" origin/main
       - run: npm ci
+      - name: Install trusted workflow-control dependencies
+        working-directory: .workflow-control
+        run: npm ci
+      # The separately installed current-main control tools get the same fail-closed audit.
+      - name: Reject high and critical trusted workflow-control vulnerabilities
+        working-directory: .workflow-control
+        run: npm audit --audit-level=high
+      - name: Move trusted workflow control outside the release workspace
+        env:
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          test ! -e "$CONTROL_TOOLS_DIR"
+          mv .workflow-control "$CONTROL_TOOLS_DIR"
+      # A current advisory can block redeploy-existing for a previously accepted historical SHA.
+      # This gate intentionally has no bypass and runs before the AWS credentials action.
+      - name: Reject high and critical dependency vulnerabilities
+        run: npm audit --audit-level=high
       - name: Install the pinned browser runtime
         run: npx playwright install --with-deps chromium
       - run: npm run check:ci
@@ -74,9 +147,9 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.APPLICATION_DEPLOY_ROLE_ARN }}
       - uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd
-        if: steps.release.outputs.stage == 'dev'
+        if: steps.release.outputs.stage == 'dev' && steps.release.outputs.path == 'standard'
       - name: Build and publish reviewed dev artifacts
-        if: steps.release.outputs.stage == 'dev'
+        if: steps.release.outputs.stage == 'dev' && steps.release.outputs.path == 'standard'
         env:
           ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
           BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
@@ -99,26 +172,56 @@ jobs:
         id: artifacts
         env:
           ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
+          BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          STAGE: ${{ steps.release.outputs.stage }}
         run: |
           aws s3 cp "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/release-manifest.json" release-manifest.json --only-show-errors
           node --import tsx infra/runtime/release-cli.ts verify release-manifest.json "$RELEASE_SHA" > validated-release.json
           frontend_key="$(jq -r .frontend.key validated-release.json)"
           frontend_sha="$(jq -r .frontend.sha256 validated-release.json)"
           backend_image="$(jq -r .backendImageUri validated-release.json)"
+          manifest_repository="${backend_image%@*}"
+          test "$manifest_repository" = "$BACKEND_REPOSITORY_URI"
           aws s3 cp "s3://${ARTIFACT_BUCKET}/${frontend_key}" frontend-dist.tar.gz --only-show-errors
           printf '%s  %s\n' "$frontend_sha" frontend-dist.tar.gz | sha256sum --check
           repository="$(cut -d / -f 2- <<<"${backend_image%@*}")"
           digest="${backend_image##*@}"
           aws ecr batch-get-image --repository-name "$repository" --image-ids "imageDigest=$digest" --query 'images[0].imageId.imageDigest' --output text | grep -Fx "$digest"
+          if test "$STAGE" = prod; then
+            aws s3 cp "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/dev-verification.json" dev-verification.json --only-show-errors
+            jq -e --arg releaseSha "$RELEASE_SHA" --arg backendImageUri "$backend_image" --arg frontendSha256 "$frontend_sha" 'type == "object" and (keys | sort) == ["backendImageUri","frontendSha256","releaseSha","version"] and .version == 1 and .releaseSha == $releaseSha and .backendImageUri == $backendImageUri and .frontendSha256 == $frontendSha256' dev-verification.json >/dev/null
+          fi
           echo "backend_image=$backend_image" >> "$GITHUB_OUTPUT"
+          echo "frontend_sha=$frontend_sha" >> "$GITHUB_OUTPUT"
+      - name: Require clean ECR image scan before activation
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          repository="${BACKEND_REPOSITORY_URI#*/}"
+          digest="${BACKEND_IMAGE_URI##*@}"
+          test "$digest" != "$BACKEND_IMAGE_URI"
+          cd "$CONTROL_TOOLS_DIR"
+          node --import tsx infra/runtime/ecr-image-scan-cli.ts "$repository" "$digest"
       - name: Snapshot existing production state
         if: steps.release.outputs.stage == 'prod'
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
-          table="$(aws cloudformation describe-stacks --stack-name TricoWeb-prod --query "Stacks[0].Outputs[?OutputKey=='TableName'].OutputValue | [0]" --output text 2>/dev/null || true)"
-          if test -n "$table" && test "$table" != None; then aws dynamodb create-backup --table-name "$table" --backup-name "pre-${RELEASE_SHA}-$(date +%s)" >/dev/null; fi
+          cd "$CONTROL_TOOLS_DIR"
+          node --import tsx infra/runtime/production-backup-cli.ts "$RELEASE_SHA"
+      - name: Confirm main is still at the selected automatic release SHA
+        if: github.event_name == 'push'
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          test "$current_main_sha" = "$RELEASE_SHA" || { echo 'Automatic deployment is stale because main advanced' >&2; exit 1; }
       - name: Deploy exact backend digest
         env:
           STAGE: ${{ steps.release.outputs.stage }}
@@ -145,22 +248,46 @@ jobs:
           )
           if test -n "$BEDROCK_MODEL_ID"; then context+=(-c "application:${STAGE}:bedrockModelId=${BEDROCK_MODEL_ID}"); fi
           npx cdk deploy "TricoWeb-${STAGE}" --require-approval never --outputs-file cdk-outputs.json "${context[@]}"
-      - name: Checksum-safe bootstrap and frontend activation
+      - name: Bootstrap application data
+        if: steps.release.outputs.path == 'standard'
         env:
           APP_ENV: ${{ steps.release.outputs.stage }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           EXTERNAL_SEED_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           PREVIEW_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           PREVIEW_EDITOR_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
-          PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
         run: |
           stack="TricoWeb-${APP_ENV}"
-          export DYNAMODB_TABLE="$(jq -r ".\"${stack}\".TableName" cdk-outputs.json)"
-          export S3_BUCKET="$(jq -r ".\"${stack}\".ContentBucketName" cdk-outputs.json)"
+          DYNAMODB_TABLE="$(jq -er ".\"${stack}\".TableName | select(type == \"string\" and length > 0)" cdk-outputs.json)" || { echo "Missing application table output for ${stack}; refusing to seed" >&2; exit 1; }
+          test -n "$DYNAMODB_TABLE" && test "$DYNAMODB_TABLE" != null || { echo "Invalid application table output for ${stack}; refusing to seed" >&2; exit 1; }
+          S3_BUCKET="$(jq -er ".\"${stack}\".ContentBucketName | select(type == \"string\" and length > 0)" cdk-outputs.json)" || { echo "Missing content bucket output for ${stack}; refusing to seed" >&2; exit 1; }
+          test -n "$S3_BUCKET" && test "$S3_BUCKET" != null || { echo "Invalid content bucket output for ${stack}; refusing to seed" >&2; exit 1; }
+          export DYNAMODB_TABLE S3_BUCKET
           export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
           node backend/dist/seed.js
+      - name: Confirm main is still at the selected automatic release SHA
+        if: github.event_name == 'push'
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          test "$current_main_sha" = "$RELEASE_SHA" || { echo 'Automatic deployment is stale because main advanced' >&2; exit 1; }
+      - name: Activate frontend release
+        env:
+          APP_ENV: ${{ steps.release.outputs.stage }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          FRONTEND_SHA: ${{ steps.artifacts.outputs.frontend_sha }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          stack="TricoWeb-${APP_ENV}"
+          export S3_BUCKET="$(jq -r ".\"${stack}\".ContentBucketName" cdk-outputs.json)"
           mkdir frontend-release && tar -C frontend-release -xzf frontend-dist.tar.gz
           aws s3 sync frontend-release/ "s3://${S3_BUCKET}/" --delete --exclude 'content/*' --exclude 'media/*' --only-show-errors
+          if test "$APP_ENV" = dev; then
+            jq -n --arg releaseSha "$RELEASE_SHA" --arg frontendSha256 "$FRONTEND_SHA" '{version:1,releaseSha:$releaseSha,frontendSha256:$frontendSha256}' > deployment.json
+            aws s3 cp deployment.json "s3://${S3_BUCKET}/deployment.json" --content-type application/json --cache-control no-store --only-show-errors
+          fi
           distribution_id="$(jq -r ".\"${stack}\".DistributionId" cdk-outputs.json)"
           invalidation_id="$(aws cloudfront create-invalidation --distribution-id "$distribution_id" --paths '/*' --query 'Invalidation.Id' --output text)"
           aws cloudfront wait invalidation-completed --distribution-id "$distribution_id" --id "$invalidation_id"
@@ -168,10 +295,229 @@ jobs:
         env:
           STACK_NAME: TricoWeb-${{ steps.release.outputs.stage }}
           PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          FRONTEND_SHA: ${{ steps.artifacts.outputs.frontend_sha }}
           REVIEWER_EMAIL: ${{ vars.REVIEWER_EMAIL }}
           REVIEWER_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
         run: |
           origin="$PUBLIC_ORIGIN"
+          if test "$STACK_NAME" = TricoWeb-dev; then
+            function_name="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='BackendFunctionName'].OutputValue | [0]" --output text)"
+            deployed_backend_image="$(aws lambda get-function --function-name "$function_name" --query 'Code.ImageUri' --output text)"
+            test "$deployed_backend_image" = "$BACKEND_IMAGE_URI"
+            curl --fail --retry 12 --retry-all-errors --retry-delay 5 "${origin}/deployment.json" | jq -e --arg releaseSha "$RELEASE_SHA" --arg frontendSha256 "$FRONTEND_SHA" '.version == 1 and .releaseSha == $releaseSha and .frontendSha256 == $frontendSha256' >/dev/null
+          fi
           for route in / /property-management /real-estate /construction /storage /development; do curl --fail --retry 12 --retry-all-errors --retry-delay 5 "${origin}${route}" >/dev/null; done
           curl --fail --cookie-jar cookies.txt --header "Origin: ${origin}" --header 'Content-Type: application/json' --data "$(jq -nc --arg email "$REVIEWER_EMAIL" --arg password "$REVIEWER_PASSWORD" '{email:$email,password:$password}')" "${origin}/api/v1/auth/login" >/dev/null
           curl --fail --cookie cookies.txt "${origin}/api/v1/auth/me" | jq -e '.authenticated == true' >/dev/null
+      - name: Record successful development verification
+        if: steps.release.outputs.stage == 'dev'
+        env:
+          ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          FRONTEND_SHA: ${{ steps.artifacts.outputs.frontend_sha }}
+        run: |
+          jq -n --arg releaseSha "$RELEASE_SHA" --arg backendImageUri "$BACKEND_IMAGE_URI" --arg frontendSha256 "$FRONTEND_SHA" '{version:1,releaseSha:$releaseSha,backendImageUri:$backendImageUri,frontendSha256:$frontendSha256}' > dev-verification.json
+          aws s3 cp dev-verification.json "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/dev-verification.json" --content-type application/json --cache-control no-store --only-show-errors
+
+  automatic-prod:
+    name: Promote verified main release to production
+    if: github.event_name == 'push' && vars.APPLICATION_DEPLOY_ENABLED == 'true'
+    needs: dev
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment: prod
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Validate the development-tested release and current main head
+        id: release
+        env:
+          RELEASE_SHA: ${{ needs.dev.outputs.release_sha }}
+          CONTROL_SHA: ${{ github.workflow_sha }}
+        run: |
+          case "$RELEASE_SHA" in *[!0-9a-f]*|'') echo 'Release SHA must be a 40-character lowercase hexadecimal commit' >&2; exit 1 ;; esac
+          test "${#RELEASE_SHA}" = 40
+          test "${#CONTROL_SHA}" = 40
+          echo "sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "control_sha=$CONTROL_SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ steps.release.outputs.sha }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          path: .workflow-control
+          persist-credentials: false
+          ref: ${{ steps.release.outputs.control_sha }}
+      - name: Validate trusted workflow control identity
+        env:
+          CONTROL_SHA: ${{ steps.release.outputs.control_sha }}
+        run: |
+          test "$(git -C .workflow-control rev-parse HEAD)" = "$CONTROL_SHA"
+          git -C .workflow-control merge-base --is-ancestor "$CONTROL_SHA" origin/main
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .workflow-control/.node-version
+          cache: npm
+      - run: npm ci
+      - name: Install trusted workflow-control dependencies
+        working-directory: .workflow-control
+        run: npm ci
+      - name: Reject high and critical dependencies before production credentials
+        run: npm audit --audit-level=high
+      - name: Reject high and critical trusted workflow-control dependencies
+        working-directory: .workflow-control
+        run: npm audit --audit-level=high
+      - name: Build deployment contracts without rebuilding release artifacts
+        run: |
+          npm run build -w @app/schemas
+          npm run build -w @app/infra
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.APPLICATION_DEPLOY_ROLE_ARN }}
+      - name: Resolve and verify the exact development-tested artifacts
+        id: artifacts
+        env:
+          ARTIFACT_BUCKET: ${{ vars.RELEASE_ARTIFACT_BUCKET }}
+          BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          DEV_BACKEND_IMAGE: ${{ needs.dev.outputs.backend_image }}
+          DEV_FRONTEND_SHA: ${{ needs.dev.outputs.frontend_sha }}
+        run: |
+          aws s3 cp "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/release-manifest.json" release-manifest.json --only-show-errors
+          node --import tsx infra/runtime/release-cli.ts verify release-manifest.json "$RELEASE_SHA" > validated-release.json
+          frontend_key="$(jq -r .frontend.key validated-release.json)"
+          frontend_sha="$(jq -r .frontend.sha256 validated-release.json)"
+          backend_image="$(jq -r .backendImageUri validated-release.json)"
+          test "$backend_image" = "$DEV_BACKEND_IMAGE"
+          test "$frontend_sha" = "$DEV_FRONTEND_SHA"
+          test "${backend_image%@*}" = "$BACKEND_REPOSITORY_URI"
+          aws s3 cp "s3://${ARTIFACT_BUCKET}/${frontend_key}" frontend-dist.tar.gz --only-show-errors
+          printf '%s  %s\n' "$frontend_sha" frontend-dist.tar.gz | sha256sum --check
+          repository="$(cut -d / -f 2- <<<"${backend_image%@*}")"
+          digest="${backend_image##*@}"
+          aws ecr batch-get-image --repository-name "$repository" --image-ids "imageDigest=$digest" --query 'images[0].imageId.imageDigest' --output text | grep -Fx "$digest"
+          aws s3 cp "s3://${ARTIFACT_BUCKET}/releases/${RELEASE_SHA}/dev-verification.json" dev-verification.json --only-show-errors
+          jq -e --arg releaseSha "$RELEASE_SHA" --arg backendImageUri "$backend_image" --arg frontendSha256 "$frontend_sha" 'type == "object" and (keys | sort) == ["backendImageUri","frontendSha256","releaseSha","version"] and .version == 1 and .releaseSha == $releaseSha and .backendImageUri == $backendImageUri and .frontendSha256 == $frontendSha256' dev-verification.json >/dev/null
+          echo "backend_image=$backend_image" >> "$GITHUB_OUTPUT"
+          echo "frontend_sha=$frontend_sha" >> "$GITHUB_OUTPUT"
+      - name: Require clean ECR image scan before production activation
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          BACKEND_REPOSITORY_URI: ${{ vars.BACKEND_REPOSITORY_URI }}
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          test ! -e "$CONTROL_TOOLS_DIR"
+          mv .workflow-control "$CONTROL_TOOLS_DIR"
+          cd "$CONTROL_TOOLS_DIR"
+          repository="${BACKEND_REPOSITORY_URI#*/}"
+          digest="${BACKEND_IMAGE_URI##*@}"
+          node --import tsx infra/runtime/ecr-image-scan-cli.ts "$repository" "$digest"
+      - name: Confirm main is still at the selected release SHA
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          test "$current_main_sha" = "$RELEASE_SHA" || { echo 'Automatic production promotion is stale because main advanced' >&2; exit 1; }
+      - name: Snapshot existing production state
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          CONTROL_TOOLS_DIR: ${{ runner.temp }}/trusted-workflow-control-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          cd "$CONTROL_TOOLS_DIR"
+          node --import tsx infra/runtime/production-backup-cli.ts "$RELEASE_SHA"
+      - name: Confirm main is still at the selected release SHA
+        id: final-main-check
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          test "$current_main_sha" = "$RELEASE_SHA" || { echo 'Automatic production promotion is stale because main advanced' >&2; exit 1; }
+      - name: Deploy exact backend digest to production
+        env:
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+          CUSTOM_DOMAIN: ${{ vars.CUSTOM_DOMAIN }}
+          HOSTED_ZONE_ID: ${{ vars.HOSTED_ZONE_ID }}
+          HOSTED_ZONE_NAME: ${{ vars.HOSTED_ZONE_NAME }}
+          CERTIFICATE_ARN: ${{ vars.CLOUDFRONT_CERTIFICATE_ARN }}
+          SES_IDENTITY_DOMAIN: ${{ vars.SES_IDENTITY_DOMAIN }}
+          BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
+          ALERT_TOPIC_ARN: ${{ vars.ALERT_TOPIC_ARN }}
+        run: |
+          context=(
+            -c "application:prod:backendImageUri=${BACKEND_IMAGE_URI}"
+            -c "application:prod:publicOrigin=${PUBLIC_ORIGIN}"
+            -c "application:prod:customDomain=${CUSTOM_DOMAIN}"
+            -c "application:prod:hostedZoneId=${HOSTED_ZONE_ID}"
+            -c "application:prod:hostedZoneName=${HOSTED_ZONE_NAME}"
+            -c "application:prod:certificateArn=${CERTIFICATE_ARN}"
+            -c "application:prod:sesIdentityDomain=${SES_IDENTITY_DOMAIN}"
+            -c "application:prod:alertTopicArn=${ALERT_TOPIC_ARN}"
+            -c "application:prod:externalSyncEnabled=false"
+          )
+          if test -n "$BEDROCK_MODEL_ID"; then context+=(-c "application:prod:bedrockModelId=${BEDROCK_MODEL_ID}"); fi
+          npx cdk deploy TricoWeb-prod --require-approval never --outputs-file cdk-outputs.json "${context[@]}"
+      - name: Confirm main is still at the selected release SHA before frontend activation
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          test "$current_main_sha" = "$RELEASE_SHA" || { echo 'Automatic production promotion is stale because main advanced' >&2; exit 1; }
+      - name: Bootstrap production application data
+        env:
+          APP_ENV: prod
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          EXTERNAL_SEED_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
+          PREVIEW_EDITOR_EMAIL: ${{ vars.REVIEWER_EMAIL }}
+          PREVIEW_EDITOR_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
+        run: |
+          DYNAMODB_TABLE="$(jq -er '."TricoWeb-prod".TableName | select(type == "string" and length > 0)' cdk-outputs.json)" || { echo 'Missing application table output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          test -n "$DYNAMODB_TABLE" && test "$DYNAMODB_TABLE" != null || { echo 'Invalid application table output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          S3_BUCKET="$(jq -er '."TricoWeb-prod".ContentBucketName | select(type == "string" and length > 0)' cdk-outputs.json)" || { echo 'Missing content bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          test -n "$S3_BUCKET" && test "$S3_BUCKET" != null || { echo 'Invalid content bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          export DYNAMODB_TABLE S3_BUCKET
+          export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
+          node --import tsx backend/seed.ts
+      - name: Activate production frontend release
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          FRONTEND_SHA: ${{ steps.artifacts.outputs.frontend_sha }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          export S3_BUCKET="$(jq -r '."TricoWeb-prod".ContentBucketName' cdk-outputs.json)"
+          mkdir frontend-release && tar -C frontend-release -xzf frontend-dist.tar.gz
+          aws s3 sync frontend-release/ "s3://${S3_BUCKET}/" --delete --exclude 'content/*' --exclude 'media/*' --only-show-errors
+          jq -n --arg releaseSha "$RELEASE_SHA" --arg frontendSha256 "$FRONTEND_SHA" '{version:1,releaseSha:$releaseSha,frontendSha256:$frontendSha256}' > deployment.json
+          aws s3 cp deployment.json "s3://${S3_BUCKET}/deployment.json" --content-type application/json --cache-control no-store --only-show-errors
+          distribution_id="$(jq -r '."TricoWeb-prod".DistributionId' cdk-outputs.json)"
+          invalidation_id="$(aws cloudfront create-invalidation --distribution-id "$distribution_id" --paths '/*' --query 'Invalidation.Id' --output text)"
+          aws cloudfront wait invalidation-completed --distribution-id "$distribution_id" --id "$invalidation_id"
+      - name: Verify production pages and protected session
+        env:
+          STACK_NAME: TricoWeb-prod
+          PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          BACKEND_IMAGE_URI: ${{ steps.artifacts.outputs.backend_image }}
+          FRONTEND_SHA: ${{ steps.artifacts.outputs.frontend_sha }}
+          REVIEWER_EMAIL: ${{ vars.REVIEWER_EMAIL }}
+          REVIEWER_PASSWORD: ${{ secrets.REVIEWER_PASSWORD }}
+        run: |
+          function_name="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='BackendFunctionName'].OutputValue | [0]" --output text)"
+          deployed_backend_image="$(aws lambda get-function --function-name "$function_name" --query 'Code.ImageUri' --output text)"
+          test "$deployed_backend_image" = "$BACKEND_IMAGE_URI"
+          curl --fail --retry 12 --retry-all-errors --retry-delay 5 "${PUBLIC_ORIGIN}/deployment.json" | jq -e --arg releaseSha "$RELEASE_SHA" --arg frontendSha256 "$FRONTEND_SHA" '.version == 1 and .releaseSha == $releaseSha and .frontendSha256 == $frontendSha256' >/dev/null
+          for route in / /property-management /real-estate /construction /storage /development; do curl --fail --retry 12 --retry-all-errors --retry-delay 5 "${PUBLIC_ORIGIN}${route}" >/dev/null; done
+          curl --fail --cookie-jar cookies.txt --header "Origin: ${PUBLIC_ORIGIN}" --header 'Content-Type: application/json' --data "$(jq -nc --arg email "$REVIEWER_EMAIL" --arg password "$REVIEWER_PASSWORD" '{email:$email,password:$password}')" "${PUBLIC_ORIGIN}/api/v1/auth/login" >/dev/null
+          curl --fail --cookie cookies.txt "${PUBLIC_ORIGIN}/api/v1/auth/me" | jq -e '.authenticated == true' >/dev/null

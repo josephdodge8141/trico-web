@@ -108,6 +108,46 @@ test('canonical feature files are the catalog source rather than copied text', a
   );
 });
 
+test('development release reactivation cases have stable canonical identities', async () => {
+  const deliverySource = await readFile(path.join(featureRoot, 'factory/delivery.feature'), 'utf8');
+  const catalog = parseBehaviorSources([
+    { category: 'factory', uri: 'factory/delivery.feature', data: deliverySource },
+  ]);
+
+  assert.deepEqual(
+    catalog.cases
+      .map((catalogCase) => catalogCase.id)
+      .filter((id) => id.startsWith('factory.delivery.redeploy-existing')),
+    [
+      'factory.delivery.redeploy-existing',
+      'factory.delivery.redeploy-existing-rejects::missing-manifest',
+      'factory.delivery.redeploy-existing-rejects::substituted-sha',
+      'factory.delivery.redeploy-existing-rejects::corrupt-frontend-archive',
+      'factory.delivery.redeploy-existing-rejects::missing-backend-image',
+      'factory.delivery.redeploy-existing-dev-only',
+    ],
+  );
+});
+
+test('dependency admission cases have stable canonical identities', async () => {
+  const deliverySource = await readFile(path.join(featureRoot, 'factory/delivery.feature'), 'utf8');
+  const catalog = parseBehaviorSources([
+    { category: 'factory', uri: 'factory/delivery.feature', data: deliverySource },
+  ]);
+
+  assert.deepEqual(
+    catalog.cases
+      .map((catalogCase) => catalogCase.id)
+      .filter((id) => id.startsWith('factory.delivery.dependency-audit')),
+    [
+      'factory.delivery.dependency-audit::high',
+      'factory.delivery.dependency-audit::critical',
+      'factory.delivery.dependency-audit-clear',
+      'factory.delivery.dependency-audit-rollback',
+    ],
+  );
+});
+
 test('duplicate scenario IDs are rejected even when titles differ', () => {
   assertCatalogError(
     `Feature: Duplicate identities

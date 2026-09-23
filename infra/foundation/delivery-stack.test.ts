@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { App } from 'aws-cdk-lib';
@@ -64,6 +65,53 @@ test('factory.delivery.foundation creates environment-scoped OIDC roles and prot
   }
 });
 
+test('factory.delivery.ses-feedback-policy scopes SES publish permission to the configured identity and account', () => {
+  const template = deliveryTemplate().toJSON();
+  const topicPolicy = Object.values(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).find((resource) => resource.Type === 'AWS::SNS::TopicPolicy');
+  assert.notEqual(topicPolicy, undefined);
+
+  const policyDocument = topicPolicy?.Properties?.PolicyDocument as
+    | {
+        Statement?: readonly {
+          Action?: unknown;
+          Condition?: {
+            ArnEquals?: Record<string, unknown>;
+            StringEquals?: Record<string, unknown>;
+          };
+          Principal?: unknown;
+          Resource?: unknown;
+        }[];
+      }
+    | undefined;
+  const sesStatement = policyDocument?.Statement?.find((statement) =>
+    JSON.stringify(statement.Principal).includes('ses.amazonaws.com'),
+  );
+  assert.notEqual(sesStatement, undefined);
+  assert.equal(sesStatement?.Action, 'sns:Publish');
+  assert.deepEqual(sesStatement?.Condition?.StringEquals?.['aws:SourceAccount'], {
+    Ref: 'AWS::AccountId',
+  });
+  const sourceArn = JSON.stringify(sesStatement?.Condition?.ArnEquals?.['aws:SourceArn']);
+  assert.match(sourceArn, /:ses:/);
+  assert.match(sourceArn, /:identity\/example\.com/);
+  assert.deepEqual(sesStatement?.Principal, { Service: 'ses.amazonaws.com' });
+  assert.doesNotMatch(JSON.stringify(sesStatement), /"Resource":"\*"/);
+});
+
+test('factory.delivery.ses-feedback-policy documents idempotent feedback setup with forwarding enabled', async () => {
+  const runbook = await readFile(
+    new URL('../../docs/operations-runbook.md', import.meta.url),
+    'utf8',
+  );
+  assert.match(runbook, /set-identity-notification-topic/);
+  assert.match(runbook, /Bounce Complaint/);
+  assert.match(runbook, /--sns-topic/);
+  assert.match(runbook, /set-identity-feedback-forwarding-enabled/);
+  assert.match(runbook, /--forwarding-enabled/);
+});
+
 test('delivery OIDC trust binds each routine role to its GitHub environment', () => {
   const serialized = JSON.stringify(deliveryTemplate().toJSON());
   for (const environment of ['preview', 'dev', 'prod']) {
@@ -101,6 +149,41 @@ test('dev deployment can resolve the immutable backend digest it publishes', () 
   const serialized = JSON.stringify(devPolicy);
   assert.match(serialized, /ecr:DescribeImages/);
   assert.match(serialized, /ReleaseBackendRepository/);
+});
+
+test('dev and prod image scan permissions are scoped to the immutable release repository', () => {
+  const template = deliveryTemplate().toJSON();
+  const policies = Object.entries(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).filter(([, resource]) => resource.Type === 'AWS::IAM::Policy');
+  for (const environment of ['dev', 'prod']) {
+    const policy = policies.find(([, resource]) =>
+      JSON.stringify(resource.Properties?.Roles).includes(`${environment}DeploymentRole`),
+    );
+    assert.notEqual(policy, undefined);
+    const serialized = JSON.stringify(policy);
+    assert.match(serialized, /ecr:DescribeImageScanFindings/);
+    assert.match(serialized, /ReleaseBackendRepository/);
+    assert.doesNotMatch(serialized, /"Action":"ecr:DescribeImageScanFindings","Resource":"\*"/);
+  }
+});
+
+test('preview image scan permission is scoped to backend and frontend repositories', () => {
+  const policies = Object.entries(
+    deliveryTemplate().toJSON().Resources as Record<
+      string,
+      { Type: string; Properties?: Record<string, unknown> }
+    >,
+  ).filter(([, resource]) => resource.Type === 'AWS::IAM::Policy');
+  const policy = policies.find(([, resource]) =>
+    JSON.stringify(resource.Properties?.Roles).includes('previewDeploymentRole'),
+  );
+  assert.notEqual(policy, undefined);
+  const serialized = JSON.stringify(policy);
+  assert.match(serialized, /ecr:DescribeImageScanFindings/);
+  assert.match(serialized, /trico-web-backend/);
+  assert.match(serialized, /trico-web-frontend/);
+  assert.doesNotMatch(serialized, /"Action":"ecr:DescribeImageScanFindings","Resource":"\*"/);
 });
 
 test('application deployment roles can verify CDK bootstrap and monitor their stack', () => {

@@ -26,6 +26,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - name: Reject high and critical dependency vulnerabilities
+        run: npm audit --audit-level=high
       # pull_request_target loads this trusted definition from main, not from candidate code.
       - name: Install the pinned browser runtime
         run: npx playwright install --with-deps chromium
