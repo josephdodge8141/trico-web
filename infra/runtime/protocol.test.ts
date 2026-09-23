@@ -687,6 +687,7 @@ test('factory.lifecycle.delayed-admission-fence preserves both source ordering a
   );
   assert.equal(delayedClose.decision, 'rejected');
   assert.equal(delayedClose.reason, 'event-is-not-newer');
+  assert.ok(delayedClose.state);
   assert.equal(delayedClose.state.closed, false);
   assert.equal(delayedClose.state.active, null);
   assert.deepEqual(delayedClose.effects, []);
