@@ -26,6 +26,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { hash } from '@node-rs/argon2';
 import {
+  entitySchema,
   pageIdSchema,
   externalSourceSchema,
   registrySeedData,
@@ -38,6 +39,7 @@ import {
 import { loadEnvironment } from './config/environment.js';
 
 const dynamoCredentials = { accessKeyId: 'localaccesskey', secretAccessKey: 'localsecretkey' };
+const initialSeedTimestamp = new Date(0).toISOString();
 const canonicalJson = (value: unknown): string => {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   if (typeof value === 'object' && value !== null)
@@ -122,43 +124,70 @@ async function allowLocalPublicReads(client: S3Client, bucket: string): Promise<
   );
 }
 
-async function seedEntities(database: DynamoDBDocumentClient, tableName: string): Promise<void> {
+export async function seedEntities(
+  database: DynamoDBDocumentClient,
+  tableName: string,
+): Promise<void> {
   const entries = Object.entries(registrySeedData) as [
     EntityId,
     (typeof registrySeedData)[EntityId],
   ][];
-  for (let offset = 0; offset < entries.length; offset += 25) {
-    const writes = [];
-    for (const [id, value] of entries.slice(offset, offset + 25)) {
-      const existing = await database.send(
-        new GetCommand({
-          TableName: tableName,
-          Key: { pk: `ENTITY#${id}`, sk: 'CURRENT' },
-          ConsistentRead: true,
-        }),
-      );
-      if (existing.Item !== undefined) {
-        if (checksum(existing.Item['value']) !== checksum(value))
-          throw new Error(`Seed mismatch for ${id}; refusing to overwrite`);
-        continue;
-      }
-      writes.push({
-        PutRequest: {
-          Item: {
-            pk: `ENTITY#${id}`,
-            sk: 'CURRENT',
-            id,
-            pageId: requireEntityDefinition(id).pageId,
-            version: 1,
-            value,
-            updatedAt: new Date(0).toISOString(),
-            seedChecksum: checksum(value),
-          },
-        },
+  for (const [id, value] of entries) {
+    const existing = await database.send(
+      new GetCommand({
+        TableName: tableName,
+        Key: { pk: `ENTITY#${id}`, sk: 'CURRENT' },
+        ConsistentRead: true,
+      }),
+    );
+    const definition = requireEntityDefinition(id);
+    const expectedSeedChecksum = checksum(value);
+    if (existing.Item !== undefined) {
+      const existingEntity = entitySchema.safeParse({
+        id: existing.Item['id'],
+        pageId: existing.Item['pageId'],
+        version: existing.Item['version'],
+        value: existing.Item['value'],
+        updatedAt: existing.Item['updatedAt'],
       });
+      const isPristineBaseline =
+        existingEntity.success &&
+        existingEntity.data.version === 1 &&
+        existingEntity.data.updatedAt === initialSeedTimestamp;
+      const matchesPristineBaseline =
+        existingEntity.success &&
+        checksum(existingEntity.data.value) === expectedSeedChecksum &&
+        (existing.Item['seedChecksum'] === undefined ||
+          existing.Item['seedChecksum'] === expectedSeedChecksum);
+      const isSafeExistingEntity =
+        existing.Item['pk'] === `ENTITY#${id}` &&
+        existing.Item['sk'] === 'CURRENT' &&
+        existing.Item['id'] === id &&
+        existingEntity.success &&
+        existingEntity.data.id === id &&
+        existingEntity.data.pageId === definition.pageId &&
+        definition.schema.safeParse(existingEntity.data.value).success &&
+        (!isPristineBaseline || matchesPristineBaseline);
+      if (!isSafeExistingEntity)
+        throw new Error(`Unsafe existing CURRENT entity row for ${id}; refusing to seed`);
+      continue;
     }
-    if (writes.length > 0)
-      await database.send(new BatchWriteCommand({ RequestItems: { [tableName]: writes } }));
+    await database.send(
+      new PutCommand({
+        TableName: tableName,
+        Item: {
+          pk: `ENTITY#${id}`,
+          sk: 'CURRENT',
+          id,
+          pageId: definition.pageId,
+          version: 1,
+          value,
+          updatedAt: initialSeedTimestamp,
+          seedChecksum: expectedSeedChecksum,
+        },
+        ConditionExpression: 'attribute_not_exists(pk)',
+      }),
+    );
   }
 }
 
