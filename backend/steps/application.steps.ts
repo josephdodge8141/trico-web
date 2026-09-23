@@ -41,6 +41,7 @@ import { createConnections, type MailConnection } from '../config/connections.js
 import { createBoundedPublicFetch } from '../config/external-http.js';
 import { createOriginGuard } from '../middleware/session.js';
 import { HttpError } from '../middleware/errors.js';
+import { seedEntities } from '../seed.js';
 import { createAuthService, type AuthService, type SessionCredentials } from '../services/auth.js';
 import {
   assertPublicationFits,
@@ -128,6 +129,9 @@ class BackendWorld extends World {
   snapshot: readonly { entityId: EntityId; entityVersion: number; value: EditableValue }[] = [];
   facts = new Set<string>();
   divisionMigrationPlan: EntityModuleMigrationPlan | undefined;
+  seedEntityId: EntityId = 'home.hero';
+  missingSeedEntityId: EntityId = 'home.anniversary-banner';
+  seedCurrentRow: Record<string, unknown> | undefined;
 }
 
 setWorldConstructor(BackendWorld);
@@ -268,6 +272,79 @@ const factThen = (facts: readonly string[]): void => {
     },
   );
 };
+
+Given(
+  'a current entity has valid published edits and another registered entity is missing',
+  function (this: BackendWorld) {
+    const definition = requireEntityDefinition(this.seedEntityId);
+    const item = {
+      pk: `ENTITY#${this.seedEntityId}`,
+      sk: 'CURRENT',
+      id: this.seedEntityId,
+      pageId: definition.pageId,
+      version: 2,
+      value: changed(seedValue(this.seedEntityId)),
+      updatedAt: '2026-09-01T00:00:00.000Z',
+    };
+    this.seedCurrentRow = structuredClone(item);
+    this.dynamo.items.set(`${item.pk}|${item.sk}`, item);
+  },
+);
+
+Given(
+  'a current entity row has unsafe {string} data',
+  function (this: BackendWorld, incompatibility: string) {
+    const definition = requireEntityDefinition(this.seedEntityId);
+    const item: Record<string, unknown> = {
+      pk: `ENTITY#${this.seedEntityId}`,
+      sk: 'CURRENT',
+      id: this.seedEntityId,
+      pageId: definition.pageId,
+      version: 1,
+      value: seedValue(this.seedEntityId),
+      updatedAt: '2026-09-01T00:00:00.000Z',
+    };
+    if (incompatibility === 'entity ID') item['id'] = this.missingSeedEntityId;
+    else if (incompatibility === 'page ID') item['pageId'] = 'development';
+    else if (incompatibility === 'registered value schema') item['value'] = null;
+    else if (incompatibility === 'entity version') item['version'] = 0;
+    else if (incompatibility === 'pristine baseline value') {
+      const changedSeed = changed(seedValue(this.seedEntityId));
+      assert.notDeepEqual(changedSeed, seedValue(this.seedEntityId));
+      assert.equal(definition.schema.safeParse(changedSeed).success, true);
+      item['value'] = changedSeed;
+      item['updatedAt'] = new Date(0).toISOString();
+    } else throw new Error(`Unknown current entity incompatibility: ${incompatibility}`);
+    this.seedCurrentRow = structuredClone(item);
+    this.dynamo.items.set(`${String(item['pk'])}|${String(item['sk'])}`, item);
+  },
+);
+
+When('deployment reruns seed-if-empty', async function (this: BackendWorld) {
+  await capture(this, () => seedEntities(this.dynamo.asClient(), TABLE));
+});
+
+Then('bootstrap succeeds without rewriting the existing entity', function (this: BackendWorld) {
+  assert.equal(this.error, undefined);
+  const existing = this.dynamo.items.get(`ENTITY#${this.seedEntityId}|CURRENT`);
+  assert.deepEqual(existing, this.seedCurrentRow);
+});
+
+Then('the missing entity receives its registered seed', function (this: BackendWorld) {
+  const missing = this.dynamo.items.get(`ENTITY#${this.missingSeedEntityId}|CURRENT`);
+  assert.deepEqual(missing?.['value'], seedValue(this.missingSeedEntityId));
+  assert.equal(missing?.['version'], 1);
+});
+
+Then('bootstrap rejects the unsafe current entity', function (this: BackendWorld) {
+  assert.ok(this.error instanceof Error);
+  assert.match(this.error.message, /unsafe existing CURRENT entity/i);
+});
+
+Then('the existing current row remains unchanged', function (this: BackendWorld) {
+  const existing = this.dynamo.items.get(`ENTITY#${this.seedEntityId}|CURRENT`);
+  assert.deepEqual(existing, this.seedCurrentRow);
+});
 
 Given('an unused @tricoinc.com email address', function (this: BackendWorld) {
   this.email = 'new-editor@tricoinc.com';
