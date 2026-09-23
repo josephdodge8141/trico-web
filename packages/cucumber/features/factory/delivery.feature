@@ -21,6 +21,42 @@ Feature: Immutable application delivery
     Then production resolves the exact recorded backend digest and frontend checksum
     And production executes no application build or artifact publication step
 
+  @id:factory.delivery.prod-backup-ready @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Require an available snapshot before production deployment
+    backend-noop: Production snapshots are deployment infrastructure behavior outside the generated application backend.
+    frontend-noop: Production snapshots have no generated application frontend interaction.
+    browser-noop: Backup readiness is verified by the deployment workflow before public deployment.
+    Given the production stack exists and exposes its application table
+    When production deployment creates a pre-deployment backup
+    Then the backup must reach AVAILABLE before application deployment starts
+
+  @id:factory.delivery.prod-first-deploy @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Allow a verified first production deployment without a snapshot
+    backend-noop: First-deployment detection is deployment infrastructure behavior outside the generated application backend.
+    frontend-noop: First-deployment detection has no generated application frontend interaction.
+    browser-noop: First-deployment detection is verified before the public application exists.
+    Given CloudFormation confirms that the production stack does not exist
+    When production deployment prepares its backup gate
+    Then deployment may proceed without a snapshot
+
+  @id:factory.delivery.prod-backup-lookup-failure @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Stop production deployment when stack lookup fails unexpectedly
+    backend-noop: CloudFormation lookup failure handling is deployment infrastructure behavior outside the generated application backend.
+    frontend-noop: CloudFormation lookup failure handling has no generated application frontend interaction.
+    browser-noop: Lookup failures must stop deployment before the public application is changed.
+    Given CloudFormation cannot determine whether the production stack exists
+    When production deployment prepares its backup gate
+    Then deployment must fail without treating the error as a first deployment
+
+  @id:factory.delivery.prod-backup-create-failure @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Stop production deployment when backup creation or readiness fails
+    backend-noop: Backup creation and readiness are deployment infrastructure behavior outside the generated application backend.
+    frontend-noop: Backup creation and readiness have no generated application frontend interaction.
+    browser-noop: Failed snapshots must stop deployment before the public application is changed.
+    Given the production stack exists and exposes its application table
+    When backup creation fails or the backup does not become AVAILABLE
+    Then production application deployment must not start
+
   @id:factory.delivery.foundation @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Synthesize an environment-scoped delivery trust boundary
     backend-noop: Delivery IAM and artifact storage are factory infrastructure outside the generated backend.
