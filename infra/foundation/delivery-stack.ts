@@ -297,8 +297,26 @@ export class DeliveryFoundationStack extends Stack {
     bucket.grantRead(role, 'releases/*');
     if (environment === 'dev') {
       repository.grantPush(role);
+      role.addToPolicy(
+        new PolicyStatement({
+          actions: ['ecr:DescribeImages'],
+          resources: [repository.repositoryArn],
+        }),
+      );
       bucket.grantPut(role, 'releases/*');
     }
+    role.addToPolicy(
+      new PolicyStatement({
+        actions: ['ssm:GetParameter'],
+        resources: [
+          this.formatArn({
+            service: 'ssm',
+            resource: 'parameter',
+            resourceName: 'cdk-bootstrap/hnb659fds/version',
+          }),
+        ],
+      }),
+    );
     role.addToPolicy(
       new PolicyStatement({
         actions: [
@@ -306,6 +324,7 @@ export class DeliveryFoundationStack extends Stack {
           'cloudformation:CreateStack',
           'cloudformation:DeleteChangeSet',
           'cloudformation:DescribeChangeSet',
+          'cloudformation:DescribeStackEvents',
           'cloudformation:DescribeStacks',
           'cloudformation:ExecuteChangeSet',
           'cloudformation:GetTemplate',

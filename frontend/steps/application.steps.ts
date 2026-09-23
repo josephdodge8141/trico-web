@@ -85,6 +85,7 @@ class FrontendWorld extends World {
   noviceValue = '';
   otherEditorId = '';
   touchLayout: { readonly width: number; readonly height: number } | undefined;
+  passwordAccepted: boolean | undefined;
   propertyHeaderLabel = '';
   propertyHeroHeading = '';
   propertyEditedHeaderLabel = '';
@@ -380,6 +381,25 @@ async function createVerifiedEditor(world: FrontendWorld): Promise<Page> {
 Given('I have no authenticated editor session', async function (this: FrontendWorld) {
   await this.context?.clearCookies();
 });
+Given('I am entering a new editor password', async function (this: FrontendWorld) {
+  await this.currentPage().goto('/register');
+});
+When(
+  'I enter a password with {int} characters',
+  async function (this: FrontendWorld, characterCount: number) {
+    const password = this.currentPage().getByLabel('Password');
+    await password.fill('p'.repeat(characterCount));
+    this.passwordAccepted = await password.evaluate((input) =>
+      (input as HTMLInputElement).checkValidity(),
+    );
+  },
+);
+Then(
+  'registration considers the password {string}',
+  function (this: FrontendWorld, validity: string) {
+    assert.equal(this.passwordAccepted, validity === 'valid');
+  },
+);
 Given('I sign in as the preview editor', async function (this: FrontendWorld) {
   await loginEditor(this.currentPage());
 });

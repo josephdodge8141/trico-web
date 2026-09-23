@@ -75,3 +75,23 @@ Feature: Bounded preview lifecycle
       | dns-failure    | DNS record      |
       | task-missing   | ECS task        |
       | task-def-fail  | task definition |
+
+  @id:factory.lifecycle.cleanup-terminal-receipt @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Retain a terminal receipt after generation cleanup
+    backend-noop: Dynamic preview resource cleanup is factory runtime behavior outside the generated application backend.
+    frontend-noop: Terminal cleanup receipts have no generated application frontend interaction.
+    browser-noop: Provider generation receipts are not observable through the public preview page.
+    Given an owned generation whose resources have been cleaned successfully
+    When its cleanup command is replayed
+    Then the provider retains a terminal cleaned receipt for that generation
+    And replay does not repeat provider mutations or remove the terminal receipt
+
+  @id:factory.lifecycle.cleaned-generation-replay @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Reject start replay for a cleaned generation
+    backend-noop: Dynamic preview resource replay is factory runtime behavior outside the generated application backend.
+    frontend-noop: Replayed generation start has no generated application frontend interaction.
+    browser-noop: Replayed generation start is not observable through the public preview page.
+    Given a terminal cleaned receipt for a generation
+    When an ensure command is replayed for that same generation
+    Then the provider rejects the replay as terminal
+    And it does not register a task launch another task or recreate DNS

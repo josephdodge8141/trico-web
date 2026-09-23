@@ -87,3 +87,36 @@ test('routine workflows cannot assume the human foundation owner role', () => {
   assert.notEqual(owner, undefined);
   assert.doesNotMatch(JSON.stringify(owner), /token\.actions\.githubusercontent\.com/);
 });
+
+test('dev deployment can resolve the immutable backend digest it publishes', () => {
+  const template = deliveryTemplate().toJSON();
+  const devPolicy = Object.entries(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).find(
+    ([, resource]) =>
+      resource.Type === 'AWS::IAM::Policy' &&
+      JSON.stringify(resource.Properties?.Roles).includes('devDeploymentRole'),
+  );
+  assert.notEqual(devPolicy, undefined);
+  const serialized = JSON.stringify(devPolicy);
+  assert.match(serialized, /ecr:DescribeImages/);
+  assert.match(serialized, /ReleaseBackendRepository/);
+});
+
+test('application deployment roles can verify CDK bootstrap and monitor their stack', () => {
+  const template = deliveryTemplate().toJSON();
+  const policies = Object.entries(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).filter(([, resource]) => resource.Type === 'AWS::IAM::Policy');
+  for (const environment of ['dev', 'prod']) {
+    const policy = policies.find(([, resource]) =>
+      JSON.stringify(resource.Properties?.Roles).includes(`${environment}DeploymentRole`),
+    );
+    assert.notEqual(policy, undefined);
+    const serialized = JSON.stringify(policy);
+    assert.match(serialized, /ssm:GetParameter/);
+    assert.match(serialized, /cdk-bootstrap\/hnb659fds\/version/);
+    assert.match(serialized, /cloudformation:DescribeStackEvents/);
+    assert.match(serialized, new RegExp(`TricoWeb-${environment}\\/\\*`));
+  }
+});
