@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { App } from 'aws-cdk-lib';
@@ -62,6 +63,53 @@ test('factory.delivery.foundation creates environment-scoped OIDC roles and prot
     assert.equal(name['Fn::GetAtt']?.[0], 'SesIdentity');
     assert.match(String(name['Fn::GetAtt']?.[1]), /^DkimDNSTokenName[123]$/);
   }
+});
+
+test('factory.delivery.ses-feedback-policy scopes SES publish permission to the configured identity and account', () => {
+  const template = deliveryTemplate().toJSON();
+  const topicPolicy = Object.values(
+    template.Resources as Record<string, { Type: string; Properties?: Record<string, unknown> }>,
+  ).find((resource) => resource.Type === 'AWS::SNS::TopicPolicy');
+  assert.notEqual(topicPolicy, undefined);
+
+  const policyDocument = topicPolicy?.Properties?.PolicyDocument as
+    | {
+        Statement?: readonly {
+          Action?: unknown;
+          Condition?: {
+            ArnEquals?: Record<string, unknown>;
+            StringEquals?: Record<string, unknown>;
+          };
+          Principal?: unknown;
+          Resource?: unknown;
+        }[];
+      }
+    | undefined;
+  const sesStatement = policyDocument?.Statement?.find((statement) =>
+    JSON.stringify(statement.Principal).includes('ses.amazonaws.com'),
+  );
+  assert.notEqual(sesStatement, undefined);
+  assert.equal(sesStatement?.Action, 'sns:Publish');
+  assert.deepEqual(sesStatement?.Condition?.StringEquals?.['aws:SourceAccount'], {
+    Ref: 'AWS::AccountId',
+  });
+  const sourceArn = JSON.stringify(sesStatement?.Condition?.ArnEquals?.['aws:SourceArn']);
+  assert.match(sourceArn, /:ses:/);
+  assert.match(sourceArn, /:identity\/example\.com/);
+  assert.deepEqual(sesStatement?.Principal, { Service: 'ses.amazonaws.com' });
+  assert.doesNotMatch(JSON.stringify(sesStatement), /"Resource":"\*"/);
+});
+
+test('factory.delivery.ses-feedback-policy documents idempotent feedback setup with forwarding enabled', async () => {
+  const runbook = await readFile(
+    new URL('../../docs/operations-runbook.md', import.meta.url),
+    'utf8',
+  );
+  assert.match(runbook, /set-identity-notification-topic/);
+  assert.match(runbook, /Bounce Complaint/);
+  assert.match(runbook, /--sns-topic/);
+  assert.match(runbook, /set-identity-feedback-forwarding-enabled/);
+  assert.match(runbook, /--forwarding-enabled/);
 });
 
 test('delivery OIDC trust binds each routine role to its GitHub environment', () => {

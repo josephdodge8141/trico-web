@@ -67,6 +67,16 @@ Feature: Immutable application delivery
     Then it creates environment-scoped OIDC roles and protected release stores
     And routine workflows cannot assume the foundation owner role
 
+  @id:factory.delivery.ses-feedback-policy @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Route verified SES bounce and complaint feedback through operations alerts
+    backend-noop: SES identity notifications and the operations SNS policy are factory infrastructure behavior outside the generated backend.
+    frontend-noop: Email feedback monitoring has no generated frontend interaction.
+    browser-noop: Feedback delivery is verified from the infrastructure template and operator runbook.
+    Given a verified SES sending identity and the operations SNS topic
+    When the delivery foundation is synthesized and SES feedback is configured
+    Then the topic permits SES publishing only for that identity in the current AWS account
+    And the setup sends bounce and complaint notifications to the topic while keeping email forwarding enabled
+
   @id:factory.delivery.disabled-external-sync @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Omit external AI access when synchronization is disabled
     backend-noop: Disabled external synchronization is enforced by deployment configuration and IAM.
