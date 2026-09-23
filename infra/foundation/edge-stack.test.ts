@@ -27,3 +27,24 @@ test('edge foundation creates separate DNS-validated dev and production certific
     ValidationMethod: 'DNS',
   });
 });
+
+test('edge foundation adds a production subdomain certificate without replacing production', () => {
+  const template = Template.fromStack(
+    new EdgeFoundationStack(new App(), 'TestEdgeFoundationSubdomain', {
+      config: {
+        ...exampleDeliveryConfig,
+        productionSubdomainDomain: 'prod.trico.example.com',
+      },
+    }),
+  );
+  template.resourceCountIs('AWS::CertificateManager::Certificate', 3);
+  template.hasResourceProperties('AWS::CertificateManager::Certificate', {
+    DomainName: 'trico.example.com',
+    ValidationMethod: 'DNS',
+  });
+  template.hasResourceProperties('AWS::CertificateManager::Certificate', {
+    DomainName: 'prod.trico.example.com',
+    ValidationMethod: 'DNS',
+  });
+  template.hasOutput('ProductionSubdomainCertificateArn', {});
+});
