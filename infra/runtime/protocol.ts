@@ -52,6 +52,16 @@ export type LifecycleCommand =
   | CleanupCompleteCommand
   | ReconcileCommand;
 
+export function commandEventSequence(
+  type: LifecycleCommand['type'],
+  sourceSequence: number,
+  lastEventSequence: number,
+): number {
+  return type === 'admit' || type === 'close'
+    ? sourceSequence
+    : Math.max(sourceSequence, lastEventSequence + 1);
+}
+
 export type GenerationPhase = 'launching' | 'healthy' | 'cleaning';
 export type CleanupReason = 'replaced' | 'closed' | 'startup-timeout' | 'expired';
 
@@ -74,6 +84,7 @@ export interface LifecycleState {
   generationCounter: number;
   lastEventSequence: number;
   lastCommandId: string;
+  lastSuccessfulRevision: string | null;
   closed: boolean;
   active: PreviewGeneration | null;
   retiring: PreviewGeneration | null;
@@ -288,27 +299,32 @@ function parseGeneration(value: unknown, path: string): PreviewGeneration {
 
 function parseState(value: unknown): LifecycleState {
   const parsed = record(value, 'state');
-  keys(
-    parsed,
-    [
-      'protocolVersion',
-      'identity',
-      'stateRevision',
-      'generationCounter',
-      'lastEventSequence',
-      'lastCommandId',
-      'closed',
-      'active',
-      'retiring',
-    ],
-    'state',
-  );
+  const hasRevisionFence = Object.hasOwn(parsed, 'lastSuccessfulRevision');
+  const stateKeys = [
+    'protocolVersion',
+    'identity',
+    'stateRevision',
+    'generationCounter',
+    'lastEventSequence',
+    'lastCommandId',
+    'closed',
+    'active',
+    'retiring',
+  ] as const;
+  keys(parsed, hasRevisionFence ? [...stateKeys, 'lastSuccessfulRevision'] : stateKeys, 'state');
   const protocolVersion = integer(parsed, 'protocolVersion', 'state', 1);
   if (protocolVersion !== LIFECYCLE_PROTOCOL_VERSION)
     fail('state.protocolVersion', 'unsupported version');
   const active = parsed.active === null ? null : parseGeneration(parsed.active, 'state.active');
   const retiring =
     parsed.retiring === null ? null : parseGeneration(parsed.retiring, 'state.retiring');
+  const lastSuccessfulRevision = hasRevisionFence
+    ? parsed.lastSuccessfulRevision === null
+      ? null
+      : sha(string(parsed, 'lastSuccessfulRevision', 'state'), 'state.lastSuccessfulRevision')
+    : active !== null && active.healthyAt !== null
+      ? active.revision
+      : null;
   if (retiring !== null && retiring.phase !== 'cleaning')
     fail('state.retiring.phase', 'must be cleaning');
   if (typeof parsed.closed !== 'boolean') fail('state.closed', 'expected a boolean');
@@ -319,6 +335,7 @@ function parseState(value: unknown): LifecycleState {
     generationCounter: integer(parsed, 'generationCounter', 'state'),
     lastEventSequence: integer(parsed, 'lastEventSequence', 'state', 1),
     lastCommandId: string(parsed, 'lastCommandId', 'state'),
+    lastSuccessfulRevision,
     closed: parsed.closed,
     active,
     retiring,
@@ -441,6 +458,7 @@ export function transitionLifecycle(input: LifecycleTransitionInput): LifecycleT
       generationCounter: 1,
       lastEventSequence: command.eventSequence,
       lastCommandId: command.commandId,
+      lastSuccessfulRevision: null,
       closed: false,
       active,
       retiring: null,
@@ -455,10 +473,23 @@ export function transitionLifecycle(input: LifecycleTransitionInput): LifecycleT
 
   if (command.type === 'admit') {
     if (state.closed) return rejected(state, 'preview-is-closed');
-    if (state.active === null) return rejected(state, 'preview-does-not-exist');
-    if (state.active.revision === command.revision)
+    if (state.active?.revision === command.revision)
       return semanticDuplicate(state, command, 'revision-already-admitted');
     if (state.retiring !== null) return rejected(state, 'retiring-cleanup-pending', true);
+    if (state.active === null) {
+      if (state.lastSuccessfulRevision === command.revision)
+        return semanticDuplicate(state, command, 'revision-already-admitted');
+      const active = generation(state.identity, state.generationCounter + 1, command.revision, now);
+      return accepted(
+        advance(state, command, {
+          generationCounter: active.ordinal,
+          active,
+          retiring: null,
+        }),
+      );
+    }
+    if (state.lastSuccessfulRevision === command.revision)
+      return rejected(state, 'revision-already-admitted');
     if (state.active.phase === 'cleaning') return rejected(state, 'active-cleanup-pending', true);
     const active = generation(state.identity, state.generationCounter + 1, command.revision, now);
     return accepted(
@@ -482,7 +513,12 @@ export function transitionLifecycle(input: LifecycleTransitionInput): LifecycleT
       healthyAt: now,
       expiresAt: new Date(Date.parse(now) + EXPIRY_DURATION_MS).toISOString(),
     };
-    return accepted(advance(state, command, { active }));
+    return accepted(
+      advance(state, command, {
+        active,
+        lastSuccessfulRevision: state.active.revision,
+      }),
+    );
   }
   if (command.type === 'deadline') {
     if (state.active?.id !== command.generation) return rejected(state, 'generation-is-not-active');

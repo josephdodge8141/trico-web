@@ -31,6 +31,54 @@ Feature: Bounded preview lifecycle
     Then the first health records one four hour expiry without extension
     And startup timeout or expiry schedules ownership-checked cleanup when due
 
+  @id:factory.lifecycle.readmit-after-expiry @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Admit a different revision after expiry cleanup completes
+    backend-noop: Re-admission after cleanup is factory lifecycle behavior outside the generated application backend.
+    frontend-noop: Re-admission after cleanup has no generated application frontend interaction.
+    browser-noop: Generation counters and cleanup completion are not observable through the public preview page.
+    Given an open pull request whose healthy preview generation expired and was cleaned
+    When a different current revision is admitted after cleanup completes
+    Then it creates the next deterministic generation and emits idempotent start work
+
+  @id:factory.lifecycle.same-sha-expiry-fence @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Do not restart the same successful revision after expiry
+    backend-noop: The successful revision fence is factory lifecycle behavior outside the generated application backend.
+    frontend-noop: The successful revision fence has no generated application frontend interaction.
+    browser-noop: Revision history and fixed expiry are not observable through the public preview page.
+    Given an open pull request whose healthy revision expired and was cleaned
+    When a newer ordered event requests the same revision again
+    Then it is recorded as a duplicate without creating a generation or start work
+    And its four hour lifetime is not reset
+
+  @id:factory.lifecycle.closed-cleanup-fence @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Keep a fully cleaned closed pull request closed
+    backend-noop: Closed pull request admission is factory lifecycle behavior outside the generated application backend.
+    frontend-noop: Closed pull request admission has no generated application frontend interaction.
+    browser-noop: Closed lifecycle state is not observable through the public preview page.
+    Given a closed pull request whose generation cleanup completed
+    When a later ordered event attempts to admit a revision
+    Then admission remains rejected as closed without start work
+
+  @id:factory.lifecycle.wait-for-retiring-cleanup @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Wait for retiring cleanup before re-admission
+    backend-noop: Retiring generation cleanup is factory lifecycle behavior outside the generated application backend.
+    frontend-noop: Retiring generation cleanup has no generated application frontend interaction.
+    browser-noop: Retiring generation state is not observable through the public preview page.
+    Given the active generation was cleaned but an older retiring generation remains
+    When a newer revision is admitted
+    Then admission is retryably rejected until retiring cleanup completes
+    And no new start work is emitted
+
+  @id:factory.lifecycle.delayed-admission-fence @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Reject delayed externally ordered lifecycle events
+    backend-noop: Ordered admission fencing is factory lifecycle behavior outside the generated application backend.
+    frontend-noop: Ordered admission fencing has no generated application frontend interaction.
+    browser-noop: Event sequence and state revision checks are not observable through the public preview page.
+    Given a newer lifecycle event was already recorded
+    When a delayed admission arrives with an older event sequence or stale state revision
+    Then it is rejected without replacing the current generation or emitting start work
+    And a delayed close with an older event sequence cannot close or alter current state
+
   @id:factory.lifecycle.owned-cleanup @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Keep cleanup completion bound to its generation
     backend-noop: Cleanup work and completion are factory runtime behavior outside the generated application backend.
