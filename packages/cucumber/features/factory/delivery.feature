@@ -1,6 +1,56 @@
 Feature: Immutable application delivery
   The factory builds one reviewed release and promotes the same artifacts through development and production.
 
+  @id:factory.delivery.automatic-main-delivery @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Automatically deliver one enabled main SHA through verified development to production
+    backend-noop: Automatic environment promotion is repository deployment workflow behavior outside the generated backend.
+    frontend-noop: Automatic promotion does not add a generated frontend interaction.
+    browser-noop: The same release SHA is verified in development and production before delivery completes.
+    Given automatic application delivery is enabled for main
+    When a commit is pushed to main
+    Then development builds and publishes the release artifacts for that exact SHA
+    And production starts only after development has verified its backend and frontend for that SHA
+    And production deploys the same immutable artifacts without building or publishing them again
+
+  @id:factory.delivery.automatic-main-disabled @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Do not automatically deliver main when automatic delivery is disabled
+    backend-noop: Automatic deployment enablement is repository workflow configuration.
+    frontend-noop: The disabled deployment path does not change the generated frontend.
+    browser-noop: No public deployment occurs when the repository disables automatic delivery.
+    Given automatic application delivery is disabled for main
+    When a commit is pushed to main
+    Then neither development nor production application deployment starts
+
+  @id:factory.delivery.automatic-main-stale @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Stop an automatic release that is no longer the main branch head
+    backend-noop: Stale release prevention is repository deployment workflow behavior.
+    frontend-noop: A stale release does not update the generated frontend.
+    browser-noop: A superseded SHA cannot replace the currently delivered main release.
+    Given an automatic main release SHA is no longer the main branch head
+    When its deployment stage is ready to activate
+    Then that stage stops before changing the environment
+    And a later main release may proceed through its own verified stages
+
+  @id:factory.delivery.promote-unverified-dev-rejects @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Reject production promotion without successful development verification
+    backend-noop: The production workflow requires a development verification receipt before mutation.
+    frontend-noop: A release that failed development smoke does not change production frontend files.
+    browser-noop: Production cannot publish a release manifest that was never verified in development.
+    Given a main release manifest exists but development deployment or smoke failed
+    When production promotion selects that release SHA
+    Then the workflow rejects it without a matching successful development verification receipt
+    And it stops before the production backup or application deployment
+
+  @id:factory.delivery.promote-historical-dev-verified @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Allow rollback to a historical release verified in development
+    backend-noop: Historical promotion is deployment workflow behavior outside the generated backend.
+    frontend-noop: The rollback uses the exact immutable frontend archive already verified in development.
+    browser-noop: Production smoke verifies the historical release after activation.
+    Given a main-branch ancestor has a strict development verification receipt matching its release manifest
+    When an operator dispatches production promotion for that historical SHA
+    Then production may continue through its image scan and backup gates
+    And it resolves the same backend digest and frontend checksum recorded by the receipt
+
   @id:factory.delivery.release-identity @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Publish one SHA-addressed release manifest
     backend-noop: Release publication is factory delivery behavior outside the generated application backend.
