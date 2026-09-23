@@ -1,7 +1,7 @@
 import { DescribeImageScanFindingsCommand, ECRClient } from '@aws-sdk/client-ecr';
 
 import {
-  requireCleanEcrImageScan,
+  requireCleanEcrImageScans,
   type EcrImageScanReader,
   type EcrImageScanTarget,
 } from './ecr-image-scan.js';
@@ -24,7 +24,7 @@ async function main(): Promise<void> {
   const client = new ECRClient({});
   const reader = createEcrImageScanReader(client);
   try {
-    await Promise.all(targets.map((target) => requireCleanEcrImageScan(reader, target)));
+    await requireCleanEcrImageScans(reader, targets);
   } finally {
     client.destroy();
   }

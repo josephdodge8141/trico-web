@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { requireCleanEcrImageScan, type EcrImageScanReader } from './ecr-image-scan.js';
+import {
+  requireCleanEcrImageScan,
+  requireCleanEcrImageScans,
+  type EcrImageScanReader,
+} from './ecr-image-scan.js';
 
 const target = {
   repositoryName: 'trico-web-release-backend',
@@ -49,6 +53,28 @@ test('factory.delivery.image-scan-gate allows a completed low and medium scan fo
     pollIntervalMs: 1,
   });
   assert.deepEqual(calls, [`${target.repositoryName}@${target.imageDigest}`]);
+});
+
+test('factory.trusted-preview.image-scan-gate stops checking targets after the first rejection', async () => {
+  const calls: string[] = [];
+  const secondTarget = {
+    repositoryName: 'trico-web-preview-frontend',
+    imageDigest: target.imageDigest,
+  };
+  await assert.rejects(
+    requireCleanEcrImageScans(
+      {
+        async describeImageScanFindings(repositoryName) {
+          calls.push(repositoryName);
+          return completed({ CRITICAL: 1 });
+        },
+      },
+      [target, secondTarget],
+      { timeoutMs: 100, pollIntervalMs: 1 },
+    ),
+    /CRITICAL=1/,
+  );
+  assert.deepEqual(calls, [target.repositoryName]);
 });
 
 test('factory.delivery.image-scan-gate polls pending results until the exact digest is complete', async () => {

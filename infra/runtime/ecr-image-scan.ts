@@ -82,6 +82,16 @@ export async function requireCleanEcrImageScan(
   }
 }
 
+export async function requireCleanEcrImageScans(
+  reader: EcrImageScanReader,
+  targets: readonly EcrImageScanTarget[],
+  options: EcrImageScanWaitOptions = {},
+): Promise<void> {
+  for (const target of targets) {
+    await requireCleanEcrImageScan(reader, target, options);
+  }
+}
+
 function scanTimeout(target: EcrImageScanTarget, timeoutMs: number): Error {
   return new Error(
     `ECR scan for ${target.repositoryName}@${target.imageDigest} did not complete within ${timeoutMs} milliseconds.`,
