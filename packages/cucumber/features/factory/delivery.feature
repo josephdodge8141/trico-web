@@ -117,6 +117,16 @@ Feature: Immutable application delivery
     Then it creates environment-scoped OIDC roles and protected release stores
     And routine workflows cannot assume the foundation owner role
 
+  @id:factory.delivery.production-subdomain-certificate @backend-noop @frontend-noop @browser-noop-eligible
+  Scenario: Add a production subdomain certificate without replacing the active production certificate
+    backend-noop: Certificate ownership and validation are permanent delivery infrastructure, not application backend behavior.
+    frontend-noop: Certificate issuance has no generated frontend behavior.
+    browser-noop: The certificate lifecycle is verified from the synthesized edge-foundation template.
+    Given a generic production subdomain is configured for the edge foundation
+    When the edge foundation is synthesized
+    Then it creates a DNS-validated certificate for that subdomain alongside the existing production certificate
+    And it exports a separate output for the new certificate ARN
+
   @id:factory.delivery.ses-feedback-policy @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Route verified SES bounce and complaint feedback through operations alerts
     backend-noop: SES identity notifications and the operations SNS policy are factory infrastructure behavior outside the generated backend.

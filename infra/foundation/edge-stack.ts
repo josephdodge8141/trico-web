@@ -29,6 +29,19 @@ export class EdgeFoundationStack extends Stack {
       domainName: config.productionDomain,
       validation: CertificateValidation.fromDns(parentZone),
     });
+    if (config.productionSubdomainDomain !== undefined) {
+      const productionSubdomainCertificate = new Certificate(
+        this,
+        'ProductionSubdomainCertificate',
+        {
+          domainName: config.productionSubdomainDomain,
+          validation: CertificateValidation.fromDns(parentZone),
+        },
+      );
+      new CfnOutput(this, 'ProductionSubdomainCertificateArn', {
+        value: productionSubdomainCertificate.certificateArn,
+      });
+    }
     new CfnAnomalySubscription(this, 'CostAnomalySubscription', {
       frequency: 'DAILY',
       monitorArnList: [config.costAnomalyMonitorArn],

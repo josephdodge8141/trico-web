@@ -15,6 +15,14 @@ test('factory.delivery.foundation accepts explicit repository DNS and operator c
   );
 });
 
+test('delivery foundation accepts an optional side-by-side production subdomain', () => {
+  const config = {
+    ...exampleDeliveryConfig,
+    productionSubdomainDomain: 'prod.trico.example.com',
+  };
+  assert.deepEqual(parseDeliveryConfig(config), config);
+});
+
 test('delivery foundation rejects widened repository or domain configuration', () => {
   assert.throws(
     () => parseDeliveryConfig({ ...exampleDeliveryConfig, repository: 'other/repository/extra' }),
@@ -27,6 +35,22 @@ test('delivery foundation rejects widened repository or domain configuration', (
   assert.throws(
     () => parseDeliveryConfig({ ...exampleDeliveryConfig, previewZoneName: 'example.com' }),
     /previewZoneName/,
+  );
+  assert.throws(
+    () =>
+      parseDeliveryConfig({
+        ...exampleDeliveryConfig,
+        productionSubdomainDomain: 'prod.other.example.net',
+      }),
+    /productionSubdomainDomain/,
+  );
+  assert.throws(
+    () =>
+      parseDeliveryConfig({
+        ...exampleDeliveryConfig,
+        productionSubdomainDomain: exampleDeliveryConfig.productionDomain,
+      }),
+    /productionSubdomainDomain/,
   );
   assert.throws(
     () => parseDeliveryConfig({ ...exampleDeliveryConfig, monthlyBudgetUsd: '50usd' }),

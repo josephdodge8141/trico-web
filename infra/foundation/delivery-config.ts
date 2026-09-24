@@ -19,6 +19,7 @@ export const deliveryConfigSchema = z
     previewZoneName: z.string().regex(dnsName),
     devDomain: z.string().regex(dnsName),
     productionDomain: z.string().regex(dnsName),
+    productionSubdomainDomain: z.string().regex(dnsName).optional(),
     sesIdentityDomain: z.string().regex(dnsName),
     costAnomalyMonitorArn: z
       .string()
@@ -47,6 +48,25 @@ export const deliveryConfigSchema = z
         message: 'sesIdentityDomain must equal parentZoneName',
         path: ['sesIdentityDomain'],
       });
+    }
+    if (value.productionSubdomainDomain !== undefined) {
+      if (!value.productionSubdomainDomain.endsWith(`.${value.parentZoneName}`)) {
+        context.addIssue({
+          code: 'custom',
+          message: 'productionSubdomainDomain must be below parentZoneName',
+          path: ['productionSubdomainDomain'],
+        });
+      }
+      if (
+        value.productionSubdomainDomain === value.devDomain ||
+        value.productionSubdomainDomain === value.productionDomain
+      ) {
+        context.addIssue({
+          code: 'custom',
+          message: 'productionSubdomainDomain must be distinct from devDomain and productionDomain',
+          path: ['productionSubdomainDomain'],
+        });
+      }
     }
   });
 
