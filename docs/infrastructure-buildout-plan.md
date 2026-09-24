@@ -86,7 +86,7 @@ The application stacks own runtime resources. A new delivery-bootstrap stack sho
   npm run check
   ```
 
-- [ ] Run the local integration gates:
+- [x] Run the local integration gates:
 
   ```sh
   docker compose up --build -d
@@ -94,6 +94,8 @@ The application stacks own runtime resources. A new delivery-bootstrap stack sho
   npm run test:browser:compose -w @app/frontend
   docker compose ps
   ```
+
+  Evidence: isolated project `trico-proof-20260923` became healthy and seeded successfully; `/` and `/api/v1/health` returned HTTP 200; the Compose browser suite passed 17/17; and the frontend canonical Cucumber report covered 69 scenarios / 508 steps (69 exercised outcomes and 155 justified no-op outcomes). The project-owned resources were removed without touching pre-existing volumes.
 
 - [ ] Run the clean-clone proof:
 
@@ -393,23 +395,25 @@ Configure secrets:
 
 ### First preview
 
-- [ ] Open a controlled pull request.
+- [x] Open a controlled pull request.
 - [ ] Confirm candidate checks run without AWS credentials.
-- [ ] Confirm admission checksums and repository/run identity are validated.
-- [ ] Confirm images are pushed and resolved to digests.
-- [ ] Confirm one tagged Fargate task starts.
-- [ ] Confirm the lifecycle row is written.
-- [ ] Confirm the DNS record resolves:
+- [x] Confirm admission checksums and repository/run identity are validated.
+- [x] Confirm images are pushed and resolved to digests.
+- [x] Confirm one tagged Fargate task starts.
+- [x] Confirm the lifecycle row is written.
+- [x] Confirm the DNS record resolves:
 
   ```text
   pr-<number>.preview.trico.joedodge.dev
   ```
 
-- [ ] Confirm HTTPS succeeds.
-- [ ] Confirm `/api/v1/health` reports healthy.
-- [ ] Confirm the canonical Cucumber and Playwright adapters pass remotely.
+- [x] Confirm HTTPS succeeds.
+- [x] Confirm `/api/v1/health` reports healthy.
+- [x] Confirm the canonical Cucumber and Playwright adapters pass remotely.
 - [ ] Confirm editor access works.
 - [ ] Confirm Mailpit requires authentication.
+
+  Evidence for the checked preview items is limited to PR #33 candidate SHA `1bc79c3241aa5d747ac2f88ccb433702da15909c`: trusted preview admission run [35942799483](https://github.com/josephdodge8141/trico-web/actions/runs/35942799483) passed its artifact-identity checks, published digest-addressed images, admitted a four-hour preview, and passed 18 Cucumber scenarios / 120 steps and five browser tests. An additional isolated publication/history/rollback Playwright test on that preview passed 1/1. This evidence does not cover later candidate SHAs until they pass a fresh preview gate.
 
 ### Replacement and cleanup
 
@@ -438,17 +442,19 @@ Configure secrets:
 
 ### First development deployment
 
-- [ ] Merge the verified workflow/application changes to `main`.
-- [ ] Confirm the application workflow publishes:
+- [x] Merge the verified workflow/application changes to `main`.
+- [x] Confirm the application workflow publishes:
   - Backend image tagged by exact main SHA
   - Backend immutable digest
   - Frontend archive under `releases/<sha>/`
-- [ ] Deploy `TricoWeb-dev`.
-- [ ] Run checksum-safe bootstrap.
-- [ ] Upload static frontend assets.
-- [ ] Complete CloudFront invalidation.
-- [ ] Verify all six public routes.
-- [ ] Verify protected editor login.
+- [x] Deploy `TricoWeb-dev`.
+- [x] Run checksum-safe bootstrap.
+- [x] Upload static frontend assets.
+- [x] Complete CloudFront invalidation.
+- [x] Verify all six public routes.
+- [x] Verify protected editor login.
+
+  Evidence for this deployment sequence: successful automatic application deployment run [35941452616](https://github.com/josephdodge8141/trico-web/actions/runs/35941452616), release SHA `34257846cf55ca0b0f2c3a4a7debd1a0ee21a287`.
 
 ### Functional soak
 
@@ -479,13 +485,13 @@ Configure secrets:
 - [ ] Add API Gateway 4xx/5xx and latency alarms.
 - [ ] Add CloudFront error-rate alarms.
 - [ ] Add preview-cleanup failure notification.
-- [ ] Create a small CloudWatch dashboard.
+- [x] Create a small CloudWatch dashboard.
 - [ ] Decide whether to enable CloudFront and API access logs.
 - [ ] Define log retention by environment.
 
 ### Cost controls
 
-- [ ] Create a monthly AWS budget.
+- [x] Create a monthly AWS budget.
 - [ ] Create a cost-anomaly monitor.
 - [ ] Tag all owned resources by application, environment, and scope.
 - [ ] Validate preview expiry and ECR cleanup prevent unbounded cost.
@@ -577,8 +583,11 @@ Infrastructure is complete only when:
 - [ ] A clean checkout passes the complete repository gate.
 - [ ] Every pull request can receive a controlled preview.
 - [ ] Preview replacement, closure, failure, and expiry leave no orphaned resources.
-- [ ] Merge to `main` deploys development automatically.
-- [ ] Production promotes the same immutable artifacts tested in development.
+- [x] Merge to `main` deploys development automatically.
+- [x] Production promotes the same immutable artifacts tested in development.
+
+  Evidence: run [35941452616](https://github.com/josephdodge8141/trico-web/actions/runs/35941452616) completed its automatic development job and separate production promotion job for the same SHA, backend digest, and frontend checksum.
+
 - [ ] GitHub uses short-lived OIDC credentials only.
 - [ ] `main` and `prod` are protected.
 - [ ] DNS and certificates are validated.
