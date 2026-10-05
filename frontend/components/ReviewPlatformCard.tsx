@@ -1,4 +1,5 @@
 import { ExternalLink, PenLine, Star } from 'lucide-react';
+import { Card } from './ui/card.js';
 
 type ReviewPlatform = 'facebook' | 'google' | 'other' | 'yelp';
 
@@ -90,8 +91,9 @@ export function ReviewPlatformCard({
 }: ReviewPlatformCardProps) {
   const platform = platformForName(name);
   return (
-    <article
-      className="review-platform-card"
+    <Card
+      role="article"
+      className="review-platform-card gap-0"
       data-review-platform-card="true"
       data-review-platform={platform}
     >
@@ -107,6 +109,6 @@ export function ReviewPlatformCard({
           {actionLabel} {name} <ExternalLink aria-hidden="true" />
         </a>
       )}
-    </article>
+    </Card>
   );
 }

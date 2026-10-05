@@ -98,6 +98,7 @@ import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ProfileCard } from '../components/ProfileCard.js';
 import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
+import { SectionHeading } from '../components/SectionHeading.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -258,11 +259,15 @@ function Heading({
   readonly descriptionClassName?: string;
 }): React.JSX.Element {
   return (
-    <header className={`pm-section-heading ui-section-heading ${headingClassName}`}>
-      <span className={eyebrowClassName}>{value.eyebrow}</span>
-      <h2 className={`type-section-title ${titleClassName}`}>{value.heading}</h2>
-      <p className={descriptionClassName}>{value.description}</p>
-    </header>
+    <SectionHeading
+      className={`pm-section-heading ui-section-heading ${headingClassName}`}
+      eyebrowClassName={eyebrowClassName}
+      eyebrow={value.eyebrow}
+      heading={value.heading}
+      titleClassName={titleClassName}
+      description={value.description}
+      descriptionClassName={descriptionClassName}
+    />
   );
 }
 

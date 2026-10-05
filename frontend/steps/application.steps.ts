@@ -691,6 +691,10 @@ Then(
     const roles = await this.currentPage().evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement);
       return {
+        theme: document.documentElement.dataset.theme,
+        primary: styles.getPropertyValue('--primary').trim(),
+        info: styles.getPropertyValue('--info').trim(),
+        accent: styles.getPropertyValue('--accent').trim(),
         dark: styles.getPropertyValue('--trico-color-dark').trim(),
         deep: styles.getPropertyValue('--trico-color-deep').trim(),
         light: styles.getPropertyValue('--trico-color-light').trim(),
@@ -703,6 +707,10 @@ Then(
       };
     });
     assert.deepEqual(roles, {
+      theme: 'ds-21',
+      primary: '#00128a',
+      info: '#5e85ba',
+      accent: '#86622d',
       dark: '#00128a',
       deep: '#000a4d',
       light: '#5e85ba',
@@ -713,6 +721,20 @@ Then(
       rating: '#5e85ba',
       brandAccent: '#86622d',
     });
+    const stylesheet = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+    for (const [role, token] of [
+      ['dark', 'primary'],
+      ['deep', 'sidebar'],
+      ['light', 'info'],
+      ['gold', 'accent'],
+      ['action', 'primary'],
+      ['highlight', 'info'],
+      ['stat', 'info'],
+      ['rating', 'info'],
+      ['brand-accent', 'accent'],
+    ]) {
+      assert.ok(stylesheet.includes(`--trico-color-${role}: var(--${token});`));
+    }
   },
 );
 Then(
@@ -888,7 +910,7 @@ const reviewPlatformSamples = [
 ] as const;
 
 Then(
-  'Real Estate Property Management Construction Storage and Development use one review platform card contract',
+  'Real Estate Property Management Construction Storage and Development use the template Card for one review platform contract',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     for (const sample of reviewPlatformSamples) {
@@ -898,6 +920,7 @@ Then(
       const cards = grid.locator('[data-review-platform-card="true"]');
       await expect(cards).toHaveCount(3);
       for (const card of await cards.all()) {
+        await expect(card).toHaveAttribute('data-slot', 'card');
         await expect(card).toHaveCSS('display', 'flex');
         await expect(card).toHaveCSS('text-align', 'center');
       }

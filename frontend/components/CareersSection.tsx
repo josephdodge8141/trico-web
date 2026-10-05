@@ -15,12 +15,15 @@ import {
 } from '@app/schemas';
 
 import { useEditMode } from '../context/editMode.js';
+import { Container } from '../design-system/layout.js';
 import { CareerApplicationForm } from './CareerApplicationForm.js';
 import type { CareerDivision } from './careerApplication.js';
 import type { PageId } from '../pages/pageContent.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
 import { EditableBoundary, type EditorOwnership } from './EditableBoundary.js';
 import { EditableCollection } from './EditableCollection.js';
+import { Card } from './ui/card.js';
+import { Button } from './ui/button.js';
 
 type CareersEntityId =
   'home.careers.header' | 'home.careers.open-positions' | 'home.careers.resume-intro';
@@ -70,7 +73,7 @@ function CareerCard({
   readonly onApply: (position: HomeCareerPosition) => void;
 }): React.JSX.Element {
   return (
-    <article className="ui-career-card">
+    <Card role="article" className="ui-career-card">
       <div>
         <h3 className="type-card-title type-card-title-xs">
           <Briefcase aria-hidden="true" /> {position.title}
@@ -84,10 +87,10 @@ function CareerCard({
           </span>
         </p>
       </div>
-      <button type="button" onClick={() => onApply(position)}>
+      <Button type="button" variant="outline" onClick={() => onApply(position)}>
         Apply Now
-      </button>
-    </article>
+      </Button>
+    </Card>
   );
 }
 
@@ -160,94 +163,96 @@ export function CareersSection({ pageId }: { readonly pageId: PageId }): React.J
 
   return (
     <section id="careers" className="ui-section ui-careers ui-shared-careers">
-      <div className="ui-wide-frame ui-careers-container">
-        {editable ? (
-          <div className="ui-entity-slot" data-home-entity-boundary="true">
-            <EditableBoundary
-              active={editing.active}
-              definition={definitionFor('home.careers.header')}
-              value={editableValueSchema.parse(content.header)}
-              ownership={ownershipFor(
-                'home.careers.header',
-                editing.pending,
-                editing.currentUserId,
-              )}
-              busy={editing.busy}
-              onSave={(next) => editing.save('home.careers.header', next)}
-              onReloadLatest={() => editing.reload('home.careers.header')}
-            >
-              {heading}
-            </EditableBoundary>
-          </div>
-        ) : (
-          heading
-        )}
+      <Container width="full" className="!px-0">
+        <div className="ui-wide-frame ui-careers-container">
+          {editable ? (
+            <div className="ui-entity-slot" data-home-entity-boundary="true">
+              <EditableBoundary
+                active={editing.active}
+                definition={definitionFor('home.careers.header')}
+                value={editableValueSchema.parse(content.header)}
+                ownership={ownershipFor(
+                  'home.careers.header',
+                  editing.pending,
+                  editing.currentUserId,
+                )}
+                busy={editing.busy}
+                onSave={(next) => editing.save('home.careers.header', next)}
+                onReloadLatest={() => editing.reload('home.careers.header')}
+              >
+                {heading}
+              </EditableBoundary>
+            </div>
+          ) : (
+            heading
+          )}
 
-        {editable ? (
-          <div className="ui-entity-slot" data-home-entity-boundary="true">
-            <EditableCollection
-              active={editing.active}
-              definition={definitionFor('home.careers.open-positions')}
-              value={content.positions}
-              renderItem={(item) => {
-                const position = homeCareersOpenPositionsSchema.parse([item])[0];
-                if (position === undefined)
-                  throw new Error('Career position could not be rendered');
-                return <CareerCard position={position} onApply={applyFor} />;
-              }}
-              ownership={ownershipFor(
-                'home.careers.open-positions',
-                editing.pending,
-                editing.currentUserId,
-              )}
-              busy={editing.busy}
-              onSave={(next: readonly EditableValue[]) =>
-                editing.save('home.careers.open-positions', next)
-              }
-              onReloadLatest={() => editing.reload('home.careers.open-positions')}
+          {editable ? (
+            <div className="ui-entity-slot" data-home-entity-boundary="true">
+              <EditableCollection
+                active={editing.active}
+                definition={definitionFor('home.careers.open-positions')}
+                value={content.positions}
+                renderItem={(item) => {
+                  const position = homeCareersOpenPositionsSchema.parse([item])[0];
+                  if (position === undefined)
+                    throw new Error('Career position could not be rendered');
+                  return <CareerCard position={position} onApply={applyFor} />;
+                }}
+                ownership={ownershipFor(
+                  'home.careers.open-positions',
+                  editing.pending,
+                  editing.currentUserId,
+                )}
+                busy={editing.busy}
+                onSave={(next: readonly EditableValue[]) =>
+                  editing.save('home.careers.open-positions', next)
+                }
+                onReloadLatest={() => editing.reload('home.careers.open-positions')}
+              />
+            </div>
+          ) : filteredPositions.length === 0 ? (
+            <p className="ui-careers-empty" role="status">
+              No openings are currently listed for {pageDivision}. You can still submit your resume
+              for future opportunities.
+            </p>
+          ) : (
+            <div className="ui-careers-list">
+              {filteredPositions.map((position) => (
+                <CareerCard key={position.id} position={position} onApply={applyFor} />
+              ))}
+            </div>
+          )}
+
+          {editable ? (
+            <div className="ui-entity-slot" data-home-entity-boundary="true">
+              <EditableBoundary
+                active={editing.active}
+                definition={definitionFor('home.careers.resume-intro')}
+                value={editableValueSchema.parse(content.resumeIntro)}
+                ownership={ownershipFor(
+                  'home.careers.resume-intro',
+                  editing.pending,
+                  editing.currentUserId,
+                )}
+                busy={editing.busy}
+                onSave={(next) => editing.save('home.careers.resume-intro', next)}
+                onReloadLatest={() => editing.reload('home.careers.resume-intro')}
+              >
+                {resumeHeading}
+              </EditableBoundary>
+            </div>
+          ) : (
+            resumeHeading
+          )}
+          <div className="ui-form-surface ui-form-surface--inquiry">
+            <CareerApplicationForm
+              initialDivision={applicationDivision}
+              initialPosition={applicationPosition}
             />
           </div>
-        ) : filteredPositions.length === 0 ? (
-          <p className="ui-careers-empty" role="status">
-            No openings are currently listed for {pageDivision}. You can still submit your resume
-            for future opportunities.
-          </p>
-        ) : (
-          <div className="ui-careers-list">
-            {filteredPositions.map((position) => (
-              <CareerCard key={position.id} position={position} onApply={applyFor} />
-            ))}
-          </div>
-        )}
-
-        {editable ? (
-          <div className="ui-entity-slot" data-home-entity-boundary="true">
-            <EditableBoundary
-              active={editing.active}
-              definition={definitionFor('home.careers.resume-intro')}
-              value={editableValueSchema.parse(content.resumeIntro)}
-              ownership={ownershipFor(
-                'home.careers.resume-intro',
-                editing.pending,
-                editing.currentUserId,
-              )}
-              busy={editing.busy}
-              onSave={(next) => editing.save('home.careers.resume-intro', next)}
-              onReloadLatest={() => editing.reload('home.careers.resume-intro')}
-            >
-              {resumeHeading}
-            </EditableBoundary>
-          </div>
-        ) : (
-          resumeHeading
-        )}
-        <div className="ui-form-surface ui-form-surface--inquiry">
-          <CareerApplicationForm
-            initialDivision={applicationDivision}
-            initialPosition={applicationPosition}
-          />
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

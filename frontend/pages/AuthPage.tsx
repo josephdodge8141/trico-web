@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button } from '../components/ui/button.js';
 
 import {
   confirmPasswordReset,
@@ -109,12 +110,12 @@ export function AuthPage({ mode }: { readonly mode: AuthMode }): React.JSX.Eleme
             />
           </label>
         ) : null}
-        <button
+        <Button
           type="submit"
           disabled={busy || ((mode === 'verify' || mode === 'confirm-reset') && token === '')}
         >
           {busy ? 'Working…' : 'Continue'}
-        </button>
+        </Button>
         {message === '' ? null : <p role="status">{message}</p>}
         <nav>
           <Link to="/login">Sign in</Link>

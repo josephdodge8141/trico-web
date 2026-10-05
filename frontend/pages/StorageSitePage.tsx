@@ -70,6 +70,7 @@ import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
+import { SectionHeading as SharedSectionHeading } from '../components/SectionHeading.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -189,11 +190,13 @@ function SectionHeading({
   readonly titleClassName?: string;
 }): React.JSX.Element {
   return (
-    <header className={`storage-section-heading ui-section-heading ${className}`}>
-      <span>{value.eyebrow}</span>
-      <h2 className={`type-section-title ${titleClassName}`}>{value.heading}</h2>
-      <p>{value.description}</p>
-    </header>
+    <SharedSectionHeading
+      className={`storage-section-heading ui-section-heading ${className}`}
+      eyebrow={value.eyebrow}
+      heading={value.heading}
+      titleClassName={titleClassName}
+      description={value.description}
+    />
   );
 }
 

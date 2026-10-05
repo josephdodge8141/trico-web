@@ -1,5 +1,6 @@
 import { Mail, Phone, UserRound } from 'lucide-react';
 import { useState } from 'react';
+import { Card } from './ui/card.js';
 
 export interface ProfileCardProps {
   readonly description: string;
@@ -26,7 +27,7 @@ export function ProfileCard({
   const hasPortrait = imageSource !== undefined && failedImageSource !== imageSource;
 
   return (
-    <article className="profile-card" data-profile-card="true">
+    <Card role="article" className="profile-card gap-0 p-0" data-profile-card="true">
       {hasPortrait ? (
         <div className="profile-card-media" data-profile-media-state="available">
           <img
@@ -68,6 +69,6 @@ export function ProfileCard({
           </div>
         ) : null}
       </div>
-    </article>
+    </Card>
   );
 }

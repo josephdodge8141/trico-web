@@ -81,6 +81,7 @@ import { navigationWithCareers } from '../components/careersNavigation.js';
 import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
+import { SectionHeading } from '../components/SectionHeading.js';
 import { SelectField } from '../components/SelectField.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
@@ -223,11 +224,13 @@ function Heading({
   readonly headingClassName?: string;
 }): React.JSX.Element {
   return (
-    <header className={`co-heading ui-heading ${headingClassName}`}>
-      <span>{eyebrow}</span>
-      <h2 className={`type-section-title ${titleClassName}`}>{title}</h2>
-      <p>{copy}</p>
-    </header>
+    <SectionHeading
+      className={`co-heading ui-heading ${headingClassName}`}
+      eyebrow={eyebrow}
+      heading={title}
+      titleClassName={titleClassName}
+      description={copy}
+    />
   );
 }
 

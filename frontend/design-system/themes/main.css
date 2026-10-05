@@ -1,0 +1,177 @@
+/* TriCo's Tailwind v4 token entry, derived from fullstack-ts DS-21. */
+
+@layer theme, reset, tokens, base, template-utilities, components, pages, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(template-utilities) source('../..');
+
+@import './presets/ds-21-trico.css';
+@import './presets/ds-21-trico.fonts.css';
+
+/* Establish a lower layer before the existing site's components, pages, and utilities. */
+@layer template-utilities {
+  :root {
+    --trico-utility-layer-order: 0;
+  }
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Color: shadcn semantic baseline */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Color: status, links, selection and overlay extensions */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-link: var(--link);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-overlay: var(--overlay);
+
+  /* Color: data and navigation */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Typography */
+  --font-sans: var(--type-body);
+  --font-heading: var(--type-display);
+  --font-display: var(--type-display);
+  --font-mono: var(--type-mono);
+
+  /* Shape and density */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --spacing: calc(0.25rem * var(--density));
+
+  /* Elevation */
+  --shadow-2xs: var(--elevation-xs);
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+  --shadow-xl: var(--elevation-xl);
+  --shadow-2xl: var(--elevation-xl);
+
+  /* Motion: bare `transition`, `transition-colors`, `ease-*` and tw-animate enter/exit */
+  --default-transition-duration: var(--motion-duration-base);
+  --default-transition-timing-function: var(--motion-ease-standard);
+  --ease-in: var(--motion-ease-exit);
+  --ease-out: var(--motion-ease-enter);
+  --ease-in-out: var(--motion-ease-standard);
+  --ease-standard: var(--motion-ease-standard);
+  --ease-emphasized: var(--motion-ease-emphasized);
+  --animate-in: ds-enter var(--motion-duration-overlay) var(--motion-ease-enter)
+    var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-out: ds-exit var(--motion-duration-overlay) var(--motion-ease-exit)
+    var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+
+  /*
+   * tw-animate enter/exit with the zoom mapped onto the preset scale: `zoom-in-95` resolves to
+   * `--motion-scale`, larger zooms scale proportionally and unzoomed overlays stay at 1.
+   */
+  @keyframes ds-enter {
+    from {
+      opacity: var(--tw-enter-opacity, 1);
+      transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0)
+        scale(calc(1 - (1 - var(--tw-enter-scale, 1)) * (1 - var(--motion-scale)) * 20))
+        rotate(var(--tw-enter-rotate, 0));
+      filter: blur(var(--tw-enter-blur, 0));
+    }
+  }
+
+  @keyframes ds-exit {
+    to {
+      opacity: var(--tw-exit-opacity, 1);
+      transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0)
+        scale(calc(1 - (1 - var(--tw-exit-scale, 1)) * (1 - var(--motion-scale)) * 20))
+        rotate(var(--tw-exit-rotate, 0));
+      filter: blur(var(--tw-exit-blur, 0));
+    }
+  }
+}
+
+/*
+ * The fixed shadcn/ui base hard-codes numeric `duration-*` utilities. These unlayered rules
+ * remap those exact classes onto the preset motion scale so motion propagates without
+ * editing the pinned component files. `duration-0` and long progress timings are untouched.
+ */
+.duration-75,
+.duration-100 {
+  transition-duration: var(--motion-duration-fast);
+}
+
+.duration-150,
+.duration-200 {
+  transition-duration: var(--motion-duration-base);
+}
+
+.duration-250,
+.duration-300,
+.duration-400,
+.duration-450 {
+  transition-duration: var(--motion-duration-slow);
+}
+
+/* Base-set backdrops and the slider thumb hard-code black and white; route them to tokens. */
+.bg-black\/10 {
+  background-color: var(--overlay);
+}
+
+[data-slot='slider-thumb'].bg-white {
+  background-color: var(--background);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -73,6 +73,7 @@ import { contentIconComponents } from '../components/contentIcons.js';
 import { EditorToolbar } from '../components/EditorToolbar.js';
 import { ProfileCard } from '../components/ProfileCard.js';
 import { ReviewPlatformCard, ReviewRating } from '../components/ReviewPlatformCard.js';
+import { SectionHeading } from '../components/SectionHeading.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
@@ -473,17 +474,16 @@ function RealEstateSectionHeading({
   readonly className?: string;
   readonly tagClassName?: string;
 }): React.JSX.Element {
-  const Title = level;
   return (
-    <header
+    <SectionHeading
       className={`re-section-heading ui-section-heading ui-heading-measure-standard ${className}`}
-    >
-      <span className={`re-pill ui-pill ${tagClassName}`}>{eyebrow}</span>
-      {heading === undefined ? null : (
-        <Title className={`type-section-title ${titleClassName}`}>{heading}</Title>
-      )}
-      {description === undefined ? null : <p>{description}</p>}
-    </header>
+      eyebrowClassName={`re-pill ui-pill ${tagClassName}`}
+      eyebrow={eyebrow}
+      heading={heading}
+      description={description}
+      level={level}
+      titleClassName={titleClassName}
+    />
   );
 }
 

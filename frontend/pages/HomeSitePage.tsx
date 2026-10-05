@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Container } from '../design-system/layout.js';
 import {
   editableValueSchema,
   homeCoreValueItemSchema,
@@ -307,13 +308,15 @@ function HomePageBody(): React.JSX.Element {
       <main id="main-content">
         <ObjectBoundary entityId="home.hero" value={content.hero}>
           <section className="home-hero ui-hero ui-hero-plain" aria-labelledby="home-heading">
-            <div className="home-container ui-container ui-content-frame-standard">
-              <h1 id="home-heading" className="type-display type-display-large">
-                {content.hero.heading}
-              </h1>
-              <p className="ui-hero-description-large">{content.hero.description}</p>
-              <span className="home-accent-rule ui-accent-rule" aria-hidden="true" />
-            </div>
+            <Container width="full" className="!px-0">
+              <div className="home-container ui-container ui-content-frame-standard">
+                <h1 id="home-heading" className="type-display type-display-large">
+                  {content.hero.heading}
+                </h1>
+                <p className="ui-hero-description-large">{content.hero.description}</p>
+                <span className="home-accent-rule ui-accent-rule" aria-hidden="true" />
+              </div>
+            </Container>
           </section>
         </ObjectBoundary>
 

@@ -133,7 +133,7 @@ Feature: Published TriCo website
     backend-noop: Review-platform branding, rating color, card geometry, and responsive presentation are browser-owned visual behavior.
     Given the current content manifest is available
     When I open "/real-estate"
-    Then Real Estate Property Management Construction Storage and Development use one review platform card contract
+    Then Real Estate Property Management Construction Storage and Development use the template Card for one review platform contract
     And Google Facebook and Yelp use accessible platform-specific brand treatments
     And review ratings use the shared blue rating role
     And review platform descriptions use the shared compact copy role

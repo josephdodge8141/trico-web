@@ -1,14 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import '@fontsource/lato/latin-400.css';
-import '@fontsource/lato/latin-700.css';
-import '@fontsource/open-sans/latin-400.css';
-import '@fontsource/open-sans/latin-500.css';
-import '@fontsource/open-sans/latin-600.css';
-import '@fontsource/open-sans/latin-700.css';
-
 import { App } from './App.js';
+import './design-system/themes/main.css';
 import './styles.css';
 import './pages/home.css';
 import './pages/property-management.css';
@@ -18,6 +12,8 @@ import './pages/storage.css';
 import './pages/development.css';
 
 const rootElement = document.getElementById('root');
+
+document.documentElement.dataset.theme = 'ds-21';
 
 if (rootElement === null) {
   throw new Error('Application root element is missing');
