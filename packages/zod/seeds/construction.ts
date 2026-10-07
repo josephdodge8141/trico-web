@@ -138,30 +138,30 @@ const baseSeeds: Readonly<Record<string, EditableValue>> = {
   ],
   'construction.current-projects.header': {
     eyebrow: 'Current Projects',
-    heading: 'Built Across Every Sector',
-    description: 'Select a sector to view our active construction projects.',
+    heading: 'Current Projects',
+    description: 'Explore published active projects, or ask our team about current work.',
     cardActionLabel: 'View projects',
   },
   'construction.completed-projects.header': {
     eyebrow: 'Completed Projects',
-    heading: 'Built Across Every Sector',
-    description: 'Select a sector to view our completed work.',
+    heading: 'Completed Projects',
+    description: 'Explore published completed projects, or ask about relevant experience.',
     cardActionLabel: 'View projects',
   },
   'construction.plan-room.header': {
     eyebrow: 'Subcontractor Access',
     heading: 'Plan Room',
     description:
-      'Current subcontractors can access the latest project plans, drawings, and specifications. Always confirm you are working from the latest set.',
+      'Project plans, drawings, and specifications are shared with approved subcontractors by request. Always confirm you are working from the latest set.',
     planListHeading: 'Current Project Plans',
     viewPlansLabel: 'View Plans',
     specificationsLabel: 'Specs',
   },
   'construction.plan-room.access-notice': {
     icon: 'Lock',
-    heading: 'Login Required',
+    heading: 'Restricted plans',
     description:
-      'Plan access is restricted to approved subcontractors and vendors. Request credentials below.',
+      'Plans and specifications are shared directly with approved subcontractors and vendors.',
   },
   'construction.plan-room.plan-sets': [
     {
@@ -198,10 +198,10 @@ const baseSeeds: Readonly<Record<string, EditableValue>> = {
     },
   ],
   'construction.plan-room.request-access': {
-    heading: 'Need Plan Room Access?',
+    heading: 'Request project plans',
     description:
-      'Subcontractors and vendors can request login credentials to view the latest drawings.',
-    actionLabel: 'Request Access',
+      'Subcontractors and vendors can request drawings and specifications for a project.',
+    actionLabel: 'Request Plans',
     email: 'Office@tricoinc.com',
   },
   'construction.pros.header': {
@@ -366,26 +366,7 @@ const baseSeeds: Readonly<Record<string, EditableValue>> = {
     description:
       'Your feedback helps others discover the TriCo difference. Pick your favorite platform below.',
   },
-  'construction.reviews.platforms': [
-    {
-      id: uid(49),
-      name: 'Google',
-      description: 'Share your experience and help others make an informed decision.',
-      externalUrl: '',
-    },
-    {
-      id: uid(50),
-      name: 'Facebook',
-      description: 'Share your experience and help others make an informed decision.',
-      externalUrl: '',
-    },
-    {
-      id: uid(51),
-      name: 'Yelp',
-      description: 'Share your experience and help others make an informed decision.',
-      externalUrl: '',
-    },
-  ],
+  'construction.reviews.platforms': [],
   'construction.reviews.footer': {
     message: 'Prefer to share feedback privately? Email',
     email: 'Office@tricoinc.com',

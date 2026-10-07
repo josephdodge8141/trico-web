@@ -1,11 +1,20 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useRef, useState } from 'react';
 
 import { editableValueSchema, type EditableValue, type EntityEditorDefinition } from '@app/schemas';
 import type { z } from 'zod';
 
 import { useEditMode } from '../context/editMode.js';
 import type { MediaAsset } from '../services/cms.js';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert.js';
+import { Button } from './ui/button.js';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from './ui/sheet.js';
 import {
   type EditorLinkChoice,
   type EditorMediaChoice,
@@ -47,8 +56,6 @@ export function EditorSheet({
   isConflict = isConflictByStatus,
 }: EditorSheetProps): React.JSX.Element {
   const editing = useEditMode();
-  const titleId = useId();
-  const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<EditableValue>(() => structuredClone(initialValue));
   const [errors, setErrors] = useState<Readonly<Record<string, string>>>({});
@@ -83,39 +90,6 @@ export function EditorSheet({
     if (dirty && !window.confirm('Discard the changes you have not saved?')) return;
     onClose();
   }, [dirty, onClose]);
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const focusable = panelRef.current?.querySelector<HTMLElement>(
-      'input, textarea, select, button',
-    );
-    focusable?.focus();
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') requestClose();
-      if (event.key !== 'Tab' || panelRef.current === null) return;
-      const controls = [
-        ...panelRef.current.querySelectorAll<HTMLElement>(
-          'button, input, textarea, select, [tabindex]:not([tabindex="-1"])',
-        ),
-      ].filter((element) => !element.hasAttribute('disabled'));
-      const first = controls[0];
-      const last = controls.at(-1);
-      if (first === undefined || last === undefined) return;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [requestClose]);
 
   const submit = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
@@ -168,39 +142,41 @@ export function EditorSheet({
     setErrors({});
   };
 
-  return createPortal(
-    <div className="editor-sheet-layer">
-      <button
-        className="editor-sheet-backdrop"
-        type="button"
-        aria-label="Close editor"
-        onClick={requestClose}
-      />
-      <div
-        className="editor-sheet"
+  return (
+    <Sheet
+      open
+      onOpenChange={(open) => {
+        if (!open) requestClose();
+      }}
+    >
+      <SheetContent
         ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
+        className="min-w-0 max-w-full overflow-x-hidden overflow-y-auto data-[side=right]:left-0 data-[side=right]:w-[100dvw] data-[side=right]:h-dvh sm:data-[side=right]:left-auto sm:data-[side=right]:w-full sm:data-[side=right]:max-w-xl"
+        showCloseButton={false}
       >
-        <header>
-          <div>
-            <p className="editor-sheet-kicker">Editing this section</p>
-            <h2 id={titleId}>{title}</h2>
-            <p id={descriptionId}>{description}</p>
-          </div>
-          <button
+        <SheetHeader className="sticky top-0 z-10 gap-2 border-b bg-popover p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+            Editing this section
+          </p>
+          <SheetTitle className="pr-12 text-xl">{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
+          <Button
             type="button"
-            className="editor-sheet-close"
+            variant="ghost"
+            size="icon-sm"
+            className="absolute right-4 top-4"
             onClick={requestClose}
             aria-label={`Close ${title} editor`}
           >
             ×
-          </button>
-        </header>
-        <form onSubmit={(event) => void submit(event)} noValidate>
-          <div className="editor-sheet-form-body">
+          </Button>
+        </SheetHeader>
+        <form
+          className="flex min-h-0 min-w-0 flex-1 flex-col"
+          onSubmit={(event) => void submit(event)}
+          noValidate
+        >
+          <div className="min-w-0 flex-1 space-y-5 overflow-y-auto px-6 py-6">
             <SemanticEditorForm
               definition={definition}
               value={draft}
@@ -211,38 +187,32 @@ export function EditorSheet({
               onRequestMedia={requestMedia}
             />
             {conflict ? (
-              <div className="editor-conflict" role="alert">
-                <strong>This section changed while you were editing.</strong>
-                <p>Your work is still here. Reload the latest saved version before trying again.</p>
+              <Alert variant="destructive">
+                <AlertTitle>This section changed while you were editing.</AlertTitle>
+                <AlertDescription>
+                  Your work is still here. Reload the latest saved version before trying again.
+                </AlertDescription>
                 {onReloadLatest === undefined ? null : (
-                  <button type="button" onClick={() => void reload()}>
+                  <Button type="button" variant="outline" onClick={() => void reload()}>
                     Reload latest
-                  </button>
+                  </Button>
                 )}
-              </div>
+              </Alert>
             ) : null}
             {saveError ? (
-              <p className="editor-error" role="alert">
-                We could not save this change. Please try again.
-              </p>
+              <Alert variant="destructive">We could not save this change. Please try again.</Alert>
             ) : null}
           </div>
-          <footer>
-            <button className="editor-save" type="submit" disabled={busy || saving}>
+          <SheetFooter className="sticky bottom-0 flex-row border-t bg-popover">
+            <Button type="submit" disabled={busy || saving}>
               {saving ? 'Saving…' : 'Save changes'}
-            </button>
-            <button
-              className="editor-cancel"
-              type="button"
-              onClick={requestClose}
-              disabled={saving}
-            >
+            </Button>
+            <Button variant="outline" type="button" onClick={requestClose} disabled={saving}>
               Cancel
-            </button>
-          </footer>
+            </Button>
+          </SheetFooter>
         </form>
-      </div>
-    </div>,
-    document.body,
+      </SheetContent>
+    </Sheet>
   );
 }

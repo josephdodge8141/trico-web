@@ -24,7 +24,7 @@ test('application stack creates isolated durable content infrastructure', () => 
       Match.objectLike({ IndexName: 'gsi1', Projection: { ProjectionType: 'ALL' } }),
     ],
   });
-  template.resourceCountIs('AWS::S3::Bucket', 1);
+  template.resourceCountIs('AWS::S3::Bucket', 2);
   template.hasResourceProperties('AWS::S3::Bucket', {
     PublicAccessBlockConfiguration: {
       BlockPublicAcls: true,
@@ -33,6 +33,25 @@ test('application stack creates isolated durable content infrastructure', () => 
       RestrictPublicBuckets: true,
     },
     VersioningConfiguration: { Status: 'Enabled' },
+  });
+  template.hasResourceProperties('AWS::S3::Bucket', {
+    PublicAccessBlockConfiguration: {
+      BlockPublicAcls: true,
+      BlockPublicPolicy: true,
+      IgnorePublicAcls: true,
+      RestrictPublicBuckets: true,
+    },
+    CorsConfiguration: {
+      CorsRules: [
+        Match.objectLike({
+          AllowedOrigins: ['https://dev.example.com'],
+          AllowedMethods: ['PUT'],
+        }),
+      ],
+    },
+    LifecycleConfiguration: {
+      Rules: [Match.objectLike({ ExpirationInDays: 1 })],
+    },
   });
   template.resourceCountIs('AWS::CloudFront::Distribution', 1);
   template.resourceCountIs('AWS::Route53::RecordSet', 1);
@@ -77,6 +96,28 @@ test('application stack exposes API and scheduled Lambda entrypoints', () => {
   });
   const policies = template.findResources('AWS::IAM::Policy');
   assert.doesNotMatch(JSON.stringify(policies), /bedrock(?:-mantle)?:/u);
+  assert.doesNotMatch(
+    JSON.stringify(template.findResources('AWS::Lambda::Function')),
+    /INQUIRY_EMAIL_TO|CAREER_EMAIL_TO/,
+  );
+  const configuredApp = new App();
+  const configuredTemplate = Template.fromStack(
+    new ApplicationStack(configuredApp, 'Configured-mailboxes', {
+      config: {
+        ...exampleApplicationConfig('prod'),
+        inquiryEmailTo: 'inquiries@example.com',
+        careerEmailTo: 'careers@example.com',
+      },
+    }),
+  );
+  configuredTemplate.hasResourceProperties('AWS::Lambda::Function', {
+    Environment: {
+      Variables: Match.objectLike({
+        INQUIRY_EMAIL_TO: 'inquiries@example.com',
+        CAREER_EMAIL_TO: 'careers@example.com',
+      }),
+    },
+  });
 });
 
 test('production retains data while development can be intentionally destroyed', () => {

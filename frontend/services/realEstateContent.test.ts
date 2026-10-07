@@ -84,14 +84,7 @@ test('Real Estate supporting seeds preserve the complete mounted semantic conten
     realEstateV2SeedData['real-estate.careers'].benefits.at(-1)?.label,
     '40+ years of market reputation',
   );
-  assert.deepEqual(
-    realEstateV2SeedData['real-estate.reviews.platforms'].map(({ description }) => description),
-    [
-      'Share your experience on Google Reviews — helps neighbors find us.',
-      'Recommend us on Facebook so your network can see it too.',
-      'Leave a Yelp review to help others make an informed decision.',
-    ],
-  );
+  assert.deepEqual(realEstateV2SeedData['real-estate.reviews.platforms'], []);
 });
 
 test('Real Estate uses semantic seed values when content is absent or legacy', () => {
@@ -174,8 +167,15 @@ test('Real Estate recognizes every known version-one list shape', () => {
   ] as const;
   for (const [id, expected, legacy] of legacyCases) {
     const definition = realEstateEntityDefinitions.find((candidate) => candidate.id === id);
-    assert.notEqual(definition, undefined);
-    assert.deepEqual(parseRealEstateValue({ [id]: legacy }, id, definition!.schema), expected);
+    assert.ok(definition);
+    const normalizedExpected =
+      id === 'real-estate.testimonials.items'
+        ? expected.map((item) => ({ ...item, publicVisibility: 'legacy' }))
+        : expected;
+    assert.deepEqual(
+      parseRealEstateValue({ [id]: legacy }, id, definition.schema),
+      normalizedExpected,
+    );
   }
 });
 

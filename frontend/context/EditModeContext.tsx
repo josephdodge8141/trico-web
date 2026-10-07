@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { editableValueSchema, type EditableValue } from '@app/schemas';
 
 import type { PageId } from '../pages/pageContent.js';
-import { MediaLibraryDialog } from '../components/MediaLibraryDialog.js';
 import { fetchAuthSession } from '../services/auth.js';
 import {
   discardEntityChange,
@@ -22,6 +21,12 @@ import {
   type MediaAsset,
 } from '../services/cms.js';
 import { EditModeContext, type EditModeValue } from './editMode.js';
+
+const MediaLibraryDialog = lazy(() =>
+  import('../components/MediaLibraryDialog.js').then(({ MediaLibraryDialog }) => ({
+    default: MediaLibraryDialog,
+  })),
+);
 
 const editModeIntentKey = (pageId: PageId): string => `trico.edit-mode.${pageId}`;
 
@@ -52,6 +57,7 @@ export function EditModeProvider({
   const location = useLocation();
   const navigate = useNavigate();
   const [active, setActive] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<readonly PendingChange[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>();
@@ -61,6 +67,45 @@ export function EditModeProvider({
   const [mediaOpen, setMediaOpen] = useState(false);
   const mediaSelection = useRef<((asset: MediaAsset) => void) | undefined>(undefined);
   const restoringEditMode = useRef(false);
+
+  useEffect(() => {
+    let stopped = false;
+    let latestRequest = 0;
+    const hideEditor = (): void => {
+      setAuthenticated(false);
+      setCurrentUserId(undefined);
+      setActive(false);
+      setPending([]);
+      setDisabledEntityIds(new Set());
+      setCsrfToken(undefined);
+      setMessage(undefined);
+      setMediaOpen(false);
+      mediaSelection.current = undefined;
+      rememberEditModeIntent(pageId, false);
+    };
+    const refreshSession = (): void => {
+      const request = ++latestRequest;
+      void fetchAuthSession()
+        .then((session) => {
+          if (stopped || request !== latestRequest) return;
+          if (!session.authenticated) {
+            hideEditor();
+            return;
+          }
+          setAuthenticated(true);
+          setCurrentUserId(session.principal.subject);
+        })
+        .catch(() => {
+          if (!stopped && request === latestRequest) hideEditor();
+        });
+    };
+    refreshSession();
+    window.addEventListener('focus', refreshSession);
+    return () => {
+      stopped = true;
+      window.removeEventListener('focus', refreshSession);
+    };
+  }, [pageId]);
 
   const getCsrfToken = useCallback(async (): Promise<string> => {
     if (csrfToken !== undefined) return csrfToken;
@@ -97,15 +142,16 @@ export function EditModeProvider({
   }, []);
 
   const enter = useCallback(async (): Promise<void> => {
-    rememberEditModeIntent(pageId, true);
     try {
       await perform(async () => {
-        const [changes, disabledIds, session] = await Promise.all([
+        const session = await fetchAuthSession();
+        if (!session.authenticated) throw new CmsRequestError('Authentication is required', 401);
+        const [changes, disabledIds] = await Promise.all([
           fetchPendingChanges(pageId),
           fetchPreviewDisabled(),
-          fetchAuthSession(),
         ]);
-        if (!session.authenticated) throw new CmsRequestError('Authentication is required', 401);
+        rememberEditModeIntent(pageId, true);
+        setAuthenticated(true);
         setPending(changes);
         setCurrentUserId(session.principal.subject);
         setDisabledEntityIds(new Set(disabledIds));
@@ -114,17 +160,19 @@ export function EditModeProvider({
       });
     } catch (error) {
       if (error instanceof CmsRequestError && error.status === 401) {
-        navigate('/login', {
-          state: {
-            returnTo: `${location.pathname}${location.search}${location.hash}`,
-            resumeEditMode: true,
-          },
-        });
+        rememberEditModeIntent(pageId, false);
+        setAuthenticated(false);
+        setCurrentUserId(undefined);
+        setActive(false);
+        setPending([]);
+        setCsrfToken(undefined);
+        setMediaOpen(false);
+        mediaSelection.current = undefined;
         return;
       }
       throw error;
     }
-  }, [location.hash, location.pathname, location.search, navigate, pageId, perform]);
+  }, [pageId, perform]);
 
   useEffect(() => {
     const state = location.state;
@@ -271,6 +319,7 @@ export function EditModeProvider({
   const value = useMemo<EditModeValue>(
     () => ({
       active,
+      authenticated,
       busy,
       pageId,
       pending,
@@ -291,6 +340,7 @@ export function EditModeProvider({
     }),
     [
       active,
+      authenticated,
       busy,
       pageId,
       pending,
@@ -311,24 +361,28 @@ export function EditModeProvider({
   return (
     <EditModeContext.Provider value={value}>
       {children}
-      <MediaLibraryDialog
-        open={mediaOpen}
-        onClose={closeMedia}
-        onSelect={(asset) => {
-          mediaSelection.current?.(asset);
-          closeMedia();
-        }}
-        loadPage={(cursor) => fetchMediaLibrary(cursor)}
-        requestUpload={async (file) =>
-          requestMediaUpload(file, { csrfToken: await getCsrfToken() })
-        }
-        upload={uploadMedia}
-        confirmUpload={async (uploadId, name, altText) =>
-          confirmMediaUpload(uploadId, name, altText, {
-            csrfToken: await getCsrfToken(),
-          })
-        }
-      />
+      {mediaOpen ? (
+        <Suspense fallback={null}>
+          <MediaLibraryDialog
+            open={mediaOpen}
+            onClose={closeMedia}
+            onSelect={(asset) => {
+              mediaSelection.current?.(asset);
+              closeMedia();
+            }}
+            loadPage={(cursor) => fetchMediaLibrary(cursor)}
+            requestUpload={async (file) =>
+              requestMediaUpload(file, { csrfToken: await getCsrfToken() })
+            }
+            upload={uploadMedia}
+            confirmUpload={async (uploadId, name, altText) =>
+              confirmMediaUpload(uploadId, name, altText, {
+                csrfToken: await getCsrfToken(),
+              })
+            }
+          />
+        </Suspense>
+      ) : null}
     </EditModeContext.Provider>
   );
 }

@@ -197,14 +197,7 @@ export const developmentV2SeedData = {
     description:
       'We collaborate with trusted builders and investors to bring exceptional projects to life.',
   },
-  'development.partners.items': [
-    { id: '1761914a-0b15-5811-abde-78af34643b3d', name: 'Builder Partner 1' },
-    { id: '186192dd-0a15-567e-aade-771c336439aa', name: 'Builder Partner 2' },
-    { id: '15618e24-0915-54eb-adde-7bd532643817', name: 'Investor Partner 1' },
-    { id: '16618fb7-0815-5358-acde-7a4231643684', name: 'Investor Partner 2' },
-    { id: '13618afe-0f15-5e5d-a7de-7263306434f1', name: 'Builder Partner 3' },
-    { id: '14618c91-0e15-5cca-a6de-70d02f64335e', name: 'Investor Partner 3' },
-  ],
+  'development.partners.items': [],
   'development.partners.footer': {
     message: 'Interested in partnering with us?',
     actionLabel: 'Get in touch',
@@ -301,26 +294,7 @@ export const developmentV2SeedData = {
     unavailableLinkLabel: 'Review link coming soon',
     actionLabel: 'Review on',
   },
-  'development.reviews.platforms': [
-    {
-      id: '19c26ba6-f2ab-52ab-a809-0209a4eab557',
-      name: 'Google',
-      description: 'Share your experience on Google Reviews — helps neighbors find us.',
-      externalUrl: '',
-    },
-    {
-      id: '1ac26d39-f1ab-5118-a709-0076a3eab3c4',
-      name: 'Facebook',
-      description: 'Recommend us on Facebook so your network can see it too.',
-      externalUrl: '',
-    },
-    {
-      id: '17c26880-f4ab-55d1-a608-fee3a6eab87d',
-      name: 'Yelp',
-      description: 'Leave a Yelp review to help others make an informed decision.',
-      externalUrl: '',
-    },
-  ],
+  'development.reviews.platforms': [],
   'development.reviews.footer': {
     message: 'Prefer to share feedback privately? Email us at',
     email: 'Office@tricoinc.com',

@@ -340,6 +340,32 @@ test('factory.delivery.historical-control-tools runs both privileged control gat
   assert.match(workflow.slice(backupStart, deployStart), /cd "\$CONTROL_TOOLS_DIR"/);
   assert.match(workflow.slice(backupStart, deployStart), /production-backup-cli\.ts/);
   assert.match(workflow, /npx cdk deploy "TricoWeb-\$\{STAGE\}"/);
+  assert.match(workflow, /INQUIRY_EMAIL_TO: \$\{\{ vars\.INQUIRY_EMAIL_TO \}\}/);
+  assert.match(workflow, /CAREER_EMAIL_TO: \$\{\{ vars\.CAREER_EMAIL_TO \}\}/);
+  assert.match(workflow, /application:\$\{STAGE\}:inquiryEmailTo=\$\{INQUIRY_EMAIL_TO\}/);
+  assert.match(workflow, /application:\$\{STAGE\}:careerEmailTo=\$\{CAREER_EMAIL_TO\}/);
+  assert.match(workflow, /application:prod:inquiryEmailTo=\$\{INQUIRY_EMAIL_TO\}/);
+  assert.match(workflow, /application:prod:careerEmailTo=\$\{CAREER_EMAIL_TO\}/);
+  const devDeployBlock = workflow.slice(
+    workflow.indexOf('      - name: Deploy exact backend digest\n'),
+    workflow.indexOf('      - name: Bootstrap application data\n'),
+  );
+  const prodDeployBlock = workflow.slice(
+    workflow.indexOf('      - name: Deploy exact backend digest to production\n'),
+    workflow.indexOf(
+      '      - name: Confirm main is still at the selected release SHA before frontend activation\n',
+    ),
+  );
+  assert.match(devDeployBlock, /if test "\$STAGE" = prod; then/);
+  assert.match(devDeployBlock, /test -n "\$INQUIRY_EMAIL_TO"/);
+  assert.match(devDeployBlock, /test -n "\$CAREER_EMAIL_TO"/);
+  assert.match(prodDeployBlock, /test -n "\$INQUIRY_EMAIL_TO"/);
+  assert.match(prodDeployBlock, /test -n "\$CAREER_EMAIL_TO"/);
+  for (const block of [devDeployBlock, prodDeployBlock]) {
+    const deployCommand = block.indexOf('npx cdk deploy');
+    assert.ok(block.indexOf('test -n "$INQUIRY_EMAIL_TO"') < deployCommand);
+    assert.ok(block.indexOf('test -n "$CAREER_EMAIL_TO"') < deployCommand);
+  }
   assert.doesNotMatch(
     workflow.slice(deployStart, workflow.indexOf('  automatic-prod:')),
     /working-directory: \.workflow-control/,

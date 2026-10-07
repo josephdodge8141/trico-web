@@ -19,7 +19,6 @@ import {
   pendingChangeSchema,
   publicationSchema,
   publishOperationSchema,
-  registrySeedData,
   requireEntityDefinition,
   type ContentManifest,
   type EditableValue,
@@ -31,6 +30,7 @@ import {
   type Publication,
   type PublishOperation,
 } from '@app/schemas';
+import { registrySeedData } from '@app/schemas/server';
 
 import { ServiceError } from './errors.js';
 

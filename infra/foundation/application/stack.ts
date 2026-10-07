@@ -26,7 +26,7 @@ import { CfnFunction, CfnPermission } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from 'aws-cdk-lib/aws-s3';
 import type { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import type { Construct } from 'constructs';
@@ -73,6 +73,23 @@ export class ApplicationStack extends Stack {
       removalPolicy: durableRemoval,
       versioned: true,
     });
+    const resumeBucket = new Bucket(this, 'ResumeBucket', {
+      autoDeleteObjects: false,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy: durableRemoval,
+      versioned: false,
+      cors: [
+        {
+          allowedOrigins: [config.publicOrigin],
+          allowedMethods: [HttpMethods.PUT],
+          allowedHeaders: ['Content-Type', 'Content-Length'],
+          maxAge: 300,
+        },
+      ],
+      lifecycleRules: [{ expiration: Duration.days(1) }],
+    });
 
     const functionRole = new Role(this, 'BackendFunctionRole', {
       assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -97,6 +114,7 @@ export class ApplicationStack extends Stack {
     }
     table.grantReadWriteData(functionRole);
     contentBucket.grantReadWrite(functionRole);
+    resumeBucket.grantReadWrite(functionRole);
     functionRole.addToPolicy(
       new PolicyStatement({
         actions: ['ses:SendEmail', 'ses:SendRawEmail'],
@@ -131,10 +149,15 @@ export class ApplicationStack extends Stack {
           COOKIE_SECURE: 'true',
           DYNAMODB_TABLE: table.tableName,
           EMAIL_FROM: `no-reply@${config.sesIdentityDomain}`,
+          ...(config.inquiryEmailTo === undefined
+            ? {}
+            : { INQUIRY_EMAIL_TO: config.inquiryEmailTo }),
+          ...(config.careerEmailTo === undefined ? {} : { CAREER_EMAIL_TO: config.careerEmailTo }),
           EXTERNAL_SYNC_ENABLED: String(config.externalSyncEnabled),
           MAIL_TRANSPORT: 'ses',
           PUBLIC_ORIGIN: config.publicOrigin,
           S3_BUCKET: contentBucket.bucketName,
+          RESUME_BUCKET: resumeBucket.bucketName,
           S3_FORCE_PATH_STYLE: 'false',
           SESSION_COOKIE_NAME: `trico_${config.stage}_session`,
         },
@@ -329,6 +352,7 @@ export class ApplicationStack extends Stack {
     new CfnOutput(this, 'ApiEndpoint', { value: api.attrApiEndpoint });
     new CfnOutput(this, 'BackendFunctionName', { value: backend.ref });
     new CfnOutput(this, 'ContentBucketName', { value: contentBucket.bucketName });
+    new CfnOutput(this, 'ResumeBucketName', { value: resumeBucket.bucketName });
     new CfnOutput(this, 'DistributionId', { value: distribution.distributionId });
     new CfnOutput(this, 'DistributionDomainName', { value: distribution.distributionDomainName });
     new CfnOutput(this, 'TableName', { value: table.tableName });

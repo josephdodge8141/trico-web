@@ -1,8 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { CheckCircle2, Send, Upload } from 'lucide-react';
+import { careerDivisionSchema } from '@app/schemas';
+import { submitCareerApplication } from '../services/career-application.js';
 
 import { SelectField } from './SelectField.js';
 import { careerDivisions, type CareerDivision } from './careerApplication.js';
+import { Alert } from './ui/alert.js';
+import { Button } from './ui/button.js';
+import { Field, FieldDescription, FieldError, FieldLabel } from './ui/field.js';
+import { Input } from './ui/input.js';
+import { Textarea } from './ui/textarea.js';
 
 interface ResumeFormValue {
   readonly name: string;
@@ -54,6 +61,10 @@ export function CareerApplicationForm({
   }));
   const [errors, setErrors] = useState<FormErrors>({});
   const [submittedName, setSubmittedName] = useState<string>();
+  const [resume, setResume] = useState<File>();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string>();
+  const feedbackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setValue((current) => ({
@@ -62,7 +73,12 @@ export function CareerApplicationForm({
       position: initialPosition,
     }));
     setErrors({});
+    setSubmitError(undefined);
   }, [initialDivision, initialPosition]);
+
+  useEffect(() => {
+    if (submittedName !== undefined || submitError !== undefined) feedbackRef.current?.focus();
+  }, [submittedName, submitError]);
 
   const update = (field: FormField, nextValue: string): void => {
     setValue((current) => ({ ...current, [field]: nextValue }));
@@ -70,6 +86,8 @@ export function CareerApplicationForm({
   };
 
   const selectFile = (file: File | undefined): void => {
+    setResume(undefined);
+    update('resumeName', '');
     if (file === undefined) return;
     if (!/\.(?:pdf|doc|docx)$/i.test(file.name)) {
       setErrors((current) => ({
@@ -82,50 +100,85 @@ export function CareerApplicationForm({
       setErrors((current) => ({ ...current, resumeName: 'File must be under 10MB.' }));
       return;
     }
+    setResume(file);
     update('resumeName', file.name);
   };
 
-  const submit = (event: FormEvent<HTMLFormElement>): void => {
+  const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
+    if (submitting) return;
     const nextErrors = validate(value);
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-    setSubmittedName(value.name.trim().split(/\s+/)[0] ?? value.name.trim());
+    if (Object.keys(nextErrors).length > 0 || resume === undefined) {
+      const firstInvalid = (
+        [
+          ['name', 'career-name'],
+          ['email', 'career-email'],
+          ['phone', 'career-phone'],
+          ['division', 'career-application-division'],
+          ['resumeName', 'career-resume'],
+        ] as const
+      ).find(([field]) => nextErrors[field] !== undefined);
+      if (firstInvalid !== undefined)
+        window.requestAnimationFrame(() => document.getElementById(firstInvalid[1])?.focus());
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError(undefined);
+    try {
+      await submitCareerApplication(
+        {
+          name: value.name.trim(),
+          email: value.email.trim(),
+          phone: value.phone.trim(),
+          division: careerDivisionSchema.parse(value.division),
+          position: value.position.trim(),
+          message: value.message.trim(),
+          website: '',
+        },
+        resume,
+      );
+      setSubmittedName(value.name.trim().split(/\s+/)[0] ?? value.name.trim());
+    } catch (error: unknown) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Application delivery failed. Please try again.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submittedName !== undefined) {
     return (
-      <div className="ui-resume-success" role="status">
-        <CheckCircle2 aria-hidden="true" />
-        <h4>Thank you, {submittedName}!</h4>
-        <p>
-          Your details are ready. Email your resume to{' '}
-          <a href="mailto:apply@tricoinc.com">apply@tricoinc.com</a> to finish applying.
-        </p>
-        <button
+      <Alert ref={feedbackRef} role="status" tabIndex={-1} className="space-y-3 p-5">
+        <CheckCircle2 className="size-6 text-primary" aria-hidden="true" />
+        <h4 className="font-heading text-xl font-semibold">Thank you, {submittedName}!</h4>
+        <p>Your application and resume were delivered.</p>
+        <Button
           type="button"
+          variant="outline"
           onClick={() => {
             setValue(emptyForm);
+            setResume(undefined);
             setSubmittedName(undefined);
+            setErrors({});
+            setSubmitError(undefined);
+            window.requestAnimationFrame(() => document.getElementById('career-name')?.focus());
           }}
         >
           Submit another
-        </button>
-      </div>
+        </Button>
+      </Alert>
     );
   }
 
   return (
-    <form
-      className="ui-resume-form ui-client-form ui-form-layout--inquiry ui-form-stack-spaced"
-      id="career-application-form"
-      noValidate
-      onSubmit={submit}
-    >
-      <div className="ui-form-grid">
-        <label>
-          <span>Full Name *</span>
-          <input
+    <form className="space-y-5" id="career-application-form" noValidate onSubmit={submit}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor="career-name">Full Name *</FieldLabel>
+          <Input
+            id="career-name"
             name="name"
             autoComplete="name"
             maxLength={100}
@@ -136,14 +189,13 @@ export function CareerApplicationForm({
             aria-describedby={errors.name === undefined ? undefined : 'career-name-error'}
           />
           {errors.name === undefined ? null : (
-            <small id="career-name-error" className="ui-form-error">
-              {errors.name}
-            </small>
+            <FieldError id="career-name-error">{errors.name}</FieldError>
           )}
-        </label>
-        <label>
-          <span>Email *</span>
-          <input
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="career-email">Email *</FieldLabel>
+          <Input
+            id="career-email"
             name="email"
             type="email"
             autoComplete="email"
@@ -155,14 +207,13 @@ export function CareerApplicationForm({
             aria-describedby={errors.email === undefined ? undefined : 'career-email-error'}
           />
           {errors.email === undefined ? null : (
-            <small id="career-email-error" className="ui-form-error">
-              {errors.email}
-            </small>
+            <FieldError id="career-email-error">{errors.email}</FieldError>
           )}
-        </label>
-        <label>
-          <span>Phone</span>
-          <input
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="career-phone">Phone</FieldLabel>
+          <Input
+            id="career-phone"
             name="phone"
             type="tel"
             autoComplete="tel"
@@ -174,11 +225,9 @@ export function CareerApplicationForm({
             aria-describedby={errors.phone === undefined ? undefined : 'career-phone-error'}
           />
           {errors.phone === undefined ? null : (
-            <small id="career-phone-error" className="ui-form-error">
-              {errors.phone}
-            </small>
+            <FieldError id="career-phone-error">{errors.phone}</FieldError>
           )}
-        </label>
+        </Field>
         <SelectField
           id="career-application-division"
           name="division"
@@ -189,22 +238,23 @@ export function CareerApplicationForm({
           value={value.division}
           onValueChange={(nextValue) => update('division', nextValue)}
           error={errors.division}
-          errorClassName="ui-form-error"
         />
       </div>
-      <label>
-        <span>Position / Role of Interest</span>
-        <input
+      <Field>
+        <FieldLabel htmlFor="career-position">Position / Role of Interest</FieldLabel>
+        <Input
+          id="career-position"
           name="position"
           maxLength={120}
           value={value.position}
           placeholder="e.g. Project Manager, Leasing Agent"
           onChange={(event) => update('position', event.target.value)}
         />
-      </label>
-      <label>
-        <span>Cover Note / Message</span>
-        <textarea
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="career-message">Cover Note / Message</FieldLabel>
+        <Textarea
+          id="career-message"
           name="message"
           rows={5}
           maxLength={1_000}
@@ -212,15 +262,15 @@ export function CareerApplicationForm({
           placeholder="Tell us briefly about your experience and why you'd like to join Trico."
           onChange={(event) => update('message', event.target.value)}
         />
-      </label>
-      <label>
-        <span>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="career-resume">
           Resume * <small>(PDF or Word, max 10MB)</small>
-        </span>
-        <span className="ui-file-control">
-          <Upload aria-hidden="true" />
-          <span>{value.resumeName === '' ? 'Click to upload your resume' : value.resumeName}</span>
-          <input
+        </FieldLabel>
+        <div className="flex items-center gap-2 rounded-lg border border-dashed bg-muted/30 p-3">
+          <Upload className="size-5 text-primary" aria-hidden="true" />
+          <Input
+            id="career-resume"
             name="resume"
             type="file"
             accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -230,21 +280,23 @@ export function CareerApplicationForm({
               errors.resumeName === undefined ? undefined : 'career-resume-file-error'
             }
           />
-        </span>
-        {errors.resumeName === undefined ? null : (
-          <small id="career-resume-file-error" className="ui-form-error">
-            {errors.resumeName}
-          </small>
+        </div>
+        {value.resumeName === '' ? null : (
+          <FieldDescription>Selected: {value.resumeName}</FieldDescription>
         )}
-      </label>
-      <button
-        className="ui-submit-button ui-submit-action ui-submit-action--full ui-submit-action--in-grid"
-        type="submit"
-      >
+        {errors.resumeName === undefined ? null : (
+          <FieldError id="career-resume-file-error">{errors.resumeName}</FieldError>
+        )}
+      </Field>
+      {submitError === undefined ? null : (
+        <Alert ref={feedbackRef} role="alert" tabIndex={-1}>
+          {submitError}
+        </Alert>
+      )}
+      <Button className="w-full" type="submit" disabled={submitting}>
         <Send aria-hidden="true" />
-        Submit Resume
-      </button>
-      <p className="ui-form-note">Your information is prepared locally in this browser.</p>
+        {submitting ? 'Sending application…' : 'Submit Resume'}
+      </Button>
     </form>
   );
 }

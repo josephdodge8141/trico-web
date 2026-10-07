@@ -128,14 +128,16 @@ Feature: Immutable application delivery
     And it exports a separate output for the new certificate ARN
 
   @id:factory.delivery.ses-feedback-policy @backend-noop @frontend-noop @browser-noop-eligible
-  Scenario: Route verified SES bounce and complaint feedback through operations alerts
-    backend-noop: SES identity notifications and the operations SNS policy are factory infrastructure behavior outside the generated backend.
-    frontend-noop: Email feedback monitoring has no generated frontend interaction.
-    browser-noop: Feedback delivery is verified from the infrastructure template and operator runbook.
+  Scenario: Configure SES feedback and approved lead delivery
+    backend-noop: SES identity, recipient injection and operations notifications are deployment infrastructure behavior outside the generated backend.
+    frontend-noop: Mailbox configuration and email feedback monitoring have no generated frontend interaction.
+    browser-noop: Recipient injection and feedback delivery are verified from the infrastructure template and operator runbook.
     Given a verified SES sending identity and the operations SNS topic
     When the delivery foundation is synthesized and SES feedback is configured
     Then the topic permits SES publishing only for that identity in the current AWS account
     And the setup sends bounce and complaint notifications to the topic while keeping email forwarding enabled
+    And explicitly configured inquiry and career recipients reach each environment's backend without repository defaults
+    And production deployment stops before changing the application when either recipient is absent
 
   @id:factory.delivery.disabled-external-sync @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Omit external AI access when synchronization is disabled

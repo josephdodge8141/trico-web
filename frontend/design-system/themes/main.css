@@ -1,18 +1,27 @@
-/* TriCo's Tailwind v4 token entry, derived from fullstack-ts DS-21. */
+/*
+ * TriCo design-system stylesheet.
+ *
+ * This is the single Tailwind v4 entry for the component library. It maps the semantic
+ * token contract (see `registry.ts`) into Tailwind's theme, so every `bg-primary`,
+ * `font-heading`, `rounded-lg`, `shadow-md`, spacing step, easing and transition in
+ * `components/ui`, `design-system` and `pages` resolves through the active preset.
+ *
+ * How to customize:
+ * - Change a preset: edit its file in `./presets`. Each file is the editable master form for
+ *   that design system and must define every required token in light and dark mode.
+ * - Change the mapping for every preset at once: edit the `@theme inline` block below.
+ * - Keep the DS-21 preset synchronized with fullstack-ts.
+ *
+ * Presets only set custom properties on `:root[data-theme='ds-NN']`, and dark mode adds the
+ * `.dark` class on the same element. Component markup never references a preset by name.
+ */
 
-@layer theme, reset, tokens, base, template-utilities, components, pages, utilities;
-@import 'tailwindcss/theme.css' layer(theme);
-@import 'tailwindcss/utilities.css' layer(template-utilities) source('../..');
+@import 'tailwindcss' source('../..');
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @import './presets/ds-21-trico.css';
 @import './presets/ds-21-trico.fonts.css';
-
-/* Establish a lower layer before the existing site's components, pages, and utilities. */
-@layer template-utilities {
-  :root {
-    --trico-utility-layer-order: 0;
-  }
-}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -160,6 +169,50 @@
 
 [data-slot='slider-thumb'].bg-white {
   background-color: var(--background);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    letter-spacing: var(--type-body-tracking);
+    line-height: var(--type-body-leading);
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-heading {
+    font-family: var(--type-display);
+    font-weight: var(--type-display-weight);
+    letter-spacing: var(--type-display-tracking);
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--type-mono);
+  }
+
+  ::selection {
+    background-color: var(--selection);
+    color: var(--selection-foreground);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

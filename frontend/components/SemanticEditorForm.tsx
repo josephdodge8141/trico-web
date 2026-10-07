@@ -10,6 +10,18 @@ import {
 
 import { fieldKey, isEditableRecord, readEditorValue, writeEditorValue } from './editorValue.js';
 import { ContentIcon } from './ContentIcon.js';
+import { Button } from './ui/button.js';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  FieldSet,
+  FieldLegend,
+} from './ui/field.js';
+import { Input } from './ui/input.js';
+import { NativeSelect, NativeSelectOption } from './ui/native-select.js';
+import { Textarea } from './ui/textarea.js';
 
 export interface EditorMediaChoice {
   readonly label: string;
@@ -92,10 +104,10 @@ function IconPicker({
         : matchingChoices
       : [...initialChoices, selectedChoice];
   return (
-    <div className="editor-icon-picker" id={inputId}>
-      <label className="editor-icon-search">
+    <div className="space-y-3" id={inputId}>
+      <label className="grid gap-2 text-sm font-medium">
         <span>Search icons</span>
-        <input
+        <Input
           type="search"
           aria-label="Search icons"
           value={query}
@@ -103,14 +115,22 @@ function IconPicker({
           onChange={(event) => setQuery(event.target.value)}
         />
       </label>
-      <p className="editor-icon-count" aria-live="polite">
+      <p className="text-xs text-muted-foreground" aria-live="polite">
         {query === ''
           ? `${String(field.control.choices.length)} icons available. Search to narrow the list.`
           : `${String(matchingChoices.length)} matching icons.`}
       </p>
-      <div className="editor-icon-grid" role="radiogroup" aria-label={field.label}>
+      <div
+        className="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto rounded-lg border p-2 sm:grid-cols-4"
+        role="radiogroup"
+        aria-label={field.label}
+      >
         {visibleChoices.map((choice) => (
-          <label key={choice.value} title={choice.helpText}>
+          <label
+            key={choice.value}
+            title={choice.helpText}
+            className="flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-center text-xs has-[:checked]:border-primary has-[:checked]:bg-secondary"
+          >
             <input
               type="radio"
               name={inputId}
@@ -118,7 +138,7 @@ function IconPicker({
               checked={value === choice.value}
               onChange={() => onChange(choice.value)}
             />
-            <span aria-hidden="true">
+            <span className="text-primary" aria-hidden="true">
               <ContentIcon name={choice.value} />
             </span>
             <strong>{choice.label}</strong>
@@ -151,7 +171,7 @@ function EditorFieldControl({
   if (control.type === 'system') return null;
   if (control.type === 'multiline-text') {
     return (
-      <textarea
+      <Textarea
         id={inputId}
         value={stringValue(value)}
         rows={control.rows}
@@ -171,12 +191,8 @@ function EditorFieldControl({
     const type =
       control.type === 'short-text' ? 'text' : control.type === 'phone' ? 'tel' : control.type;
     return (
-      <span
-        className={
-          control.type === 'number' && control.suffix !== undefined ? 'editor-number' : undefined
-        }
-      >
-        <input
+      <span className="flex items-center gap-2">
+        <Input
           id={inputId}
           type={type}
           value={control.type === 'number' ? numberValue(value) : stringValue(value)}
@@ -189,14 +205,16 @@ function EditorFieldControl({
           onChange={(event) => onChange(updateInputValue(field, event.target.value))}
         />
         {control.type === 'number' && control.suffix !== undefined ? (
-          <span aria-hidden="true">{control.suffix}</span>
+          <span className="text-xs text-muted-foreground" aria-hidden="true">
+            {control.suffix}
+          </span>
         ) : null}
       </span>
     );
   }
   if (control.type === 'boolean') {
     return (
-      <label className={`editor-toggle editor-toggle-${control.display}`}>
+      <label className="flex items-center gap-3 rounded-lg border p-3 text-sm">
         <input
           id={inputId}
           type="checkbox"
@@ -210,24 +228,33 @@ function EditorFieldControl({
   if (control.type === 'enum') {
     if (control.display === 'select') {
       return (
-        <select
+        <NativeSelect
+          className="w-full"
           id={inputId}
           value={stringValue(value)}
           onChange={(event) => onChange(event.target.value)}
         >
-          <option value="">Choose an option</option>
+          <NativeSelectOption value="">Choose an option</NativeSelectOption>
           {control.choices.map((choice) => (
-            <option key={choice.value} value={choice.value}>
+            <NativeSelectOption key={choice.value} value={choice.value}>
               {choice.label}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
       );
     }
     return (
-      <div className="editor-choice-grid" id={inputId} role="radiogroup" aria-label={field.label}>
+      <div
+        className="grid gap-2 sm:grid-cols-2"
+        id={inputId}
+        role="radiogroup"
+        aria-label={field.label}
+      >
         {control.choices.map((choice) => (
-          <label key={choice.value}>
+          <label
+            key={choice.value}
+            className="flex items-center gap-2 rounded-lg border p-3 text-sm has-[:checked]:border-primary has-[:checked]:bg-secondary"
+          >
             <input
               type="radio"
               name={inputId}
@@ -249,17 +276,18 @@ function EditorFieldControl({
       (choice) => JSON.stringify(choice.value) === JSON.stringify(value),
     );
     return (
-      <div className="editor-media-picker" id={inputId}>
+      <div className="space-y-3 rounded-lg border bg-muted/30 p-3" id={inputId}>
         {selected === undefined ? (
           <p>Current image selected</p>
         ) : (
-          <figure>
-            <img src={selected.previewUrl} alt="" />
-            <figcaption>{selected.label}</figcaption>
+          <figure className="flex items-center gap-3">
+            <img className="size-16 rounded-md object-cover" src={selected.previewUrl} alt="" />
+            <figcaption className="text-sm">{selected.label}</figcaption>
           </figure>
         )}
         {mediaChoices.length > 0 ? (
-          <select
+          <NativeSelect
+            className="w-full"
             aria-label={`Choose ${field.label}`}
             value={selected?.label ?? ''}
             onChange={(event) => {
@@ -267,18 +295,18 @@ function EditorFieldControl({
               if (choice !== undefined) onChange(choice.value);
             }}
           >
-            <option value="">Choose from media library</option>
+            <NativeSelectOption value="">Choose from media library</NativeSelectOption>
             {mediaChoices.map((choice) => (
-              <option key={choice.label} value={choice.label}>
+              <NativeSelectOption key={choice.label} value={choice.label}>
                 {choice.label}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         ) : null}
         {onRequestMedia === undefined ? null : (
-          <button type="button" onClick={onRequestMedia}>
+          <Button type="button" variant="outline" onClick={onRequestMedia}>
             Open media library
-          </button>
+          </Button>
         )}
       </div>
     );
@@ -294,9 +322,10 @@ function EditorFieldControl({
       (kind) => kind === 'email' || kind === 'phone' || kind === 'external-site',
     );
     return (
-      <div className="editor-link-builder" id={inputId}>
+      <div className="space-y-2" id={inputId}>
         {visibleChoices.length > 0 ? (
-          <select
+          <NativeSelect
+            className="w-full"
             aria-label={`Destination for ${field.label}`}
             value={friendlyChoice?.label ?? ''}
             onChange={(event) => {
@@ -304,16 +333,16 @@ function EditorFieldControl({
               if (choice !== undefined) onChange(choice.value);
             }}
           >
-            <option value="">Choose a page or section</option>
+            <NativeSelectOption value="">Choose a page or section</NativeSelectOption>
             {visibleChoices.map((choice) => (
-              <option key={`${choice.kind}-${choice.label}`} value={choice.label}>
+              <NativeSelectOption key={`${choice.kind}-${choice.label}`} value={choice.label}>
                 {choice.label}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         ) : null}
         {freeformAllowed ? (
-          <input
+          <Input
             type="text"
             aria-label={`Custom destination for ${field.label}`}
             value={friendlyChoice === undefined ? stringValue(value) : ''}
@@ -350,23 +379,23 @@ function NestedCollectionField({
   const updateItem = (index: number, item: EditableValue): void =>
     onChange(items.map((current, itemIndex) => (itemIndex === index ? item : current)));
   return (
-    <div className="editor-nested-list" id={baseId}>
+    <div className="space-y-4" id={baseId}>
       {items.map((item, index) => {
         const record = isEditableRecord(item) ? item : {};
         const itemName =
           stringValue(readEditorValue(record, control.itemLabelPath)) ||
           `${control.itemLabel} ${String(index + 1)}`;
         return (
-          <fieldset key={index}>
-            <legend>{itemName}</legend>
+          <FieldSet key={index} className="rounded-lg border bg-muted/20 p-4">
+            <FieldLegend>{itemName}</FieldLegend>
             {control.itemFields
               .toSorted((left, right) => left.order - right.order)
               .map((itemField) => {
                 if (itemField.control.type === 'system') return null;
                 const id = `${baseId}-${String(index)}-${String(itemField.order)}`;
                 return (
-                  <div className="editor-field" key={fieldKey(itemField.path)}>
-                    <label htmlFor={id}>{itemField.label}</label>
+                  <Field key={fieldKey(itemField.path)}>
+                    <FieldLabel htmlFor={id}>{itemField.label}</FieldLabel>
                     <EditorFieldControl
                       field={itemField}
                       value={readEditorValue(record, itemField.path)}
@@ -385,13 +414,15 @@ function NestedCollectionField({
                               ),
                           })}
                     />
-                  </div>
+                  </Field>
                 );
               })}
-            <div className="editor-row-actions">
+            <div className="flex flex-wrap gap-2">
               {control.reorderable ? (
                 <>
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     type="button"
                     disabled={index === 0}
                     onClick={() => {
@@ -405,8 +436,10 @@ function NestedCollectionField({
                     }}
                   >
                     Move up
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     type="button"
                     disabled={index === items.length - 1}
                     onClick={() => {
@@ -420,20 +453,23 @@ function NestedCollectionField({
                     }}
                   >
                     Move down
-                  </button>
+                  </Button>
                 </>
               ) : null}
-              <button
+              <Button
+                variant="destructive"
+                size="sm"
                 type="button"
                 onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}
               >
                 Remove {control.itemLabel.toLowerCase()}
-              </button>
+              </Button>
             </div>
-          </fieldset>
+          </FieldSet>
         );
       })}
-      <button
+      <Button
+        variant="outline"
         type="button"
         disabled={control.maximumItems !== undefined && items.length >= control.maximumItems}
         onClick={() =>
@@ -441,7 +477,7 @@ function NestedCollectionField({
         }
       >
         {control.addLabel}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -457,13 +493,15 @@ export function SemanticEditorForm({
 }: SemanticEditorFormProps): React.JSX.Element {
   const generatedId = useId().replaceAll(':', '');
   return (
-    <div className="semantic-editor-form">
+    <div className="space-y-6">
       {definition.groups
         .toSorted((left, right) => left.order - right.order)
         .map((group) => (
-          <fieldset key={group.id}>
-            <legend>{group.label}</legend>
-            {group.helpText === undefined ? null : <p className="editor-help">{group.helpText}</p>}
+          <FieldSet key={group.id} className="space-y-4">
+            <FieldLegend className="text-lg font-semibold">{group.label}</FieldLegend>
+            {group.helpText === undefined ? null : (
+              <FieldDescription>{group.helpText}</FieldDescription>
+            )}
             {group.fields
               .toSorted((left, right) => left.order - right.order)
               .map((field) => {
@@ -473,19 +511,13 @@ export function SemanticEditorForm({
                 const error = errors[key];
                 const fieldValue = readEditorValue(value, field.path);
                 return (
-                  <div
-                    className="editor-field"
-                    key={key}
-                    data-invalid={error === undefined ? undefined : 'true'}
-                  >
-                    <label htmlFor={inputId}>
+                  <Field key={key} data-invalid={error === undefined ? undefined : 'true'}>
+                    <FieldLabel htmlFor={inputId}>
                       {field.label}
                       {field.required ? <span aria-hidden="true"> *</span> : null}
-                    </label>
+                    </FieldLabel>
                     {field.helpText === undefined ? null : (
-                      <p id={`${inputId}-help`} className="editor-help">
-                        {field.helpText}
-                      </p>
+                      <FieldDescription id={`${inputId}-help`}>{field.helpText}</FieldDescription>
                     )}
                     {field.control.type === 'nested-collection' ? (
                       <NestedCollectionField
@@ -516,14 +548,12 @@ export function SemanticEditorForm({
                       />
                     )}
                     {error === undefined ? null : (
-                      <p className="editor-error" id={`${inputId}-error`} role="alert">
-                        {error}
-                      </p>
+                      <FieldError id={`${inputId}-error`}>{error}</FieldError>
                     )}
-                  </div>
+                  </Field>
                 );
               })}
-          </fieldset>
+          </FieldSet>
         ))}
     </div>
   );

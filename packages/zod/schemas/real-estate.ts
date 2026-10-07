@@ -11,6 +11,7 @@ import {
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
 import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
+import { publicVisibilityControl, publicVisibilitySchema } from './public-visibility.js';
 
 export const REAL_ESTATE_CONTENT_SCHEMA_VERSION = 2 as const;
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -163,6 +164,7 @@ export const realEstateTestimonialSchema = z.strictObject({
   role: text(160),
   quote: text(2000),
   rating: z.number().int().min(1).max(5),
+  publicVisibility: publicVisibilitySchema,
 });
 export const realEstateTestimonialsItemsSchema = z.array(realEstateTestimonialSchema);
 export const realEstateFaqHeaderSchema = heading;
@@ -675,7 +677,14 @@ export const realEstateEntityDefinitions = [
     'Testimonial',
     realEstateTestimonialsItemsSchema,
     realEstateTestimonialSchema,
-    { id: blank(10), name: 'New client', role: 'Client', quote: 'Add their feedback.', rating: 5 },
+    {
+      id: blank(10),
+      name: 'New client',
+      role: 'Client',
+      quote: 'Add their feedback.',
+      rating: 5,
+      publicVisibility: 'hidden',
+    },
     [
       field(['id'], 'Item identity', 0, system()),
       field(['name'], 'Name', 1, short(160)),
@@ -688,6 +697,7 @@ export const realEstateEntityDefinitions = [
         maximum: 5,
         step: 1,
       }),
+      field(['publicVisibility'], 'Public visibility', 5, publicVisibilityControl()),
     ],
   ),
   object('real-estate.faq.header', 'FAQ heading', realEstateFaqHeaderSchema, sectionFields),

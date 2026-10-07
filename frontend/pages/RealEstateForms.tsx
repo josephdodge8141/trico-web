@@ -1,149 +1,118 @@
-import { useState, type FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import { CheckCircle2, Send } from 'lucide-react';
 
 import { SelectField } from '../components/SelectField.js';
-
-function useLocalFormSuccess(): readonly [boolean, (event: FormEvent<HTMLFormElement>) => void] {
-  const [submitted, setSubmitted] = useState(false);
-  return [
-    submitted,
-    (event) => {
-      event.preventDefault();
-      event.currentTarget.reset();
-      setSubmitted(true);
-    },
-  ];
-}
-
-export function RealEstateNewClientForm(): React.JSX.Element {
-  const [submitted, submit] = useLocalFormSuccess();
-  return (
-    <section id="new-client" className="re-section ui-section re-new-client ui-new-client">
-      <div className="re-container ui-container re-form-narrow ui-form-narrow">
-        <header className="re-section-heading ui-section-heading">
-          <span className="re-pill ui-pill ui-section-eyebrow">New Clients</span>
-          <h2 className="type-section-title type-section-title-compact">New Client Inquiry</h2>
-          <p>
-            Buying, selling, or investing? Tell us a bit about your goals and one of our agents will
-            reach out within one business day.
-          </p>
-        </header>
-        <div className="re-form-card ui-form-card ui-form-surface ui-form-surface--inquiry">
-          {submitted ? (
-            <div className="re-form-success ui-form-success" role="status">
-              <CheckCircle2 aria-hidden="true" />
-              <h3>Thanks for reaching out!</h3>
-              <p>Your inquiry is ready for our team to review.</p>
-            </div>
-          ) : (
-            <form className="ui-client-form ui-form-layout--inquiry" onSubmit={submit}>
-              <div className="re-field-grid ui-field-grid">
-                <label>
-                  Full Name *
-                  <input name="name" required placeholder="Jane Smith" />
-                </label>
-                <label>
-                  Email *
-                  <input name="email" type="email" required placeholder="jane@example.com" />
-                </label>
-                <label>
-                  Phone
-                  <input name="phone" type="tel" placeholder="(801) 555-1234" />
-                </label>
-                <SelectField
-                  id="real-estate-interest"
-                  name="interest"
-                  label="I’m interested in *"
-                  placeholder="Select an option"
-                  required
-                  options={[
-                    'Buying a home',
-                    'Selling a property',
-                    'Land / acreage',
-                    'Commercial property',
-                    'Investment property',
-                    'Other',
-                  ].map((option) => ({ value: option, label: option }))}
-                />
-              </div>
-              <label>
-                Property Address (optional)
-                <input name="address" placeholder="123 Main St, Draper, UT" />
-              </label>
-              <label>
-                How can we help?
-                <textarea
-                  name="message"
-                  rows={4}
-                  placeholder="Tell us about your property or goals…"
-                />
-              </label>
-              <button
-                className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide ui-submit-action ui-submit-action--full"
-                type="submit"
-              >
-                Submit Inquiry <Send aria-hidden="true" />
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
+import { Alert } from '../components/ui/alert.js';
+import { Button } from '../components/ui/button.js';
+import { Card, CardContent } from '../components/ui/card.js';
+import { Field, FieldLabel } from '../components/ui/field.js';
+import { Input } from '../components/ui/input.js';
+import { Textarea } from '../components/ui/textarea.js';
+import { useInquirySubmission } from '../hooks/useInquirySubmission.js';
 
 export function RealEstateContactForm(): React.JSX.Element {
-  const [submitted, submit] = useLocalFormSuccess();
-  if (submitted) {
-    return (
-      <div className="re-form-card ui-form-card re-form-success ui-form-success" role="status">
-        <CheckCircle2 aria-hidden="true" />
-        <h3>Thank you for your inquiry!</h3>
-        <p>A real estate specialist will contact you within 24 hours.</p>
-      </div>
+  const submission = useInquirySubmission();
+  const submit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    void submission.send(
+      {
+        kind: 'real-estate-contact',
+        name: `${String(data.get('firstName') ?? '')} ${String(data.get('lastName') ?? '')}`.trim(),
+        email: String(data.get('email') ?? ''),
+        phone: String(data.get('phone') ?? ''),
+        interest: String(data.get('interest') ?? ''),
+        message: String(data.get('message') ?? ''),
+      },
+      form,
     );
-  }
+  };
+  if (submission.status === 'sent')
+    return (
+      <Alert
+        ref={submission.feedbackRef}
+        role="status"
+        tabIndex={-1}
+        className="flex items-start gap-3"
+      >
+        <CheckCircle2 aria-hidden="true" />
+        <span>
+          <strong>Thank you for your inquiry!</strong> A real estate specialist will contact you
+          within 24 hours.
+        </span>
+      </Alert>
+    );
   return (
-    <div className="re-form-card ui-form-card ui-form-surface ui-form-surface--standard">
-      <h3 className="type-form-title">Start Your Real Estate Journey</h3>
-      <form className="ui-client-form ui-form-layout--standard" onSubmit={submit}>
-        <div className="re-field-grid ui-field-grid">
-          <label>
-            First Name *
-            <input name="firstName" required placeholder="John" />
-          </label>
-          <label>
-            Last Name *
-            <input name="lastName" required placeholder="Doe" />
-          </label>
-          <label>
-            Email *
-            <input name="email" type="email" required placeholder="john@example.com" />
-          </label>
-          <label>
-            Phone *
-            <input name="phone" type="tel" required placeholder="(555) 123-4567" />
-          </label>
-        </div>
-        <label>
-          I’m Interested In
-          <input name="interest" placeholder="Buying, Selling, Leasing, Development" />
-        </label>
-        <label>
-          Tell Us About Your Goals
-          <textarea
-            name="message"
-            rows={4}
-            placeholder="Share details about your real estate needs…"
+    <Card>
+      <CardContent className="space-y-5 pt-6">
+        <h3 className="font-heading text-xl font-semibold">Start Your Real Estate Journey</h3>
+        <form className="space-y-5" onSubmit={submit}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor="real-estate-first-name">First Name *</FieldLabel>
+              <Input id="real-estate-first-name" name="firstName" required placeholder="John" />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="real-estate-last-name">Last Name *</FieldLabel>
+              <Input id="real-estate-last-name" name="lastName" required placeholder="Doe" />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="real-estate-email">Email *</FieldLabel>
+              <Input
+                id="real-estate-email"
+                name="email"
+                type="email"
+                required
+                placeholder="john@example.com"
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="real-estate-phone">Phone *</FieldLabel>
+              <Input
+                id="real-estate-phone"
+                name="phone"
+                type="tel"
+                required
+                placeholder="(555) 123-4567"
+              />
+            </Field>
+          </div>
+          <SelectField
+            id="real-estate-contact-interest"
+            name="interest"
+            label="I’m interested in *"
+            placeholder="Select an option"
+            required
+            options={[
+              'Buying a home',
+              'Selling a property',
+              'Land / acreage',
+              'Commercial property',
+              'Investment property',
+              'Other',
+            ].map((option) => ({ value: option, label: option }))}
           />
-        </label>
-        <button
-          className="re-button ui-button re-button-primary ui-button-primary re-button-wide ui-button-wide ui-submit-action ui-submit-action--full"
-          type="submit"
-        >
-          Get Started <Send aria-hidden="true" />
-        </button>
-      </form>
-    </div>
+          <Field>
+            <FieldLabel htmlFor="real-estate-contact-message">Tell Us About Your Goals</FieldLabel>
+            <Textarea
+              id="real-estate-contact-message"
+              name="message"
+              rows={4}
+              placeholder="Share details about your real estate needs…"
+            />
+          </Field>
+          <Button className="w-full" type="submit" disabled={submission.status === 'sending'}>
+            {submission.status === 'sending' ? 'Sending…' : 'Get Started'}{' '}
+            <Send aria-hidden="true" />
+          </Button>
+          {submission.status === 'error' ? (
+            <Alert ref={submission.feedbackRef} role="alert" tabIndex={-1} variant="destructive">
+              We could not send your inquiry. Please try again.
+            </Alert>
+          ) : null}
+        </form>
+      </CardContent>
+    </Card>
   );
 }

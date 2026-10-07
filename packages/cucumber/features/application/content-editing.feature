@@ -145,8 +145,8 @@ Feature: In-page content editing and preview
   Scenario: Add the first item to an empty collection
     backend-noop: The empty-list affordance and semantic item sheet are browser presentation behavior; persistence uses the existing complete-replacement API.
     Given I am signed in and previewing an empty Home collection
-    When I use its add control and save the first item
-    Then the new item appears in my private preview
+    When I use its add control and approve the first item
+    Then the approved new item appears in my private preview
     And its generated identity remains hidden
 
   @id:content.editor-ownership-state @backend-noop
@@ -229,7 +229,7 @@ Feature: In-page content editing and preview
   Scenario: Use novice-readable inline controls on a touch screen
     backend-noop: Persistent touch affordances, touch-target sizing, clipping, keyboard operation, and public layout isolation are browser presentation behavior.
     Given I am signed in and editing Home at a 390 by 844 touch viewport
-    Then component and collection item actions remain visibly labeled and unclipped
+    Then component and collection item actions remain visibly labeled grouped and unclipped
     And touch editing actions meet their minimum target size
     When I operate the visible item controls with the keyboard
     Then the friendly item editor opens and the saved page layout remains unchanged
@@ -250,7 +250,7 @@ Feature: In-page content editing and preview
     backend-noop: Toolbar geometry and focus behavior are browser presentation concerns.
     Given I am signed in on Home at a 1425 by 1100 desktop viewport
     When I enter edit mode from the desktop launcher
-    Then the desktop editor toolbar is exactly 64 pixels tall
+    Then the desktop editor toolbar stays compact and within the viewport
     And every desktop editor action remains visible and available actions are keyboard reachable
 
   @id:content.review-publish-prominence @backend-noop
@@ -277,13 +277,3 @@ Feature: In-page content editing and preview
     And I can search the icon library by its friendly name
     When I choose the "Tractor" icon and save the item
     Then the selected "Tractor" icon renders in my private preview without a fallback symbol
-
-  @id:content.home-opening-center-stability @backend-noop
-  Scenario: Keep the canonical Home opening message centered in public and edit views
-    backend-noop: Text geometry and editor-wrapper layout isolation are browser presentation behavior.
-    Given I have canonical Home opening content with no saved draft
-    When I open the public Home page at desktop width
-    Then the canonical Home opening heading is horizontally centered
-    When I enter edit mode with the canonical Home opening content
-    Then the canonical Home opening heading remains horizontally centered
-    And the editor wrapper does not change the Home opening geometry

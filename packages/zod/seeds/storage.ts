@@ -148,7 +148,7 @@ export const storageV2SeedData = {
       id: '8faf684f-b5b2-5820-aa37-966ad05a7934',
       name: 'Steve Tripp',
       role: 'Leadership',
-      bio: 'Bio coming soon.',
+      bio: '',
       image: { kind: 'managed', key: 'media/seed/steve-tripp.png' },
       imageAltText: 'Steve Tripp',
     },
@@ -156,7 +156,7 @@ export const storageV2SeedData = {
       id: '8eaf66bc-b6b2-59b3-ab37-97fdd15a7ac7',
       name: 'Amber Lamborn',
       role: 'Leadership',
-      bio: 'Bio coming soon.',
+      bio: '',
       image: { kind: 'managed', key: 'media/seed/amber-lamborn.jpeg' },
       imageAltText: 'Amber Lamborn',
     },
@@ -197,26 +197,7 @@ export const storageV2SeedData = {
     description:
       'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
   },
-  'storage.reviews.platforms': [
-    {
-      id: '1ef461a6-14a4-5033-a2d7-f4adc755312f',
-      name: 'Google',
-      description: 'Share your experience on Google Reviews — helps neighbors find us.',
-      externalUrl: '',
-    },
-    {
-      id: '1ff46339-13a4-5ea0-a1d7-f31ac6552f9c',
-      name: 'Facebook',
-      description: 'Recommend us on Facebook so your network can see it too.',
-      externalUrl: '',
-    },
-    {
-      id: '1cf45e80-16a4-5359-a0d7-f187c9553455',
-      name: 'Yelp',
-      description: 'Leave a Yelp review to help others make an informed decision.',
-      externalUrl: '',
-    },
-  ],
+  'storage.reviews.platforms': [],
   'storage.reviews.footer': {
     message: 'Prefer to share feedback privately?',
     email: 'Office@tricoinc.com',

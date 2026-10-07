@@ -109,6 +109,14 @@ export class MemoryDynamo {
     const expression = String(input['UpdateExpression']);
     const names = (input['ExpressionAttributeNames'] ?? {}) as Record<string, string>;
     const values = (input['ExpressionAttributeValues'] ?? {}) as Record<string, unknown>;
+    if (expression === 'SET #expiresAt = if_not_exists(#expiresAt, :expiresAt) ADD #count :one') {
+      next[names['#expiresAt'] ?? 'expiresAt'] =
+        existing?.[names['#expiresAt'] ?? 'expiresAt'] ?? values[':expiresAt'];
+      next[names['#count'] ?? 'count'] =
+        Number(existing?.[names['#count'] ?? 'count'] ?? 0) + Number(values[':one']);
+      this.store(next);
+      return;
+    }
     const setPart = expression.match(/(?:^|\s)SET\s+(.+?)(?=\s+REMOVE\s+|$)/)?.[1];
     for (const assignment of setPart?.split(',') ?? []) {
       const [rawName, rawValue] = assignment.trim().split(/\s*=\s*/);
@@ -163,7 +171,7 @@ export class MemoryDynamo {
     );
     const equalityFailed = [
       ...condition.matchAll(
-        /\b(id|authorId|revision|version|blockedOperationId|disabledEntityIds)\s*=\s*(:\w+)/g,
+        /\b(id|authorId|revision|version|blockedOperationId|disabledEntityIds|expiresAt)\s*=\s*(:\w+)/g,
       ),
     ].some((match) => {
       if (match[1] === 'version' && versionCreateOrMatch && existing === undefined) return false;
@@ -174,11 +182,16 @@ export class MemoryDynamo {
       (condition.includes('attribute_exists(pk)') && existing === undefined) ||
       (condition.includes('attribute_not_exists(blockedOperationId)') &&
         existing?.['blockedOperationId'] !== undefined) ||
-      equalityFailed;
-    if (fails)
-      throw new Error(
+      equalityFailed ||
+      (condition.includes('#count < :limit') &&
+        Number(existing?.['count'] ?? 0) >= Number(values[':limit']));
+    if (fails) {
+      const error = new Error(
         `ConditionalCheckFailedException: ${condition} for ${existing === undefined ? 'missing item' : keyFor(existing)}`,
       );
+      error.name = 'ConditionalCheckFailedException';
+      throw error;
+    }
   }
 }
 

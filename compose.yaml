@@ -86,11 +86,14 @@ services:
       DYNAMODB_TABLE: trico-web-local
       S3_ENDPOINT: http://minio:9000
       S3_BUCKET: trico-web-local
+      RESUME_BUCKET: trico-web-local-resumes
       S3_FORCE_PATH_STYLE: 'true'
       MAIL_TRANSPORT: smtp
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       EMAIL_FROM: TriCo Website <website@tricoinc.com>
+      INQUIRY_EMAIL_TO: ${INQUIRY_EMAIL_TO:-inquiries@example.test}
+      CAREER_EMAIL_TO: ${CAREER_EMAIL_TO:-applications@example.test}
       SESSION_COOKIE_NAME: trico_local_session
       COOKIE_SECURE: 'false'
       BEDROCK_MODE: fixture

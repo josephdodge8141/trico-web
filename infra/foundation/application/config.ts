@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailSchema } from '@app/schemas';
 
 const applicationName = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const imageUri =
@@ -19,6 +20,8 @@ export const applicationConfigSchema = z
     hostedZoneName: z.string().regex(dnsName),
     certificateArn: z.string().startsWith('arn:').min(20),
     sesIdentityDomain: z.string().regex(dnsName),
+    inquiryEmailTo: emailSchema.optional(),
+    careerEmailTo: emailSchema.optional(),
     bedrockModelId: z.string().min(1).max(256).optional(),
     alertTopicArn: z.string().startsWith('arn:').min(20),
     externalSyncEnabled: contextBoolean,
