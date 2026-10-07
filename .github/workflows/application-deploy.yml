@@ -270,7 +270,9 @@ jobs:
           test -n "$DYNAMODB_TABLE" && test "$DYNAMODB_TABLE" != null || { echo "Invalid application table output for ${stack}; refusing to seed" >&2; exit 1; }
           S3_BUCKET="$(jq -er ".\"${stack}\".ContentBucketName | select(type == \"string\" and length > 0)" cdk-outputs.json)" || { echo "Missing content bucket output for ${stack}; refusing to seed" >&2; exit 1; }
           test -n "$S3_BUCKET" && test "$S3_BUCKET" != null || { echo "Invalid content bucket output for ${stack}; refusing to seed" >&2; exit 1; }
-          export DYNAMODB_TABLE S3_BUCKET
+          RESUME_BUCKET="$(jq -er ".\"${stack}\".ResumeBucketName | select(type == \"string\" and length > 0)" cdk-outputs.json)" || { echo "Missing resume bucket output for ${stack}; refusing to seed" >&2; exit 1; }
+          test -n "$RESUME_BUCKET" && test "$RESUME_BUCKET" != null || { echo "Invalid resume bucket output for ${stack}; refusing to seed" >&2; exit 1; }
+          export DYNAMODB_TABLE S3_BUCKET RESUME_BUCKET
           export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
           node backend/dist/seed.js
       - name: Confirm main is still at the selected automatic release SHA
@@ -501,7 +503,9 @@ jobs:
           test -n "$DYNAMODB_TABLE" && test "$DYNAMODB_TABLE" != null || { echo 'Invalid application table output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
           S3_BUCKET="$(jq -er '."TricoWeb-prod".ContentBucketName | select(type == "string" and length > 0)' cdk-outputs.json)" || { echo 'Missing content bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
           test -n "$S3_BUCKET" && test "$S3_BUCKET" != null || { echo 'Invalid content bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
-          export DYNAMODB_TABLE S3_BUCKET
+          RESUME_BUCKET="$(jq -er '."TricoWeb-prod".ResumeBucketName | select(type == "string" and length > 0)' cdk-outputs.json)" || { echo 'Missing resume bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          test -n "$RESUME_BUCKET" && test "$RESUME_BUCKET" != null || { echo 'Invalid resume bucket output for TricoWeb-prod; refusing to seed' >&2; exit 1; }
+          export DYNAMODB_TABLE S3_BUCKET RESUME_BUCKET
           export MAIL_TRANSPORT=ses BEDROCK_MODE=fixture S3_FORCE_PATH_STYLE=false COOKIE_SECURE=true
           node --import tsx backend/seed.ts
       - name: Activate production frontend release

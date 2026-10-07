@@ -46,7 +46,7 @@ test('factory.delivery.release-identity uses one derived release SHA and strict 
   assert.match(workflow, /release-cli\.ts/);
 });
 
-test('factory.delivery.bootstrap-environment-bucket binds the exact environment bucket and fails closed', async () => {
+test('factory.delivery.bootstrap-environment-bucket binds the exact environment buckets and fails closed', async () => {
   const workflow = await readFile(workflowPath, 'utf8');
   const sharedBootstrapStart = workflow.indexOf('name: Bootstrap application data');
   const sharedBootstrapEnd = workflow.indexOf(
@@ -70,12 +70,20 @@ test('factory.delivery.bootstrap-environment-bucket binds the exact environment 
   assert.match(sharedBootstrap, /S3_BUCKET/);
   assert.match(sharedBootstrap, /test -n "\$S3_BUCKET"/);
   assert.match(sharedBootstrap, /test "\$S3_BUCKET" != null/);
+  assert.match(sharedBootstrap, /ResumeBucketName/);
+  assert.match(sharedBootstrap, /RESUME_BUCKET/);
+  assert.match(sharedBootstrap, /test -n "\$RESUME_BUCKET"/);
+  assert.match(sharedBootstrap, /test "\$RESUME_BUCKET" != null/);
   assert.ok(
     sharedBootstrap.indexOf('DYNAMODB_TABLE=') <
       sharedBootstrap.indexOf('node backend/dist/seed.js'),
   );
   assert.ok(
     sharedBootstrap.indexOf('ContentBucketName') <
+      sharedBootstrap.indexOf('node backend/dist/seed.js'),
+  );
+  assert.ok(
+    sharedBootstrap.indexOf('ResumeBucketName') <
       sharedBootstrap.indexOf('node backend/dist/seed.js'),
   );
 
@@ -86,12 +94,20 @@ test('factory.delivery.bootstrap-environment-bucket binds the exact environment 
   assert.match(automaticBootstrap, /S3_BUCKET/);
   assert.match(automaticBootstrap, /test -n "\$S3_BUCKET"/);
   assert.match(automaticBootstrap, /test "\$S3_BUCKET" != null/);
+  assert.match(automaticBootstrap, /ResumeBucketName/);
+  assert.match(automaticBootstrap, /RESUME_BUCKET/);
+  assert.match(automaticBootstrap, /test -n "\$RESUME_BUCKET"/);
+  assert.match(automaticBootstrap, /test "\$RESUME_BUCKET" != null/);
   assert.ok(
     automaticBootstrap.indexOf('DYNAMODB_TABLE=') <
       automaticBootstrap.indexOf('node --import tsx backend/seed.ts'),
   );
   assert.ok(
     automaticBootstrap.indexOf('ContentBucketName') <
+      automaticBootstrap.indexOf('node --import tsx backend/seed.ts'),
+  );
+  assert.ok(
+    automaticBootstrap.indexOf('ResumeBucketName') <
       automaticBootstrap.indexOf('node --import tsx backend/seed.ts'),
   );
 });

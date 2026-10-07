@@ -54,6 +54,7 @@ const checksum = (value: unknown): string =>
 // Recognized pristine values from the preceding TriCo seed. Keep them intact:
 // changed clean-install defaults must not silently publish over an existing site.
 const previousSeedChecksums: Readonly<Partial<Record<EntityId, readonly string[]>>> = {
+  'home.careers.header': ['fb7ea16a149cf37c3dfe75c0a44784e7b2207f5e6048a3b8418218e82b03119b'],
   'home.careers.open-positions': [
     '51fc0d0cf2f42913e89f71c889619695c75be1e79a4f46a2d82a34a81a43e226',
   ],
