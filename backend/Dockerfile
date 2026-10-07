@@ -13,6 +13,7 @@ RUN npm run build:contracts && npm run build -w @app/backend
 FROM node:24-alpine
 
 WORKDIR /app
+RUN apk add --no-cache --upgrade 'zlib=1.3.2-r1'
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
 COPY frontend/package.json ./frontend/package.json
