@@ -137,12 +137,12 @@ Feature: Published TriCo website
     backend-noop: Property Management composition and browser submission state are frontend-owned; the public intake route and outbound mail are exercised in public.health.
     Given the current content manifest is available
     When I open "/property-management"
-    Then the Property Management page presents ready sections in its intended order
+    Then the Property Management page presents ready sections in order with a navigable process progress view
     And the Property Management hero presents an accessible primary and secondary action hierarchy
     And the Property Management hero uses relevant managed imagery with a neutral fallback
     And all 34 Property Management entities have an editable visual boundary
     And supplied Property Management portfolio images load while additional cards reveal on request without conflicting public metrics
-    And Property Management portfolio categories are fully visible and directly browseable on mobile
+    And Property Management portfolio categories fit their tab bar and remain directly browseable on mobile
     And the single Property Management analysis form delivers and restarts with focus without creating CMS entities
     And the Property Management contact details use labeled icon rows and remain visible after anchor navigation while the analysis form centers beside them on desktop
     And Property Management has no dead public footer links

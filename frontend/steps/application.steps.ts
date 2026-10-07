@@ -3352,7 +3352,7 @@ Then(
 );
 
 Then(
-  'the Property Management page presents ready sections in its intended order',
+  'the Property Management page presents ready sections in order with a navigable process progress view',
   async function (this: FrontendWorld) {
     const expectedHeadings = [
       'What to Expect with TriCo',
@@ -3379,6 +3379,30 @@ Then(
       positions,
       [...positions].sort((left, right) => left - right),
     );
+    const page = this.currentPage();
+    const process = page.locator('#process');
+    const progress = process.getByRole('progressbar', { name: /Viewing process step/ });
+    await expect(progress).toHaveAttribute('aria-valuenow', '20');
+    const steps = process.locator('[data-process-step]');
+    await expect(steps).toHaveCount(5);
+    const first = steps.first();
+    await expect(first).toHaveAttribute('aria-current', 'step');
+    const icon = await first.locator('[data-process-step-icon]').boundingBox();
+    const number = await first.locator('[data-process-step-number]').boundingBox();
+    assert.ok(icon);
+    assert.ok(number);
+    assert.ok(number.x >= icon.x + icon.width - 1);
+    assert.ok(Math.abs(number.y + number.height / 2 - (icon.y + icon.height / 2)) <= 4);
+    await steps.last().click();
+    await expect(progress).toHaveAttribute('aria-valuenow', '100');
+    await expect(process.getByRole('region', { name: 'Current process step' })).toContainText(
+      'Tenant Retention',
+    );
+    const second = steps.nth(1);
+    await second.focus();
+    await page.keyboard.press('Enter');
+    await expect(second).toHaveAttribute('aria-current', 'step');
+    await expect(progress).toHaveAttribute('aria-valuenow', '40');
   },
 );
 Then(
@@ -4010,17 +4034,21 @@ Then(
   },
 );
 Then(
-  'Property Management portfolio categories are fully visible and directly browseable on mobile',
+  'Property Management portfolio categories fit their tab bar and remain directly browseable on mobile',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const portfolio = page.locator('#managed-properties');
     const tabs = portfolio.getByRole('tablist', { name: 'Property portfolio category' });
-    for (const width of [320, 390]) {
+    for (const width of [320, 390, 1265]) {
       await page.setViewportSize({ width, height: 844 });
+      const listBounds = await tabs.boundingBox();
+      assert.ok(listBounds !== null);
       for (const tab of await tabs.getByRole('tab').all()) {
         const bounds = await tab.boundingBox();
         assert.ok(bounds !== null);
         assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width);
+        assert.ok(bounds.y >= listBounds.y - 1);
+        assert.ok(bounds.y + bounds.height <= listBounds.y + listBounds.height + 1);
       }
     }
     await expect(tabs.getByRole('tab')).toHaveCount(3);

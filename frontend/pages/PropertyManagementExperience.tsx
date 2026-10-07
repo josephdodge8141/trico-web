@@ -43,6 +43,7 @@ import { AuthenticatedEditorToolbar } from '../components/AuthenticatedEditorToo
 import { Badge } from '../components/ui/badge.js';
 import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader } from '../components/ui/card.js';
+import { Progress } from '../components/ui/progress.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs.js';
 import { EditModeProvider } from '../context/EditModeContext.js';
 import { useEditMode } from '../context/editMode.js';
@@ -120,6 +121,7 @@ function PropertyManagementBody(): React.JSX.Element {
   const [document, setDocument] = useState<S.PageContent>({});
   const [fallback, setFallback] = useState(false);
   const [portfolioTab, setPortfolioTab] = useState('managed');
+  const [processIndex, setProcessIndex] = useState(0);
   const [showAllManaged, setShowAllManaged] = useState(false);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
   useEffect(() => {
@@ -165,6 +167,8 @@ function PropertyManagementBody(): React.JSX.Element {
     'property-management.process.steps',
     S.propertyManagementProcessStepsSchema,
   );
+  const visibleProcessIndex = Math.min(processIndex, Math.max(0, processSteps.length - 1));
+  const selectedProcessStep = processSteps[visibleProcessIndex];
   const managedHeader = value(
     'property-management.portfolio.managed.header',
     S.propertyManagementPortfolioHeaderSchema,
@@ -484,29 +488,100 @@ function PropertyManagementBody(): React.JSX.Element {
               <Entity id="property-management.process.header" value={processHeader}>
                 <Intro {...processHeader} />
               </Entity>
+              {!editing.active && selectedProcessStep ? (
+                <div className="mb-6 mt-10 space-y-3">
+                  <div className="flex items-center justify-between gap-4 text-sm">
+                    <span className="font-medium text-foreground">Explore our process</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      Step {selectedProcessStep.number} of{' '}
+                      {String(processSteps.length).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <Progress
+                    value={((visibleProcessIndex + 1) / processSteps.length) * 100}
+                    aria-label={`Viewing process step ${visibleProcessIndex + 1} of ${processSteps.length}`}
+                  />
+                </div>
+              ) : null}
               <Collection
                 id="property-management.process.steps"
                 value={processSteps}
-                className="[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-5 sm:[&_[data-slot=editable-collection-items]]:grid-cols-2 lg:[&_[data-slot=editable-collection-items]]:grid-cols-4"
-                renderItem={(item) => {
+                className={
+                  editing.active
+                    ? '[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-5 sm:[&_[data-slot=editable-collection-items]]:grid-cols-2 lg:[&_[data-slot=editable-collection-items]]:grid-cols-3'
+                    : '[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-3 [&_[data-slot=editable-collection-items]]:grid-cols-2 sm:[&_[data-slot=editable-collection-items]]:grid-cols-3 lg:[&_[data-slot=editable-collection-items]]:grid-cols-5'
+                }
+                renderItem={(item, index) => {
                   const step = S.propertyManagementProcessStepsSchema.element.parse(item);
                   const Icon = contentIconComponents[step.icon] ?? Building2;
+                  if (editing.active) {
+                    return (
+                      <Card className="h-full border border-border/70">
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <Icon className="size-6 text-primary" aria-hidden="true" />
+                            <Badge variant="secondary" className="w-fit tabular-nums">
+                              Step {step.number}
+                            </Badge>
+                          </div>
+                          <h3 className="font-heading text-lg font-semibold">{step.title}</h3>
+                        </CardHeader>
+                        <CardContent className="text-muted-foreground">
+                          {step.description}
+                        </CardContent>
+                      </Card>
+                    );
+                  }
                   return (
-                    <Card className="h-full border border-border/70">
-                      <CardHeader>
-                        <Badge variant="secondary" className="w-fit">
-                          {step.number}
-                        </Badge>
-                        <Icon className="size-6 text-primary" aria-hidden="true" />
-                        <h3 className="font-heading text-lg font-semibold">{step.title}</h3>
-                      </CardHeader>
-                      <CardContent className="text-muted-foreground">
-                        {step.description}
-                      </CardContent>
-                    </Card>
+                    <button
+                      type="button"
+                      data-process-step="true"
+                      aria-current={index === visibleProcessIndex ? 'step' : undefined}
+                      aria-controls="property-process-detail"
+                      onClick={() => setProcessIndex(index)}
+                      className={`flex h-full min-h-24 w-full flex-col gap-2 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                        index === visibleProcessIndex
+                          ? 'border-primary bg-primary/5 text-foreground shadow-sm'
+                          : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <Icon
+                          className="size-5 shrink-0 text-primary"
+                          aria-hidden="true"
+                          data-process-step-icon="true"
+                        />
+                        <span
+                          className="text-xs font-semibold tracking-wide tabular-nums text-primary"
+                          data-process-step-number="true"
+                        >
+                          Step {step.number}
+                        </span>
+                      </span>
+                      <span className="font-heading text-sm leading-snug font-semibold sm:text-base">
+                        {step.title}
+                      </span>
+                    </button>
                   );
                 }}
               />
+              {!editing.active && selectedProcessStep ? (
+                <Card
+                  id="property-process-detail"
+                  role="region"
+                  aria-label="Current process step"
+                  className="mt-6 border border-border/70 bg-card shadow-sm"
+                >
+                  <CardHeader className="gap-2">
+                    <h3 className="font-heading text-xl font-semibold sm:text-2xl">
+                      {selectedProcessStep.title}
+                    </h3>
+                  </CardHeader>
+                  <CardContent className="max-w-3xl text-base leading-relaxed text-muted-foreground">
+                    {selectedProcessStep.description}
+                  </CardContent>
+                </Card>
+              ) : null}
             </Container>
           </section>
           <section id="managed-properties" className="bg-muted/40 py-20 sm:py-24">
