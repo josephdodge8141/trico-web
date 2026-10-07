@@ -43,7 +43,7 @@
     "@smithy/signature-v4": "5.7.3",
     "express": "5.2.1",
     "helmet": "8.3.0",
-    "nodemailer": "10.0.1"
+    "nodemailer": "10.0.15"
   },
   "devDependencies": {
     "@app/behaviors": "0.1.0",

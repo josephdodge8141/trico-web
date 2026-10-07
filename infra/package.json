@@ -7,6 +7,7 @@
     "build": "tsc -b"
   },
   "dependencies": {
+    "@app/schemas": "0.1.0",
     "@aws-crypto/sha256-js": "5.2.0",
     "@aws-sdk/client-bedrock-runtime": "3.1126.0",
     "@aws-sdk/client-dynamodb": "3.1126.0",
@@ -19,10 +20,9 @@
     "@aws-sdk/lib-dynamodb": "3.1126.0",
     "@smithy/protocol-http": "5.6.2",
     "@smithy/signature-v4": "5.7.3",
-    "aws-cdk-lib": "2.268.0",
+    "aws-cdk-lib": "file:../vendor/aws-cdk-lib-2.272.0-brace-patched.tgz",
     "constructs": "10.8.1",
     "puppeteer-core": "25.10.0",
-    "@app/schemas": "0.1.0",
     "zod": "4.5.4"
   },
   "devDependencies": {
