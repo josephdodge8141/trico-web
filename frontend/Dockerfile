@@ -6,6 +6,7 @@ COPY frontend ./frontend
 COPY backend/package.json ./backend/package.json
 COPY infra/package.json ./infra/package.json
 COPY packages ./packages
+COPY vendor ./vendor
 RUN npm ci
 RUN npm run build:contracts && npm run build -w @app/frontend
 
