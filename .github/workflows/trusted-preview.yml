@@ -142,8 +142,9 @@ jobs:
           export PREVIEW_ZONE_ID="$(output PreviewZoneId)"
           export PREVIEW_ZONE_NAME="$(output PreviewZoneName)"
           export PREVIEW_EDITOR_SECRET_ARN="$(output PreviewEditorSecretArn)"
+          export PREVIEW_AISTOR_LICENSE_SECRET_ARN="$(output PreviewAistorLicenseSecretArn)"
           export PREVIEW_DYNAMODB_IMAGE='amazon/dynamodb-local@sha256:1856c05cc66a0e49dc1099e483ad2851477eeebe2135250ac11a1d1227db54b1'
-          export PREVIEW_MINIO_IMAGE='quay.io/minio/minio@sha256:d249d1fb6966de4d8ad26c04754b545205ff15a62e4fd19ebd0f26fa5baacbc0'
+          export PREVIEW_AISTOR_IMAGE='quay.io/minio/aistor/minio@sha256:107cf2014a9583c74c11e3cdbd6903d89c2244355886b89ce532f4ecae9c23f3'
           export PREVIEW_MAILPIT_IMAGE='axllent/mailpit@sha256:6abc8e633df15eaf785cfcf38bae48e66f64beecdc03121e249d0f9ec15f0707'
           export COMMAND_ID="admit-${WORKFLOW_RUN_ID}-${WORKFLOW_RUN_ATTEMPT}"
           export EVENT_SEQUENCE="${WORKFLOW_RUN_ID}0"

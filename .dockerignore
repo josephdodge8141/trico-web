@@ -4,5 +4,6 @@
 **/*.tsbuildinfo
 .env
 .env.*
+.secrets
 artifacts
 work

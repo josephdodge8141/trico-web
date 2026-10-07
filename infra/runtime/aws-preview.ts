@@ -62,7 +62,8 @@ export interface AwsPreviewConfig {
   readonly backendImage?: string;
   readonly frontendImage?: string;
   readonly dynamodbImage?: string;
-  readonly minioImage?: string;
+  readonly aistorImage?: string;
+  readonly aistorLicenseSecretArn?: string;
   readonly mailpitImage?: string;
 }
 
@@ -525,13 +526,22 @@ export class AwsPreviewEffectProvider implements PreviewEffectProvider {
         logConfiguration,
       },
       {
-        name: 'minio',
-        image: empty(this.config.minioImage, 'minioImage'),
+        name: 'aistor',
+        image: empty(this.config.aistorImage, 'aistorImage'),
         essential: true,
-        command: ['server', '/data'],
+        entryPoint: ['/usr/bin/sh', '-c'],
+        command: [
+          'umask 077; printf %s "$AISTOR_LICENSE" > /tmp/minio.license; unset AISTOR_LICENSE; exec minio server /data --license /tmp/minio.license',
+        ],
         environment: [
           { name: 'MINIO_ROOT_USER', value: 'local-minio-user' },
           { name: 'MINIO_ROOT_PASSWORD', value: 'local-minio-password' },
+        ],
+        secrets: [
+          {
+            name: 'AISTOR_LICENSE',
+            valueFrom: empty(this.config.aistorLicenseSecretArn, 'aistorLicenseSecretArn'),
+          },
         ],
         logConfiguration,
       },

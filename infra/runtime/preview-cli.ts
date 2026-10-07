@@ -34,7 +34,8 @@ function config(): AwsPreviewConfig {
   const backendImage = optional('PREVIEW_BACKEND_IMAGE');
   const frontendImage = optional('PREVIEW_FRONTEND_IMAGE');
   const dynamodbImage = optional('PREVIEW_DYNAMODB_IMAGE');
-  const minioImage = optional('PREVIEW_MINIO_IMAGE');
+  const aistorImage = optional('PREVIEW_AISTOR_IMAGE');
+  const aistorLicenseSecretArn = optional('PREVIEW_AISTOR_LICENSE_SECRET_ARN');
   const mailpitImage = optional('PREVIEW_MAILPIT_IMAGE');
   return {
     region: required('AWS_REGION'),
@@ -51,7 +52,8 @@ function config(): AwsPreviewConfig {
     ...(backendImage === undefined ? {} : { backendImage }),
     ...(frontendImage === undefined ? {} : { frontendImage }),
     ...(dynamodbImage === undefined ? {} : { dynamodbImage }),
-    ...(minioImage === undefined ? {} : { minioImage }),
+    ...(aistorImage === undefined ? {} : { aistorImage }),
+    ...(aistorLicenseSecretArn === undefined ? {} : { aistorLicenseSecretArn }),
     ...(mailpitImage === undefined ? {} : { mailpitImage }),
   };
 }

@@ -10,6 +10,7 @@ Feature: Bounded preview lifecycle
     When the lifecycle admits that revision
     Then it creates one deterministic generation with immutable repository pull request and generation ownership
     And it emits idempotent start work for that generation
+    And the preview starts single-node AIStor only with a protected license before browser verification
 
   @id:factory.lifecycle.replace-revision @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Replace a preview only while bounded cleanup is available
