@@ -21,13 +21,13 @@ import {
   pageIdSchema,
   pendingChangeSchema,
   publishRequestSchema,
-  registrySeedData,
   retiredEntityIds,
   scheduledSyncEventSchema,
   validateRegistry,
   type EditableValue,
   type EntityId,
 } from '../index.js';
+import { registrySeedData } from '../server.js';
 import { iconNameSchema } from './registry.js';
 import {
   aggregateEntityModules,

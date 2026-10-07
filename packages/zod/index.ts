@@ -1,6 +1,25 @@
 export { ZodError } from 'zod';
 
 export {
+  isPubliclyVisible,
+  publicVisibilitySchema,
+  type PublicVisibility,
+} from './schemas/public-visibility.js';
+
+export {
+  careerApplicationRequestSchema,
+  careerApplicationResponseSchema,
+  careerApplicationUploadRequestSchema,
+  careerApplicationUploadResponseSchema,
+  careerDivisionSchema,
+  type CareerApplicationRequest,
+  type CareerApplicationResponse,
+  type CareerApplicationUploadRequest,
+  type CareerApplicationUploadResponse,
+  type CareerDivision,
+} from './schemas/career-application.js';
+
+export {
   anonymousSessionSchema,
   authenticatedSessionSchema,
   authPrincipalSchema,
@@ -78,6 +97,14 @@ export {
   type ErrorResponse,
 } from './schemas/error.js';
 export { healthResponseSchema, type HealthResponse } from './schemas/health.js';
+export {
+  inquiryKindSchema,
+  inquiryRequestSchema,
+  inquiryResponseSchema,
+  type InquiryKind,
+  type InquiryRequest,
+  type InquiryResponse,
+} from './schemas/inquiry.js';
 export {
   lucideIconChoices,
   lucideIconLabel,
@@ -383,7 +410,6 @@ export {
   entityRegistry,
   LIST_ITEM_MIGRATION_NAMESPACE,
   pageDefinitions,
-  registrySeedData,
   retiredEntityIds,
   requireEntityDefinition,
   validateRegistry,

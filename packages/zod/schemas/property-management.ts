@@ -13,6 +13,7 @@ import {
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
 import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
+import { publicVisibilityControl, publicVisibilitySchema } from './public-visibility.js';
 
 export const PROPERTY_MANAGEMENT_CONTENT_SCHEMA_VERSION = 2 as const;
 
@@ -146,6 +147,7 @@ export const propertyManagementTestimonialSchema = z.strictObject({
   imageAltText: text(200),
   rating: z.number().int().min(1).max(5),
   quote: text(2_000),
+  publicVisibility: publicVisibilitySchema,
 });
 export const propertyManagementTestimonialsItemsSchema = z.array(
   propertyManagementTestimonialSchema,
@@ -662,6 +664,7 @@ export const propertyManagementEntityDefinitions = [
         imageAltText: 'Client portrait',
         rating: 5,
         quote: 'Add the client feedback.',
+        publicVisibility: 'hidden',
       },
       [
         field(['id'], 'Item identity', 0, system()),
@@ -677,6 +680,7 @@ export const propertyManagementEntityDefinitions = [
           step: 1,
         }),
         field(['quote'], 'Feedback', 6, long(7, 2_000)),
+        field(['publicVisibility'], 'Public visibility', 7, publicVisibilityControl()),
       ],
       ['name'],
     ),

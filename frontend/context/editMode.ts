@@ -7,6 +7,7 @@ import type { MediaAsset } from '../services/cms.js';
 
 export interface EditModeValue {
   readonly active: boolean;
+  readonly authenticated: boolean;
   readonly busy: boolean;
   readonly pageId: PageId;
   readonly pending: readonly PendingChange[];

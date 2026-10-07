@@ -9,11 +9,12 @@ const mailpitAuthorization = `Basic ${Buffer.from(
   `${process.env.MAILPIT_USERNAME ?? 'local-editor'}:${process.env.MAILPIT_PASSWORD ?? 'local-mailpit-password'}`,
 ).toString('base64')}`;
 
-test('entering edit mode while signed out requires login and resumes edit mode', async ({
+test('signed-out visitors use the direct login URL before the editor launcher appears', async ({
   page,
 }) => {
   await page.goto('/property-management');
-  await page.getByRole('button', { name: 'Enter edit mode' }).click();
+  await expect(page.getByRole('button', { name: 'Enter edit mode' })).toHaveCount(0);
+  await page.goto('/login');
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: 'Editor sign in' })).toBeVisible();
 
@@ -21,9 +22,13 @@ test('entering edit mode while signed out requires login and resumes edit mode',
   await page.getByLabel('Password').fill(editorPassword);
   await page.getByRole('button', { name: 'Continue' }).click();
 
-  await expect(page).toHaveURL(/\/property-management$/);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('button', { name: 'Enter edit mode' })).toBeVisible();
+  await page.getByRole('button', { name: 'Enter edit mode' }).click();
   await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
   await expect(page.getByText('Edit mode is active')).toBeVisible();
+  await page.getByRole('button', { name: 'Exit edit mode' }).click();
+  await expect(page.getByRole('button', { name: 'Enter edit mode' })).toBeVisible();
 });
 
 test('reloading an authenticated edit page restores a usable editor state', async ({ page }) => {
@@ -63,6 +68,8 @@ test('the seeded reviewer can authenticate, edit in-page, and end the opaque ses
     authenticated: false,
     principal: null,
   });
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Enter edit mode' })).toHaveCount(0);
 });
 
 test('registration verification and single-use reset complete through Mailpit', async ({

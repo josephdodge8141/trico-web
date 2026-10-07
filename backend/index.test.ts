@@ -17,6 +17,7 @@ const environment = (port: number, shutdownTimeoutMs = 100): Environment => ({
   awsRegion: 'us-west-2',
   dynamoTable: 'trico-web-test',
   s3Bucket: 'trico-web-test',
+  resumeBucket: 'trico-web-test-resumes',
   s3ForcePathStyle: true,
   mailTransport: 'smtp',
   smtpHost: '127.0.0.1',

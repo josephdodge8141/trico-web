@@ -18,9 +18,9 @@ import {
   mediaPresignRequestSchema,
   planEntityModuleContentMigration,
   pageIdSchema,
+  propertyManagementV2SeedData,
   realEstateEntityModule,
   realEstateV2SeedData,
-  registrySeedData,
   requireEntityDefinition,
   signupRequestSchema,
   validateEntityViewCatalog,
@@ -34,10 +34,15 @@ import {
   type PendingChange,
   type Publication,
 } from '@app/schemas';
+import { registrySeedData } from '@app/schemas/server';
 
 import { createApp } from '../app.js';
 import type { AiConnection } from '../config/ai.js';
-import { createConnections, type MailConnection } from '../config/connections.js';
+import {
+  createConnections,
+  type MailConnection,
+  type ResumeObjectConnection,
+} from '../config/connections.js';
 import { createBoundedPublicFetch } from '../config/external-http.js';
 import { createOriginGuard } from '../middleware/session.js';
 import { HttpError } from '../middleware/errors.js';
@@ -70,7 +75,27 @@ const LIST = 'real-estate.listings.items' as EntityId;
 class BackendWorld extends World {
   readonly dynamo = new MemoryDynamo();
   readonly objects = new MemoryS3();
-  readonly messages: { to: string; subject: string; text: string }[] = [];
+  readonly resumeFiles = new Map<
+    string,
+    { content: Uint8Array; contentType: string; contentLength: number }
+  >();
+  readonly resumeObjects: ResumeObjectConnection = {
+    presignPut: async (key): Promise<string> => `https://objects.example.test/${key}`,
+    read: async (key) => {
+      const file = this.resumeFiles.get(key);
+      if (file === undefined) throw new Error('NoSuchKey');
+      return file;
+    },
+    delete: async (key): Promise<void> => {
+      this.resumeFiles.delete(key);
+    },
+  };
+  readonly messages: {
+    to: string;
+    subject: string;
+    text: string;
+    attachment?: { fileName: string; contentType: string; content: Uint8Array };
+  }[] = [];
   readonly mail: MailConnection = {
     send: async (message): Promise<void> => {
       this.messages.push({ ...message });
@@ -129,17 +154,28 @@ class BackendWorld extends World {
   snapshot: readonly { entityId: EntityId; entityVersion: number; value: EditableValue }[] = [];
   facts = new Set<string>();
   divisionMigrationPlan: EntityModuleMigrationPlan | undefined;
+  inquiryMarker = '';
+  careerUploadId = '';
+  careerPayload: Record<string, unknown> = {};
   seedEntityId: EntityId = 'home.hero';
   missingSeedEntityId: EntityId = 'home.anniversary-banner';
   seedCurrentRow: Record<string, unknown> | undefined;
+  legacySeedCurrentRow: Record<string, unknown> | undefined;
 }
 
 setWorldConstructor(BackendWorld);
 
 Before(async function (this: BackendWorld, { pickle }) {
-  if (pickle.name !== 'Check the public backend health') return;
+  if (pickle.name !== 'Check public health and anonymous form delivery') return;
   const connections = createConnections();
-  const server = createApp({ connections }).listen(0, '127.0.0.1');
+  const server = createApp({
+    connections: {
+      ...connections,
+      dynamo: this.dynamo.asClient(),
+      mail: this.mail,
+      resumeObjects: this.resumeObjects,
+    },
+  }).listen(0, '127.0.0.1');
   await once(server, 'listening');
   const address = server.address();
   assert.ok(address !== null && typeof address === 'object');
@@ -274,7 +310,7 @@ const factThen = (facts: readonly string[]): void => {
 };
 
 Given(
-  'a current entity has valid published edits and another registered entity is missing',
+  'one current entity has published edits another has a known earlier seed and another is missing',
   function (this: BackendWorld) {
     const definition = requireEntityDefinition(this.seedEntityId);
     const item = {
@@ -288,6 +324,23 @@ Given(
     };
     this.seedCurrentRow = structuredClone(item);
     this.dynamo.items.set(`${item.pk}|${item.sk}`, item);
+    const legacyValue = {
+      ...propertyManagementV2SeedData['property-management.hero'],
+      image: { kind: 'managed', key: 'media/seed/placeholder-neutral.svg' },
+      imageAltText: 'Property Management hero photo coming soon',
+    };
+    const legacyRow = {
+      pk: 'ENTITY#property-management.hero',
+      sk: 'CURRENT',
+      id: 'property-management.hero',
+      pageId: 'property-management',
+      version: 1,
+      value: legacyValue,
+      updatedAt: new Date(0).toISOString(),
+      seedChecksum: '065b76688c2cb7b8e0d2634769900f24bee93e02477248e1076c9d7b312ea963',
+    };
+    this.legacySeedCurrentRow = structuredClone(legacyRow);
+    this.dynamo.items.set(`${legacyRow.pk}|${legacyRow.sk}`, legacyRow);
   },
 );
 
@@ -324,11 +377,16 @@ When('deployment reruns seed-if-empty', async function (this: BackendWorld) {
   await capture(this, () => seedEntities(this.dynamo.asClient(), TABLE));
 });
 
-Then('bootstrap succeeds without rewriting the existing entity', function (this: BackendWorld) {
-  assert.equal(this.error, undefined);
-  const existing = this.dynamo.items.get(`ENTITY#${this.seedEntityId}|CURRENT`);
-  assert.deepEqual(existing, this.seedCurrentRow);
-});
+Then(
+  'bootstrap preserves both existing entities without rewriting them',
+  function (this: BackendWorld) {
+    assert.equal(this.error, undefined);
+    const existing = this.dynamo.items.get(`ENTITY#${this.seedEntityId}|CURRENT`);
+    assert.deepEqual(existing, this.seedCurrentRow);
+    const legacy = this.dynamo.items.get('ENTITY#property-management.hero|CURRENT');
+    assert.deepEqual(legacy, this.legacySeedCurrentRow);
+  },
+);
 
 Then('the missing entity receives its registered seed', function (this: BackendWorld) {
   const missing = this.dynamo.items.get(`ENTITY#${this.missingSeedEntityId}|CURRENT`);
@@ -1714,6 +1772,212 @@ Then('the response status is {int}', function (this: BackendWorld, status: numbe
 Then('the response body is exactly:', async function (this: BackendWorld, expected: string) {
   assert.deepEqual(await this.response?.json(), JSON.parse(expected));
 });
+
+When('I submit a valid anonymous Storage inquiry', async function (this: BackendWorld) {
+  this.inquiryMarker = `backend-${randomUUID()}`;
+  this.response = await fetch(`${this.baseUrl}/api/v1/inquiries`, {
+    method: 'POST',
+    headers: { Origin: 'http://app.localhost:8088', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      kind: 'storage-consultation',
+      name: 'Local Example',
+      email: 'inquiry@example.test',
+      phone: '555-0100',
+      facilityCount: '1',
+      message: this.inquiryMarker,
+      website: '',
+    }),
+  });
+});
+
+Then(
+  'delivery is acknowledged only after it reaches the configured mailbox',
+  async function (this: BackendWorld) {
+    assert.equal(this.response?.status, 200);
+    assert.deepEqual(await this.response.json(), { delivered: true });
+    assert.equal(this.messages.length, 1);
+    assert.ok(this.messages[0]?.text.includes(this.inquiryMarker));
+  },
+);
+
+Then(
+  'invalid cross-origin or excessive inquiries are rejected',
+  async function (this: BackendWorld) {
+    const invalid = await fetch(`${this.baseUrl}/api/v1/inquiries`, {
+      method: 'POST',
+      headers: { Origin: 'http://app.localhost:8088', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: 'storage-consultation', name: 'Example', email: 'bad-email' }),
+    });
+    assert.equal(invalid.status, 400);
+    const forged = await fetch(`${this.baseUrl}/api/v1/inquiries`, {
+      method: 'POST',
+      headers: { Origin: 'https://foreign.example', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'storage-consultation',
+        name: 'Example',
+        email: 'inquiry@example.test',
+        phone: '555-0100',
+      }),
+    });
+    assert.equal(forged.status, 403);
+    const source = randomUUID().replaceAll('-', '');
+    const sourceAddress = `2001:db8:${source.slice(0, 4)}:${source.slice(4, 8)}::1`;
+    for (let attempt = 0; attempt <= 30; attempt += 1) {
+      const repeated = await fetch(`${this.baseUrl}/api/v1/inquiries`, {
+        method: 'POST',
+        headers: {
+          Origin: 'http://app.localhost:8088',
+          'Content-Type': 'application/json',
+          'X-Forwarded-For': sourceAddress,
+        },
+        body: JSON.stringify({
+          kind: 'storage-consultation',
+          name: '',
+          email: 'inquiry@example.test',
+        }),
+      });
+      assert.equal(repeated.status, attempt === 30 ? 429 : 400);
+    }
+    assert.equal(this.messages.length, 1);
+  },
+);
+
+When(
+  'I stage a valid anonymous PDF resume privately and submit a career application',
+  async function (this: BackendWorld) {
+    this.inquiryMarker = `career-${randomUUID()}`;
+    const resume = Buffer.from('%PDF-1.4\nlocal acceptance resume\n%%EOF');
+    const reservation = await fetch(`${this.baseUrl}/api/v1/applications/uploads`, {
+      method: 'POST',
+      headers: { Origin: 'http://app.localhost:8088', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resumeName: 'resume.pdf',
+        resumeContentType: 'application/pdf',
+        contentLength: resume.length,
+      }),
+    });
+    assert.equal(reservation.status, 200);
+    const upload = (await reservation.json()) as { uploadId: string; uploadUrl: string };
+    assert.match(upload.uploadUrl, /objects\.example\.test/);
+    this.careerUploadId = upload.uploadId;
+    this.resumeFiles.set(`careers/${upload.uploadId}`, {
+      content: resume,
+      contentType: 'application/pdf',
+      contentLength: resume.length,
+    });
+    this.careerPayload = {
+      name: this.inquiryMarker,
+      email: 'applicant@example.test',
+      division: 'Construction',
+      position: 'Project Coordinator',
+      uploadId: upload.uploadId,
+      website: '',
+    };
+    this.response = await fetch(`${this.baseUrl}/api/v1/applications`, {
+      method: 'POST',
+      headers: { Origin: 'http://app.localhost:8088', 'Content-Type': 'application/json' },
+      body: JSON.stringify(this.careerPayload),
+    });
+  },
+);
+
+Then(
+  'the final application request contains only an upload reference and the resume reaches the configured mailbox',
+  async function (this: BackendWorld) {
+    assert.ok(JSON.stringify(this.careerPayload).length < 2_000);
+    assert.equal(this.careerPayload['uploadId'], this.careerUploadId);
+    assert.equal('resumeBase64' in this.careerPayload, false);
+    assert.equal(this.response?.status, 200);
+    assert.deepEqual(await this.response.json(), { delivered: true });
+    assert.equal(this.messages.length, 2);
+    const message = this.messages[1];
+    assert.equal(message?.to, 'applications@example.test');
+    assert.ok(message.text.includes(this.inquiryMarker));
+    assert.equal(message.attachment?.fileName, 'resume.pdf');
+    assert.equal(message.attachment?.contentType, 'application/pdf');
+    assert.equal(
+      Buffer.from(message.attachment?.content ?? [])
+        .toString('utf8')
+        .startsWith('%PDF-'),
+      true,
+    );
+    assert.equal(this.resumeFiles.has(`careers/${this.careerUploadId}`), false);
+  },
+);
+
+Then(
+  'invalid or replayed resumes and cross-origin or excessive career applications are rejected',
+  async function (this: BackendWorld) {
+    const payload = {
+      name: 'Example Applicant',
+      email: 'applicant@example.test',
+      division: 'Construction',
+      uploadId: randomUUID(),
+      website: '',
+    };
+    const replay = await fetch(`${this.baseUrl}/api/v1/applications`, {
+      method: 'POST',
+      headers: { Origin: 'http://app.localhost:8088', 'Content-Type': 'application/json' },
+      body: JSON.stringify(this.careerPayload),
+    });
+    assert.equal(replay.status, 400);
+    const forgedUpload = await fetch(`${this.baseUrl}/api/v1/applications/uploads`, {
+      method: 'POST',
+      headers: { Origin: 'https://foreign.example', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resumeName: 'resume.pdf',
+        resumeContentType: 'application/pdf',
+        contentLength: 10,
+      }),
+    });
+    assert.equal(forgedUpload.status, 403);
+    const badResume = Buffer.from('not a PDF');
+    const badReservation = await fetch(`${this.baseUrl}/api/v1/applications/uploads`, {
+      method: 'POST',
+      headers: { Origin: 'http://app.localhost:8088', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resumeName: 'resume.pdf',
+        resumeContentType: 'application/pdf',
+        contentLength: badResume.length,
+      }),
+    });
+    assert.equal(badReservation.status, 200);
+    const badUpload = (await badReservation.json()) as { uploadId: string };
+    this.resumeFiles.set(`careers/${badUpload.uploadId}`, {
+      content: badResume,
+      contentType: 'application/pdf',
+      contentLength: badResume.length,
+    });
+    const invalid = await fetch(`${this.baseUrl}/api/v1/applications`, {
+      method: 'POST',
+      headers: { Origin: 'http://app.localhost:8088', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, uploadId: badUpload.uploadId }),
+    });
+    assert.equal(invalid.status, 400);
+    assert.equal(this.resumeFiles.has(`careers/${badUpload.uploadId}`), false);
+    const forged = await fetch(`${this.baseUrl}/api/v1/applications`, {
+      method: 'POST',
+      headers: { Origin: 'https://foreign.example', 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    assert.equal(forged.status, 403);
+    const source = randomUUID().replaceAll('-', '');
+    const sourceAddress = `2001:db8:${source.slice(0, 4)}:${source.slice(4, 8)}::1`;
+    for (let attempt = 0; attempt <= 10; attempt += 1) {
+      const repeated = await fetch(`${this.baseUrl}/api/v1/applications`, {
+        method: 'POST',
+        headers: {
+          Origin: 'http://app.localhost:8088',
+          'Content-Type': 'application/json',
+          'X-Forwarded-For': sourceAddress,
+        },
+        body: JSON.stringify(payload),
+      });
+      assert.equal(repeated.status, attempt === 10 ? 429 : 400);
+    }
+    assert.equal(this.messages.length, 2);
+  },
+);
 
 function validateDefinition(definition: EntityDefinition): void {
   assert.equal(definition.id.split('.')[0], definition.pageId);

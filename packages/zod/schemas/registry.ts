@@ -4,28 +4,19 @@ import {
   editableListItemSchema,
   editableListSchema,
   editableObjectSchema,
-  editableValueSchema,
   entityIdSchema,
   pageIdSchema,
-  type EditableValue,
   type EntityId,
   type PageId,
 } from './content.js';
-import legacyVisibleContentSeeds from '../seeds/legacy-visible-content.json' with { type: 'json' };
-import { homeV2SeedData } from '../seeds/home.js';
 import type { EntityEditorDefinition } from './editor-contracts.js';
 import { aggregateEntityModules, mergeEntityModules } from './editor-contracts.js';
 import { homeEntityModule } from './home.js';
 import { propertyManagementEntityModule } from './property-management.js';
-import { propertyManagementV2SeedData } from '../seeds/property-management.js';
 import { storageEntityModule } from './storage.js';
-import { storageV2SeedData } from '../seeds/storage.js';
 import { realEstateEntityModule } from './real-estate.js';
-import { realEstateV2SeedData } from '../seeds/real-estate.js';
 import { constructionEntityModule } from './construction.js';
-import { constructionV2SeedData } from '../seeds/construction.js';
 import { developmentEntityModule } from './development.js';
-import { developmentV2SeedData } from '../seeds/development.js';
 import { lucideIconNameSchema } from './lucide-icons.js';
 
 export const entityKindSchema = z.enum(['object', 'list']);
@@ -1757,30 +1748,6 @@ export const retiredEntityIds: ReadonlySet<EntityId> = new Set([
   'construction.careers.benefits',
   'construction.careers.open-positions',
 ]);
-
-const uncheckedSeedData: Readonly<Record<string, unknown>> = legacyVisibleContentSeeds;
-const semanticHomeSeeds: Readonly<Record<string, EditableValue>> = homeV2SeedData;
-const semanticPropertyManagementSeeds: Readonly<Record<string, EditableValue>> =
-  propertyManagementV2SeedData;
-const semanticStorageSeeds: Readonly<Record<string, EditableValue>> = storageV2SeedData;
-const semanticRealEstateSeeds: Readonly<Record<string, EditableValue>> = realEstateV2SeedData;
-const semanticConstructionSeeds: Readonly<Record<string, EditableValue>> = constructionV2SeedData;
-const semanticDevelopmentSeeds: Readonly<Record<string, EditableValue>> = developmentV2SeedData;
-
-export const registrySeedData: Readonly<Record<EntityId, EditableValue>> = Object.fromEntries(
-  entityDefinitions.map((definition) => {
-    const seed =
-      semanticHomeSeeds[definition.id] ??
-      semanticPropertyManagementSeeds[definition.id] ??
-      semanticRealEstateSeeds[definition.id] ??
-      semanticConstructionSeeds[definition.id] ??
-      semanticStorageSeeds[definition.id] ??
-      semanticDevelopmentSeeds[definition.id] ??
-      uncheckedSeedData[definition.id];
-    definition.schema.parse(seed);
-    return [definition.id, editableValueSchema.parse(seed)] as const;
-  }),
-);
 
 export const LIST_ITEM_MIGRATION_NAMESPACE = 'c63b8c48-2f88-5a33-9b55-f5430eb6764a';
 

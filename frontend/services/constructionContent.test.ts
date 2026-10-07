@@ -3,6 +3,9 @@ import test from 'node:test';
 
 import {
   constructionHeroSchema,
+  constructionEntityDefinitions,
+  constructionProjectSchema,
+  constructionProjectsSchema,
   constructionServicesItemsSchema,
   constructionV2SeedData,
 } from '@app/schemas';
@@ -38,5 +41,18 @@ test('Construction content replaces legacy wrappers and primitive lists with sem
       constructionServicesItemsSchema,
     ),
     constructionV2SeedData['construction.services.items'],
+  );
+  const projectEntityId = 'construction.current-projects.projects.multi-family';
+  const projectDefinition = constructionEntityDefinitions.find(({ id }) => id === projectEntityId);
+  assert(projectDefinition?.editor.kind === 'list');
+  const starter = constructionProjectSchema.parse(projectDefinition.editor.blankItem);
+  const incompletePublished = { ...starter, publicVisibility: 'approved' };
+  assert.deepEqual(
+    parseConstructionValue(
+      { [projectEntityId]: [incompletePublished] },
+      projectEntityId,
+      constructionProjectsSchema,
+    ),
+    [incompletePublished],
   );
 });

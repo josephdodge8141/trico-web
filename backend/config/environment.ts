@@ -1,3 +1,5 @@
+import { emailSchema } from '@app/schemas';
+
 export type AppEnvironment = 'local' | 'preview' | 'dev' | 'prod' | 'test';
 export type MailTransport = 'smtp' | 'ses';
 export type BedrockMode = 'fixture' | 'web-search';
@@ -12,12 +14,15 @@ export interface Environment {
   readonly dynamoTable: string;
   readonly dynamoEndpoint?: string;
   readonly s3Bucket: string;
+  readonly resumeBucket: string;
   readonly s3Endpoint?: string;
   readonly s3ForcePathStyle: boolean;
   readonly mailTransport: MailTransport;
   readonly smtpHost?: string;
   readonly smtpPort?: number;
   readonly emailFrom: string;
+  readonly inquiryEmailTo?: string;
+  readonly careerEmailTo?: string;
   readonly bedrockMode: BedrockMode;
   readonly bedrockModelId?: string;
   readonly sessionCookieName: string;
@@ -100,6 +105,11 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     awsRegion: source.AWS_REGION?.trim() || 'us-west-2',
     dynamoTable: required('DYNAMODB_TABLE', source.DYNAMODB_TABLE, 'trico-web-local'),
     s3Bucket: required('S3_BUCKET', source.S3_BUCKET, 'trico-web-local'),
+    resumeBucket: required(
+      'RESUME_BUCKET',
+      source.RESUME_BUCKET,
+      cloud ? undefined : `${source.S3_BUCKET?.trim() || 'trico-web-local'}-resumes`,
+    ),
     s3ForcePathStyle: bool(
       'S3_FORCE_PATH_STYLE',
       source.S3_FORCE_PATH_STYLE,
@@ -107,6 +117,16 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     ),
     mailTransport,
     emailFrom: source.EMAIL_FROM?.trim() || 'TriCo Website <website@tricoinc.com>',
+    ...(source.INQUIRY_EMAIL_TO?.trim()
+      ? { inquiryEmailTo: emailSchema.parse(source.INQUIRY_EMAIL_TO.trim()) }
+      : cloud
+        ? {}
+        : { inquiryEmailTo: 'inquiries@example.test' }),
+    ...(source.CAREER_EMAIL_TO?.trim()
+      ? { careerEmailTo: emailSchema.parse(source.CAREER_EMAIL_TO.trim()) }
+      : cloud
+        ? {}
+        : { careerEmailTo: 'applications@example.test' }),
     bedrockMode,
     sessionCookieName: source.SESSION_COOKIE_NAME?.trim() || 'trico_session',
     cookieSecure: bool(

@@ -189,8 +189,19 @@ async function sharedStyleErrors(root: string): Promise<string[]> {
 }
 
 async function fontContractErrors(root: string): Promise<string[]> {
-  const source = await optionalFile(root, 'frontend/main.tsx');
-  if (source === undefined) return [];
+  const entry = await optionalFile(root, 'frontend/main.tsx');
+  if (entry === undefined) return [];
+  const theme = await optionalFile(root, 'frontend/design-system/themes/main.css');
+  const fontStyles = await optionalFile(
+    root,
+    'frontend/design-system/themes/presets/ds-21-trico.fonts.css',
+  );
+  const source =
+    entry.includes('./design-system/themes/main.css') &&
+    theme?.includes('./presets/ds-21-trico.fonts.css') &&
+    fontStyles !== undefined
+      ? fontStyles
+      : entry;
   const imports = [...source.matchAll(/@fontsource\/([^/'"]+)\/latin-(\d+)\.css/g)].map(
     (match) => ({ family: match[1] ?? '', weight: match[2] ?? '' }),
   );
@@ -297,6 +308,7 @@ function knownDirectoryError(file: string): string[] {
       'assets',
       'components',
       'context',
+      'design-system',
       'e2e',
       'hooks',
       'pages',

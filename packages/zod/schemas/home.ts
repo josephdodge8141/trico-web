@@ -13,6 +13,7 @@ import {
 } from './editor-contracts.js';
 import type { EditableValue } from './content.js';
 import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
+import { publicVisibilityControl, publicVisibilitySchema } from './public-visibility.js';
 
 export const HOME_CONTENT_SCHEMA_VERSION = 2 as const;
 
@@ -102,6 +103,7 @@ export const homeNewsItemSchema = z.strictObject({
   date: z.iso.date(),
   title: requiredText(200),
   description: requiredText(2_000),
+  publicVisibility: publicVisibilitySchema,
 });
 export const homeNewsItemsSchema = z.array(homeNewsItemSchema);
 export const homeCareersHeaderSchema = z.strictObject({
@@ -120,6 +122,7 @@ export const homeCareerPositionSchema = z.strictObject({
     'Development',
   ]),
   employmentType: z.enum(['Full-time', 'Part-time', 'Contract', 'Seasonal']),
+  publicVisibility: publicVisibilitySchema,
 });
 export const homeCareersOpenPositionsSchema = z.array(homeCareerPositionSchema);
 export const homeCareersResumeIntroSchema = z.strictObject({
@@ -472,12 +475,16 @@ export const homeEntityDefinitions = [
         date: '2026-01-01',
         title: 'News title',
         description: 'Add a short update.',
+        publicVisibility: 'hidden',
       },
       [
         field(['id'], 'Item identity', 0, identity()),
         field(['date'], 'Date', 1, { type: 'date' }),
         field(['title'], 'Title', 2, short(200)),
         field(['description'], 'Description', 3, long(6, 2_000)),
+        field(['publicVisibility'], 'Public visibility', 4, publicVisibilityControl(), {
+          helpText: 'Approve only after confirming the date and details.',
+        }),
       ],
     ),
   }),
@@ -506,6 +513,7 @@ export const homeEntityDefinitions = [
         title: 'New position',
         division: 'Corporate',
         employmentType: 'Full-time',
+        publicVisibility: 'hidden',
       },
       [
         field(['id'], 'Item identity', 0, identity()),
@@ -529,6 +537,9 @@ export const homeEntityDefinitions = [
           3,
           choice(['Full-time', 'Part-time', 'Contract', 'Seasonal']),
         ),
+        field(['publicVisibility'], 'Public visibility', 4, publicVisibilityControl(), {
+          helpText: 'Approve only after confirming this opening is current.',
+        }),
       ],
     ),
   }),

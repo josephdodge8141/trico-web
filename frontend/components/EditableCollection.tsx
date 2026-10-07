@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import {
   editableValueSchema,
@@ -6,17 +6,23 @@ import {
   type SemanticEntityDefinition,
 } from '@app/schemas';
 
-import { EditorSheet } from './EditorSheet.js';
 import { EditableItem } from './EditableItem.js';
 import type { EditorLinkChoice, EditorMediaChoice } from './SemanticEditorForm.js';
 import { isEditableRecord, readEditorValue } from './editorValue.js';
 import type { EditorOwnership } from './EditableBoundary.js';
+import { Alert } from './ui/alert.js';
+import { Badge } from './ui/badge.js';
+import { Button } from './ui/button.js';
 
 interface Selection {
   readonly mode: 'add' | 'edit';
   readonly index: number;
   readonly value: EditableValue;
 }
+
+const EditorSheet = lazy(() =>
+  import('./EditorSheet.js').then(({ EditorSheet }) => ({ default: EditorSheet })),
+);
 
 interface UndoState {
   readonly value: readonly EditableValue[];
@@ -26,6 +32,8 @@ interface UndoState {
 export interface EditableCollectionProps {
   readonly active: boolean;
   readonly layout?: 'natural' | 'fill';
+  readonly itemsElement?: 'div' | 'ol' | 'ul';
+  readonly itemsClassName?: string;
   readonly definition: SemanticEntityDefinition;
   readonly value: readonly EditableValue[];
   readonly renderItem: (item: EditableValue, index: number) => React.ReactNode;
@@ -46,6 +54,8 @@ function withFreshIdentity(value: EditableValue, createItemId: () => string): Ed
 export function EditableCollection({
   active,
   layout = 'natural',
+  itemsElement = 'div',
+  itemsClassName,
   definition,
   value,
   renderItem,
@@ -68,6 +78,7 @@ export function EditableCollection({
   const [operationError, setOperationError] = useState(false);
   const dragIndex = useRef<number | undefined>(undefined);
   const locked = ownership === 'other';
+  const ItemsElement = itemsElement;
 
   useEffect(() => {
     if (undo === undefined) return;
@@ -137,23 +148,27 @@ export function EditableCollection({
 
   return (
     <div
-      className={active || layout === 'fill' ? 'editable-collection' : undefined}
+      className="min-w-0"
+      data-slot="editable-collection"
       data-collection-layout={layout === 'fill' ? 'fill' : undefined}
       data-editor-state={active ? ownership : undefined}
     >
       {ownership === 'mine' && active ? (
-        <span className="editor-pending-label collection-pending">Unpublished changes</span>
+        <Badge variant="secondary" className="mb-3">
+          Unpublished changes
+        </Badge>
       ) : null}
       {locked && active ? (
-        <p className="editor-ownership-label collection-locked">
+        <p className="mb-3 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
           Another editor is updating this section.
         </p>
       ) : null}
-      <div className="editable-collection-items">
+      <ItemsElement data-slot="editable-collection-items" className={itemsClassName}>
         {displayValue.map((item, index) => {
           const label = labelFor(item, index);
           return (
             <EditableItem
+              as={itemsElement === 'div' ? 'div' : 'li'}
               key={
                 isEditableRecord(item) && typeof item['id'] === 'string'
                   ? item['id']
@@ -177,10 +192,11 @@ export function EditableCollection({
             </EditableItem>
           );
         })}
-      </div>
+      </ItemsElement>
       {active && !locked ? (
-        <button
-          className="editable-collection-add"
+        <Button
+          className="mt-4 min-h-11"
+          variant="outline"
           type="button"
           disabled={busy}
           onClick={() =>
@@ -192,12 +208,17 @@ export function EditableCollection({
           }
         >
           + {editor.addLabel}
-        </button>
+        </Button>
       ) : null}
       {undo === undefined ? null : (
-        <div className="editor-undo" role="status">
+        <div
+          className="mt-4 flex items-center gap-3 rounded-lg border bg-card p-3 text-sm"
+          role="status"
+        >
           <span>{undo.message}</span>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             type="button"
             onClick={() => {
               void saveList(undo.value)
@@ -206,44 +227,46 @@ export function EditableCollection({
             }}
           >
             Undo
-          </button>
+          </Button>
         </div>
       )}
       {operationError ? (
-        <p className="editor-error" role="alert">
+        <Alert variant="destructive">
           We could not save this collection change. Please try again.
-        </p>
+        </Alert>
       ) : null}
       {selection === undefined ? null : (
-        <EditorSheet
-          title={
-            selection.mode === 'add'
-              ? editor.addLabel
-              : `Edit ${labelFor(selection.value, selection.index)}`
-          }
-          description={editor.helpText}
-          definition={editor}
-          schema={definition.listItemSchema}
-          initialValue={selection.value}
-          busy={busy}
-          {...(mediaChoices === undefined ? {} : { mediaChoices })}
-          {...(linkChoices === undefined ? {} : { linkChoices })}
-          onSave={saveSelection}
-          {...(onReloadLatest === undefined
-            ? {}
-            : {
-                onReloadLatest: async () => {
-                  const latest = await onReloadLatest();
-                  if (!Array.isArray(latest))
-                    throw new Error('The latest saved collection is unavailable.');
-                  const item = latest[selection.index];
-                  if (item === undefined)
-                    throw new Error('This item is no longer in the latest saved collection.');
-                  return editableValueSchema.parse(item);
-                },
-              })}
-          onClose={() => setSelection(undefined)}
-        />
+        <Suspense fallback={null}>
+          <EditorSheet
+            title={
+              selection.mode === 'add'
+                ? editor.addLabel
+                : `Edit ${labelFor(selection.value, selection.index)}`
+            }
+            description={editor.helpText}
+            definition={editor}
+            schema={definition.listItemSchema}
+            initialValue={selection.value}
+            busy={busy}
+            {...(mediaChoices === undefined ? {} : { mediaChoices })}
+            {...(linkChoices === undefined ? {} : { linkChoices })}
+            onSave={saveSelection}
+            {...(onReloadLatest === undefined
+              ? {}
+              : {
+                  onReloadLatest: async () => {
+                    const latest = await onReloadLatest();
+                    if (!Array.isArray(latest))
+                      throw new Error('The latest saved collection is unavailable.');
+                    const item = latest[selection.index];
+                    if (item === undefined)
+                      throw new Error('This item is no longer in the latest saved collection.');
+                    return editableValueSchema.parse(item);
+                  },
+                })}
+            onClose={() => setSelection(undefined)}
+          />
+        </Suspense>
       )}
     </div>
   );

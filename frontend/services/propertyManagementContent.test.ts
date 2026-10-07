@@ -18,14 +18,14 @@ test('Property Management semantic values use the checked-in seed when absent', 
   assert.deepEqual(hero, propertyManagementV2SeedData['property-management.hero']);
 });
 
-test('Property Management uses the approved neutral managed media for its unavailable hero photo', () => {
+test('Property Management uses its available managed hero photo', () => {
   assert.deepEqual(propertyManagementV2SeedData['property-management.hero'].image, {
     kind: 'managed',
-    key: 'media/seed/placeholder-neutral.svg',
+    key: 'media/seed/pm-commercial-property.jpeg',
   });
   assert.equal(
     propertyManagementV2SeedData['property-management.hero'].imageAltText,
-    'Property Management hero photo coming soon',
+    'Commercial property building managed by TriCo',
   );
 });
 
@@ -82,7 +82,7 @@ test('Property Management rejects malformed version 2 semantic values', () => {
   );
 });
 
-test('Property Management maps every supplied portfolio image and keeps only absent HOA photos neutral', () => {
+test('Property Management clean seed includes only portfolio cards with supplied media', () => {
   const managed = propertyManagementV2SeedData['property-management.portfolio.managed.items'];
   const coas = propertyManagementV2SeedData['property-management.portfolio.coas.items'];
   const hoas = propertyManagementV2SeedData['property-management.portfolio.hoas.items'];
@@ -105,10 +105,6 @@ test('Property Management maps every supplied portfolio image and keeps only abs
   );
   assert.deepEqual(
     hoas.map(({ photo }) => photo.key),
-    [
-      'media/seed/arbor-plaza.png',
-      'media/seed/placeholder-neutral.svg',
-      'media/seed/placeholder-neutral.svg',
-    ],
+    ['media/seed/arbor-plaza.png'],
   );
 });

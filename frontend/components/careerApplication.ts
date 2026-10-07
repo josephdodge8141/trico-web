@@ -1,18 +1,4 @@
-export type CareerDivision =
-  | 'Real Estate'
-  | 'Property Management'
-  | 'Construction'
-  | 'Storage Management'
-  | 'Development'
-  | 'Corporate'
-  | 'Other / General';
+import { careerDivisionSchema, type CareerDivision } from '@app/schemas';
 
-export const careerDivisions = [
-  'Real Estate',
-  'Property Management',
-  'Construction',
-  'Storage Management',
-  'Development',
-  'Corporate',
-  'Other / General',
-] as const satisfies readonly CareerDivision[];
+export type { CareerDivision };
+export const careerDivisions: readonly CareerDivision[] = careerDivisionSchema.options;

@@ -6,6 +6,14 @@ import { exampleApplicationConfig, parseApplicationConfig } from './application/
 test('application config accepts explicit immutable deployment inputs', () => {
   const config = exampleApplicationConfig('dev');
   assert.deepEqual(parseApplicationConfig(config), config);
+  assert.deepEqual(
+    parseApplicationConfig({
+      ...config,
+      inquiryEmailTo: 'inquiries@example.com',
+      careerEmailTo: 'careers@example.com',
+    }),
+    { ...config, inquiryEmailTo: 'inquiries@example.com', careerEmailTo: 'careers@example.com' },
+  );
   assert.equal(
     parseApplicationConfig({ ...config, externalSyncEnabled: 'false' }).externalSyncEnabled,
     false,
@@ -30,5 +38,13 @@ test('application config rejects mutable images and unknown deployment stages', 
   assert.throws(
     () => parseApplicationConfig({ ...config, externalSyncEnabled: 'False' }),
     /externalSyncEnabled/,
+  );
+  assert.throws(
+    () => parseApplicationConfig({ ...config, inquiryEmailTo: 'invalid' }),
+    /inquiryEmailTo/,
+  );
+  assert.throws(
+    () => parseApplicationConfig({ ...config, careerEmailTo: 'invalid' }),
+    /careerEmailTo/,
   );
 });

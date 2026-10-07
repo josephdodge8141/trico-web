@@ -10,23 +10,28 @@ Feature: TriCo editor authentication
     And editing controls are not shown
 
   @id:auth.edit-mode-login-redirect @backend-noop
-  Scenario: Sign in before entering edit mode
-    backend-noop: Redirecting an unauthenticated edit-mode request and restoring its public route are browser navigation behavior.
+  Scenario: Reach editor sign in through its direct URL
+    backend-noop: Hiding the public launcher and navigating to the editor login route are browser presentation behavior.
     Given I have no authenticated editor session
     And I opened the property management page
-    When I enter edit mode
+    Then the edit mode launcher is hidden
+    When I navigate directly to editor sign in
     Then I am sent to editor sign in
-    And successful sign in returns me to the property management page
 
   @id:auth.edit-mode-login-resume @backend-noop
-  Scenario: Resume edit mode after signing in
-    backend-noop: Preserving an edit-mode request across browser authentication is frontend navigation state.
+  Scenario: Offer edit mode only after an authenticated sign in
+    backend-noop: Session-backed launcher visibility and editor toggling are frontend presentation behavior.
     Given I have no authenticated editor session
     And I opened the property management page
-    When I enter edit mode
+    When I navigate directly to editor sign in
     Then I am sent to editor sign in
-    And successful sign in returns me to the property management page
-    And edit mode is already active
+    When I sign in as the preview editor through the login page
+    Then I return to the public Home page
+    And the edit mode launcher is visible
+    When I enter edit mode
+    Then edit mode is already active
+    When I leave edit mode
+    Then the edit mode launcher is visible
 
   @id:auth.edit-mode-reload-resume @backend-noop
   Scenario: Keep edit mode available after reloading an authenticated page

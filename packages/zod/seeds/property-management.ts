@@ -40,7 +40,6 @@ function id(value: number): string {
     ? `123e4567-e89b-5000-8000-${String(value).padStart(12, '0')}`
     : deterministicId(range.entityId, value - range.start);
 }
-const placeholder = { kind: 'managed' as const, key: 'media/seed/placeholder-neutral.svg' };
 
 export const propertyManagementV2SeedData = {
   'property-management.anniversary-banner': { message: '40+ Years of Excellence' },
@@ -69,8 +68,8 @@ export const propertyManagementV2SeedData = {
       'Partnering with TriCo means high occupancy rates, strategic leasing, and expert financial management for your investment properties.',
     primaryActionLabel: 'Get Free Analysis',
     secondaryActionLabel: 'Our Services',
-    image: placeholder,
-    imageAltText: 'Property Management hero photo coming soon',
+    image: { kind: 'managed', key: 'media/seed/pm-commercial-property.jpeg' },
+    imageAltText: 'Commercial property building managed by TriCo',
   },
   'property-management.hero.stats': [
     { id: id(9), value: '95%', label: 'Occupancy Rate', icon: 'BarChart3' },
@@ -280,20 +279,6 @@ export const propertyManagementV2SeedData = {
       photo: { kind: 'managed', key: 'media/seed/arbor-plaza.png' },
       photoAltText: 'Arbor Plaza',
     },
-    {
-      id: id(35),
-      name: 'Juniper Ridge',
-      description: '6-lot single-family home HOA · 1490 W 8600 S, West Jordan, UT',
-      photo: placeholder,
-      photoAltText: 'Juniper Ridge',
-    },
-    {
-      id: id(36),
-      name: 'Riverwood Crossing',
-      description: '8-lot HOA · 13191 S Redwood Rd, Riverton, UT',
-      photo: placeholder,
-      photoAltText: 'Riverwood Crossing',
-    },
   ],
   'property-management.tenant-portal': {
     eyebrow: 'Tenant Portal',
@@ -352,26 +337,6 @@ export const propertyManagementV2SeedData = {
       phone: '(801) 571-8833',
       photo: { kind: 'managed', key: 'media/seed/mia-barlow.png' },
       photoAltText: 'Mia Barlow',
-    },
-    {
-      id: id(42),
-      name: 'Coming Soon',
-      title: 'Property Manager',
-      description: 'Join our growing team of property management professionals.',
-      email: 'careers@tricoinc.com',
-      phone: '(801) 571-8833',
-      photo: placeholder,
-      photoAltText: 'Future property manager',
-    },
-    {
-      id: id(43),
-      name: 'Coming Soon',
-      title: 'Property Manager',
-      description: 'Join our growing team of property management professionals.',
-      email: 'careers@tricoinc.com',
-      phone: '(801) 571-8833',
-      photo: placeholder,
-      photoAltText: 'Future property manager',
     },
   ],
   'property-management.about': {
@@ -520,26 +485,7 @@ export const propertyManagementV2SeedData = {
     description:
       'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
   },
-  'property-management.reviews.platforms': [
-    {
-      id: id(64),
-      name: 'Google',
-      description: 'Share your experience on Google Reviews — helps neighbors find us.',
-      externalUrl: '',
-    },
-    {
-      id: id(65),
-      name: 'Facebook',
-      description: 'Recommend us on Facebook so your network can see it too.',
-      externalUrl: '',
-    },
-    {
-      id: id(66),
-      name: 'Yelp',
-      description: 'Leave a Yelp review to help others make an informed decision.',
-      externalUrl: '',
-    },
-  ],
+  'property-management.reviews.platforms': [],
   'property-management.reviews.footer': {
     privateFeedbackLabel: 'Prefer to share feedback privately?',
     email: 'Office@tricoinc.com',
@@ -584,12 +530,7 @@ export const propertyManagementV2SeedData = {
     { id: id(80), group: 'Resources', label: 'Pay Rent Online', destination: 'tenant-portal' },
     { id: id(81), group: 'Resources', label: 'Maintenance Request', destination: 'tenant-portal' },
   ],
-  'property-management.footer.social': [
-    { id: id(82), label: 'Facebook', externalUrl: '' },
-    { id: id(83), label: 'Twitter', externalUrl: '' },
-    { id: id(84), label: 'LinkedIn', externalUrl: '' },
-    { id: id(85), label: 'Instagram', externalUrl: '' },
-  ],
+  'property-management.footer.social': [],
   'property-management.footer.legal': {
     organizationName: 'TriCo Property Management',
     rightsNotice: 'All rights reserved.',

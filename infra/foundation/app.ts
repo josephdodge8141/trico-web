@@ -87,6 +87,14 @@ for (const stage of ['dev', 'prod'] as const) {
       app.node.tryGetContext(`application:${stage}:certificateArn`) ?? example.certificateArn,
     sesIdentityDomain:
       app.node.tryGetContext(`application:${stage}:sesIdentityDomain`) ?? example.sesIdentityDomain,
+    ...(app.node.tryGetContext(`application:${stage}:inquiryEmailTo`) === undefined
+      ? {}
+      : {
+          inquiryEmailTo: app.node.tryGetContext(`application:${stage}:inquiryEmailTo`) as unknown,
+        }),
+    ...(app.node.tryGetContext(`application:${stage}:careerEmailTo`) === undefined
+      ? {}
+      : { careerEmailTo: app.node.tryGetContext(`application:${stage}:careerEmailTo`) as unknown }),
     ...(app.node.tryGetContext(`application:${stage}:bedrockModelId`) === undefined
       ? {}
       : {

@@ -28,3 +28,15 @@ npx cdk synth TricoWeb-dev --quiet \
 ```
 
 Synthesis does not verify SES identity, Bedrock availability, DNS, IAM enrollment or deploy resources.
+
+Public inquiry and career application delivery require approved recipients. Set the
+`INQUIRY_EMAIL_TO` and `CAREER_EMAIL_TO` GitHub environment variables separately
+for development and production before deploying either form. The deployment
+workflow validates their email addresses through the application stack config
+and passes them to the backend Lambda. The production deployment workflow
+stops before CDK changes the application if either recipient is absent. Development can start
+without recipients, but its unconfigured form returns a delivery error; the
+stack does not provide a placeholder recipient. For manual synthesis, pass
+`-c application:dev:inquiryEmailTo=approved@example.com` and
+`-c application:dev:careerEmailTo=approved@example.com` (or use `prod`). Use
+the organization's actual approved addresses when configuring an environment.

@@ -29,12 +29,12 @@ import {
   entitySchema,
   pageIdSchema,
   externalSourceSchema,
-  registrySeedData,
   requireEntityDefinition,
   type ContentManifest,
   type EntityId,
   type PageId,
 } from '@app/schemas';
+import { registrySeedData } from '@app/schemas/server';
 
 import { loadEnvironment } from './config/environment.js';
 
@@ -51,6 +51,55 @@ const canonicalJson = (value: unknown): string => {
 };
 const checksum = (value: unknown): string =>
   createHash('sha256').update(canonicalJson(value)).digest('hex');
+// Recognized pristine values from the preceding TriCo seed. Keep them intact:
+// changed clean-install defaults must not silently publish over an existing site.
+const previousSeedChecksums: Readonly<Partial<Record<EntityId, readonly string[]>>> = {
+  'home.careers.open-positions': [
+    '51fc0d0cf2f42913e89f71c889619695c75be1e79a4f46a2d82a34a81a43e226',
+  ],
+  'property-management.hero': ['065b76688c2cb7b8e0d2634769900f24bee93e02477248e1076c9d7b312ea963'],
+  'property-management.portfolio.hoas.items': [
+    '1313c2435895dc7967e091b86f9457147704515916f7adfd7f44b606cd54b4a2',
+  ],
+  'property-management.team.members': [
+    '1d4bdd25c3fcdef2a8164fec0ee5688e7d4776ab1ca704823c799d6218b14e39',
+  ],
+  'property-management.reviews.platforms': [
+    '7b059921fc2064869a19cdc7145c56ba294fb7682ba956cd9c1942daf0995f99',
+  ],
+  'property-management.footer.social': [
+    '727d19c589dd5882d9dcf7712676d518b1e72e8ff599c291b04640233af0b345',
+  ],
+  'real-estate.reviews.platforms': [
+    'f3791e6fb4249b1e67ffbe3f2675ca53e043157ac91b8fb54e3c75d864979ed2',
+  ],
+  'construction.current-projects.header': [
+    'eeb60f87a85180341f2f0557e7a127cc693a5a1e1471411d6359df77d3284e43',
+  ],
+  'construction.completed-projects.header': [
+    '7a922a5793183c1db680479d14dfef56c016e24a4775a5c07d36a6443aa8b401',
+  ],
+  'construction.plan-room.header': [
+    'f31df0d6876e72139d945ee6bd9128fbd1b21adefe24e3e35e236a2647bd3abe',
+  ],
+  'construction.plan-room.access-notice': [
+    'aa2bfe46144bf926c6656df9c140cad2d10a5d480826f4f8b3ea36c666d9547e',
+  ],
+  'construction.plan-room.request-access': [
+    'b7497c59332d098700e195dc5729f47104d1e3274cd8705fe211ee5e4a046f09',
+  ],
+  'construction.reviews.platforms': [
+    'a2ffc40799d3fe568110ae8bd6ce081e9218be2b925eb6d6f57fef2e1ea8590e',
+  ],
+  'storage.team.members': ['9b3cba95a14f24cdfcafdcb84e0d08a3d5775f61cd7715b33d4a5f588d0da4e9'],
+  'storage.reviews.platforms': ['f1fbf465fc46e5ce7e4af171737a8a47f0dfa480ab3ef3c44868cb894aa36a32'],
+  'development.partners.items': [
+    '98b9b5d7d3b7119994f4618f50d209b314a70f3da484f5a953a5a87e5880eade',
+  ],
+  'development.reviews.platforms': [
+    'ece4d4624fb88f5c1729471c473c02c55b03316168b363277881b609f208b9eb',
+  ],
+};
 const contentType = (name: string): string =>
   ({
     '.png': 'image/png',
@@ -154,11 +203,16 @@ export async function seedEntities(
         existingEntity.success &&
         existingEntity.data.version === 1 &&
         existingEntity.data.updatedAt === initialSeedTimestamp;
+      const existingValueChecksum = existingEntity.success
+        ? checksum(existingEntity.data.value)
+        : undefined;
       const matchesPristineBaseline =
-        existingEntity.success &&
-        checksum(existingEntity.data.value) === expectedSeedChecksum &&
-        (existing.Item['seedChecksum'] === undefined ||
-          existing.Item['seedChecksum'] === expectedSeedChecksum);
+        (existingValueChecksum === expectedSeedChecksum &&
+          (existing.Item['seedChecksum'] === undefined ||
+            existing.Item['seedChecksum'] === expectedSeedChecksum)) ||
+        (existingValueChecksum !== undefined &&
+          previousSeedChecksums[id]?.includes(existingValueChecksum) === true &&
+          existing.Item['seedChecksum'] === existingValueChecksum);
       const isSafeExistingEntity =
         existing.Item['pk'] === `ENTITY#${id}` &&
         existing.Item['sk'] === 'CURRENT' &&
@@ -443,6 +497,7 @@ async function main(): Promise<void> {
   try {
     await ensureTable(dynamoClient, environment.dynamoTable);
     await ensureBucket(objects, environment.s3Bucket);
+    await ensureBucket(objects, environment.resumeBucket);
     if (environment.s3Endpoint !== undefined)
       await allowLocalPublicReads(objects, environment.s3Bucket);
     await seedEntities(database, environment.dynamoTable);

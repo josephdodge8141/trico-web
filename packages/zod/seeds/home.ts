@@ -198,7 +198,7 @@ export const homeV2SeedData = {
   'home.careers.header': {
     heading: 'Join Our Team',
     description:
-      "Build your career with Utah's premier diversified property company. We offer opportunities across all four divisions with competitive benefits and growth potential.",
+      "Build your career with Utah's premier diversified property company. We offer opportunities across TriCo divisions with competitive benefits and growth potential.",
   },
   'home.careers.open-positions': [
     {
@@ -206,24 +206,28 @@ export const homeV2SeedData = {
       title: 'Property Manager',
       division: 'Property Management',
       employmentType: 'Full-time',
+      publicVisibility: 'approved',
     },
     {
       id: '2550305c-959f-5071-a913-df23bebb5b6d',
       title: 'Project Coordinator',
       division: 'Construction',
       employmentType: 'Full-time',
+      publicVisibility: 'approved',
     },
     {
       id: '28503515-929f-5bb8-aa13-e0b6bbbb56b4',
       title: 'Leasing Agent',
       division: 'Real Estate',
       employmentType: 'Full-time',
+      publicVisibility: 'approved',
     },
     {
       id: '27503382-939f-5d4b-ab13-e249bcbb5847',
       title: 'Administrative Assistant',
       division: 'Corporate',
       employmentType: 'Full-time',
+      publicVisibility: 'approved',
     },
   ],
   'home.careers.resume-intro': {

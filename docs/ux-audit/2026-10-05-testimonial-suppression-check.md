@@ -1,0 +1,12 @@
+# Public testimonial suppression check
+
+The current local preview at `http://app.localhost:18090/` withholds the unchanged seeded Property Management and Real Estate endorsements. The Property Management seeds assign customer names and quotes to stock Unsplash portraits; the Real Estate seeds assign customer names and quotes without supporting attribution. The editor retains those records and now offers a Public visibility selection on each testimonial. “Keep existing visibility” preserves the prior quote and stock-photo filters for older published content. “Approved for public display” can show a verified seed quote without changing its wording; “Hide from public” suppresses any item. New testimonials start hidden.
+
+| Page                | Desktop, 1440 × 900                                                                 | Mobile, 390 × 844                                                                  | Current public height, desktop / mobile |
+| ------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------: |
+| Property Management | [Screenshot](./screenshots/testimonial-suppression/property-management-desktop.png) | [Screenshot](./screenshots/testimonial-suppression/property-management-mobile.png) |                       9,337 / 14,830 px |
+| Real Estate         | [Screenshot](./screenshots/testimonial-suppression/real-estate-desktop.png)         | [Screenshot](./screenshots/testimonial-suppression/real-estate-mobile.png)         |                       9,802 / 15,947 px |
+
+At 320, 390, 768, and 1440 px, both pages had a document scroll width equal to the viewport width and no loaded image with zero natural width. The removed sections leave no visible empty panel. The revised canonical browser cases confirm public suppression and authenticated editor access. The full Compose browser run passed 49 scenarios and 394 steps; `check:ci` and the 24-case visual audit gate passed.
+
+The [earlier independent scores](./2026-10-05-public-pages-rescore-3.md) predate this change. This check records the new presentation and measurable layout, without assigning a new subjective score. Verified customer permission and attribution are still needed before the seeded records can be published as endorsements.

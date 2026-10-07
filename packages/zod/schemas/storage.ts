@@ -71,7 +71,7 @@ export const storageTeamMemberSchema = z.strictObject({
   id,
   name: text(160),
   role: text(160),
-  bio: text(4_000),
+  bio: optionalText(4_000),
   image,
   imageAltText: text(200),
 });

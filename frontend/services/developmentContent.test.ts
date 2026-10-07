@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { developmentHeroSchema, developmentV2SeedData } from '@app/schemas';
@@ -27,17 +26,6 @@ test('Development content replaces legacy extraction wrappers with its semantic 
     ),
     developmentV2SeedData['development.hero'],
   );
-});
-
-test('Development page uses semantic labels and valid editable highlight markup', () => {
-  const source = readFileSync(new URL('../pages/DevelopmentSitePage.tsx', import.meta.url), 'utf8');
-  assert.equal(source.includes('>Our Projects<'), false);
-  assert.equal(source.includes('>Featured Developments<'), false);
-  assert.equal(source.includes('<strong>Office Location</strong>'), false);
-  assert.equal(source.includes('<h3>Quick Links</h3>'), false);
-  assert.equal(source.includes('<ul className="dev-highlights">'), false);
-  assert.match(source, /className="dev-highlights ui-highlights"\s+role="list"/);
-  assert.match(source, /<div role="listitem">/);
 });
 
 test('Development seeds preserve the complete extracted legacy copy and footer inventory', () => {

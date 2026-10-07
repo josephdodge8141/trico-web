@@ -1,4 +1,5 @@
 export interface EditableItemProps {
+  readonly as?: 'div' | 'li';
   readonly active: boolean;
   readonly label: string;
   readonly children: React.ReactNode;
@@ -14,6 +15,7 @@ export interface EditableItemProps {
 }
 
 export function EditableItem({
+  as = 'div',
   active,
   label,
   children,
@@ -27,70 +29,93 @@ export function EditableItem({
   onDragStart,
   onDrop,
 }: EditableItemProps): React.JSX.Element {
+  const Element = as;
   return (
-    <div
-      className={active ? 'editable-item' : undefined}
+    <Element
+      data-slot="editable-item"
+      className={
+        active
+          ? 'flex min-w-0 flex-col rounded-lg outline outline-2 outline-dashed outline-primary/30 outline-offset-2'
+          : 'min-w-0'
+      }
       onDragOver={active && reorderable ? (event) => event.preventDefault() : undefined}
       onDrop={active && reorderable ? onDrop : undefined}
     >
       {children}
       {active ? (
-        <div className="editable-item-controls" aria-label={`Actions for ${label}`}>
+        <div
+          className="mt-2 flex flex-wrap gap-1 rounded-lg border bg-background/95 p-1 shadow-md"
+          role="group"
+          aria-label={`Actions for ${label}`}
+        >
           {reorderable ? (
-            <button
+            <Button
               type="button"
-              className="editor-drag-handle"
+              variant="ghost"
+              size="sm"
+              className="min-h-11 min-w-11"
               draggable={!disabled}
               onDragStart={onDragStart}
               disabled={disabled}
               aria-label={`Drag ${label} to reorder`}
               title="Drag to reorder"
             >
-              <span className="editor-control-compact-label" aria-hidden="true">
-                ⋮⋮
-              </span>
-              <span className="editor-control-touch-label">Reorder</span>
-            </button>
+              <GripVertical className="size-4" aria-hidden="true" /> Move
+            </Button>
           ) : null}
-          <button type="button" onClick={onEdit} disabled={disabled} aria-label={`Edit ${label}`}>
-            Edit
-          </button>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
+            className="min-h-11 min-w-11"
+            onClick={onEdit}
+            disabled={disabled}
+            aria-label={`Edit ${label}`}
+          >
+            <Pencil className="size-3.5" aria-hidden="true" /> Edit
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="min-h-11 min-w-11"
             onClick={onDelete}
             disabled={disabled}
             aria-label={`Delete ${label}`}
           >
-            Delete
-          </button>
+            <Trash2 className="size-4" aria-hidden="true" /> Delete
+          </Button>
           {reorderable ? (
-            <span className="editable-item-move-actions">
-              <button
+            <span className="flex gap-1">
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
+                className="min-h-11 min-w-11"
                 onClick={() => onMove(-1)}
                 disabled={disabled || index === 0}
                 aria-label={`Move ${label} up`}
               >
-                <span className="editor-control-compact-label" aria-hidden="true">
-                  ↑
-                </span>
-                <span className="editor-control-touch-label">Move up</span>
-              </button>
-              <button
+                <ArrowUp className="size-4" aria-hidden="true" /> Up
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
+                className="min-h-11 min-w-11"
                 onClick={() => onMove(1)}
                 disabled={disabled || index === lastIndex}
                 aria-label={`Move ${label} down`}
               >
-                <span className="editor-control-compact-label" aria-hidden="true">
-                  ↓
-                </span>
-                <span className="editor-control-touch-label">Move down</span>
-              </button>
+                <ArrowDown className="size-4" aria-hidden="true" /> Down
+              </Button>
             </span>
           ) : null}
         </div>
       ) : null}
-    </div>
+    </Element>
   );
 }
+import { ArrowDown, ArrowUp, GripVertical, Pencil, Trash2 } from 'lucide-react';
+
+import { Button } from './ui/button.js';

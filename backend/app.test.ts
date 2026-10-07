@@ -4,12 +4,14 @@ import type { AddressInfo } from 'node:net';
 import test from 'node:test';
 
 import {
+  careerApplicationRequestSchema,
+  careerApplicationUploadRequestSchema,
   mediaPresignRequestSchema,
-  registrySeedData,
   tricoEmailSchema,
   type EditableValue,
   type EntityId,
 } from '@app/schemas';
+import { registrySeedData } from '@app/schemas/server';
 
 import { createApp } from './app.js';
 import { createConnections, type Connections } from './config/connections.js';
@@ -91,7 +93,7 @@ test('TriCo registration contracts reject outside email domains', () => {
   assert.equal(tricoEmailSchema.safeParse('editor@example.com').success, false);
 });
 
-test('media contracts reject disallowed MIME types and payloads over 20 MiB', () => {
+test('media and resume upload contracts enforce allowed types, size and a small final request', () => {
   assert.equal(
     mediaPresignRequestSchema.safeParse({
       fileName: 'photo.svg',
@@ -105,6 +107,44 @@ test('media contracts reject disallowed MIME types and payloads over 20 MiB', ()
       fileName: 'photo.jpg',
       contentType: 'image/jpeg',
       contentLength: 20 * 1_024 * 1_024 + 1,
+    }).success,
+    false,
+  );
+  assert.equal(
+    careerApplicationUploadRequestSchema.safeParse({
+      resumeName: 'resume.pdf',
+      resumeContentType: 'application/pdf',
+      contentLength: 10 * 1_024 * 1_024,
+    }).success,
+    true,
+  );
+  assert.equal(
+    careerApplicationUploadRequestSchema.safeParse({
+      resumeName: 'resume.pdf',
+      resumeContentType: 'application/pdf',
+      contentLength: 10 * 1_024 * 1_024 + 1,
+    }).success,
+    false,
+  );
+  assert.equal(
+    careerApplicationRequestSchema.safeParse({
+      name: 'Applicant',
+      email: 'applicant@example.test',
+      division: 'Construction',
+      uploadId: '50000000-0000-4000-8000-000000000001',
+      website: '',
+    }).success,
+    true,
+  );
+  assert.equal(
+    careerApplicationRequestSchema.safeParse({
+      name: 'Applicant',
+      email: 'applicant@example.test',
+      division: 'Construction',
+      resumeName: 'resume.pdf',
+      resumeContentType: 'application/pdf',
+      resumeBase64: Buffer.from('%PDF-').toString('base64'),
+      website: '',
     }).success,
     false,
   );
@@ -157,6 +197,7 @@ test('session cookies remain strict and fixed at 30 days', () => {
     awsRegion: 'us-west-2',
     dynamoTable: 'trico-web-test',
     s3Bucket: 'trico-web-test',
+    resumeBucket: 'trico-web-test-resumes',
     s3ForcePathStyle: true,
     mailTransport: 'smtp',
     smtpHost: '127.0.0.1',

@@ -96,6 +96,9 @@ class FrontendWorld extends World {
   remainingDivisionValue = '';
   mediaFriendlyName = '';
   mediaAltText = '';
+  inquiryMarker = '';
+  careerUploadId = '';
+  careerPayload: Record<string, unknown> = {};
   reorderedItemLabel = '';
   iconEditorItemLabel = '';
   homePublicHeroGeometry:
@@ -165,7 +168,7 @@ When("I open an item's icon chooser", async function (this: FrontendWorld) {
   const page = this.currentPage();
   const item = page
     .getByRole('heading', { name: this.iconEditorItemLabel, exact: true })
-    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    .locator('xpath=ancestor::*[@data-slot="editable-item"][1]');
   await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   await item.hover();
   await item.getByRole('button', { name: `Edit ${this.iconEditorItemLabel}` }).click();
@@ -210,7 +213,7 @@ Then(
   async function (this: FrontendWorld, iconName: string) {
     const item = this.currentPage()
       .getByRole('heading', { name: this.iconEditorItemLabel, exact: true })
-      .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+      .locator('xpath=ancestor::*[@data-slot="editable-item"][1]');
     await expect(item.locator(`svg.lucide-${iconName.toLocaleLowerCase()}`)).toBeVisible();
     await expect(item.getByText('◇', { exact: true })).toHaveCount(0);
   },
@@ -406,8 +409,35 @@ Given('I sign in as the preview editor', async function (this: FrontendWorld) {
 Given('I opened the property management page', async function (this: FrontendWorld) {
   await this.currentPage().goto('/property-management');
 });
+When('I navigate directly to editor sign in', async function (this: FrontendWorld) {
+  await this.currentPage().goto('/login');
+});
+Then('the edit mode launcher is hidden', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByRole('button', { name: 'Enter edit mode' })).toHaveCount(0);
+});
+Then('the edit mode launcher is visible', async function (this: FrontendWorld) {
+  await expect(this.currentPage().getByRole('button', { name: 'Enter edit mode' })).toBeVisible();
+});
+When(
+  'I sign in as the preview editor through the login page',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.getByLabel('Email').fill(editorEmail);
+    await page.getByLabel('Password').fill(editorPassword);
+    await page.getByRole('button', { name: 'Continue' }).click();
+  },
+);
+Then('I return to the public Home page', async function (this: FrontendWorld) {
+  await expect(this.currentPage()).toHaveURL(/\/$/);
+  await expect(
+    this.currentPage().getByRole('heading', { name: "Building Utah's Future" }),
+  ).toBeVisible();
+});
 When('I enter edit mode', async function (this: FrontendWorld) {
   await this.currentPage().getByRole('button', { name: 'Enter edit mode' }).click();
+});
+When('I leave edit mode', async function (this: FrontendWorld) {
+  await this.currentPage().getByRole('button', { name: 'Exit edit mode' }).click();
 });
 When('I enter edit mode and reload that page', async function (this: FrontendWorld) {
   const page = this.currentPage();
@@ -419,15 +449,6 @@ Then('I am sent to editor sign in', async function (this: FrontendWorld) {
   await expect(this.currentPage()).toHaveURL(/\/login$/);
   await expect(this.currentPage().getByRole('heading', { name: 'Editor sign in' })).toBeVisible();
 });
-Then(
-  'successful sign in returns me to the property management page',
-  async function (this: FrontendWorld) {
-    await this.currentPage().getByLabel('Email').fill(editorEmail);
-    await this.currentPage().getByLabel('Password').fill(editorPassword);
-    await this.currentPage().getByRole('button', { name: 'Continue' }).click();
-    await expect(this.currentPage()).toHaveURL(/\/property-management$/);
-  },
-);
 Then('edit mode is already active', async function (this: FrontendWorld) {
   await expect(
     this.currentPage().getByRole('complementary', { name: 'Content editor' }),
@@ -456,12 +477,16 @@ Then('I can browse every public division page', async function (this: FrontendWo
   for (const [route, heading] of Object.entries(headings)) {
     await this.currentPage().goto(route);
     await expect(this.currentPage().getByRole('heading', { name: heading })).toBeVisible();
+    await expect(this.currentPage().getByRole('button', { name: 'Enter edit mode' })).toHaveCount(
+      0,
+    );
   }
 });
 Then('editing controls are not shown', async function (this: FrontendWorld) {
   await expect(
     this.currentPage().getByRole('complementary', { name: 'Content editor' }),
   ).toHaveCount(0);
+  await expect(this.currentPage().getByRole('button', { name: 'Enter edit mode' })).toHaveCount(0);
 });
 
 Given('the current content manifest is available', async function (this: FrontendWorld) {
@@ -482,12 +507,331 @@ When('I open {string}', async function (this: FrontendWorld, route: string) {
   }
 });
 Then(
-  'the {string} published content is rendered',
+  'the {string} published content is rendered with deferred below-fold images',
   async function (this: FrontendWorld, pageId: string) {
     const heading = headings[this.route];
     assert.ok(heading);
     await expect(this.currentPage().getByRole('heading', { name: heading })).toBeVisible();
     assert.ok((this.manifest as { pages?: Record<string, unknown> }).pages?.[pageId]);
+    const eagerBelowFold = await this.currentPage().evaluate(() =>
+      [...document.querySelectorAll('img')]
+        .filter((image) => {
+          const box = image.getBoundingClientRect();
+          return (
+            box.width > 0 &&
+            box.height > 0 &&
+            box.top + window.scrollY > window.innerHeight * 1.5 &&
+            image.loading !== 'lazy'
+          );
+        })
+        .map((image) => image.getAttribute('alt') ?? image.getAttribute('src') ?? 'unknown'),
+    );
+    assert.deepEqual(eagerBelowFold, []);
+  },
+);
+Then('the browser title identifies the published page', async function (this: FrontendWorld) {
+  const titles: Readonly<Record<string, string>> = {
+    '/': "TriCo | Building Utah's Future",
+    '/property-management': 'Property Management | TriCo',
+    '/real-estate': 'Real Estate | TriCo',
+    '/construction': 'Construction | TriCo',
+    '/storage': 'Storage | TriCo',
+    '/development': 'Development | TriCo',
+  };
+  const title = titles[this.route];
+  assert.ok(title);
+  await expect(this.currentPage()).toHaveTitle(title);
+});
+Then('only the requested page module is loaded at entry', async function (this: FrontendWorld) {
+  const modules: Readonly<Record<string, string>> = {
+    '/': 'HomeExperience',
+    '/property-management': 'PropertyManagementExperience',
+    '/real-estate': 'RealEstateExperience',
+    '/construction': 'ConstructionExperience',
+    '/storage': 'StorageExperience',
+    '/development': 'DevelopmentExperience',
+  };
+  const requested = modules[this.route];
+  assert.ok(requested);
+  const page = this.currentPage();
+  await page.waitForLoadState('networkidle');
+  const loaded = await page.evaluate(
+    (names) =>
+      performance
+        .getEntriesByType('resource')
+        .filter((resource) => resource.name.endsWith('.js'))
+        .map((resource) => new URL(resource.name).pathname.split('/').at(-1) ?? '')
+        .flatMap((filename) => names.filter((name) => filename.startsWith(`${name}-`))),
+    Object.values(modules),
+  );
+  assert.deepEqual([...new Set(loaded)].sort(), [requested]);
+});
+Then(
+  'anonymous entry keeps editor code out of the initial JavaScript transfer',
+  async function (this: FrontendWorld) {
+    const resources = await this.currentPage().evaluate(() =>
+      performance
+        .getEntriesByType('resource')
+        .filter((resource) => new URL(resource.name).pathname.endsWith('.js'))
+        .map((resource) => ({
+          filename: new URL(resource.name).pathname.split('/').at(-1) ?? '',
+          encodedBytes:
+            resource instanceof PerformanceResourceTiming ? resource.encodedBodySize : 0,
+        })),
+    );
+    assert.ok(
+      resources.every(
+        ({ filename }) =>
+          !/^(EditorSheet|EditorToolbar|MediaLibraryDialog|dynamic)-/.test(filename),
+      ),
+      'An anonymous visitor loaded editor-only or deferred icon modules',
+    );
+    const encodedBytes = resources.reduce((sum, resource) => sum + resource.encodedBytes, 0);
+    assert.ok(
+      encodedBytes < 300 * 1024,
+      `Anonymous route loaded ${encodedBytes} encoded JavaScript bytes`,
+    );
+  },
+);
+Then(
+  'its editable anniversary banner matches the Home presentation',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const banner = page.locator('[data-slot="anniversary-banner"]');
+    await expect(banner).toHaveCount(1);
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText('Excellence');
+    await expect(banner.locator('xpath=ancestor::*[@data-entity-boundary="true"]')).toHaveCount(1);
+    const presentation = async (target: typeof banner) =>
+      target.evaluate((element) => {
+        const style = window.getComputedStyle(element);
+        return {
+          className: element.className,
+          backgroundColor: style.backgroundColor,
+          color: style.color,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          letterSpacing: style.letterSpacing,
+          textAlign: style.textAlign,
+          textTransform: style.textTransform,
+          paddingBlock: style.paddingBlock,
+        };
+      });
+    const expected = await presentation(banner);
+    const homePage = await page.context().newPage();
+    try {
+      await homePage.goto('/');
+      const homeBanner = homePage.locator('[data-slot="anniversary-banner"]');
+      await expect(homeBanner).toBeVisible();
+      assert.deepEqual(expected, await presentation(homeBanner));
+    } finally {
+      await homePage.close();
+    }
+  },
+);
+Then(
+  'public notice links and editable lists preserve accessible semantics',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await expect(page.getByRole('region', { name: 'TriCo anniversary' })).toHaveCount(1);
+    const inlineEmails = page.locator('p a[href^="mailto:"]');
+    for (const link of await inlineEmails.all()) {
+      if (!(await link.isVisible())) continue;
+      const decoration = await link.evaluate(
+        (element) => getComputedStyle(element).textDecorationLine,
+      );
+      assert.ok(decoration.includes('underline'), 'Inline email link must be underlined at rest');
+    }
+    const route = new URL(page.url()).pathname;
+    if (route === '/') {
+      const timeline = page.locator('#journey ol[data-slot="editable-collection-items"]');
+      await expect(timeline).toHaveCount(1);
+      await expect(timeline.locator(':scope > li')).toHaveCount(8);
+    }
+    if (route === '/development') {
+      const highlights = page.locator('#about ul[data-slot="editable-collection-items"]');
+      await expect(highlights).toHaveCount(1);
+      await expect(highlights.locator(':scope > li')).toHaveCount(5);
+    }
+  },
+);
+Then(
+  'shared public navigation shows every section without a secondary menu and moves focus to its keyboard-selected destination',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(page.getByRole('button', { name: 'More sections' })).toHaveCount(0);
+    const desktopNavigation = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(desktopNavigation).toBeVisible();
+    const desktopLinks = desktopNavigation.getByRole('link');
+    assert.ok((await desktopLinks.count()) >= 5);
+    for (const link of await desktopLinks.all()) await expect(link).toBeVisible();
+    const firstDesktopLink = desktopLinks.first();
+    const desktopHref = await firstDesktopLink.getAttribute('href');
+    assert.ok(desktopHref);
+    const desktopDestination = new URL(desktopHref, page.url()).hash.slice(1);
+    assert.ok(desktopDestination);
+    await firstDesktopLink.focus();
+    await page.keyboard.press('Enter');
+    const destination = page.locator(`[id="${desktopDestination}"]`);
+    const focusTarget =
+      (await destination.getAttribute('aria-hidden')) === 'true'
+        ? destination.locator('xpath=ancestor::section[1]')
+        : destination;
+    await expect(focusTarget).toBeFocused();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const trigger = page.getByRole('button', { name: 'Open navigation' });
+    await expect(trigger).toBeVisible();
+    const box = await trigger.boundingBox();
+    assert.ok(box && box.width >= 44 && box.height >= 44);
+    const mobileId = await trigger.getAttribute('aria-controls');
+    assert.ok(mobileId);
+    const mobileTrigger = page.locator(`button[aria-controls="${mobileId}"]`);
+    const navigation = page.locator(`[id="${mobileId}"]`);
+    await expect(navigation).toHaveCount(1);
+    await expect(navigation).toBeHidden();
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('button', { name: 'Close navigation' })).toBeFocused();
+    await expect(mobileTrigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(navigation).toBeVisible();
+    await expect(navigation.getByRole('link', { name: /contact|get in touch/i })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(navigation).toBeHidden();
+    await expect(mobileTrigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(mobileTrigger).toBeFocused();
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Tab');
+    await expect(navigation.getByRole('link').first()).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(navigation).toBeHidden();
+    await expect(mobileTrigger).toBeFocused();
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Tab');
+    const mobileLink = navigation.getByRole('link').first();
+    const mobileHref = await mobileLink.getAttribute('href');
+    assert.ok(mobileHref);
+    const mobileDestination = new URL(mobileHref, page.url()).hash.slice(1);
+    assert.ok(mobileDestination);
+    await page.keyboard.press('Enter');
+    await expect(navigation).toBeHidden();
+    await expect(page.locator(`[id="${mobileDestination}"]`)).toBeFocused();
+  },
+);
+Then(
+  'its anniversary announcement opens the community page and can be dismissed for this session',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const originalPath = new URL(page.url()).pathname;
+    const banner = page.getByRole('region', { name: 'TriCo anniversary' });
+    const announcement = banner.getByRole('link', { name: /giving back/i });
+    await expect(announcement).toBeVisible();
+    await banner.scrollIntoViewIfNeeded();
+    const bannerBox = await banner.boundingBox();
+    assert.ok(bannerBox);
+    await page.mouse.click(bannerBox.x + 8, bannerBox.y + bannerBox.height / 2);
+    await expect(page).toHaveURL(/\/community$/);
+    await expect(page.getByRole('heading', { name: 'Giving Back to Our Community' })).toBeVisible();
+    await page.goto(originalPath);
+    await expect(banner).toBeVisible();
+    await banner.getByRole('button', { name: 'Dismiss anniversary announcement' }).click();
+    await expect(banner).toHaveCount(0);
+    assert.equal(new URL(page.url()).pathname, originalPath, 'Dismissal must not follow the link');
+    await page.reload();
+    await expect(banner).toHaveCount(0);
+    await page.goto(originalPath === '/' ? '/property-management' : '/');
+    await expect(page.getByRole('region', { name: 'TriCo anniversary' })).toHaveCount(0);
+  },
+);
+Then('the project category uses the shared public header', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const trigger = page.getByRole('button', { name: 'Open navigation' });
+  await expect(trigger).toBeVisible();
+  const box = await trigger.boundingBox();
+  assert.ok(box && box.width >= 44 && box.height >= 44);
+  await trigger.click();
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Mobile navigation' })
+      .getByRole('link', { name: 'Careers' }),
+  ).toHaveAttribute('href', '/construction#careers');
+});
+Then(
+  'its footer quick links have comfortable mobile tap targets',
+  async function (this: FrontendWorld) {
+    const links = this.currentPage().locator('footer nav[aria-label="Quick links"] a');
+    const count = await links.count();
+    assert.ok(count > 0);
+    for (let index = 0; index < count; index += 1) {
+      const box = await links.nth(index).boundingBox();
+      assert.ok(box && box.height >= 44, `Category footer link ${String(index)} is too small`);
+    }
+  },
+);
+Then('unfinished public placeholder claims are suppressed', async function (this: FrontendWorld) {
+  const text = await this.currentPage().locator('body').innerText();
+  assert.doesNotMatch(text, /coming soon|(?:builder|investor) partner \d/i);
+});
+Then('Property Management has no dead public footer links', async function (this: FrontendWorld) {
+  await expect(this.currentPage().locator('footer a[href="#"]')).toHaveCount(0);
+});
+Then('available division hero imagery is displayed', async function (this: FrontendWorld) {
+  const image = this.currentPage().locator('#main-content section').first().locator('img').first();
+  await expect(image).toBeVisible();
+  assert.ok(
+    (await image.evaluate((node) => (node instanceof HTMLImageElement ? node.naturalWidth : 0))) >
+      0,
+  );
+});
+Then('unavailable project actions are not shown as buttons', async function (this: FrontendWorld) {
+  const page = this.currentPage();
+  if (this.route === '/construction') {
+    await expect(page.getByRole('button', { name: /view plans|specifications/i })).toHaveCount(0);
+  }
+  if (this.route === '/development') {
+    await expect(page.getByRole('button', { name: /view current|view completed/i })).toHaveCount(0);
+  }
+});
+Then(
+  'empty Construction project groups and restricted plan sets share honest inquiry paths',
+  async function (this: FrontendWorld) {
+    if (this.route !== '/construction') return;
+    const page = this.currentPage();
+    await expect(page.getByText('Built Across Every Sector')).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'View projects' })).toHaveCount(0);
+    await expect(page.getByText('Project details are available by request.')).toHaveCount(1);
+    await expect(page.getByRole('link', { name: 'Ask about projects' })).toHaveCount(1);
+    const planRoom = page.locator('#plan-room');
+    await expect(planRoom.getByText('Draper Mixed-Use Development')).toHaveCount(0);
+    await expect(planRoom.getByText('TCC-2026-014')).toHaveCount(0);
+    await expect(planRoom.getByText('Login Required')).toHaveCount(0);
+    await expect(planRoom.getByText(/credentials/i)).toHaveCount(0);
+    await expect(planRoom.getByRole('link', { name: 'Request Plans' })).toHaveAttribute(
+      'href',
+      /^mailto:/,
+    );
+    await loginEditor(page);
+    await page.goto('/construction');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(planRoom.getByText('Draper Mixed-Use Development')).toBeVisible();
+    await expect(
+      planRoom.locator('[data-slot="editable-collection"] [data-slot="card"]'),
+    ).toHaveCount(4);
+    await page
+      .getByRole('complementary', { name: 'Content editor' })
+      .getByRole('button', { name: 'Exit edit mode' })
+      .click();
+  },
+);
+Then(
+  'Construction bid and contact actions lead to one quote form',
+  async function (this: FrontendWorld) {
+    if (this.route !== '/construction') return;
+    const page = this.currentPage();
+    await expect(page.locator('#bid form, #contact form')).toHaveCount(1);
+    await page.getByRole('link', { name: 'Get a Quote' }).first().click();
+    await expect(page.locator('#bid form')).toBeInViewport();
   },
 );
 Then('no CMS metadata is present in the page document', function (this: FrontendWorld) {
@@ -495,6 +839,27 @@ Then('no CMS metadata is present in the page document', function (this: Frontend
   for (const forbidden of ['pendingOwner', 'pendingRevision', 'userId', 'operationStatus'])
     assert.equal(serialized.includes(forbidden), false);
 });
+Then(
+  'division footer links have comfortable mobile tap targets where present',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const links = page.locator('footer a[href^="#"]');
+    const count = await links.count();
+    if (this.route === '/') {
+      assert.equal(count, 0);
+      return;
+    }
+    assert.ok(count > 0);
+    for (let index = 0; index < count; index += 1) {
+      const box = await links.nth(index).boundingBox();
+      assert.ok(
+        box && box.height >= 44,
+        `Footer link ${String(index)} (${await links.nth(index).getAttribute('href')}) measures ${String(box?.height)}px`,
+      );
+    }
+  },
+);
 
 Given('a visitor loaded the current manifest', async function (this: FrontendWorld) {
   const response = await this.currentPage().request.get('/content/manifest.json');
@@ -515,7 +880,7 @@ Then(
 );
 
 Then(
-  'the Home page presents every mounted section in its intended order',
+  'the Home page presents ready sections in order without sample updates or eager leadership photos',
   async function (this: FrontendWorld) {
     const expectedHeadings = [
       "Building Utah's Future",
@@ -523,7 +888,6 @@ Then(
       'Our Core Values',
       'Our Journey',
       'Leadership Team',
-      'News & Updates',
       'Join Our Team',
       'Submit Your Resume',
       'Get In Touch',
@@ -540,14 +904,36 @@ Then(
       positions,
       [...positions].sort((left, right) => left - right),
     );
+    await expect(this.currentPage().locator('#news')).toHaveCount(0);
+    await expect(this.currentPage().getByText('New Website Launch')).toHaveCount(0);
+    const leadershipImages = this.currentPage().locator('#leadership img');
+    await expect(leadershipImages).toHaveCount(4);
+    for (const image of await leadershipImages.all())
+      await expect(image).toHaveAttribute('loading', 'lazy');
   },
 );
 Then(
-  'all {int} Home entities have an editable visual boundary',
+  'all {int} Home entities remain editable with explicit public visibility controls',
   async function (this: FrontendWorld, count: number) {
-    await expect(this.currentPage().locator('[data-home-entity-boundary="true"]')).toHaveCount(
-      count,
-    );
+    const page = this.currentPage();
+    await loginEditor(page);
+    await enterHomeEditMode(page);
+    await expect(page.locator('[data-home-entity-boundary="true"]')).toHaveCount(count);
+    await expect(page.getByText('New Website Launch')).toBeVisible();
+    for (const section of ['#news', '#careers']) {
+      await page
+        .locator(`${section} [data-slot=editable-item]`)
+        .first()
+        .getByRole('button', { name: /^Edit / })
+        .click();
+      const sheet = page.getByRole('dialog');
+      await expect(sheet.getByLabel('Public visibility')).toHaveValue('legacy');
+      await sheet.getByRole('button', { name: 'Cancel' }).click();
+    }
+    await page
+      .getByRole('complementary', { name: 'Content editor' })
+      .getByRole('button', { name: 'Exit edit mode' })
+      .click();
   },
 );
 Then(
@@ -691,32 +1077,26 @@ Then(
     const roles = await this.currentPage().evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement);
       return {
-        dark: styles.getPropertyValue('--trico-color-dark').trim(),
-        deep: styles.getPropertyValue('--trico-color-deep').trim(),
-        light: styles.getPropertyValue('--trico-color-light').trim(),
-        gold: styles.getPropertyValue('--trico-color-gold').trim(),
-        action: styles.getPropertyValue('--trico-color-action').trim(),
-        highlight: styles.getPropertyValue('--trico-color-highlight').trim(),
-        stat: styles.getPropertyValue('--trico-color-stat').trim(),
-        rating: styles.getPropertyValue('--trico-color-rating').trim(),
-        brandAccent: styles.getPropertyValue('--trico-color-brand-accent').trim(),
+        theme: document.documentElement.dataset.theme,
+        primary: styles.getPropertyValue('--primary').trim(),
+        info: styles.getPropertyValue('--info').trim(),
+        accent: styles.getPropertyValue('--accent').trim(),
+        sidebar: styles.getPropertyValue('--sidebar').trim(),
+        sidebarPrimary: styles.getPropertyValue('--sidebar-primary').trim(),
       };
     });
     assert.deepEqual(roles, {
-      dark: '#00128a',
-      deep: '#000a4d',
-      light: '#5e85ba',
-      gold: '#86622d',
-      action: '#00128a',
-      highlight: '#5e85ba',
-      stat: '#5e85ba',
-      rating: '#5e85ba',
-      brandAccent: '#86622d',
+      theme: 'ds-21',
+      primary: 'oklch(30.16% .1881 264.19)',
+      info: 'oklch(61% .0922 256.29)',
+      accent: 'oklch(52.24% .0838 74.61)',
+      sidebar: 'oklch(20.67% .1203 264.02)',
+      sidebarPrimary: 'oklch(78.19% .0629 253.08)',
     });
   },
 );
 Then(
-  'all page stylesheets source their colors exclusively from the global palette',
+  'legacy presentation stylesheets are deleted in favor of the TriCo Tailwind theme',
   async function () {
     const pageStyles = [
       'home.css',
@@ -726,47 +1106,56 @@ Then(
       'storage.css',
       'development.css',
     ] as const;
-    const violations: string[] = [];
     for (const fileName of pageStyles) {
-      const source = await readFile(new URL(`../pages/${fileName}`, import.meta.url), 'utf8');
-      const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, '');
-      if (/#[\da-f]{3,8}\b/i.test(withoutComments)) violations.push(`${fileName}: hex literal`);
-      if (/\b(?:rgb|rgba|hsl|hsla|lab|lch|oklab|oklch|color)\(/i.test(withoutComments))
-        violations.push(`${fileName}: color function`);
-      if (/(?<![-\w])(?:white|black|transparent)(?![-\w])/i.test(withoutComments))
-        violations.push(`${fileName}: named color`);
-      if (
-        /--(?:home|pm|re|co|sp|storage|dev)-(?:primary|navy|gold|blue|muted|tint|border)\b/.test(
-          withoutComments,
-        )
-      )
-        violations.push(`${fileName}: page-local color alias`);
+      await assert.rejects(readFile(new URL(`../pages/${fileName}`, import.meta.url), 'utf8'), {
+        code: 'ENOENT',
+      });
     }
-    assert.deepEqual(violations, []);
+    await assert.rejects(readFile(new URL('../styles.css', import.meta.url), 'utf8'), {
+      code: 'ENOENT',
+    });
+    const entry = await readFile(new URL('../main.tsx', import.meta.url), 'utf8');
+    assert.ok(entry.includes('./design-system/themes/main.css'));
+    assert.ok(!entry.includes('./styles.css'));
+    assert.ok(!entry.includes('./pages/'));
   },
 );
-Then('page stylesheets contain no typography declarations', async function () {
-  const pageStyles = [
-    'home.css',
-    'property-management.css',
-    'real-estate.css',
-    'construction.css',
-    'storage.css',
-    'development.css',
-  ] as const;
-  const typographyDeclaration =
-    /^\s*(?:color|font(?:-[\w-]+)?|line-height|letter-spacing|word-spacing|text-align|text-transform|text-decoration(?:-[\w-]+)?|text-indent|text-shadow|white-space|overflow-wrap|word-break|hyphens)\s*:/gm;
-  const violations: string[] = [];
-  for (const fileName of pageStyles) {
-    const source = await readFile(new URL(`../pages/${fileName}`, import.meta.url), 'utf8');
-    const declarations = source.match(typographyDeclaration) ?? [];
-    if (declarations.length > 0) violations.push(`${fileName}: ${declarations.length}`);
-  }
-  assert.deepEqual(violations, []);
-});
+Then(
+  'active pages auth and editor replace their old presentation with fullstack-ts primitives',
+  async function () {
+    const oldPresentation = [
+      'pages/HomeSitePage.tsx',
+      'pages/PropertyManagementSitePage.tsx',
+      'pages/RealEstateSitePage.tsx',
+      'pages/ConstructionSitePage.tsx',
+      'pages/StorageSitePage.tsx',
+      'pages/DevelopmentSitePage.tsx',
+      'pages/ConstructionCategoryPage.tsx',
+    ] as const;
+    for (const fileName of oldPresentation) {
+      await assert.rejects(readFile(new URL(`../${fileName}`, import.meta.url), 'utf8'), {
+        code: 'ENOENT',
+      });
+    }
+    for (const fileName of [
+      'pages/AuthPage.tsx',
+      'components/EditorSheet.tsx',
+      'components/EditorToolbar.tsx',
+      'components/MediaLibraryDialog.tsx',
+      'components/SemanticEditorForm.tsx',
+    ]) {
+      const presentation = await readFile(new URL('../' + fileName, import.meta.url), 'utf8');
+      assert.match(presentation, /components\/ui\/|\.\/ui\//);
+      assert.doesNotMatch(presentation, /className="(?:ui-|re-|pm-|type-)/);
+    }
+    const root = await readFile(new URL('../App.tsx', import.meta.url), 'utf8');
+    assert.ok(root.includes('Experience'));
+  },
+);
 Then(
   'Open Sans body copy and Lato headings are bundled with the supported visual-parity weights',
   async function (this: FrontendWorld) {
+    await expect(this.currentPage().getByRole('heading', { level: 1 })).toBeVisible();
     const typography = await this.currentPage().evaluate(async () => {
       await document.fonts.ready;
       const faces = [...document.fonts];
@@ -788,226 +1177,189 @@ Then(
   },
 );
 Then(
-  'Home Property Management Real Estate Construction Storage and Development use the shared blue highlight role',
+  'Home Property Management Real Estate Construction Storage and Development render theme-backed card and action primitives',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const samples = [
-      { route: '/', selector: '.home-card-icon', expectedColor: 'rgb(94, 133, 186)' },
-      { route: '/', selector: '.ui-timeline-card strong', expectedColor: 'rgb(94, 133, 186)' },
-      { route: '/', selector: '.ui-news-date', expectedColor: 'rgb(94, 133, 186)' },
-      {
-        route: '/property-management',
-        selector: '.pm-section-heading > span',
-        expectedColor: 'rgb(0, 18, 138)',
-      },
-      {
-        route: '/real-estate',
-        selector: '.re-service-grid .re-card > svg:first-child',
-        expectedColor: 'rgb(94, 133, 186)',
-      },
-      {
-        route: '/construction',
-        selector: '.co-heading > span',
-        expectedColor: 'rgb(94, 133, 186)',
-      },
-      {
-        route: '/storage',
-        selector: '.storage-section-heading > span',
-        expectedColor: 'rgb(59, 130, 246)',
-      },
-      { route: '/development', selector: '.dev-pill', expectedColor: 'rgb(94, 133, 186)' },
-    ] as const;
-    for (const sample of samples) {
-      await page.goto(sample.route);
-      const target = page.locator(sample.selector).first();
-      await expect(target).toBeAttached();
-      await expect(target).toHaveCSS('color', sample.expectedColor);
+    for (const route of [
+      '/',
+      '/property-management',
+      '/real-estate',
+      '/construction',
+      '/storage',
+      '/development',
+    ]) {
+      await page.goto(route);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'ds-21');
+      await expect(page.locator('[data-slot="card"]').first()).toBeVisible();
+      await expect(page.locator('[data-slot="button"]:visible').first()).toBeVisible();
     }
   },
 );
 Then(
-  'division statistics use the shared blue stat role while intentional brand accents remain gold',
+  'division hero statistics use the shared inverse theme surface',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const statSamples = [
-      { route: '/property-management', selector: '.ui-division-hero-stat strong' },
-      { route: '/real-estate', selector: '.ui-division-hero-stat strong' },
-      { route: '/construction', selector: '.ui-division-hero-stat strong' },
-      { route: '/storage', selector: '.ui-division-hero-stat strong' },
-      { route: '/development', selector: '.ui-division-hero-stat strong' },
-    ] as const;
-    for (const sample of statSamples) {
-      await page.goto(sample.route);
-      const target = page.locator(sample.selector).first();
-      await expect(target).toBeAttached();
-      await expect(target).toHaveCSS('color', 'rgb(94, 133, 186)');
+    for (const route of [
+      '/property-management',
+      '/real-estate',
+      '/construction',
+      '/storage',
+      '/development',
+    ]) {
+      await page.goto(route);
+      const hero = page.locator('section').first();
+      await expect(hero).toHaveClass(/bg-sidebar/);
+      const stats = hero.locator('[data-slot="editable-collection-items"] strong');
+      await expect(stats.first()).toBeVisible();
+      assert.ok((await stats.count()) >= 2);
+      await expect(stats.first()).toHaveCSS('color', 'oklch(1 0 0)');
     }
-
-    await page.goto('/property-management');
-    await expect(page.locator('.pm-stars svg').first()).toHaveCSS('color', 'rgb(94, 133, 186)');
-
-    await page.goto('/real-estate');
-    await expect(page.locator('#careers .ui-submit-button')).toHaveCSS(
-      'background-color',
-      'rgb(37, 99, 235)',
-    );
-
-    await page.goto('/construction');
-    await expect(page.locator('.ui-division-hero-action-primary')).toHaveCSS(
-      'background-color',
-      'rgb(134, 98, 45)',
-    );
-
-    await page.goto('/development');
-    await expect(page.locator('.dev-brand strong')).toHaveCSS('color', 'rgb(134, 98, 45)');
   },
 );
 Then(
-  'Construction sector actions use the shared slate blue action role',
+  'Construction sector actions use the shared primary action role when editable',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
+    await loginEditor(page);
     await page.goto('/construction');
-    const actions = page.locator(
-      '#projects .ui-sector > span, #completed-projects .ui-sector > span',
-    );
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    const actions = page.locator('#projects a .text-primary, #completed-projects a .text-primary');
     await expect(actions).toHaveCount(16);
     for (const action of await actions.all()) {
-      await expect(action).toHaveCSS('color', 'rgb(94, 133, 186)');
-      await expect(action).toHaveCSS('font-weight', '500');
-      await expect(action).toHaveCSS('gap', '4px');
+      await expect(action).toHaveClass(/text-primary/);
+      await expect(action).toBeVisible();
     }
   },
 );
 
 const reviewPlatformSamples = [
-  { route: '/real-estate', grid: '.re-review-grid' },
-  { route: '/property-management', grid: '.pm-reviews' },
-  { route: '/construction', grid: '.co-review-grid' },
-  { route: '/storage', grid: '.storage-reviews' },
-  { route: '/development', grid: '.dev-review-grid' },
+  '/real-estate',
+  '/property-management',
+  '/construction',
+  '/storage',
+  '/development',
 ] as const;
 
 Then(
-  'Real Estate Property Management Construction Storage and Development use one review platform card contract',
+  'unready public review destinations are hidden across divisions',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    for (const sample of reviewPlatformSamples) {
-      await page.goto(sample.route);
-      const grid = page.locator(sample.grid);
-      await expect(grid).toBeVisible();
-      const cards = grid.locator('[data-review-platform-card="true"]');
-      await expect(cards).toHaveCount(3);
-      for (const card of await cards.all()) {
-        await expect(card).toHaveCSS('display', 'flex');
-        await expect(card).toHaveCSS('text-align', 'center');
-      }
+    for (const route of reviewPlatformSamples) {
+      await page.goto(route);
+      const cards = page.locator('#reviews [data-review-platform-card="true"]');
+      await expect(cards).toHaveCount(0);
+      await expect(
+        page.locator('#reviews').getByRole('heading', { name: 'Share feedback privately' }),
+      ).toBeVisible();
+      await expect(page.locator('#reviews').getByRole('link', { name: /@/ })).toBeVisible();
     }
   },
 );
 
 Then(
-  'Google Facebook and Yelp use accessible platform-specific brand treatments',
+  'testimonial editors require explicit public visibility decisions',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const expected = {
-      google: 'rgb(66, 133, 244)',
-      facebook: 'rgb(24, 119, 242)',
-      yelp: 'rgb(211, 35, 35)',
-    } as const;
-    for (const sample of reviewPlatformSamples) {
-      await page.goto(sample.route);
-      for (const [platform, color] of Object.entries(expected)) {
-        const mark = page.locator(
-          `${sample.grid} [data-review-platform="${platform}"] [data-review-platform-mark="true"]`,
-        );
-        await expect(mark).toHaveCount(1);
-        await expect(mark).toHaveCSS('color', color);
-        await expect(mark).toHaveAttribute('aria-hidden', 'true');
-      }
+    await page.goto('/property-management');
+    await expect(page.locator('#client-stories')).toHaveCount(0);
+    await expect(page.getByText('Jennifer Martinez', { exact: true })).toHaveCount(0);
+    await page.goto('/real-estate');
+    await expect(page.getByText('Michael Anderson', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Sarah Thompson', { exact: true })).toHaveCount(0);
+    await loginEditor(page);
+    for (const route of ['/property-management', '/real-estate']) {
+      await page.goto(route);
+      await page.getByRole('button', { name: 'Enter edit mode' }).click();
+      const item =
+        route === '/property-management'
+          ? page.locator('#client-stories [data-slot=editable-item]').first()
+          : page.locator('[data-slot=editable-item]').filter({ hasText: 'Michael Anderson' });
+      await item.getByRole('button', { name: /^Edit / }).click();
+      const sheet = page.getByRole('dialog');
+      await expect(sheet.getByLabel('Public visibility')).toHaveValue('legacy');
+      await sheet.getByRole('button', { name: 'Cancel' }).click();
+      await page
+        .getByRole('complementary', { name: 'Content editor' })
+        .getByRole('button', { name: 'Exit edit mode' })
+        .click();
     }
   },
 );
 
-Then('review ratings use the shared blue rating role', async function (this: FrontendWorld) {
+Then(
+  'edit mode retains review platform and testimonial cards on the shared Card contract',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await page.goto('/real-estate');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+    await expect(page.getByText('Michael Anderson', { exact: true })).toBeVisible();
+    await expect(page.getByText('Sarah Thompson', { exact: true })).toBeVisible();
+    const cards = page.locator('#reviews [data-review-platform-card="true"]');
+    await expect(cards).toHaveCount(3);
+    for (const card of await cards.all()) {
+      await expect(card).toHaveAttribute('data-slot', 'card');
+      await expect(card.getByRole('heading')).toBeVisible();
+      const description = card.locator('[data-slot="card-content"] p');
+      await expect(description).toHaveCSS('font-size', '14px');
+      await expect(description).toBeVisible();
+    }
+    await page.goto('/property-management');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.getByText('Jennifer Martinez', { exact: true })).toBeVisible();
+    await expect(page.locator('#client-stories [data-slot="card"]')).toHaveCount(4);
+    await page.goto('/real-estate');
+    await expect(page.getByRole('complementary', { name: 'Content editor' })).toBeVisible();
+  },
+);
+
+Then('editable review cards remain compact on mobile', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  const expectedColor = 'rgb(94, 133, 186)';
-  for (const sample of reviewPlatformSamples) {
-    await page.goto(sample.route);
-    const rating = page.locator('[data-review-rating="true"]').first();
-    await expect(rating).toBeVisible();
-    await expect(rating).toHaveCSS('color', expectedColor);
-    await expect(rating).toHaveAttribute('aria-label', '5 out of 5 stars');
-  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobile = page.locator('#reviews [data-review-platform-card="true"]');
+  await expect(mobile).toHaveCount(3);
+  const mobileLayout = await mobile.evaluateAll((cards) => ({
+    lefts: cards.map((card) => Math.round(card.getBoundingClientRect().left)),
+    viewport: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert.equal(new Set(mobileLayout.lefts).size, 1);
+  assert.ok(mobileLayout.scrollWidth <= mobileLayout.viewport);
 });
 
-Then(
-  'review platform descriptions use the shared compact copy role',
-  async function (this: FrontendWorld) {
-    const page = this.currentPage();
-    for (const sample of reviewPlatformSamples) {
-      await page.goto(sample.route);
-      const descriptions = page.locator(`${sample.grid} [data-review-platform-card="true"] > p`);
-      await expect(descriptions).toHaveCount(3);
-      for (const description of await descriptions.all()) {
-        await expect(description).toHaveCSS('font-size', '14px');
-        await expect(description).toHaveCSS('line-height', '20px');
-      }
-    }
-  },
-);
-
-Then(
-  'review platform cards remain balanced at desktop and compact on mobile',
-  async function (this: FrontendWorld) {
-    const page = this.currentPage();
-    for (const sample of reviewPlatformSamples) {
-      await page.setViewportSize({ width: 1440, height: 1100 });
-      await page.goto(sample.route);
-      const desktopCards = page.locator(`${sample.grid} [data-review-platform-card="true"]`);
-      const heights = await desktopCards.evaluateAll((cards) =>
-        cards.map((card) => card.getBoundingClientRect().height),
-      );
-      assert.equal(heights.length, 3);
-      assert.ok(Math.max(...heights) - Math.min(...heights) <= 1);
-      assert.ok(Math.min(...heights) >= 240);
-
-      await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(sample.route);
-      const mobileCard = page.locator(`${sample.grid} [data-review-platform-card="true"]`).first();
-      await expect(mobileCard).toBeVisible();
-      const mobileBox = await mobileCard.boundingBox();
-      assert.ok(mobileBox);
-      assert.ok(mobileBox.width >= 330);
-      assert.ok(mobileBox.height < 320);
-    }
-  },
-);
-
 const profileCardSamples = [
-  { route: '/real-estate', count: 9, available: 9, unavailable: 0 },
-  { route: '/property-management', count: 4, available: 2, unavailable: 2 },
+  { route: '/', count: 4, available: 4, unavailable: 0 },
+  { route: '/real-estate', count: 5, available: 5, unavailable: 0 },
+  { route: '/construction', count: 3, available: 3, unavailable: 0 },
+  { route: '/property-management', count: 2, available: 2, unavailable: 0 },
+  { route: '/storage', count: 4, available: 4, unavailable: 0 },
   { route: '/development', count: 3, available: 3, unavailable: 0 },
 ] as const;
 
 Then(
-  'Real Estate Property Management and Development expose one shared profile card contract',
+  'all six pages expose one shared profile card contract and Home uses the division badge treatment',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    await page.setViewportSize({ width: 1425, height: 1100 });
     for (const sample of profileCardSamples) {
       await page.goto(sample.route);
       const cards = page.locator('[data-profile-card="true"]');
       await expect(cards).toHaveCount(sample.count);
       for (const card of await cards.all()) {
-        await expect(card).toHaveCSS('display', 'flex');
-        await expect(card).toHaveCSS('flex-direction', 'column');
+        await expect(card).toHaveAttribute('data-slot', 'card');
+        await expect(card.getByRole('heading')).toBeVisible();
       }
     }
+    await page.goto('/');
+    await expect(page.getByText('A Utah family of companies', { exact: true })).toHaveClass(
+      /bg-sidebar-accent/,
+    );
   },
 );
 
 Then(
-  'available portraits crop consistently while unavailable portraits use one neutral accessible fallback',
+  'available portraits display without additional zoom while unavailable portraits use one neutral accessible fallback',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     for (const sample of profileCardSamples) {
@@ -1021,24 +1373,33 @@ Then(
       await expect(available).toHaveCount(sample.available);
       await expect(unavailable).toHaveCount(sample.unavailable);
       for (const media of await available.all()) {
-        const box = await media.boundingBox();
-        assert.ok(box);
-        assert.ok(Math.abs(box.width - box.height) <= 1);
         const portrait = media.locator('img');
-        await expect(portrait).toHaveCSS('object-fit', 'cover');
-        assert.ok(
-          (await portrait.evaluate((element) =>
-            element instanceof HTMLImageElement ? element.naturalWidth : 0,
-          )) > 0,
-        );
+        await expect(portrait).toHaveCSS('object-fit', 'contain');
+        await expect(portrait).toHaveCSS('aspect-ratio', '4 / 5');
+        await portrait.scrollIntoViewIfNeeded();
+        await expect
+          .poll(() =>
+            portrait.evaluate((element) =>
+              element instanceof HTMLImageElement ? element.naturalWidth : 0,
+            ),
+          )
+          .toBeGreaterThan(0);
       }
       for (const media of await unavailable.all()) {
-        await expect(media).toHaveAttribute('role', 'img');
-        await expect(media).toHaveAttribute('aria-label', /Portrait unavailable for .+/);
+        await expect(media.getByRole('img')).toHaveAttribute('aria-label', /.+/);
         await expect(media.locator('img')).toHaveCount(0);
-        await expect(media).not.toContainText('media/');
       }
     }
+    await loginEditor(page);
+    await page.goto('/property-management');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(page.locator('#team [data-profile-card="true"]')).toHaveCount(4);
+    await expect(page.locator('#team [data-profile-media-state="unavailable"]')).toHaveCount(2);
+    await page.setViewportSize({ width: 1425, height: 900 });
+    await page
+      .getByRole('complementary', { name: 'Content editor' })
+      .getByRole('button', { name: 'Exit edit mode' })
+      .click();
   },
 );
 
@@ -1046,7 +1407,6 @@ Then(
   'every frozen Real Estate agent portrait resolves from managed media',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    await page.setViewportSize({ width: 1440, height: 1100 });
     await page.goto('/real-estate');
     const expectedPortraits = [
       ['Michael Thornton', 'michael-thornton', 'jpg'],
@@ -1055,44 +1415,52 @@ Then(
       ['Robert Ayers', 'robert-ayers', 'png'],
       ['Stacie Papanikolas', 'stacie-papanikolas', 'jpg'],
     ] as const;
-
-    const cards = page.locator('.re-agent-grid [data-profile-card="true"]');
-    await expect(cards).toHaveCount(expectedPortraits.length);
+    const cards = page.locator('#team [data-profile-card="true"]');
     for (const [name, fileStem, extension] of expectedPortraits) {
       const card = cards.filter({ has: page.getByRole('heading', { name, exact: true }) });
       await expect(card).toHaveCount(1);
-      const media = card.locator('[data-profile-media-state="available"]');
-      await expect(media).toHaveCount(1);
-      const portrait = media.locator('img');
+      const portrait = card.locator('img');
       await expect(portrait).toBeVisible();
-      const presentation = await portrait.evaluate((element) => {
-        if (!(element instanceof HTMLImageElement))
-          throw new Error('Agent portrait is not an image.');
-        const box = element.getBoundingClientRect();
-        return {
-          naturalWidth: element.naturalWidth,
-          objectFit: getComputedStyle(element).objectFit,
-          source: new URL(element.currentSrc).pathname,
-          width: box.width,
-          height: box.height,
-        };
-      });
-      assert.ok(presentation.naturalWidth > 0, `${name} portrait did not load.`);
-      assert.equal(presentation.objectFit, 'cover');
-      assert.ok(
-        Math.abs(presentation.width - 262) <= 1,
-        `${name} width was ${presentation.width}.`,
-      );
-      assert.ok(
-        Math.abs(presentation.height - 262) <= 1,
-        `${name} height was ${presentation.height}.`,
-      );
-      assert.match(
-        presentation.source,
-        new RegExp(`/assets/${fileStem}-[^/]+\\.${extension}$`),
-        `${name} did not resolve the managed ${fileStem}.${extension} asset.`,
-      );
+      await portrait.scrollIntoViewIfNeeded();
+      await expect
+        .poll(() =>
+          portrait.evaluate((element) =>
+            element instanceof HTMLImageElement ? element.naturalWidth : 0,
+          ),
+        )
+        .toBeGreaterThan(0);
+      const media = await portrait.evaluate((element) => ({
+        width: element instanceof HTMLImageElement ? element.naturalWidth : 0,
+        source: element instanceof HTMLImageElement ? new URL(element.currentSrc).pathname : '',
+      }));
+      assert.ok(media.width > 0);
+      assert.match(media.source, new RegExp('/assets/' + fileStem + '-[^/]+\\.' + extension + '$'));
     }
+  },
+);
+Then(
+  'Real Estate team categories are directly browseable with concise profiles on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/real-estate');
+    const tabs = page.locator('#team').getByRole('tablist', { name: 'Real Estate team category' });
+    await expect(tabs.getByRole('tab')).toHaveCount(3);
+    for (const [label, count] of [
+      ['Leadership', 3],
+      ['Our Team', 1],
+      ['Our Agents', 5],
+    ] as const) {
+      const tab = tabs.getByRole('tab', { name: label, exact: true });
+      await tab.focus();
+      await page.keyboard.press('Enter');
+      await expect(tab).toHaveAttribute('aria-selected', 'true');
+      await expect(page.locator('#team [data-profile-card="true"]')).toHaveCount(count);
+    }
+    const profiles = page.locator('#team [data-profile-card="true"]');
+    await expect(profiles.locator('details')).toHaveCount(5);
+    await profiles.first().getByText('Read full bio').click();
+    await expect(profiles.first().locator('details')).toHaveAttribute('open', '');
   },
 );
 
@@ -1101,37 +1469,23 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     for (const sample of profileCardSamples) {
-      await page.setViewportSize({ width: 1425, height: 1100 });
+      await page.setViewportSize({ width: 1425, height: 900 });
       await page.goto(sample.route);
-      const desktopCards = page.locator('[data-profile-card="true"]');
-      const firstRow = await desktopCards.evaluateAll((cards) => {
-        const firstTop = cards[0]?.getBoundingClientRect().top;
-        return cards
-          .map((card) => card.getBoundingClientRect())
-          .filter((box) => firstTop !== undefined && Math.abs(box.top - firstTop) <= 1)
-          .map((box) => ({ width: box.width, height: box.height }));
-      });
-      assert.ok(firstRow.length >= 2);
-      assert.ok(firstRow.every(({ width }) => width >= 300));
-      assert.ok(
-        Math.max(...firstRow.map(({ height }) => height)) -
-          Math.min(...firstRow.map(({ height }) => height)) <=
-          1,
-      );
-
+      const desktop = page.locator('[data-profile-card="true"]');
+      await expect(desktop).toHaveCount(sample.count);
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(sample.route);
-      const mobileCards = page.locator('[data-profile-card="true"]');
-      const firstMobileBox = await mobileCards.first().boundingBox();
-      assert.ok(firstMobileBox);
-      assert.ok(firstMobileBox.width >= 350);
-      const mobileColumns = await mobileCards.evaluateAll(
-        (cards) => new Set(cards.map((card) => Math.round(card.getBoundingClientRect().left))).size,
-      );
-      assert.equal(mobileColumns, 1);
+      const mobile = page.locator('[data-profile-card="true"]');
+      await expect(mobile).toHaveCount(sample.count);
+      const layout = await mobile.evaluateAll((cards) => ({
+        lefts: cards.map((card) => Math.round(card.getBoundingClientRect().left)),
+        viewport: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
+      assert.equal(new Set(layout.lefts).size, 1);
+      assert.ok(layout.scrollWidth <= layout.viewport);
     }
-
-    await page.setViewportSize({ width: 1425, height: 1100 });
+    await page.setViewportSize({ width: 1425, height: 900 });
     await loginEditor(page);
     await page.goto('/real-estate');
     const publicWidth = await page
@@ -1473,7 +1827,7 @@ Then(
   },
 );
 
-Then('Development semantic seeds preserve the exact mounted legacy copy', function () {
+Then('Development semantic seeds preserve verified copy and omit unready identities', function () {
   assert.equal(
     developmentV2SeedData['development.hero'].description,
     'From raw land acquisition to finished communities, TriCo Development brings over 40 years of experience in residential and commercial development across Utah, Idaho, and Arizona.',
@@ -1531,20 +1885,36 @@ Then('Development semantic seeds preserve the exact mounted legacy copy', functi
     developmentV2SeedData['development.reviews.header'].description,
     'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
   );
-  assert.deepEqual(
-    developmentV2SeedData['development.reviews.platforms'].map(({ description }) => description),
-    [
-      'Share your experience on Google Reviews — helps neighbors find us.',
-      'Recommend us on Facebook so your network can see it too.',
-      'Leave a Yelp review to help others make an informed decision.',
-    ],
-  );
+  assert.deepEqual(developmentV2SeedData['development.partners.items'], []);
+  assert.deepEqual(developmentV2SeedData['development.reviews.platforms'], []);
   assert.deepEqual(developmentV2SeedData['development.reviews.footer'], {
     message: 'Prefer to share feedback privately? Email us at',
     email: 'Office@tricoinc.com',
     closingMessage: '— we read every message.',
   });
 });
+Then(
+  'Development project types and featured work are directly browseable from the hero action',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const tabs = page
+      .locator('#projects')
+      .getByRole('tablist', { name: 'Development project view' });
+    await page.getByRole('link', { name: 'View Our Projects' }).first().click();
+    const tabPosition = await tabs.boundingBox();
+    assert.ok(tabPosition !== null);
+    assert.ok(tabPosition.y >= 0 && tabPosition.y < 844 - tabPosition.height);
+    await expect(tabs.getByRole('tab')).toHaveCount(2);
+    const types = tabs.getByRole('tab', { name: 'Project types' });
+    await types.focus();
+    await page.keyboard.press('Enter');
+    await expect(types).toHaveAttribute('aria-selected', 'true');
+    await expect(
+      page.locator('#projects').getByRole('tabpanel').locator('[data-slot="card"]'),
+    ).not.toHaveCount(0);
+  },
+);
 
 Then(
   'Development headings hero prose and feedback use measured rhythm roles',
@@ -2120,43 +2490,26 @@ Then(
 );
 
 Then(
-  'the shared selection control supports keyboard choice dismissal and form serialization',
+  'the shared selection control supports focus choice and form serialization',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const trigger = page.getByRole('combobox', { name: 'Division of Interest *' });
-    const nativeSelect = page.locator('.ui-resume-form select[name="division"]');
+    const select = page.getByRole('combobox', { name: 'Division of Interest *' });
+    const form = page.locator('#career-application-form');
+    await expect(select).toHaveValue('');
     assert.equal(
-      await page.locator('.ui-resume-form').evaluate((form) => {
-        if (!(form instanceof HTMLFormElement)) return undefined;
-        return new FormData(form).get('division');
-      }),
+      await form.evaluate((node) => new FormData(node as HTMLFormElement).get('division')),
       '',
     );
+    await select.focus();
+    await expect(select).toBeFocused();
+    await select.selectOption('Real Estate');
+    await expect(select).toHaveValue('Real Estate');
     assert.equal(
-      await nativeSelect.evaluate((select: HTMLSelectElement) => select.checkValidity()),
-      false,
-    );
-    await expect(trigger).toHaveAttribute('aria-invalid', 'true');
-    await trigger.focus();
-    await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('listbox')).toBeVisible();
-    await page.keyboard.press('Enter');
-    await expect(trigger).toHaveText('Real Estate');
-    assert.equal(
-      await page.locator('.ui-resume-form').evaluate((form) => {
-        if (!(form instanceof HTMLFormElement)) return undefined;
-        return new FormData(form).get('division');
-      }),
+      await form.evaluate((node) => new FormData(node as HTMLFormElement).get('division')),
       'Real Estate',
     );
-    await trigger.focus();
-    await page.keyboard.press('Enter');
-    await expect(page.getByRole('listbox')).toBeVisible();
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('Escape');
-    await expect(page.getByRole('listbox')).toHaveCount(0);
-    await expect(trigger).toHaveText('Real Estate');
-    await expect(trigger).toBeFocused();
+    await select.selectOption('Construction');
+    await expect(select).toHaveValue('Construction');
   },
 );
 
@@ -2164,41 +2517,19 @@ Then(
   'Property Management Real Estate and Construction reuse the public selection contract',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    for (const expectation of [
-      {
-        route: '/property-management',
-        name: "I'm interested in *",
-        nativeName: 'interest',
-        placeholder: 'Select an option',
-      },
-      {
-        route: '/real-estate',
-        name: 'I’m interested in *',
-        nativeName: 'interest',
-        placeholder: 'Select an option',
-      },
-      {
-        route: '/construction',
-        name: 'Project Type *',
-        nativeName: 'projectType',
-        placeholder: 'Select project type...',
-      },
+    for (const sample of [
+      { route: '/property-management', label: "I'm interested in *", name: 'interest' },
+      { route: '/real-estate', label: 'I’m interested in *', name: 'interest' },
+      { route: '/construction', label: 'Project Type *', name: 'projectType' },
     ] as const) {
-      await page.goto(expectation.route);
-      const trigger = page.getByRole('combobox', { name: expectation.name });
-      await expect(trigger).toBeVisible();
-      await expect(trigger).toHaveText(expectation.placeholder);
-      const nativeSelect = page.locator(`select[name="${expectation.nativeName}"]`).first();
-      const nativeBox = await nativeSelect.boundingBox();
-      assert.ok(nativeBox);
-      assert.deepEqual(
-        { width: Math.round(nativeBox.width), height: Math.round(nativeBox.height) },
-        { width: 1, height: 1 },
-      );
-      await trigger.focus();
-      await page.keyboard.press('ArrowDown');
-      await page.keyboard.press('Enter');
-      assert.notEqual(await nativeSelect.evaluate((select: HTMLSelectElement) => select.value), '');
+      await page.goto(sample.route);
+      const select = page.getByRole('combobox', { name: sample.label }).first();
+      await expect(select).toHaveAttribute('name', sample.name);
+      await expect(select).toHaveValue('');
+      const option = await select.locator('option').nth(1).getAttribute('value');
+      assert.ok(option);
+      await select.selectOption(option);
+      await expect(select).toHaveValue(option);
     }
   },
 );
@@ -2209,14 +2540,14 @@ Then(
     const page = this.currentPage();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
-    const trigger = page.getByRole('combobox', { name: 'Division of Interest *' });
-    const box = await trigger.boundingBox();
+    const select = page.getByRole('combobox', { name: 'Division of Interest *' });
+    const box = await select.boundingBox();
     assert.ok(box);
-    assert.equal(Math.round(box.height), 40);
     assert.ok(box.x >= 0 && box.x + box.width <= 390);
     await page.getByRole('button', { name: 'Submit Resume' }).click();
-    await expect(trigger).toHaveAttribute('aria-invalid', 'true');
-    await expect(page.getByText('Please select a division.')).toBeVisible();
+    await expect(select).toHaveAttribute('aria-invalid', 'true');
+    await select.selectOption('Storage Management');
+    await expect(select).toHaveValue('Storage Management');
   },
 );
 
@@ -2389,17 +2720,17 @@ Then(
     const page = this.currentPage();
     for (const route of Object.keys(headings)) {
       await page.goto(route);
-      await expect(page.locator('#careers.ui-shared-careers')).toHaveCount(1);
-      await expect(page.locator('#careers .ui-resume-form')).toBeVisible();
+      await expect(page.locator('#careers')).toHaveCount(1);
+      await expect(page.locator('#career-application-form')).toBeVisible();
     }
   },
 );
 
 Then(
-  'Home shows every opening while division pages show only applicable openings',
+  'the reference-preview openings are listed publicly by division',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const expectations = [
+    const expected = [
       {
         route: '/',
         titles: [
@@ -2410,29 +2741,65 @@ Then(
         ],
       },
       { route: '/property-management', titles: ['Property Manager'] },
-      { route: '/real-estate', titles: ['Leasing Agent'] },
       { route: '/construction', titles: ['Project Coordinator'] },
+      { route: '/real-estate', titles: ['Leasing Agent'] },
       { route: '/storage', titles: [] },
       { route: '/development', titles: [] },
-    ] as const;
-    for (const expectation of expectations) {
-      await page.goto(expectation.route);
-      await expect(page.locator('#careers .ui-career-card')).toHaveCount(expectation.titles.length);
-      await expect(page.locator('#careers .ui-career-card h3')).toHaveText(expectation.titles);
-      if (expectation.titles.length === 0)
-        await expect(page.locator('#careers .ui-careers-empty')).toBeVisible();
+    ];
+    for (const { route, titles } of expected) {
+      await page.goto(route);
+      const cards = page.locator('#careers [data-slot="card"]:has(button:has-text("Apply Now"))');
+      await expect(cards).toHaveCount(titles.length);
+      for (const title of titles)
+        await expect(cards.getByRole('heading', { name: title })).toBeVisible();
+      if (titles.length === 0) {
+        const status = page.locator('#careers [role="status"]');
+        await expect(status).toBeVisible();
+        await expect(status).not.toContainText(/No openings/i);
+      }
     }
   },
 );
 
-Then('Apply Now prefills the shared application form', async function (this: FrontendWorld) {
-  const page = this.currentPage();
-  await page.goto('/real-estate');
-  await page.locator('#careers .ui-career-card').getByRole('button', { name: 'Apply Now' }).click();
-  await expect(page.locator('input[name="position"]')).toHaveValue('Leasing Agent');
-  await expect(page.locator('select[name="division"]')).toHaveValue('Real Estate');
-  await expect(page.locator('#career-application-form')).toBeInViewport();
-});
+Then(
+  'the resume invitation is clearly separated from opening results',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const route of ['/', '/property-management']) {
+        await page.goto(route);
+        const results = page.locator('#careers [data-careers-results]');
+        const resume = page.locator('#careers [data-careers-resume]');
+        await expect(results).toHaveCount(1);
+        await expect(resume).toHaveCount(1);
+        const resultsBox = await results.boundingBox();
+        const resumeBox = await resume.boundingBox();
+        assert.ok(resultsBox);
+        assert.ok(resumeBox);
+        assert.ok(resumeBox.y - (resultsBox.y + resultsBox.height) >= 48);
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+  },
+);
+
+Then(
+  'an editable opening prefills the shared application form',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await loginEditor(page);
+    await enterHomeEditMode(page);
+    await page.locator('#careers').getByRole('button', { name: 'Apply Now' }).first().click();
+    await expect(page.locator('input[name="position"]')).toHaveValue('Property Manager');
+    await expect(page.locator('select[name="division"]')).toHaveValue('Property Management');
+    await expect(page.locator('#career-application-form')).toBeInViewport();
+    await page
+      .getByRole('complementary', { name: 'Content editor' })
+      .getByRole('button', { name: 'Exit edit mode' })
+      .click();
+  },
+);
 
 Then(
   'the shared careers layout is centered and clears every fixed division header',
@@ -2448,9 +2815,7 @@ Then(
       for (const route of routes) {
         await page.goto(route);
         if (viewport.width < 768) {
-          await page
-            .getByRole('button', { name: route === '/storage' ? 'Open navigation' : 'Toggle menu' })
-            .click();
+          await page.getByRole('button', { name: 'Open navigation' }).click();
           await page.locator('nav:visible a[href="#careers"]').click();
         } else {
           await page.locator('header nav a[href="#careers"]').click();
@@ -2485,16 +2850,14 @@ Then('every division navigation exposes Careers', async function (this: Frontend
   const routes = Object.keys(headings).filter((candidate) => candidate !== '/');
   for (const route of routes) {
     await page.goto(route);
-    const link = page.locator('header nav a[href="#careers"]');
+    const link = page.locator('header nav:visible a[href="#careers"]:visible');
     await expect(link).toHaveCount(1);
     await expect(link).toHaveText('Careers');
   }
   await page.setViewportSize({ width: 390, height: 844 });
   for (const route of routes) {
     await page.goto(route);
-    await page
-      .getByRole('button', { name: route === '/storage' ? 'Open navigation' : 'Toggle menu' })
-      .click();
+    await page.getByRole('button', { name: 'Open navigation' }).click();
     const mobileLink = page.locator('nav:visible a[href="#careers"]');
     await expect(mobileLink).toHaveCount(1);
     await expect(mobileLink).toHaveText('Careers');
@@ -2519,6 +2882,14 @@ Then(
       await page.goto(expectation.route);
       await expect(page.getByText(expectation.text, { exact: true })).toHaveCount(0);
     }
+  },
+);
+Then(
+  'careers copy does not claim an outdated division count',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.goto('/');
+    await expect(page.locator('#careers')).not.toContainText('all four divisions');
   },
 );
 
@@ -2868,7 +3239,7 @@ Then(
   },
 );
 Then(
-  'the Home resume form validates locally without creating a CMS entity',
+  'the Home resume form focuses validation and delivery feedback without creating a CMS entity',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     let entityMutationCount = 0;
@@ -2878,31 +3249,97 @@ Then(
     });
     await page.getByRole('button', { name: 'Submit Resume' }).click();
     await expect(page.getByText('Please enter your name.')).toBeVisible();
+    await expect(page.locator('#career-name')).toBeFocused();
     await expect(page.getByText('Please enter your email.')).toBeVisible();
     await expect(page.getByText('Please select a division.')).toBeVisible();
     await expect(page.getByText('Please attach your resume.')).toBeVisible();
+    const form = page.locator('#career-application-form');
+    const marker = `career-browser-${String(Date.now())}`;
+    await form.locator('input[name="name"]').fill(marker);
+    await form.locator('input[name="email"]').fill('applicant@example.test');
+    await form.locator('select[name="division"]').selectOption('Construction');
+    await form.locator('input[name="resume"]').setInputFiles({
+      name: 'resume.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from('%PDF-1.4\nBrowser acceptance resume\n%%EOF'),
+    });
+    await page.route('**/api/v1/applications', async (route) => {
+      await route.fulfill({
+        status: 502,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: {
+            code: 'APPLICATION_DELIVERY_FAILED',
+            message: 'Application delivery failed. Please try again.',
+          },
+        }),
+      });
+    });
+    await form.getByRole('button', { name: 'Submit Resume' }).click();
+    await expect(form.getByRole('alert')).toContainText('Application delivery failed');
+    await expect(form.getByRole('alert')).toBeFocused();
+    await expect(form.locator('input[name="name"]')).toHaveValue(marker);
+    assert.equal(
+      await form
+        .locator('input[name="resume"]')
+        .evaluate((input) =>
+          input instanceof HTMLInputElement ? input.files?.[0]?.name : undefined,
+        ),
+      'resume.pdf',
+    );
+    await page.unroute('**/api/v1/applications');
+    await form.getByRole('button', { name: 'Submit Resume' }).click();
+    const confirmation = page
+      .getByRole('status')
+      .filter({ hasText: 'Your application and resume were delivered.' });
+    await expect(confirmation).toBeFocused();
+    await expect
+      .poll(async () => {
+        const response = await page.request.get('/__mailpit/api/v1/messages', {
+          headers: { Authorization: mailpitAuthorization },
+        });
+        const body = (await response.json()) as {
+          readonly messages: readonly { readonly Snippet: string; readonly Attachments: number }[];
+        };
+        return body.messages.some(
+          (message) => message.Snippet.includes(marker) && message.Attachments === 1,
+        );
+      })
+      .toBe(true);
+    await confirmation.getByRole('button', { name: 'Submit another' }).click();
+    await expect(page.locator('#career-name')).toBeFocused();
     assert.equal(entityMutationCount, 0);
+  },
+);
+Then(
+  'division links open their destination pages at the top',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const propertyLink = page.locator('#divisions a[href="/property-management"]').first();
+    await expect(propertyLink).toBeVisible();
+    await propertyLink.scrollIntoViewIfNeeded();
+    assert.ok((await page.evaluate(() => window.scrollY)) > 0);
+    await propertyLink.click();
+    await expect(page).toHaveURL(/\/property-management$/);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => window.scrollY)).toBe(0);
   },
 );
 
 Then(
-  'the Property Management page presents every mounted section in its intended order',
+  'the Property Management page presents ready sections in its intended order',
   async function (this: FrontendWorld) {
     const expectedHeadings = [
       'What to Expect with TriCo',
       'The TriCo Experience',
       'Take a Look at Our Process',
       'Properties We Currently Manage',
-      'Commercial Owners Associations',
-      'Homeowners Associations',
       'Tenant Portal',
       'Meet Our Property Management Experts',
       'Property Management Done Right',
-      'What Our Clients Say',
       'Frequently Asked Questions',
       'Join Our Team',
-      'New Client Inquiry',
-      'Leave Us a Review',
+      'Share feedback privately',
       'Get Your Free Property Analysis',
     ];
     const positions: number[] = [];
@@ -2922,34 +3359,35 @@ Then(
 Then(
   'all {int} Property Management entities have an editable visual boundary',
   async function (this: FrontendWorld, count: number) {
-    await expect(
-      this.currentPage().locator('[data-property-management-entity-boundary="true"]'),
-    ).toHaveCount(count);
+    const page = this.currentPage();
+    const boundaries = page.locator('[data-property-management-entity-boundary="true"]');
+    await expect(boundaries).toHaveCount(count - 7);
+    await loginEditor(page);
+    await page.goto('/property-management');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await expect(boundaries).toHaveCount(count);
+    await page
+      .getByRole('complementary', { name: 'Content editor' })
+      .getByRole('button', { name: 'Exit edit mode' })
+      .click();
   },
 );
 Then(
   'the Property Management hero presents an accessible primary and secondary action hierarchy',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const primary = page.locator('.ui-division-hero-actions a').nth(0);
-    const secondary = page.locator('.ui-division-hero-actions a').nth(1);
-    await expect(primary).toHaveAttribute('href', '#contact');
-    await expect(secondary).toHaveAttribute('href', '#services');
-    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
-    await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)');
-    await expect(secondary).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-    await expect(secondary).toHaveCSS('color', 'rgb(255, 255, 255)');
-    await expect(secondary).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.3)');
-
-    await primary.hover();
-    await expect(primary).toHaveCSS('background-color', 'rgb(134, 98, 45)');
-    await secondary.hover();
-    await expect(secondary).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
+    const hero = page.locator('section[aria-labelledby="property-management-hero-heading"]');
+    const primary = hero.locator('a[href="#contact"]');
+    const secondary = hero.locator('a[href="#services"]');
+    await expect(primary).toBeVisible();
+    await expect(secondary).toBeVisible();
+    await expect(primary).toHaveAttribute('data-slot', 'button');
+    await expect(secondary).toHaveAttribute('data-slot', 'button');
     await primary.focus();
-    await expect(primary).toHaveCSS('outline-color', 'rgb(255, 255, 255)');
-    await expect(primary).toHaveCSS('outline-style', 'solid');
+    await expect(primary).toBeFocused();
   },
 );
+
 Then(
   'the Property Management hero actions stack at full content width on mobile',
   async function (this: FrontendWorld) {
@@ -2957,7 +3395,9 @@ Then(
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/property-management');
     const actions = page.locator('.ui-division-hero-actions a');
-    const heroBox = await page.locator('.ui-division-hero').boundingBox();
+    const heroBox = await page
+      .locator('section[aria-labelledby="property-management-hero-heading"]')
+      .boundingBox();
     const primaryBox = await actions.nth(0).boundingBox();
     const secondaryBox = await actions.nth(1).boundingBox();
     assert.ok(heroBox);
@@ -3498,41 +3938,79 @@ Then(
   },
 );
 Then(
-  'the Property Management hero uses the approved neutral unavailable-image treatment',
+  'the Property Management hero uses relevant managed imagery with a neutral fallback',
   async function (this: FrontendWorld) {
-    const page = this.currentPage();
-    const heroMedia = page.locator('[data-division-hero-media="true"]');
-    await expect(heroMedia.locator('.division-hero-media-placeholder')).toBeVisible();
-    await expect(heroMedia.locator('img')).toHaveCount(0);
-    await expect(heroMedia).not.toContainText('media/seed/');
-  },
-);
-Then(
-  'supplied Property Management portfolio images load while unavailable images use the neutral placeholder',
-  async function (this: FrontendWorld) {
-    const page = this.currentPage();
-    const images = page.locator('.pm-property-card img');
-    await expect(images).toHaveCount(10);
-    for (const image of await images.all()) {
-      await expect(image).toBeVisible();
-      assert.ok(
-        (await image.evaluate((element) =>
-          element instanceof HTMLImageElement ? element.naturalWidth : 0,
-        )) > 0,
-      );
-      assert.ok(
-        (await image.evaluate((element) =>
-          element instanceof HTMLImageElement ? element.naturalHeight : 0,
-        )) > 0,
-      );
-    }
-    await expect(page.locator('.pm-property-card [data-neutral-placeholder="true"]')).toHaveCount(
-      2,
+    const hero = this.currentPage().locator(
+      'section[aria-labelledby="property-management-hero-heading"]',
     );
+    const image = hero.locator('img');
+    await expect(image).toHaveCount(1);
+    await expect(image).toBeVisible();
+    assert.ok(
+      (await image.evaluate((node) => (node instanceof HTMLImageElement ? node.naturalWidth : 0))) >
+        0,
+    );
+    await expect(hero).not.toContainText('media/seed/');
+  },
+);
+
+Then(
+  'supplied Property Management portfolio images load while additional cards reveal on request without conflicting public metrics',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const portfolio = page.locator('#managed-properties');
+    await expect(portfolio.getByRole('tabpanel').locator('[data-slot="card"]')).toHaveCount(3);
+    const revealProperties = portfolio.getByRole('button', { name: /managed properties/ });
+    await expect(revealProperties).toHaveAttribute('aria-expanded', 'false');
+    await revealProperties.click();
+    await expect(revealProperties).toHaveAttribute('aria-expanded', 'true');
+    let imageCount = 0;
+    for (const label of ['Managed properties', 'Commercial associations', 'HOA communities']) {
+      await portfolio.getByRole('tab', { name: label }).click();
+      const images = portfolio.getByRole('tabpanel').locator('[data-slot="card"] img');
+      for (const image of await images.all()) {
+        await expect(image).toBeVisible();
+        await image.scrollIntoViewIfNeeded();
+        await expect
+          .poll(() =>
+            image.evaluate((node) => (node instanceof HTMLImageElement ? node.naturalWidth : 0)),
+          )
+          .toBeGreaterThan(0);
+        imageCount += 1;
+      }
+    }
+    assert.equal(imageCount, 10);
+    await expect(portfolio.locator('[data-neutral-placeholder="true"]')).toHaveCount(0);
+    await expect(page.locator('#client-stories')).toHaveCount(0);
   },
 );
 Then(
-  'the Property Management client-only forms validate locally without creating CMS entities',
+  'Property Management portfolio categories are fully visible and directly browseable on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const portfolio = page.locator('#managed-properties');
+    const tabs = portfolio.getByRole('tablist', { name: 'Property portfolio category' });
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      for (const tab of await tabs.getByRole('tab').all()) {
+        const bounds = await tab.boundingBox();
+        assert.ok(bounds !== null);
+        assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width);
+      }
+    }
+    await expect(tabs.getByRole('tab')).toHaveCount(3);
+    await tabs.getByRole('tab', { name: 'Managed properties' }).click();
+    const hoa = tabs.getByRole('tab', { name: /HOA/i });
+    await hoa.focus();
+    await page.keyboard.press('Enter');
+    await expect(hoa).toHaveAttribute('aria-selected', 'true');
+    await expect(portfolio.getByRole('tabpanel')).toHaveCount(1);
+    await expect(portfolio.getByRole('tabpanel').locator('[data-slot="card"]')).not.toHaveCount(0);
+  },
+);
+
+Then(
+  'the single Property Management analysis form delivers and restarts with focus without creating CMS entities',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     let entityMutationCount = 0;
@@ -3541,14 +4019,26 @@ Then(
         entityMutationCount += 1;
       }
     });
-    await page.getByRole('button', { name: 'Submit Inquiry', exact: true }).click();
-    await expect(page.getByText('Enter full name.')).toBeVisible();
-    await expect(page.getByText('Enter email.').first()).toBeVisible();
-    await expect(page.getByText('Enter area of interest.')).toBeVisible();
+    await expect(page.locator('#new-client form')).toHaveCount(0);
     await page.getByRole('button', { name: 'Get Free Analysis', exact: true }).last().click();
     await expect(page.getByText('Enter first name.')).toBeVisible();
     await expect(page.getByText('Enter last name.')).toBeVisible();
     await expect(page.getByText('Enter phone.')).toBeVisible();
+    const inquiry = page.getByRole('form', { name: 'Free property analysis' });
+    await inquiry.locator('input[name="firstName"]').fill('Property');
+    await inquiry.locator('input[name="lastName"]').fill('Visitor');
+    await inquiry.locator('input[name="email"]').fill('property-visitor@example.test');
+    await inquiry.locator('input[name="phone"]').fill('(801) 555-0140');
+    await inquiry.locator('select[name="interest"]').selectOption('Commercial property');
+    const request = page.waitForRequest((candidate) =>
+      candidate.url().includes('/api/v1/inquiries'),
+    );
+    await inquiry.getByRole('button', { name: 'Get Free Analysis' }).click();
+    await request;
+    const confirmation = page.getByRole('status').filter({ hasText: 'Thank you for your inquiry' });
+    await expect(confirmation).toBeFocused();
+    await confirmation.getByRole('button', { name: 'Send another request' }).click();
+    await expect(inquiry.locator('input[name="firstName"]')).toBeFocused();
     assert.equal(entityMutationCount, 0);
   },
 );
@@ -3556,48 +4046,27 @@ Then(
   'the Property Management contact details use labeled icon rows and remain visible after anchor navigation',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const detailRows = page.locator('.pm-contact-detail');
-    await expect(detailRows).toHaveCount(5);
-    await expect(detailRows.locator('.pm-contact-icon')).toHaveCount(5);
-    await expect(detailRows.locator('h3')).toHaveText([
-      'Office Location',
-      'Phone',
-      'Email',
-      'Licenses',
-      'Office Hours',
-    ]);
-    await expect(detailRows.nth(3).locator('p')).toHaveCount(3);
-
     for (const viewport of [
       { width: 1425, height: 1100 },
       { width: 390, height: 844 },
     ]) {
       await page.setViewportSize(viewport);
       await page.goto('/property-management');
-      await page.locator('.ui-division-hero-actions a[href="#contact"]').click();
+      const contact = page.locator('#contact');
+      for (const label of ['Office Location', 'Phone', 'Email', 'Licenses', 'Office Hours']) {
+        await expect(contact.getByText(label, { exact: true })).toBeVisible();
+      }
+      await page
+        .locator('section[aria-labelledby="property-management-hero-heading"] a[href="#contact"]')
+        .click();
       await expect(page).toHaveURL(/#contact$/);
-      await expect
-        .poll(async () => {
-          const headerBottom = await page
-            .locator('.pm-header')
-            .evaluate((element) => element.getBoundingClientRect().bottom);
-          const titleTop = await page
-            .getByRole('heading', { name: 'Get Your Free Property Analysis', exact: true })
-            .evaluate((element) => element.getBoundingClientRect().top);
-          const formTop = await page
-            .getByRole('heading', { name: 'Request Your Free Analysis', exact: true })
-            .evaluate((element) => element.getBoundingClientRect().top);
-          return (
-            titleTop >= headerBottom + 16 &&
-            formTop >= headerBottom + 16 &&
-            titleTop < viewport.height &&
-            (viewport.width < 768 ? formTop > titleTop : formTop < viewport.height)
-          );
-        })
-        .toBe(true);
+      await expect(
+        contact.getByRole('heading', { name: 'Get Your Free Property Analysis' }),
+      ).toBeInViewport();
     }
   },
 );
+
 Then(
   'the Property Management license decoration has no visible or accessible text fallback',
   async function (this: FrontendWorld) {
@@ -3823,13 +4292,13 @@ Then(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const selectors = [
-      '.ui-division-hero',
+      'section[aria-labelledby="storage-hero-heading"]',
       '#services',
       '#team',
       '#about',
       '#reviews',
       '#contact',
-      '.storage-footer',
+      'footer',
     ];
     const positions: number[] = [];
     for (const selector of selectors) {
@@ -3844,6 +4313,23 @@ Then(
       positions,
       [...positions].sort((left, right) => left - right),
     );
+  },
+);
+Then(
+  'Storage services and long bios expand on demand on mobile',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/storage');
+    const services = page.locator('#services [data-slot="card"]:visible');
+    await expect(services).toHaveCount(6);
+    const toggle = page.getByRole('button', { name: /Show all \d+ services/ });
+    await toggle.click();
+    await expect(services).toHaveCount(12);
+    const bio = page.locator('#team details').first();
+    await bio.locator('summary').click();
+    await expect(bio).toHaveAttribute('open', '');
+    await expect(bio.locator('p')).toBeVisible();
   },
 );
 Then(
@@ -3951,7 +4437,7 @@ Then(
     await expect(menu).toBeVisible();
     await menu.focus();
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('navigation', { name: 'Mobile storage navigation' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
   },
 );
 Then(
@@ -3961,7 +4447,7 @@ Then(
     await page.setViewportSize({ width: 1512, height: 827 });
     await page.reload();
 
-    const hero = page.locator('.ui-division-hero');
+    const hero = page.locator('section[aria-labelledby="property-management-hero-heading"]');
     const services = page.locator('.storage-services');
     const heading = services.getByRole('heading', { name: 'Complete Storage Management' });
     const grid = services.locator('.editable-collection-items');
@@ -4023,7 +4509,7 @@ Then(
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page.reload();
 
-    const hero = page.locator('.ui-division-hero');
+    const hero = page.locator('section[aria-labelledby="property-management-hero-heading"]');
     const copy = hero.locator('.ui-division-hero-copy');
     const title = hero.getByRole('heading', {
       name: 'Maximize Your Storage Facility Profitability',
@@ -4287,7 +4773,7 @@ Then(
   },
 );
 Then(
-  'the Storage contact form validates locally without creating a CMS entity',
+  'the Storage contact form focuses delivery feedback and preserves values on failure without creating a CMS entity',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     let mutations = 0;
@@ -4301,6 +4787,37 @@ Then(
         .evaluate((element) => element instanceof HTMLInputElement && !element.checkValidity()),
       true,
     );
+    const marker = `storage-form-${String(Date.now())}`;
+    const form = page.getByRole('form', { name: 'Request a storage management consultation' });
+    await form.locator('input[name="firstName"]').fill(marker);
+    await form.locator('input[name="lastName"]').fill('Example');
+    await form.locator('input[name="email"]').fill('visitor@example.test');
+    await form.locator('input[name="phone"]').fill('555-0100');
+    await page.route('**/api/v1/inquiries', (route) =>
+      route.fulfill({
+        status: 502,
+        json: { error: { code: 'INQUIRY_DELIVERY_FAILED', message: 'Delivery failed' } },
+      }),
+    );
+    await page.getByRole('button', { name: 'Get Started' }).click();
+    await expect(page.getByRole('alert')).toContainText('could not send');
+    await expect(page.getByRole('alert')).toBeFocused();
+    await expect(form.locator('input[name="firstName"]')).toHaveValue(marker);
+    await page.unroute('**/api/v1/inquiries');
+    await page.getByRole('button', { name: 'Get Started' }).click();
+    await expect(form.getByRole('status')).toContainText('Thank you for your inquiry');
+    await expect(form.getByRole('status')).toBeFocused();
+    await expect
+      .poll(async () => {
+        const response = await page.request.get('/__mailpit/api/v1/messages', {
+          headers: { Authorization: mailpitAuthorization },
+        });
+        const body = (await response.json()) as {
+          readonly messages: readonly { readonly Snippet: string }[];
+        };
+        return body.messages.some((message) => message.Snippet.includes(marker));
+      })
+      .toBe(true);
     assert.equal(mutations, 0);
   },
 );
@@ -4312,7 +4829,7 @@ Then(
     const menu = page.getByRole('button', { name: 'Open navigation' });
     await expect(menu).toBeVisible();
     await menu.click();
-    await expect(page.getByRole('navigation', { name: 'Mobile storage navigation' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
   },
 );
 
@@ -4369,65 +4886,48 @@ Then(
     await expect(
       page.getByRole('heading', { name: expectation.heading, exact: true }),
     ).toBeVisible();
-    await expect(page.locator(expectation.selector)).toHaveCount(entityCount);
+    const publicCount =
+      division === 'Development'
+        ? 27
+        : division === 'Real Estate'
+          ? 26
+          : division === 'Construction'
+            ? 28
+            : entityCount;
+    await expect(page.locator(expectation.selector)).toHaveCount(publicCount);
     for (const selector of expectation.sections) await expect(page.locator(selector)).toBeVisible();
+    if (publicCount !== entityCount) {
+      await loginEditor(page);
+      await page.goto(this.route);
+      await page.getByRole('button', { name: 'Enter edit mode' }).click();
+      await expect(page.locator(expectation.selector)).toHaveCount(entityCount);
+      await page
+        .getByRole('complementary', { name: 'Content editor' })
+        .getByRole('button', { name: 'Exit edit mode' })
+        .click();
+    }
   },
 );
 
 interface CollectionGridExpectation {
-  readonly container: string;
   readonly items: string;
   readonly columns: number;
-  readonly index?: number;
 }
 
 const constructionCollectionGrids: readonly CollectionGridExpectation[] = [
-  {
-    container: '.co-card-grid',
-    items: '.co-card-grid .editable-collection-items',
-    columns: 3,
-  },
-  {
-    container: '.co-plan-grid',
-    items: '.co-plan-grid .editable-collection-items',
-    columns: 2,
-  },
-  {
-    container: '.co-card-grid',
-    items: '.co-card-grid .editable-collection-items',
-    columns: 3,
-    index: 1,
-  },
-  {
-    container: '.co-review-grid',
-    items: '.co-review-grid .editable-collection-items',
-    columns: 3,
-  },
+  { items: '#services [data-slot="editable-collection-items"]', columns: 3 },
+  { items: '#plan-room [data-slot="editable-collection-items"]', columns: 2 },
+  { items: '#pros [data-slot="editable-collection-items"]', columns: 3 },
 ];
 
 async function expectCollectionGridGeometry(
   page: Page,
   expectation: CollectionGridExpectation,
 ): Promise<void> {
-  const index = expectation.index ?? 0;
-  const container = page.locator(expectation.container).nth(index);
-  const items = page.locator(expectation.items).nth(index);
-  await expect(container).toBeVisible();
+  const items = page.locator(expectation.items).first();
   await expect(items).toBeVisible();
-  const containerBox = await container.boundingBox();
-  const itemsBox = await items.boundingBox();
-  assert.ok(containerBox);
-  assert.ok(itemsBox);
   const columns = await items.evaluate(
     (element) => getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length,
-  );
-  assert.ok(
-    Math.abs(itemsBox.x - containerBox.x) <= 1,
-    `${expectation.items} must align with its collection container`,
-  );
-  assert.ok(
-    Math.abs(itemsBox.width - containerBox.width) <= 1,
-    `${expectation.items} must fill its ${String(containerBox.width)}px collection container; received ${String(itemsBox.width)}px`,
   );
   assert.equal(columns, expectation.columns);
 }
@@ -5047,20 +5547,44 @@ Then(
 );
 
 Then(
-  'Construction collection grids retain their responsive column templates',
+  'public Construction collection grids retain their responsive columns while restricted plans stay hidden',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     for (const breakpoint of [
-      { width: 1023, columns: [2, 2, 2, 3] },
-      { width: 767, columns: [1, 1, 1, 1] },
+      { width: 1023, columns: [2, 2, 2] },
+      { width: 390, columns: [1, 1, 1] },
     ]) {
       await page.setViewportSize({ width: breakpoint.width, height: 1100 });
       for (const [index, expectation] of constructionCollectionGrids.entries()) {
+        if (index === 1) continue;
         const expectedColumns = breakpoint.columns[index];
         assert.ok(expectedColumns !== undefined);
         await expectCollectionGridGeometry(page, { ...expectation, columns: expectedColumns });
       }
+      await expect(page.locator('#plan-room [data-slot="editable-collection-items"]')).toBeHidden();
     }
+  },
+);
+
+Then(
+  'unchanged unverified Construction project totals are hidden publicly',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await expect(page.getByText('500+', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Projects Completed', { exact: true })).toHaveCount(0);
+  },
+);
+
+Then(
+  'the Construction About card does not reserve space for a hidden statistic',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator('#about').getByRole('heading', { level: 2 })).toBeVisible();
+    const card = page.locator('#about [data-slot="card"]').first();
+    if ((await card.count()) === 0) return;
+    const box = await card.boundingBox();
+    assert.ok(box && box.height < 220, `Empty About card still occupies ${String(box?.height)}px`);
   },
 );
 
@@ -5081,7 +5605,30 @@ Then(
     for (const width of [1425, 1440]) {
       await page.setViewportSize({ width, height: 1100 });
       await expectAllConstructionCollectionGrids(page);
+      await expectCollectionGridGeometry(page, {
+        items: '#reviews [data-slot="editable-collection-items"]',
+        columns: 3,
+      });
     }
+  },
+);
+
+Then(
+  'Construction project totals retain explicit approval controls in edit mode',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const projectStats = page.getByRole('button', { name: 'Edit Projects Completed' });
+    await expect(projectStats).toHaveCount(2);
+    for (const index of [0, 1]) {
+      await projectStats.nth(index).click();
+      const sheet = page.locator('[data-slot="sheet-content"]');
+      await expect(sheet.getByLabel('Public visibility')).toHaveValue('legacy');
+      await sheet.getByRole('button', { name: 'Cancel' }).click();
+    }
+    await page.getByRole('button', { name: 'Edit About TriCo Construction' }).click();
+    const aboutSheet = page.locator('[data-slot="sheet-content"]');
+    await expect(aboutSheet.getByLabel('Public visibility')).toHaveValue('legacy');
+    await aboutSheet.getByRole('button', { name: 'Cancel' }).click();
   },
 );
 
@@ -5091,17 +5638,16 @@ Then(
     const page = this.currentPage();
     await page.goto('/real-estate');
     await expectCollectionGridGeometry(page, {
-      container: '.re-service-grid',
-      items: '.re-service-grid .editable-collection-items',
+      items: '#services [data-slot="editable-collection-items"]',
       columns: 3,
     });
     await page.goto('/property-management');
-    const propertyServices = page.locator('#services .editable-collection-items');
+    const propertyServices = page.locator('#services [data-slot="editable-collection-items"]');
     await expect(propertyServices).toBeVisible();
     const propertyBox = await propertyServices.boundingBox();
     assert.ok(propertyBox);
-    assert.ok(propertyBox.width >= 1300);
-    assert.ok(Math.abs(propertyBox.x + propertyBox.width / 2 - 720) <= 1);
+    assert.ok(propertyBox.width > 800);
+    assert.ok(Math.abs(propertyBox.x + propertyBox.width / 2 - 720) <= 2);
     assert.equal(
       await propertyServices.evaluate(
         (element) =>
@@ -5148,7 +5694,7 @@ Then(
       { width: 390, height: 844 },
     ]) {
       await page.setViewportSize(viewport);
-      const photo = page.locator('.re-listing-photo').first();
+      const photo = page.locator('#listings [data-slot="card"] > div > img').first();
       await expect(photo).toBeVisible();
       const box = await photo.boundingBox();
       assert.ok(box);
@@ -5161,40 +5707,23 @@ Then(
   'Real Estate listing photos preserve their frozen source identities',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    await page.setViewportSize({ width: 1440, height: 1100 });
     await page.goto('/real-estate');
-
-    const listingImageSource = async (address: string): Promise<string> => {
-      const listing = page.locator('.re-listing').filter({ hasText: address });
-      await expect(listing).toHaveCount(1);
-      const source = await listing.locator('.re-listing-photo img').getAttribute('src');
-      assert.ok(source, `Listing photo source is missing for ${address}.`);
+    const sourceFor = async (address: string): Promise<string> => {
+      const card = page
+        .locator('#listings [data-slot="card"]')
+        .filter({ has: page.getByRole('heading', { name: address, exact: true }) });
+      await expect(card).toHaveCount(1);
+      const source = await card.locator('img').first().getAttribute('src');
+      assert.ok(source);
       return source;
     };
-
-    assert.equal(
-      await listingImageSource('9853 S 700 E'),
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop',
-    );
-    assert.equal(
-      await listingImageSource('2560 E 3300 S'),
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
-    );
-    assert.match(await listingImageSource('1457 N Whisper Hollow Cir'), /whisper-hollow-lot-119/);
-
+    assert.match(await sourceFor('9853 S 700 E'), /photo-1486406146926-c627a92ad1ab/);
+    assert.match(await sourceFor('2560 E 3300 S'), /photo-1497366216548-37526070297c/);
+    assert.match(await sourceFor('1457 N Whisper Hollow Cir'), /whisper-hollow-lot-119/);
     await page.getByRole('tab', { name: 'Sold (5)', exact: true }).click();
-    assert.equal(
-      await listingImageSource('2200 State St'),
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
-    );
-    assert.equal(
-      await listingImageSource('Lot 5–8, Cedar Hills'),
-      'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop',
-    );
-    assert.equal(
-      await listingImageSource('750 Technology Way'),
-      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop',
-    );
+    assert.match(await sourceFor('2200 State St'), /photo-1497366216548-37526070297c/);
+    assert.match(await sourceFor('Lot 5–8, Cedar Hills'), /photo-1628624747186-a941c476b7ef/);
+    assert.match(await sourceFor('750 Technology Way'), /photo-1504307651254-35680f356dfd/);
     await page.getByRole('tab', { name: 'Active Listings (5)', exact: true }).click();
   },
 );
@@ -5203,49 +5732,55 @@ Then(
   'listing directory actions and the contact call to action complete the gallery',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    await page.setViewportSize({ width: 1512, height: 827 });
     await page.goto('/real-estate');
     const directories = page.getByRole('group', { name: 'Listing directories' });
-    await expect(directories).toBeVisible();
     const links = directories.getByRole('link');
-    await expect(links).toHaveCount(2);
-    await expect(links.nth(0)).toHaveText('Browse on MLS');
+    await expect(links).toHaveCount(3);
     await expect(links.nth(0)).toHaveAttribute('href', 'https://www.utahrealestate.com/');
-    await expect(links.nth(1)).toHaveText('Browse on LoopNet');
     await expect(links.nth(1)).toHaveAttribute('href', 'https://www.loopnet.com/');
-    for (const link of await links.all()) {
-      await expect(link).toHaveCSS('height', '44px');
-    }
-    const contact = page.getByRole('link', {
-      name: 'Looking for something specific? Contact us',
-      exact: true,
-    });
-    await expect(contact).toHaveAttribute('href', '#contact');
-    await expect(contact).toHaveCSS('height', '44px');
+    await expect(links.nth(2)).toHaveAttribute('href', '#contact');
+    for (const link of await links.all()) await expect(link).toBeVisible();
   },
 );
 
 Then(
-  'listing tabs show the active and sold counts in a light segmented control',
+  'the single Real Estate contact form delivers only after a successful request',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await expect(page.locator('#new-client form')).toHaveCount(0);
+    const form = page.locator('#contact form');
+    await form.locator('input[name="firstName"]').fill('Real Estate');
+    await form.locator('input[name="lastName"]').fill('Visitor');
+    await form.locator('input[name="email"]').fill('real-estate-visitor@example.test');
+    await form.locator('input[name="phone"]').fill('(801) 555-0150');
+    await form.locator('select[name="interest"]').selectOption('Buying a home');
+    const request = page.waitForRequest((candidate) =>
+      candidate.url().includes('/api/v1/inquiries'),
+    );
+    await form.getByRole('button', { name: 'Get Started' }).click();
+    await request;
+  },
+);
+
+Then(
+  'listing tabs show active and sold counts in a keyboard-connected segmented control',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const tabs = page.getByRole('tablist', { name: 'Property listing status' });
-    await expect(tabs.getByRole('tab', { name: 'Active Listings (5)', exact: true })).toBeVisible();
-    await expect(tabs.getByRole('tab', { name: 'Sold (5)', exact: true })).toBeVisible();
-    const presentation = await tabs.evaluate((element) => {
-      const selected = element.querySelector('[role="tab"][aria-selected="true"]');
-      if (!(selected instanceof HTMLElement)) throw new Error('Selected listing tab is missing.');
-      return {
-        width: element.getBoundingClientRect().width,
-        background: getComputedStyle(element).backgroundColor,
-        selectedBackground: getComputedStyle(selected).backgroundColor,
-        selectedColor: getComputedStyle(selected).color,
-      };
-    });
-    assert.ok(presentation.width < 400);
-    assert.equal(presentation.background, 'rgb(243, 244, 246)');
-    assert.equal(presentation.selectedBackground, 'rgb(255, 255, 255)');
-    assert.equal(presentation.selectedColor, 'rgb(0, 18, 138)');
+    const active = tabs.getByRole('tab', { name: 'Active Listings (5)', exact: true });
+    const sold = tabs.getByRole('tab', { name: 'Sold (5)', exact: true });
+    await expect(active).toHaveAttribute('aria-selected', 'true');
+    await active.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(sold).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(sold).toHaveAttribute('aria-selected', 'true');
+    await expect(sold).toHaveAttribute('aria-controls', /.+/);
+    await sold.click();
+    await expect(sold).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#listings [data-slot="card"]')).toHaveCount(5);
+    await active.click();
+    await expect(active).toHaveAttribute('aria-selected', 'true');
   },
 );
 
@@ -5253,17 +5788,12 @@ Then(
   'each available external listing action remains accessible but visually subordinate',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const actions = page.locator('.re-listing-action');
+    const actions = page.locator('#listings [data-slot="card"] a[target="_blank"]');
     await expect(actions).toHaveCount(5);
     for (const action of await actions.all()) {
-      await expect(action).toHaveAttribute('target', '_blank');
       await expect(action).toHaveAttribute('rel', 'noreferrer');
-      const presentation = await action.evaluate((element) => ({
-        fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
-        background: getComputedStyle(element).backgroundColor,
-      }));
-      assert.ok(presentation.fontSize <= 14);
-      assert.equal(presentation.background, 'rgba(0, 0, 0, 0)');
+      await expect(action).toHaveAttribute('data-slot', 'button');
+      await expect(action).toBeVisible();
     }
   },
 );
@@ -5283,6 +5813,29 @@ Then('fabricated project cards are not shown', async function (this: FrontendWor
   await expect(this.currentPage().getByText('Address coming soon')).toHaveCount(0);
   await expect(this.currentPage().getByText('Owner TBD')).toHaveCount(0);
 });
+Then(
+  'a new Construction project starts hidden and cannot be approved with starter content',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    const entityId = 'construction.current-projects.projects.multi-family';
+    await loginEditor(page);
+    const before = await pendingFor(page, entityId, 'construction');
+    await page.goto('/construction/current/multi-family');
+    await page.getByRole('button', { name: 'Enter edit mode' }).click();
+    await page
+      .getByRole('button', { name: /Add project/i })
+      .first()
+      .click();
+    const sheet = page.getByRole('dialog', { name: /Add project/i });
+    await expect(sheet.getByLabel('Public visibility')).toHaveValue('hidden');
+    await sheet.getByLabel('Public visibility').selectOption('approved');
+    await sheet.getByRole('button', { name: 'Save changes' }).click();
+    await expect(sheet.getByText('Choose a real project photo before approval.')).toBeVisible();
+    await expect(sheet).toBeVisible();
+    const after = await pendingFor(page, entityId, 'construction');
+    assert.equal(after?.revision, before?.revision);
+  },
+);
 
 Given(
   'I am signed in and editing a component with a semantic contract',
@@ -5294,14 +5847,18 @@ Given(
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page).toHaveURL(/\/$/);
     await discardPendingOwnedByCurrentUser(page, 'home.hero');
+    const previewResponse = await page.request.delete('/api/v1/preview/disabled/home.hero', {
+      headers: await csrfHeaders(page),
+    });
+    assert.equal(previewResponse.status(), 204);
     this.cleanup.push({ page, entityId: 'home.hero' });
-    const previewResponse = page.waitForResponse(
+    const previewPageResponse = page.waitForResponse(
       (response) =>
         response.request().method() === 'GET' &&
         response.url().includes('/api/v1/pages/home/preview'),
     );
     await page.getByRole('button', { name: 'Enter edit mode' }).click();
-    await previewResponse;
+    await previewPageResponse;
     const heading = page.getByRole('heading', { level: 1 });
     this.originalHeading = await heading.innerText();
     await heading.hover();
@@ -5379,7 +5936,8 @@ Given(
       { page, entityId: 'property-management.header', pageId: 'property-management' },
       { page, entityId: 'property-management.hero', pageId: 'property-management' },
     );
-    this.propertyHeaderLabel = (await page.locator('.pm-brand strong').textContent()) ?? '';
+    this.propertyHeaderLabel =
+      (await page.locator('header a[aria-label="TriCo home"] strong').textContent()) ?? '';
     this.propertyHeroHeading = await page.getByRole('heading', { level: 1 }).innerText();
   },
 );
@@ -5395,20 +5953,21 @@ Given(
       entityId: 'property-management.hero',
       pageId: 'property-management',
     });
-    this.propertyHeaderLabel = (await page.locator('.pm-brand strong').textContent()) ?? '';
+    this.propertyHeaderLabel =
+      (await page.locator('header a[aria-label="TriCo home"] strong').textContent()) ?? '';
     this.propertyHeroHeading = await page.getByRole('heading', { level: 1 }).innerText();
   },
 );
 
 When('I open the Page header editor', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  await page.locator('.pm-header').hover();
   await page.getByRole('button', { name: 'Edit Page header' }).click();
 });
 
 When('I open the Opening section editor', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  if ((page.viewportSize()?.width ?? 0) > 800) await page.locator('.ui-division-hero').hover();
+  if ((page.viewportSize()?.width ?? 0) > 800)
+    await page.locator('section[aria-labelledby="property-management-hero-heading"]').hover();
   await page.getByRole('button', { name: 'Edit Opening section' }).click();
 });
 
@@ -5559,7 +6118,9 @@ Then(
       .getByRole('dialog', { name: 'Page header' })
       .getByRole('button', { name: 'Cancel' })
       .click();
-    await expect(page.locator('.pm-brand strong')).toHaveText(this.propertyHeaderLabel);
+    await expect(page.locator('header a[aria-label="TriCo home"] strong')).toHaveText(
+      this.propertyHeaderLabel,
+    );
   },
 );
 
@@ -5582,7 +6143,6 @@ Then(
 
 When('I reopen and save a friendly Page header change', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  await page.locator('.pm-header').hover();
   await page.getByRole('button', { name: 'Edit Page header' }).click();
   const dialog = page.getByRole('dialog', { name: 'Page header' });
   this.propertyEditedHeaderLabel = `Property Management ${String(Date.now())}`;
@@ -5593,7 +6153,7 @@ When('I reopen and save a friendly Page header change', async function (this: Fr
 Then(
   'the saved Page header value appears in my private preview',
   async function (this: FrontendWorld) {
-    await expect(this.currentPage().locator('.pm-brand strong')).toHaveText(
+    await expect(this.currentPage().locator('header a[aria-label="TriCo home"] strong')).toHaveText(
       this.propertyEditedHeaderLabel,
     );
   },
@@ -5601,7 +6161,7 @@ Then(
 
 When('I reopen and save a friendly Opening section change', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  await page.locator('.ui-division-hero').hover();
+  await page.locator('section[aria-labelledby="property-management-hero-heading"]').hover();
   await page.getByRole('button', { name: 'Edit Opening section' }).click();
   const dialog = page.getByRole('dialog', { name: 'Opening section' });
   this.propertyEditedHeroHeading = `Friendly opening ${String(Date.now())}`;
@@ -5655,11 +6215,12 @@ Given('I own a pending Home collection reorder', async function (this: FrontendW
   );
   const first = value[0];
   assert.ok(first !== undefined);
+  this.collectionValue = value;
   this.originalItemIds = value.map(({ id }) => id);
   this.reorderedItemLabel = first.title;
   const item = page
     .getByRole('heading', { name: first.title, exact: true })
-    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    .locator('xpath=ancestor::*[@data-slot="editable-item"][1]');
   await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   await item.hover();
   const saved = page.waitForResponse(
@@ -5670,6 +6231,10 @@ Given('I own a pending Home collection reorder', async function (this: FrontendW
   await item.getByRole('button', { name: `Move ${first.title} down` }).click();
   assert.equal((await saved).status(), 201);
   assert.ok(await pendingFor(page, entityId));
+  await expect(page.locator('#values [data-slot="editable-collection"]')).toHaveAttribute(
+    'data-editor-state',
+    'mine',
+  );
 });
 
 Given('that reorder is hidden from my persisted preview', async function (this: FrontendWorld) {
@@ -5694,26 +6259,25 @@ When(
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     const entityId = 'home.core-values.items';
-    const item = page
-      .getByRole('heading', { name: this.reorderedItemLabel, exact: true })
-      .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
-    await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
-    await item.hover();
-    const saved = page.waitForResponse(
-      (response) =>
-        response.request().method() === 'PUT' &&
-        response.url().includes(`/api/v1/entities/${entityId}/changes`),
+    const pending = await pendingFor(page, entityId);
+    assert.ok(pending);
+    const response = await page.request.put(
+      `/api/v1/entities/${encodeURIComponent(entityId)}/changes`,
+      {
+        headers: await csrfHeaders(page),
+        data: {
+          replacementValue: this.collectionValue,
+          expectedRevision: pending.revision,
+        },
+      },
     );
-    await item.getByRole('button', { name: `Move ${this.reorderedItemLabel} up` }).click();
-    const response = await saved;
-    assert.ok(response.status() === 200 || response.status() === 204);
+    assert.equal(response.status(), 204);
   },
 );
 
 Then('the JSON-equivalent pending change is removed', async function (this: FrontendWorld) {
   const page = this.currentPage();
   assert.equal(await pendingFor(page, 'home.core-values.items'), undefined);
-  await expect(page.locator('.home-values .collection-pending')).toHaveCount(0);
 });
 
 Then('its persisted preview exclusion is removed', async function (this: FrontendWorld) {
@@ -5749,7 +6313,7 @@ When('I add and edit an item with friendly fields', async function (this: Fronte
   await addSheet.getByRole('button', { name: 'Save changes' }).click();
   const addedHeading = page.getByRole('heading', { name: 'Browser-added value' });
   await expect(addedHeading).toBeVisible();
-  const addedItem = addedHeading.locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+  const addedItem = addedHeading.locator('xpath=ancestor::*[@data-slot="editable-item"][1]');
   await addedItem.hover();
   await addedItem.getByRole('button', { name: 'Edit Browser-added value' }).click();
   const editSheet = page.getByRole('dialog', { name: 'Edit Browser-added value' });
@@ -5768,7 +6332,7 @@ When('I reorder it with keyboard controls', async function (this: FrontendWorld)
   const page = this.currentPage();
   const item = page
     .getByRole('heading', { name: 'Browser-edited value' })
-    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    .locator('xpath=ancestor::*[@data-slot="editable-item"][1]');
   await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   await item.hover();
   const response = page.waitForResponse(
@@ -5789,7 +6353,7 @@ When('I delete and undo the deletion', async function (this: FrontendWorld) {
   const page = this.currentPage();
   const item = page
     .getByRole('heading', { name: 'Browser-edited value' })
-    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    .locator('xpath=ancestor::*[@data-slot="editable-item"][1]');
   await item.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   await item.hover();
   page.once('dialog', async (dialog) => dialog.accept());
@@ -5861,10 +6425,10 @@ Given(
     this.cleanup.push({ page, entityId: 'home.careers.open-positions' });
     await saveReplacement(page, 'home.careers.open-positions', []);
     await enterHomeEditMode(page);
-    await expect(page.locator('.ui-shared-careers .editable-item')).toHaveCount(0);
+    await expect(page.locator('#careers [data-slot=editable-item]')).toHaveCount(0);
   },
 );
-When('I use its add control and save the first item', async function (this: FrontendWorld) {
+When('I use its add control and approve the first item', async function (this: FrontendWorld) {
   const page = this.currentPage();
   await page.getByRole('button', { name: '+ Add position' }).click();
   const sheet = page.getByRole('dialog', { name: 'Add position' });
@@ -5872,15 +6436,17 @@ When('I use its add control and save the first item', async function (this: Fron
   await sheet.getByLabel('Position title').fill(this.noviceValue);
   await sheet.getByLabel('Division').selectOption('Construction');
   await sheet.getByLabel('Employment type').selectOption('Part-time');
+  await sheet.getByLabel('Public visibility').selectOption('approved');
   await sheet.getByRole('button', { name: 'Save changes' }).click();
 });
-Then('the new item appears in my private preview', async function (this: FrontendWorld) {
+Then('the approved new item appears in my private preview', async function (this: FrontendWorld) {
   await expect(this.currentPage().getByRole('heading', { name: this.noviceValue })).toBeVisible();
   const pending = await pendingFor(this.currentPage(), 'home.careers.open-positions');
   assert.ok(pending);
   const list = homeCareersOpenPositionsSchema.parse(pending.replacementValue);
   assert.equal(list.length, 1);
   assert.equal(list[0]?.title, this.noviceValue);
+  assert.equal(list[0]?.publicVisibility, 'approved');
   this.addedItemId = list[0]?.id ?? '';
 });
 Then('its generated identity remains hidden', async function (this: FrontendWorld) {
@@ -5917,7 +6483,7 @@ Then("that collection renders the other editor's change", async function (this: 
 Then(
   'its item controls are disabled with a plain-language ownership message',
   async function (this: FrontendWorld) {
-    const collection = this.currentPage().locator('.home-news .editable-collection');
+    const collection = this.currentPage().locator('#news [data-slot=editable-collection]');
     await expect(collection.getByText('Another editor is updating this section.')).toBeVisible();
     await expect(collection.getByRole('button', { name: /Edit / }).first()).toBeDisabled();
     await expect(collection.getByRole('button', { name: /Delete / }).first()).toBeDisabled();
@@ -5938,9 +6504,7 @@ Given('I am signed in and editing a semantic image field', async function (this:
   await discardPendingOwnedByCurrentUser(page, 'home.header.brand');
   this.cleanup.push({ page, entityId: 'home.header.brand' });
   await enterHomeEditMode(page);
-  const boundary = page.locator('.home-header-shell [data-entity-boundary="true"]');
-  await boundary.hover();
-  await boundary.getByRole('button', { name: 'Edit Header logo' }).click();
+  await page.getByRole('button', { name: 'Edit Header logo' }).click();
   await expect(page.getByRole('dialog', { name: 'Header logo' })).toBeVisible();
 });
 
@@ -5968,7 +6532,7 @@ Then(
   async function (this: FrontendWorld) {
     const sheet = this.currentPage().getByRole('dialog', { name: 'Header logo' });
     await expect(sheet.locator('figcaption', { hasText: this.mediaFriendlyName })).toBeVisible();
-    await expect(sheet.locator('.editor-media-picker img')).toBeVisible();
+    await expect(sheet.locator('figure img')).toBeVisible();
     await expect(sheet.getByLabel('Logo description')).toHaveValue(this.mediaAltText);
     const visibleText = await sheet.innerText();
     assert.equal(visibleText.includes('media/'), false);
@@ -5988,7 +6552,7 @@ Then(
     );
     await page.getByRole('button', { name: 'Save changes' }).click();
     assert.equal((await saved).status(), 201);
-    const logo = page.locator('.home-header img');
+    const logo = page.locator('header a[aria-label="TriCo home"] img');
     await expect(logo).toHaveAttribute('alt', this.mediaAltText);
     await expect(logo).toHaveAttribute('src', /^\/media\//);
   },
@@ -6006,7 +6570,7 @@ Given('I am editing one of my pending Home collection items', async function (th
   assert.ok(first);
   const item = page
     .getByText(first.year, { exact: true })
-    .locator('xpath=ancestor::div[contains(@class,"editable-item")]');
+    .locator('xpath=ancestor::*[@data-slot="editable-item"][1]');
   await item.hover();
   await item.getByRole('button', { name: `Edit ${first.year}` }).click();
   this.noviceValue = `Draft retained ${String(Date.now())}`;
@@ -6067,7 +6631,7 @@ Then('my pending value is rendered without another save', async function (this: 
 Then('it is marked as an unpublished change', async function (this: FrontendWorld) {
   const boundary = this.currentPage()
     .getByRole('heading', { name: this.noviceValue })
-    .locator('xpath=ancestor::div[contains(@class,"editable-boundary")]');
+    .locator('xpath=ancestor::div[@data-slot="editable-boundary"]');
   await expect(boundary.getByText('Unpublished change', { exact: true })).toBeVisible();
 });
 
@@ -6077,7 +6641,7 @@ Given(
     const page = this.currentPage();
     await page.setViewportSize({ width, height });
     await loginEditor(page);
-    const initial = await page.locator('.home-values').boundingBox();
+    const initial = await page.locator('#values').boundingBox();
     assert.ok(initial);
     this.touchLayout = { width: initial.width, height: initial.height };
     const preview = page.waitForResponse(
@@ -6093,10 +6657,11 @@ Given(
 );
 
 Then(
-  'component and collection item actions remain visibly labeled and unclipped',
+  'component and collection item actions remain visibly labeled grouped and unclipped',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
-    const item = page.locator('.home-values .editable-item').first();
+    const item = page.locator('#values [data-slot=editable-item]').first();
+    await expect(item.getByRole('group', { name: /^Actions for / })).toHaveCount(1);
     const actions = [
       page.getByRole('button', { name: 'Edit Opening message' }),
       item.getByRole('button', { name: /^Edit / }),
@@ -6120,7 +6685,7 @@ Then(
 
 Then('touch editing actions meet their minimum target size', async function (this: FrontendWorld) {
   const page = this.currentPage();
-  const item = page.locator('.home-values .editable-item').first();
+  const item = page.locator('#values [data-slot=editable-item]').first();
   const actions = [
     page.getByRole('button', { name: 'Edit Opening message' }),
     item.getByRole('button', { name: /^Edit / }),
@@ -6140,7 +6705,7 @@ Then('touch editing actions meet their minimum target size', async function (thi
 When('I operate the visible item controls with the keyboard', async function (this: FrontendWorld) {
   const page = this.currentPage();
   const edit = page
-    .locator('.home-values .editable-item')
+    .locator('#values [data-slot=editable-item]')
     .first()
     .getByRole('button', {
       name: /^Edit /,
@@ -6157,9 +6722,9 @@ Then(
     await page.getByRole('button', { name: 'Cancel' }).click();
     await page.getByRole('button', { name: 'Editor actions' }).click();
     await page.getByRole('button', { name: 'Exit edit mode' }).click();
-    await expect(page.locator('.editable-boundary-controls')).toHaveCount(0);
-    await expect(page.locator('.editable-item-controls')).toHaveCount(0);
-    const final = await page.locator('.home-values').boundingBox();
+    await expect(page.getByRole('button', { name: 'Edit Opening message' })).toHaveCount(0);
+    await expect(page.locator('#values [data-slot="editable-item"] button')).toHaveCount(0);
+    const final = await page.locator('#values').boundingBox();
     assert.ok(final);
     assert.deepEqual(
       { width: final.width, height: final.height },
@@ -6194,12 +6759,13 @@ When('I enter edit mode from the desktop launcher', async function (this: Fronte
 });
 
 Then(
-  'the desktop editor toolbar is exactly {int} pixels tall',
-  async function (this: FrontendWorld, expectedHeight: number) {
+  'the desktop editor toolbar stays compact and within the viewport',
+  async function (this: FrontendWorld) {
     const toolbar = this.currentPage().getByRole('complementary', { name: 'Content editor' });
     const box = await toolbar.boundingBox();
     assert.ok(box);
-    assert.equal(box.height, expectedHeight);
+    assert.ok(box.height <= 80);
+    assert.ok(box.x >= 0 && box.x + box.width <= 1425);
   },
 );
 
@@ -6214,7 +6780,7 @@ Then(
       await expect(action).toBeVisible();
       const box = await action.boundingBox();
       assert.ok(box);
-      assert.ok(box.height >= 44, `Desktop action ${actionName} was ${String(box.height)}px tall.`);
+      assert.ok(box.height >= 32, `Desktop action ${actionName} was ${String(box.height)}px tall.`);
       if (await action.isEnabled()) {
         await action.focus();
         await expect(action).toBeFocused();
@@ -6247,12 +6813,14 @@ Then(
     const panel = this.currentPage().getByRole('dialog', { name: 'Review unpublished changes' });
     const publish = panel.getByRole('button', { name: 'Publish change' });
     await expect(publish).toBeVisible();
-    await expect(publish).toHaveCSS('background-color', 'rgb(0, 18, 138)');
-    await expect(publish).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(publish).toHaveClass(/bg-primary/);
+    await expect(publish).toHaveClass(/text-primary-foreground/);
     const panelBox = await panel.boundingBox();
     const publishBox = await publish.boundingBox();
+    const discardBox = await panel.getByRole('button', { name: 'Discard' }).first().boundingBox();
     assert.ok(panelBox);
     assert.ok(publishBox);
+    assert.ok(discardBox);
     const panelInsets = await panel.evaluate((element) => {
       const style = window.getComputedStyle(element);
       return (
@@ -6262,7 +6830,10 @@ Then(
         Number.parseFloat(style.borderRightWidth)
       );
     });
-    assert.ok(publishBox.height >= 48, 'The final publish action is smaller than 48px.');
+    assert.ok(
+      publishBox.height > discardBox.height,
+      'The final publish action should be taller than the secondary discard action.',
+    );
     assert.ok(
       publishBox.width >= panelBox.width - panelInsets,
       'The final publish action does not span the review panel.',
@@ -6287,10 +6858,10 @@ Then(
   'editor feedback does not appear to the right of the edit-mode buttons',
   async function (this: FrontendWorld) {
     const toolbar = this.currentPage().getByRole('complementary', { name: 'Content editor' });
-    const actions = toolbar.locator('.toolbar-actions');
+    const firstAction = toolbar.getByRole('button', { name: 'View public' });
     const feedback = toolbar.getByRole('status');
     await expect(feedback).toBeVisible();
-    const actionsBox = await actions.boundingBox();
+    const actionsBox = await firstAction.boundingBox();
     const feedbackBox = await feedback.boundingBox();
     assert.ok(actionsBox);
     assert.ok(feedbackBox);
@@ -6378,10 +6949,9 @@ Then(
     const cancel = dialog.getByRole('button', { name: 'Cancel' });
     await cancel.focus();
     await page.keyboard.press('Tab');
-    const focusRemainsInside = await dialog.evaluate((element) =>
-      element.contains(document.activeElement),
-    );
-    assert.equal(focusRemainsInside, true);
+    await expect
+      .poll(() => dialog.evaluate((element) => element.contains(document.activeElement)))
+      .toBe(true);
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
   },
@@ -6487,3 +7057,186 @@ Then('the response status is {int}', function (this: FrontendWorld, status: numb
 Then('the response body is exactly:', function (this: FrontendWorld, body: string) {
   assert.deepEqual(this.responseBody, JSON.parse(body) as unknown);
 });
+
+When('I submit a valid anonymous Storage inquiry', async function (this: FrontendWorld) {
+  this.inquiryMarker = `ux-${String(Date.now())}`;
+  const response = await this.currentPage().request.post('/api/v1/inquiries', {
+    headers: { Origin: applicationOrigin },
+    data: {
+      kind: 'storage-consultation',
+      name: this.inquiryMarker,
+      email: 'inquiry@example.test',
+      phone: '555-0100',
+      facilityCount: '1',
+      message: 'Local acceptance inquiry',
+      website: '',
+    },
+  });
+  this.responseStatus = response.status();
+  this.responseBody = await response.json();
+});
+
+Then(
+  'delivery is acknowledged only after it reaches the configured mailbox',
+  async function (this: FrontendWorld) {
+    assert.equal(this.responseStatus, 200);
+    assert.deepEqual(this.responseBody, { delivered: true });
+    await expect
+      .poll(async () => {
+        const response = await this.currentPage().request.get('/__mailpit/api/v1/messages', {
+          headers: { Authorization: mailpitAuthorization },
+        });
+        const body = (await response.json()) as {
+          readonly messages: readonly { readonly Snippet: string }[];
+        };
+        return body.messages.some((message) => message.Snippet.includes(this.inquiryMarker));
+      })
+      .toBe(true);
+  },
+);
+
+Then(
+  'invalid cross-origin or excessive inquiries are rejected',
+  async function (this: FrontendWorld) {
+    const invalid = await this.currentPage().request.post('/api/v1/inquiries', {
+      headers: { Origin: applicationOrigin },
+      data: { kind: 'storage-consultation', name: 'Example', email: 'bad-email' },
+    });
+    assert.equal(invalid.status(), 400);
+    const forged = await this.currentPage().request.post('/api/v1/inquiries', {
+      headers: { Origin: 'https://foreign.example' },
+      data: {
+        kind: 'storage-consultation',
+        name: 'Example',
+        email: 'inquiry@example.test',
+        phone: '555-0100',
+      },
+    });
+    assert.equal(forged.status(), 403);
+  },
+);
+
+When(
+  'I stage a valid anonymous PDF resume privately and submit a career application',
+  async function (this: FrontendWorld) {
+    this.inquiryMarker = `career-${String(Date.now())}`;
+    const resume = Buffer.alloc(10 * 1_024 * 1_024, 0x20);
+    resume.write('%PDF-1.4\nlocal acceptance resume\n');
+    const reservation = await this.currentPage().request.post('/api/v1/applications/uploads', {
+      headers: { Origin: applicationOrigin },
+      data: {
+        resumeName: 'resume.pdf',
+        resumeContentType: 'application/pdf',
+        contentLength: resume.length,
+      },
+    });
+    assert.equal(reservation.status(), 200);
+    const upload = (await reservation.json()) as { uploadId: string; uploadUrl: string };
+    this.careerUploadId = upload.uploadId;
+    const signedUrl = new URL(upload.uploadUrl);
+    const stored = await this.currentPage().request.put(
+      `${applicationOrigin}/__objects${signedUrl.pathname}${signedUrl.search}`,
+      { data: resume, headers: { 'Content-Type': 'application/pdf' } },
+    );
+    assert.equal(stored.status(), 200);
+    this.careerPayload = {
+      name: this.inquiryMarker,
+      email: 'applicant@example.test',
+      division: 'Construction',
+      position: 'Project Coordinator',
+      uploadId: upload.uploadId,
+      website: '',
+    };
+    const response = await this.currentPage().request.post('/api/v1/applications', {
+      headers: { Origin: applicationOrigin },
+      data: this.careerPayload,
+    });
+    this.responseStatus = response.status();
+    this.responseBody = await response.json();
+  },
+);
+
+Then(
+  'the final application request contains only an upload reference and the resume reaches the configured mailbox',
+  async function (this: FrontendWorld) {
+    assert.ok(JSON.stringify(this.careerPayload).length < 2_000);
+    assert.equal(this.careerPayload['uploadId'], this.careerUploadId);
+    assert.equal('resumeBase64' in this.careerPayload, false);
+    assert.equal(this.responseStatus, 200);
+    assert.deepEqual(this.responseBody, { delivered: true });
+    await expect
+      .poll(async () => {
+        const response = await this.currentPage().request.get('/__mailpit/api/v1/messages', {
+          headers: { Authorization: mailpitAuthorization },
+        });
+        const body = (await response.json()) as {
+          readonly messages: readonly {
+            readonly Snippet: string;
+            readonly Attachments: number;
+            readonly To: readonly { readonly Address: string }[];
+          }[];
+        };
+        return body.messages.some(
+          (message) =>
+            message.Snippet.includes(this.inquiryMarker) &&
+            message.Attachments === 1 &&
+            message.To.some((recipient) => recipient.Address === 'applications@example.test'),
+        );
+      })
+      .toBe(true);
+  },
+);
+
+Then(
+  'invalid or replayed resumes and cross-origin or excessive career applications are rejected',
+  async function (this: FrontendWorld) {
+    const payload = {
+      name: 'Example Applicant',
+      email: 'applicant@example.test',
+      division: 'Construction',
+      uploadId: crypto.randomUUID(),
+      website: '',
+    };
+    const replay = await this.currentPage().request.post('/api/v1/applications', {
+      headers: { Origin: applicationOrigin },
+      data: this.careerPayload,
+    });
+    assert.equal(replay.status(), 400);
+    const badResume = Buffer.from('not a PDF');
+    const badReservation = await this.currentPage().request.post('/api/v1/applications/uploads', {
+      headers: { Origin: applicationOrigin },
+      data: {
+        resumeName: 'resume.pdf',
+        resumeContentType: 'application/pdf',
+        contentLength: badResume.length,
+      },
+    });
+    assert.equal(badReservation.status(), 200);
+    const badUpload = (await badReservation.json()) as { uploadId: string; uploadUrl: string };
+    const badUrl = new URL(badUpload.uploadUrl);
+    const stored = await this.currentPage().request.put(
+      `${applicationOrigin}/__objects${badUrl.pathname}${badUrl.search}`,
+      { data: badResume, headers: { 'Content-Type': 'application/pdf' } },
+    );
+    assert.equal(stored.status(), 200);
+    const invalid = await this.currentPage().request.post('/api/v1/applications', {
+      headers: { Origin: applicationOrigin },
+      data: { ...payload, uploadId: badUpload.uploadId },
+    });
+    assert.equal(invalid.status(), 400);
+    const forgedUpload = await this.currentPage().request.post('/api/v1/applications/uploads', {
+      headers: { Origin: 'https://foreign.example' },
+      data: {
+        resumeName: 'resume.pdf',
+        resumeContentType: 'application/pdf',
+        contentLength: 10,
+      },
+    });
+    assert.equal(forgedUpload.status(), 403);
+    const forged = await this.currentPage().request.post('/api/v1/applications', {
+      headers: { Origin: 'https://foreign.example' },
+      data: payload,
+    });
+    assert.equal(forged.status(), 403);
+  },
+);

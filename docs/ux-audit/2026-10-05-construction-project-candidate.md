@@ -1,0 +1,24 @@
+# Construction project candidate for owner review
+
+The public Construction page still needs one approved, attributable project example to address the conversion gap in the [focused UX re-score](./2026-10-05-construction-rescore-9.md). This is a research lead for the owner, **not approved website content**.
+
+## Daybreak storage facility, South Jordan
+
+| Field                      | Evidence and remaining decision                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Facility and location      | [Extra Space Storage says it opened a facility at 5548 W Hammerfest Dr, South Jordan, Utah](https://www.extraspace.com/inside-exr/storage-news/extra-space-storage-opens-new-utah-facility-in-partnership-with-kimball-investment-company/), serving the Daybreak community. Its announcement was last updated April 7, 2025.                                                                                                                             |
+| Possible TriCo attribution | [BuildZoom's profile of TriCo Construction LLC in Draper](https://www.buildzoom.com/contractor/trico-construction-llc-draper-ut) lists three new-building permits at that address, described as Daybreak storage buildings A/B/E, C, and D, with final statuses dated September 12, 2023 (PRNR202103473, PRNR202103487, PRNR202103486). BuildZoom is a secondary permit aggregator; TriCo must confirm its actual role and permissible scope description. |
+| Owner/developer            | The [facility operator's announcement](https://www.extraspace.com/inside-exr/storage-news/extra-space-storage-opens-new-utah-facility-in-partnership-with-kimball-investment-company/) identifies Kimball Investment Company as its partner. It does not name TriCo or establish whether TriCo may name the client publicly.                                                                                                                              |
+| Completion status          | The facility was open by the operator's April 2025 announcement. The permit final date is not a verified TriCo project completion date.                                                                                                                                                                                                                                                                                                                   |
+| Image                      | Neither the operator's photographs nor the category photo on [TriCo's existing Construction gallery](https://www.tricoinc.com/project-1) is confirmed as an approved photograph of this facility with reuse rights for the new site. An owner-supplied, approved image is required.                                                                                                                                                                       |
+
+TriCo's [existing Construction gallery](https://www.tricoinc.com/project-1) names work categories, including storage facilities, but does not identify this project, its scope, or its completion date. Similar contractor names elsewhere in the United States should not be used to fill those gaps.
+
+## Approval needed before publication
+
+1. Confirm whether this facility is TriCo's work and provide TriCo's exact role, verified public project name, scope, and approved status or completion date. If it is not suitable, identify another publishable project.
+2. Supply a real project photograph and confirm permission to display it, along with its credit and accurate alternative text.
+3. Approve any client, operator, or partner attribution before adding it to copy.
+4. Stage the item in the existing Construction project collection, review the private preview, and publish it only after those facts are confirmed. The [editor readiness check](./2026-10-05-construction-publishing-readiness.md) already verifies unpublished projects stay off the public category page and starter media cannot be approved.
+
+No project record or public claim was created from this research. The current public empty state remains accurate until approved content is available.

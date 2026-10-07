@@ -13,6 +13,7 @@ import {
   type SemanticEntityDefinition,
 } from './editor-contracts.js';
 import { lucideIconChoices, lucideIconNameSchema } from './lucide-icons.js';
+import { publicVisibilityControl, publicVisibilitySchema } from './public-visibility.js';
 
 export const CONSTRUCTION_CONTENT_SCHEMA_VERSION = 2 as const;
 export const constructionCategoryIds = [
@@ -83,6 +84,7 @@ export const constructionHeroStatSchema = z.strictObject({
   icon,
   value: text(40),
   label: text(100),
+  publicVisibility: publicVisibilitySchema,
 });
 export const constructionHeroStatsSchema = z.array(constructionHeroStatSchema);
 export const constructionServicesHeaderSchema = sectionHeading;
@@ -100,6 +102,7 @@ export const constructionProjectCategorySchema = z.strictObject({
   label: text(120),
   blurb: text(800),
 });
+export const constructionProjectPlaceholderPhotoKey = 'media/seed/placeholder-neutral.svg';
 export const constructionProjectSchema = z.strictObject({
   id,
   name: text(200),
@@ -112,7 +115,38 @@ export const constructionProjectSchema = z.strictObject({
   dateLabel: optionalText(100),
   photo: managedImage,
   photoAltText: text(200),
+  publicVisibility: publicVisibilitySchema,
 });
+type ConstructionProjectDraft = z.infer<typeof constructionProjectSchema>;
+
+export function hasRealConstructionProjectDetails(project: ConstructionProjectDraft): boolean {
+  return (
+    project.name !== 'New project' &&
+    project.description !== 'Describe this project.' &&
+    project.photo.key !== constructionProjectPlaceholderPhotoKey &&
+    project.photoAltText !== 'Project photo'
+  );
+}
+
+export const constructionProjectApprovalSchema = constructionProjectSchema.superRefine(
+  (project, ctx) => {
+    if (project.publicVisibility !== 'approved' || hasRealConstructionProjectDetails(project))
+      return;
+    for (const [path, incomplete] of [
+      ['name', project.name === 'New project'],
+      ['description', project.description === 'Describe this project.'],
+      ['photo', project.photo.key === constructionProjectPlaceholderPhotoKey],
+      ['photoAltText', project.photoAltText === 'Project photo'],
+    ] as const) {
+      if (incomplete)
+        ctx.addIssue({
+          code: 'custom',
+          path: [path],
+          message: 'Replace starter project content before approving public display.',
+        });
+    }
+  },
+);
 export const constructionProjectsSchema = z.array(constructionProjectSchema);
 export const constructionPlanRoomHeaderSchema = sectionHeading.extend({
   planListHeading: text(120),
@@ -147,7 +181,12 @@ export const constructionProSchema = z.strictObject({
   description: text(2_000),
 });
 export const constructionProsItemsSchema = z.array(constructionProSchema);
-export const constructionProStatSchema = z.strictObject({ id, value: text(40), label: text(100) });
+export const constructionProStatSchema = z.strictObject({
+  id,
+  value: text(40),
+  label: text(100),
+  publicVisibility: publicVisibilitySchema,
+});
 export const constructionProStatsSchema = z.array(constructionProStatSchema);
 export const constructionTeamHeaderSchema = sectionHeading;
 export const constructionTeamMemberSchema = z.strictObject({
@@ -176,6 +215,7 @@ export const constructionAboutSchema = z.strictObject({
   brandDescription: text(160),
   statValue: text(40),
   statLabel: text(100),
+  statPublicVisibility: publicVisibilitySchema,
   actionLabel: text(80),
 });
 export const constructionAboutFeatureSchema = z.strictObject({ id, label: text(200) });
@@ -434,12 +474,19 @@ const baseDefinitions: readonly SemanticEntityDefinition[] = [
       'Hero statistics',
       'Statistic',
       ['label'],
-      { id: blank(2), icon: 'Building', value: '0+', label: 'New statistic' },
+      {
+        id: blank(2),
+        icon: 'Building',
+        value: '0+',
+        label: 'New statistic',
+        publicVisibility: 'hidden',
+      },
       [
         field(['id'], 'Item identity', 0, system()),
         field(['icon'], 'Icon', 1, iconPicker()),
         field(['value'], 'Value', 2, short(40)),
         field(['label'], 'Label', 3, short(100)),
+        field(['publicVisibility'], 'Public visibility', 4, publicVisibilityControl()),
       ],
     ),
     constructionHeroStatSchema,
@@ -599,11 +646,12 @@ const baseDefinitions: readonly SemanticEntityDefinition[] = [
       'Company statistics',
       'Statistic',
       ['label'],
-      { id: blank(6), value: '0+', label: 'New statistic' },
+      { id: blank(6), value: '0+', label: 'New statistic', publicVisibility: 'hidden' },
       [
         field(['id'], 'Item identity', 0, system()),
         field(['value'], 'Value', 1, short(40)),
         field(['label'], 'Label', 2, short(100)),
+        field(['publicVisibility'], 'Public visibility', 3, publicVisibilityControl()),
       ],
     ),
     constructionProStatSchema,
@@ -673,6 +721,7 @@ const baseDefinitions: readonly SemanticEntityDefinition[] = [
       field(['statValue'], 'Statistic', 6, short(40)),
       field(['statLabel'], 'Statistic label', 7, short(100)),
       field(['actionLabel'], 'Button label', 8, short(80)),
+      field(['statPublicVisibility'], 'Public visibility', 9, publicVisibilityControl()),
     ]),
   ),
   definition(
@@ -895,8 +944,9 @@ const categoryDefinitions = constructionProjectStatuses.flatMap((status) =>
       engineer: '',
       squareFeet: '',
       dateLabel: '',
-      photo: { kind: 'managed' as const, key: 'media/seed/placeholder-neutral.svg' },
+      photo: { kind: 'managed' as const, key: constructionProjectPlaceholderPhotoKey },
       photoAltText: 'Project photo',
+      publicVisibility: 'hidden',
     };
     return [
       definition(
@@ -930,10 +980,17 @@ const categoryDefinitions = constructionProjectStatuses.flatMap((status) =>
             short(100),
             false,
           ),
-          field(['photo'], 'Photo', 9, media('photoAltText')),
+          {
+            ...field(['photo'], 'Photo', 9, media('photoAltText')),
+            validationMessages: {
+              required: 'Choose a real project photo before approval.',
+              invalid: 'Choose a real project photo before approval.',
+            },
+          },
           field(['photoAltText'], 'Photo description', 10, short(200)),
+          field(['publicVisibility'], 'Public visibility', 11, publicVisibilityControl()),
         ]),
-        constructionProjectSchema,
+        constructionProjectApprovalSchema,
       ),
     ];
   }),

@@ -542,16 +542,7 @@ export const realEstateV2SeedData = {
     'Leave Us a Review',
     'Your feedback helps us grow and lets others discover the TriCo difference. It only takes a minute — pick your favorite platform below.',
   ),
-  'real-estate.reviews.platforms': [
-    ['Google', 'Share your experience on Google Reviews — helps neighbors find us.'],
-    ['Facebook', 'Recommend us on Facebook so your network can see it too.'],
-    ['Yelp', 'Leave a Yelp review to help others make an informed decision.'],
-  ].map(([name, description], n) => ({
-    id: itemId('real-estate.reviews.platforms', n),
-    name: name ?? 'Review platform',
-    description: description ?? 'Share your experience.',
-    externalUrl: '',
-  })),
+  'real-estate.reviews.platforms': [],
   'real-estate.reviews.footer': {
     message: 'Prefer to share feedback privately?',
     email: 'Office@tricoinc.com',

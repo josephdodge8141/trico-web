@@ -6,8 +6,17 @@ Feature: Published TriCo website
     backend-noop: Public traffic reads immutable object-storage artifacts without calling the application backend.
     Given the current content manifest is available
     When I open "<route>"
-    Then the "<page>" published content is rendered
+    Then the "<page>" published content is rendered with deferred below-fold images
+    And the browser title identifies the published page
+    And only the requested page module is loaded at entry
+    And anonymous entry keeps editor code out of the initial JavaScript transfer
+    And its editable anniversary banner matches the Home presentation
+    And shared public navigation shows every section without a secondary menu and moves focus to its keyboard-selected destination
+    And unfinished public placeholder claims are suppressed
     And no CMS metadata is present in the page document
+    And division footer links have comfortable mobile tap targets where present
+    And public notice links and editable lists preserve accessible semantics
+    And its anniversary announcement opens the community page and can be dismissed for this session
 
     Examples: Public pages
       | case_id             | route                | page                |
@@ -28,9 +37,9 @@ Feature: Published TriCo website
   @id:public.seed-if-empty-preserves-edits @frontend-noop
   Scenario: Preserve valid published edits during checksum-safe bootstrap
     frontend-noop: Re-running the backend bootstrap has no separate frontend execution path; existing page rendering scenarios cover the visible content.
-    Given a current entity has valid published edits and another registered entity is missing
+    Given one current entity has published edits another has a known earlier seed and another is missing
     When deployment reruns seed-if-empty
-    Then bootstrap succeeds without rewriting the existing entity
+    Then bootstrap preserves both existing entities without rewriting them
     And the missing entity receives its registered seed
 
   @id:public.seed-if-empty-rejects-unsafe-current @frontend-noop
@@ -51,27 +60,13 @@ Feature: Published TriCo website
 
   @id:public.home-mounted-composition @backend-noop
   Scenario: Render the complete mounted Home composition
-    backend-noop: Home composition, responsive presentation, and the client-only resume form are browser-owned behavior.
+    backend-noop: Home composition and responsive presentation are browser-owned; application delivery is exercised in public.health.
     Given the current content manifest is available
     When I open "/"
-    Then the Home page presents every mounted section in its intended order
-    And all 18 Home entities have an editable visual boundary
-    And the Home resume form validates locally without creating a CMS entity
-
-  @id:public.home-division-blue-treatment @backend-noop
-  Scenario: Preserve the approved blue treatment on Home division cards
-    backend-noop: Home division-card color and hover presentation are browser-owned visual behavior.
-    Given the current content manifest is available
-    When I open "/"
-    Then every Home division card uses the approved blue text border icon and action treatment
-
-  @id:public.home-anniversary-presentation @backend-noop
-  Scenario: Preserve the vivid Home anniversary presentation
-    backend-noop: Home anniversary color, typography, responsive geometry, and editor-wrapper transparency are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/"
-    Then Home uses the measured vivid anniversary banner
-    And Home preserves the anniversary banner in edit mode and on mobile
+    Then the Home page presents ready sections in order without sample updates or eager leadership photos
+    And all 18 Home entities remain editable with explicit public visibility controls
+    And the Home resume form focuses validation and delivery feedback without creating a CMS entity
+    And division links open their destination pages at the top
 
   @id:public.semantic-highlight-colors @backend-noop
   Scenario: Use one blue-led semantic highlight contract across the TriCo family
@@ -79,41 +74,12 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "/"
     Then one shared semantic palette defines action highlight stat rating and brand accent roles
-    And all page stylesheets source their colors exclusively from the global palette
-    And page stylesheets contain no typography declarations
+    And legacy presentation stylesheets are deleted in favor of the TriCo Tailwind theme
+    And active pages auth and editor replace their old presentation with fullstack-ts primitives
     And Open Sans body copy and Lato headings are bundled with the supported visual-parity weights
-    And Home Property Management Real Estate Construction Storage and Development use the shared blue highlight role
-    And division statistics use the shared blue stat role while intentional brand accents remain gold
-    And Construction sector actions use the shared slate blue action role
-
-  @id:public.division-hero-media-contract @backend-noop
-  Scenario: Keep division hero media consistent across content states and breakpoints
-    backend-noop: Hero media geometry, image cropping, fallback presentation, and responsive visibility are browser-owned behavior.
-    Given the current content manifest is available
-    When I open "/property-management"
-    Then every division page except Home uses the shared Real Estate hero template
-    And shared division hero tags and actions use the Real Estate presentation contract
-    And available division hero images crop consistently while missing images use one neutral fallback
-    And division hero media remains visible at desktop width and yields to the content below 1024 pixels
-
-  @id:public.shared-section-rhythm @backend-noop
-  Scenario: Keep supporting sections readable with one shared vertical rhythm
-    backend-noop: Section spacing, card density, and responsive line measure are browser-owned visual behavior.
-    Given the current content manifest is available
-    When I open "/real-estate"
-    Then Real Estate Property Management and Development use one shared section rhythm contract
-    And representative headings use the frozen 60 48 and 36 pixel roles
-    And representative service cards use the shared vertical density and readable copy measure
-    And shared card title roles preserve the reference hierarchy
-    And shared eyebrow compact action review form and footer roles preserve their reference type
-    And compact and standard form controls use explicit shared reference geometry
-    And repeated section eyebrows use one borderless semantic role
-    And shared header and primary actions use the reference geometry
-    And shared navigation form labels and actions use the frozen medium weight and six-pixel corners
-    And shared supporting content follows the reference start alignment contract
-    And Development preserves the complete legacy copy and footer inventory
-    And Development uses the reference card and footer rhythm
-    And shared section rhythm remains balanced at desktop and tablet widths
+    And Home Property Management Real Estate Construction Storage and Development render theme-backed card and action primitives
+    And division hero statistics use the shared inverse theme surface
+    And Construction sector actions use the shared primary action role when editable
 
   @id:public.shared-careers @backend-noop
   Scenario: Reuse one canonical careers experience across every public page
@@ -121,239 +87,100 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "/"
     Then every public page renders the shared canonical careers section
-    And Home shows every opening while division pages show only applicable openings
-    And Apply Now prefills the shared application form
+    And the reference-preview openings are listed publicly by division
+    And the resume invitation is clearly separated from opening results
+    And an editable opening prefills the shared application form
     And every division navigation exposes Careers
     And retired legacy careers entities remain registered but are not rendered
-    And Real Estate repeated section labels use one filled blue tag layout
-    And the shared careers layout is centered and clears every fixed division header
+    And careers copy does not claim an outdated division count
 
   @id:public.review-platform-contract @backend-noop
-  Scenario: Present review destinations with one accessible platform contract
+  Scenario: Present only ready review destinations while retaining their editor contract
     backend-noop: Review-platform branding, rating color, card geometry, and responsive presentation are browser-owned visual behavior.
     Given the current content manifest is available
     When I open "/real-estate"
-    Then Real Estate Property Management Construction Storage and Development use one review platform card contract
-    And Google Facebook and Yelp use accessible platform-specific brand treatments
-    And review ratings use the shared blue rating role
-    And review platform descriptions use the shared compact copy role
-    And review platform cards remain balanced at desktop and compact on mobile
+    Then unready public review destinations are hidden across divisions
+    And testimonial editors require explicit public visibility decisions
+    And edit mode retains review platform and testimonial cards on the shared Card contract
+    And editable review cards remain compact on mobile
 
   @id:public.development-measured-parity @backend-noop
-  Scenario: Preserve the measured Development content and vertical rhythm
+  Scenario: Preserve verified Development content without placeholder partners or reviews
     backend-noop: Development copy and visual rhythm are browser-owned presentation behavior.
     Given the current content manifest is available
     When I open "/development"
-    Then Development semantic seeds preserve the exact mounted legacy copy
-    And Development headings hero prose and feedback use measured rhythm roles
-    And Development profile and review cards use their measured densities
-    And Development team cards preserve the frozen editorial profile presentation
-
-  @id:public.development-supporting-surfaces @backend-noop
-  Scenario: Preserve the Development supporting-surface roles
-    backend-noop: Development supporting-surface gradients are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/development"
-    Then Development supporting surfaces preserve the frozen gradient strengths
-
-  @id:public.development-contact-form-presentation @backend-noop
-  Scenario: Preserve the Development contact form presentation
-    backend-noop: Development contact-form typography, field rhythm, and control geometry are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/development"
-    Then the Development contact form preserves the frozen compact field rhythm
-
-  @id:public.development-partner-composition @backend-noop
-  Scenario: Preserve the Development partner composition
-    backend-noop: Development partner geometry and responsive presentation are browser-owned visual behavior.
-    Given the current content manifest is available
-    When I open "/development"
-    Then Development partners use the frozen desktop composition
-    And Development partners remain contained on mobile
-
-  @id:public.development-about-composition @backend-noop
-  Scenario: Preserve the Development About composition
-    backend-noop: Development About geometry and responsive editor-wrapper presentation are browser-owned visual behavior.
-    Given the current content manifest is available
-    When I open "/development"
-    Then Development About uses the frozen desktop composition
-    And Development About remains contained with transparent editor wrappers on mobile
-
-  @id:public.development-footer-presentation @backend-noop
-  Scenario: Preserve the Development inverse footer presentation
-    backend-noop: Development footer color, typography, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/development"
-    Then the Development footer uses the mounted inverse surface brand copy title link and legal roles
-    And the Development footer preserves its desktop geometry editor wrappers and mobile containment
-
-  @id:public.shared-form-footer-geometry @backend-noop
-  Scenario: Keep client forms actions and division footers on one shared geometry contract
-    backend-noop: Form, action, contact-grid, and footer geometry are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/"
-    Then shared client forms use the frozen inquiry standard and wide measures
-    And client form surfaces do not leak card padding into semantic forms
-    And client form submit actions use the frozen full-width and intrinsic geometry
-    And division contact grids use the shared desktop measure and gap
-    And standard and compact division footers use the frozen grid and legal rhythm
+    Then Development semantic seeds preserve verified copy and omit unready identities
+    And Development project types and featured work are directly browseable from the hero action
 
   @id:public.accessible-select-field @backend-noop
   Scenario: Choose public-form options through one accessible styled selection contract
     backend-noop: Public-form select presentation, keyboard interaction, validation, and browser form serialization are frontend-owned behavior.
     Given the current content manifest is available
     When I open "/"
-    Then the Home resume division uses the measured accessible selection control
-    And the shared selection control supports keyboard choice dismissal and form serialization
+    Then the shared selection control supports focus choice and form serialization
     And Property Management Real Estate and Construction reuse the public selection contract
     And the public selection contract remains usable and valid on mobile
-
-  @id:public.home-broad-parity @backend-noop
-  Scenario: Preserve the Home page desktop frame typography and timeline rhythm
-    backend-noop: Home page frame, typography, form spacing, and timeline geometry are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/"
-    Then Home uses the frozen desktop content frame and section rhythm
-    And Home hero and section descriptions use their measured type roles
-    And Home resume actions use one grid spacing contract
-    And Home timeline uses the measured desktop tracks and copy density
-
-  @id:public.property-management-broad-parity @backend-noop
-  Scenario: Preserve Property Management supporting-section geometry
-    backend-noop: Property Management frames, portal, reviews, contact, testimonial, and FAQ geometry are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/property-management"
-    Then Property Management broad sections use the frozen desktop frame
-    And the Property Management portal uses the measured frame card and action density
-    And Property Management reviews use the measured grid and feedback rhythm
-    And Property Management contact uses the compact copy detail and form contracts
-    And Property Management testimonial and FAQ rows use their measured type and density
 
   @id:public.profile-card-contract @backend-noop
   Scenario: Present people with one resilient profile card contract
     backend-noop: Profile-card geometry, portrait cropping, unavailable-media presentation, and responsive editor-wrapper behavior are browser-owned visual behavior.
     Given the current content manifest is available
     When I open "/real-estate"
-    Then Real Estate Property Management and Development expose one shared profile card contract
+    Then all six pages expose one shared profile card contract and Home uses the division badge treatment
     And every frozen Real Estate agent portrait resolves from managed media
-    And available portraits crop consistently while unavailable portraits use one neutral accessible fallback
+    And Real Estate team categories are directly browseable with concise profiles on mobile
+    And available portraits display without additional zoom while unavailable portraits use one neutral accessible fallback
     And profile cards remain balanced at desktop and mobile widths and retain their geometry in edit mode
 
   @id:public.property-management-mounted-composition @backend-noop
   Scenario: Render the complete mounted Property Management composition
-    backend-noop: Property Management composition, responsive presentation, and its two client-only forms are browser-owned behavior.
+    backend-noop: Property Management composition and browser submission state are frontend-owned; the public intake route and outbound mail are exercised in public.health.
     Given the current content manifest is available
     When I open "/property-management"
-    Then the Property Management page presents every mounted section in its intended order
+    Then the Property Management page presents ready sections in its intended order
     And the Property Management hero presents an accessible primary and secondary action hierarchy
-    And the Property Management hero uses the approved neutral unavailable-image treatment
-    And the Property Management hero actions stack at full content width on mobile
-    And Property Management cards and team portraits retain the intended responsive geometry
+    And the Property Management hero uses relevant managed imagery with a neutral fallback
     And all 34 Property Management entities have an editable visual boundary
-    And supplied Property Management portfolio images load while unavailable images use the neutral placeholder
-    And the Property Management client-only forms validate locally without creating CMS entities
+    And supplied Property Management portfolio images load while additional cards reveal on request without conflicting public metrics
+    And Property Management portfolio categories are fully visible and directly browseable on mobile
+    And the single Property Management analysis form delivers and restarts with focus without creating CMS entities
     And the Property Management contact details use labeled icon rows and remain visible after anchor navigation
-    And the Property Management license decoration has no visible or accessible text fallback
-    And Property Management supporting components match the mounted desktop contracts
-
-  @id:public.real-estate-card-geometry @backend-noop
-  Scenario: Keep Real Estate card collections centered at their intended desktop width
-    backend-noop: Real Estate card layout and editor-wrapper transparency are browser-owned visual behavior.
-    Given the current content manifest is available
-    When I open "/real-estate"
-    Then Real Estate services team and testimonials use centered three-column desktop grids
-    And Real Estate services preserve the complete legacy descriptions and audited card rhythm
-    And Real Estate supporting content and selective desktop composition match the mounted reference
-    And entering edit mode preserves the Real Estate card grid geometry
+    And Property Management has no dead public footer links
 
   @id:public.real-estate-listing-gallery @backend-noop
   Scenario: Keep Featured Properties a curated and accessible listing gallery
     backend-noop: Listing-gallery geometry, status tabs, and external-action hierarchy are browser-owned visual behavior.
     Given the current content manifest is available
     When I open "/real-estate"
-    Then the Real Estate listing gallery is centered and constrained at desktop width
-    And listing cards preserve their intended image ratio at desktop and mobile widths
+    Then listing cards preserve their intended image ratio at desktop and mobile widths
     And Real Estate listing photos preserve their frozen source identities
-    And listing tabs show the active and sold counts in a light segmented control
+    And listing tabs show active and sold counts in a keyboard-connected segmented control
     And each available external listing action remains accessible but visually subordinate
-    And Real Estate listings process and FAQ match their mounted desktop contracts
     And listing directory actions and the contact call to action complete the gallery
-
-  @id:public.real-estate-inverse-surfaces @backend-noop
-  Scenario: Preserve the Real Estate inverse-surface presentation
-    backend-noop: Real Estate About and footer color, typography, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/real-estate"
-    Then Real Estate About uses the mounted inverse gradient heading and prose roles
-    And the Real Estate footer uses the mounted inverse heading copy and link rhythm
-    And Real Estate inverse surfaces preserve their geometry editor wrappers and mobile containment
+    And the single Real Estate contact form delivers only after a successful request
 
   @id:public.construction-collection-geometry @backend-noop
   Scenario: Keep editable collection grids structurally transparent
     backend-noop: Collection wrapper sizing and responsive grid presentation are browser-owned visual behavior.
     Given the current content manifest is available
     When I open "/construction"
-    Then Construction services plans pros and reviews fill their centered desktop grids
-    And Construction service and pro card rows use the frozen desktop rhythm
-    And Construction sectors people and about use the frozen desktop presentation contracts
-    And Construction workers media preserves the frozen desktop composition
-    And Construction collection grids retain their responsive column templates
+    Then public Construction collection grids retain their responsive columns while restricted plans stay hidden
+    And unchanged unverified Construction project totals are hidden publicly
+    And the Construction About card does not reserve space for a hidden statistic
     And entering edit mode preserves the Construction collection grid geometry
+    And Construction project totals retain explicit approval controls in edit mode
     And shared collection sizing preserves Real Estate and Property Management service grids
-
-  @id:public.construction-residual-composition @backend-noop
-  Scenario: Preserve the remaining Construction desktop section rhythm
-    backend-noop: Plan Room, form, career, review, and contact geometry are browser-owned visual behavior.
-    Given the current content manifest is available
-    When I open "/construction"
-    Then Construction long-form sections preserve their frozen desktop height and density contracts
-
-  @id:public.construction-footer-presentation @backend-noop
-  Scenario: Preserve the Construction inverse footer presentation
-    backend-noop: Construction footer color, typography, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/construction"
-    Then the Construction footer uses the mounted inverse surface copy title legal and border roles
-    And the Construction footer preserves its desktop geometry editor wrappers and mobile containment
-
-  @id:public.construction-bid-inverse-presentation @backend-noop
-  Scenario: Preserve the Construction inverse bid presentation
-    backend-noop: Construction bid color, form controls, semantic contact actions, responsive containment, and editor-wrapper behavior are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/construction"
-    Then the Construction bid uses the mounted inverse section and form presentation
-    And the Construction bid preserves its geometry editor wrappers mobile containment and select behavior
-
-  @id:public.storage-about-rhythm @backend-noop
-  Scenario: Preserve the measured Storage Our Why rhythm
-    backend-noop: Storage About prose, action, responsive geometry, and editor-wrapper transparency are browser-owned presentation behavior.
-    Given the current content manifest is available
-    When I open "/storage"
-    Then Storage Our Why uses the measured desktop prose and action rhythm
-    And Storage Our Why preserves its geometry in edit mode without overflowing on mobile
-
-  @id:public.storage-centered-logo-masthead @backend-noop
-  Scenario: Preserve the Storage centered-logo masthead
-    backend-noop: Storage masthead geometry, presentation, responsive navigation, and editor-wrapper transparency are browser-owned behavior.
-    Given the current content manifest is available
-    When I open "/storage"
-    Then Storage uses the measured centered-logo desktop masthead
-    And Storage preserves the masthead in edit mode with usable mobile navigation
 
   @id:public.storage-mounted-composition @backend-noop
   Scenario: Render the complete mounted Storage Management composition
-    backend-noop: Storage composition, responsive presentation, and its client-only consultation form are browser-owned behavior.
+    backend-noop: Storage composition and the browser's submission state are frontend-owned; the public intake route and outbound mail are exercised in public.health.
     Given the current content manifest is available
     When I open "/storage"
     Then Storage presents facility management for owners rather than consumer unit shopping
     And all 18 Storage entities have an editable visual boundary
     And the Storage hero, services, team, Our Why, reviews, contact, and footer render in order
-    And Storage uses the frozen desktop hero heading and service-card geometry
-    And Storage uses the mounted split-hero heading measure and diagonal surfaces
-    And Storage uses the mounted service heading and four-row card rhythm
-    And Storage uses its frozen theme frames portrait cards and text roles
-    And Storage uses the shared four-profile geometry and mounted copy rhythm
-    And the Storage contact form validates locally without creating a CMS entity
+    And Storage services and long bios expand on demand on mobile
+    And the Storage contact form focuses delivery feedback and preserves values on failure without creating a CMS entity
     And Storage navigation remains usable at desktop and mobile widths
 
   @id:public.dedicated-division-composition @backend-noop
@@ -362,11 +189,15 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "<route>"
     Then the dedicated "<division>" composition renders with <entity_count> editable entity boundaries
+    And available division hero imagery is displayed
+    And unavailable project actions are not shown as buttons
+    And empty Construction project groups and restricted plan sets share honest inquiry paths
+    And Construction bid and contact actions lead to one quote form
 
     Examples: Dedicated divisions
       | case_id     | route          | division    | entity_count |
       | real-estate | /real-estate   | Real Estate | 30           |
-      | construction | /construction | Construction | 46           |
+      | construction | /construction | Construction | 37           |
       | development | /development   | Development | 28           |
 
   @id:public.construction-empty @backend-noop
@@ -374,8 +205,12 @@ Feature: Published TriCo website
     backend-noop: Empty-state presentation is owned by the frontend.
     Given a construction project category has no published projects
     When I open that project category
-    Then I see an empty state
+    Then its editable anniversary banner matches the Home presentation
+    And the project category uses the shared public header
+    And its footer quick links have comfortable mobile tap targets
+    And I see an empty state
     And fabricated project cards are not shown
+    And a new Construction project starts hidden and cannot be approved with starter content
 
   @id:public.visual-baseline @backend-noop @frontend-noop @browser-noop-eligible
   Scenario: Compare against an immutable offline visual baseline
@@ -406,7 +241,7 @@ Feature: Published TriCo website
     And visual findings do not fail the report-only audit
 
   @id:public.health
-  Scenario: Check the public backend health
+  Scenario: Check public health and anonymous form delivery
     Given I am not signed in
     When I request the public health endpoint
     Then the response status is 200
@@ -414,3 +249,9 @@ Feature: Published TriCo website
       """json
       {"status":"ok"}
       """
+    When I submit a valid anonymous Storage inquiry
+    Then delivery is acknowledged only after it reaches the configured mailbox
+    And invalid cross-origin or excessive inquiries are rejected
+    When I stage a valid anonymous PDF resume privately and submit a career application
+    Then the final application request contains only an upload reference and the resume reaches the configured mailbox
+    And invalid or replayed resumes and cross-origin or excessive career applications are rejected

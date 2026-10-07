@@ -6,6 +6,10 @@ import {
   constructionEntityDefinitions,
   constructionEntityViewCatalog,
   constructionMainRouteEntityIds,
+  constructionProjectPlaceholderPhotoKey,
+  constructionProjectApprovalSchema,
+  constructionProjectSchema,
+  hasRealConstructionProjectDetails,
 } from './construction.js';
 import { validateEditorDefinition } from './editor-contracts.js';
 
@@ -30,6 +34,32 @@ test('Construction seeds and novice editor definitions are valid', () => {
       definition.listItemSchema?.parse(definition.editor.blankItem);
     }
   }
+  const project = constructionEntityDefinitions.find(
+    ({ id }) => id === 'construction.current-projects.projects.multi-family',
+  );
+  assert(project?.editor.kind === 'list');
+  const starter = constructionProjectSchema.parse(project.editor.blankItem);
+  assert.equal(starter.publicVisibility, 'hidden');
+  assert.equal(starter.photo.key, constructionProjectPlaceholderPhotoKey);
+  assert.equal(hasRealConstructionProjectDetails(starter), false);
+  assert.equal(
+    constructionProjectApprovalSchema.safeParse({ ...starter, publicVisibility: 'approved' })
+      .success,
+    false,
+  );
+  assert.equal(
+    constructionProjectSchema.safeParse({ ...starter, publicVisibility: 'approved' }).success,
+    true,
+  );
+  const complete = constructionProjectSchema.parse({
+    ...starter,
+    name: 'Verified local example',
+    description: 'Verified project scope.',
+    photo: { kind: 'managed', key: 'media/projects/approved-example.jpg' },
+    photoAltText: 'Approved project exterior',
+    publicVisibility: 'approved',
+  });
+  assert.equal(hasRealConstructionProjectDetails(complete), true);
 });
 
 test('Construction view catalog covers every entity and category list has an editable empty state', () => {
@@ -99,6 +129,7 @@ test('Construction business labels and every project detail have novice editor f
       'dateLabel',
       'photo',
       'photoAltText',
+      'publicVisibility',
     ]),
   );
 });

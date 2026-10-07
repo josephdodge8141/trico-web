@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Briefcase, Clock3, MapPin } from 'lucide-react';
 import {
-  editableValueSchema,
   homeCareersHeaderSchema,
   homeCareersOpenPositionsSchema,
   homeCareersResumeIntroSchema,
   homeEntityDefinitions,
   homeV2SeedData,
-  type EditableValue,
+  isPubliclyVisible,
   type HomeCareerPosition,
   type HomeCareersHeader,
   type HomeCareersResumeIntro,
@@ -15,12 +14,15 @@ import {
 } from '@app/schemas';
 
 import { useEditMode } from '../context/editMode.js';
+import { Container } from '../design-system/layout.js';
 import { CareerApplicationForm } from './CareerApplicationForm.js';
 import type { CareerDivision } from './careerApplication.js';
 import type { PageId } from '../pages/pageContent.js';
 import { fetchPreviewPageDocument, fetchPublicPageDocument } from '../services/content.js';
-import { EditableBoundary, type EditorOwnership } from './EditableBoundary.js';
-import { EditableCollection } from './EditableCollection.js';
+import { ContentCollection, ContentEntity } from './ContentEntity.js';
+import { Badge } from './ui/badge.js';
+import { Card, CardContent, CardFooter, CardHeader } from './ui/card.js';
+import { Button } from './ui/button.js';
 
 type CareersEntityId =
   'home.careers.header' | 'home.careers.open-positions' | 'home.careers.resume-intro';
@@ -52,16 +54,6 @@ function definitionFor(entityId: CareersEntityId): SemanticEntityDefinition {
   return definition;
 }
 
-function ownershipFor(
-  entityId: CareersEntityId,
-  pending: ReturnType<typeof useEditMode>['pending'],
-  currentUserId: string | undefined,
-): EditorOwnership {
-  const change = pending.find((candidate) => candidate.entityId === entityId);
-  if (change === undefined) return 'available';
-  return change.authorId === currentUserId ? 'mine' : 'other';
-}
-
 function CareerCard({
   position,
   onApply,
@@ -70,24 +62,28 @@ function CareerCard({
   readonly onApply: (position: HomeCareerPosition) => void;
 }): React.JSX.Element {
   return (
-    <article className="ui-career-card">
-      <div>
-        <h3 className="type-card-title type-card-title-xs">
-          <Briefcase aria-hidden="true" /> {position.title}
+    <Card role="article" className="h-full border border-border/70 shadow-sm">
+      <CardHeader>
+        <h3 className="flex items-center gap-2 font-heading text-lg font-semibold">
+          <Briefcase className="size-5 text-primary" aria-hidden="true" /> {position.title}
         </h3>
-        <p>
-          <span>
-            <MapPin aria-hidden="true" /> {position.division}
+      </CardHeader>
+      <CardContent>
+        <p className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <MapPin className="size-4" aria-hidden="true" /> {position.division}
           </span>
-          <span>
-            <Clock3 aria-hidden="true" /> {position.employmentType}
+          <span className="flex items-center gap-1">
+            <Clock3 className="size-4" aria-hidden="true" /> {position.employmentType}
           </span>
         </p>
-      </div>
-      <button type="button" onClick={() => onApply(position)}>
-        Apply Now
-      </button>
-    </article>
+      </CardContent>
+      <CardFooter>
+        <Button type="button" variant="outline" onClick={() => onApply(position)}>
+          Apply Now
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -128,10 +124,29 @@ export function CareersSection({ pageId }: { readonly pageId: PageId }): React.J
     setApplicationPosition('');
   }, [pageDivision]);
 
+  const publicPositions = editing.active
+    ? content.positions
+    : content.positions.filter((position) => {
+        const seed = homeV2SeedData['home.careers.open-positions'].find(
+          (candidate) => candidate.id === position.id,
+        );
+        const previouslyVisible =
+          seed === undefined ||
+          (seed.publicVisibility === 'approved' &&
+            position.title === seed.title &&
+            position.division === seed.division &&
+            position.employmentType === seed.employmentType);
+        return isPubliclyVisible(position.publicVisibility, previouslyVisible);
+      });
   const filteredPositions =
     pageDivision === ''
-      ? content.positions
-      : content.positions.filter((position) => position.division === pageDivision);
+      ? publicPositions
+      : publicPositions.filter((position) => position.division === pageDivision);
+
+  const noOpeningsMessage =
+    pageDivision === ''
+      ? 'Interested in joining TriCo? Tell us which role you are seeking when you submit your resume.'
+      : `Interested in joining TriCo ${pageDivision}? Tell us which role you are seeking when you submit your resume.`;
 
   const applyFor = (position: HomeCareerPosition): void => {
     setApplicationDivision(position.division);
@@ -145,109 +160,105 @@ export function CareersSection({ pageId }: { readonly pageId: PageId }): React.J
   };
 
   const heading = (
-    <header className="ui-section-heading ui-heading-measure-standard">
-      <span className="ui-pill ui-pill-blue ui-section-tag">Careers</span>
-      <h2 className="type-section-title type-section-title-compact">{content.header.heading}</h2>
-      <p className="ui-section-description-standard">{content.header.description}</p>
+    <header className="mb-10 max-w-3xl space-y-4">
+      <Badge variant="secondary">Careers</Badge>
+      <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+        {content.header.heading}
+      </h2>
+      <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+        {editing.active
+          ? content.header.description
+          : content.header.description.replace(/all four divisions/gi, 'TriCo divisions')}
+      </p>
     </header>
   );
   const resumeHeading = (
-    <header className="ui-resume-heading">
-      <h3 className="type-card-title type-card-title-lg">{content.resumeIntro.heading}</h3>
-      <p className="ui-section-description-standard">{content.resumeIntro.description}</p>
+    <header className="mb-6 space-y-2">
+      <h3 className="font-heading text-xl font-semibold">{content.resumeIntro.heading}</h3>
+      <p className="text-sm text-muted-foreground">{content.resumeIntro.description}</p>
     </header>
   );
 
   return (
-    <section id="careers" className="ui-section ui-careers ui-shared-careers">
-      <div className="ui-wide-frame ui-careers-container">
-        {editable ? (
-          <div className="ui-entity-slot" data-home-entity-boundary="true">
-            <EditableBoundary
-              active={editing.active}
-              definition={definitionFor('home.careers.header')}
-              value={editableValueSchema.parse(content.header)}
-              ownership={ownershipFor(
-                'home.careers.header',
-                editing.pending,
-                editing.currentUserId,
-              )}
-              busy={editing.busy}
-              onSave={(next) => editing.save('home.careers.header', next)}
-              onReloadLatest={() => editing.reload('home.careers.header')}
-            >
-              {heading}
-            </EditableBoundary>
-          </div>
-        ) : (
-          heading
-        )}
+    <section id="careers" className="bg-muted/40 py-20 sm:py-24">
+      <Container width="wide">
+        <div>
+          {editable ? (
+            <div className="contents" data-home-entity-boundary="true">
+              <ContentEntity
+                definition={definitionFor('home.careers.header')}
+                value={content.header}
+              >
+                {heading}
+              </ContentEntity>
+            </div>
+          ) : (
+            heading
+          )}
 
-        {editable ? (
-          <div className="ui-entity-slot" data-home-entity-boundary="true">
-            <EditableCollection
-              active={editing.active}
-              definition={definitionFor('home.careers.open-positions')}
-              value={content.positions}
-              renderItem={(item) => {
-                const position = homeCareersOpenPositionsSchema.parse([item])[0];
-                if (position === undefined)
-                  throw new Error('Career position could not be rendered');
-                return <CareerCard position={position} onApply={applyFor} />;
-              }}
-              ownership={ownershipFor(
-                'home.careers.open-positions',
-                editing.pending,
-                editing.currentUserId,
-              )}
-              busy={editing.busy}
-              onSave={(next: readonly EditableValue[]) =>
-                editing.save('home.careers.open-positions', next)
-              }
-              onReloadLatest={() => editing.reload('home.careers.open-positions')}
+          <div data-careers-results>
+            {editable ? (
+              <div
+                className="[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-5 sm:[&_[data-slot=editable-collection-items]]:grid-cols-2 lg:[&_[data-slot=editable-collection-items]]:grid-cols-4"
+                data-home-entity-boundary="true"
+              >
+                <ContentCollection
+                  definition={definitionFor('home.careers.open-positions')}
+                  value={filteredPositions}
+                  renderItem={(item) => {
+                    const position = homeCareersOpenPositionsSchema.parse([item])[0];
+                    if (position === undefined)
+                      throw new Error('Career position could not be rendered');
+                    return <CareerCard position={position} onApply={applyFor} />;
+                  }}
+                />
+                {!editing.active && filteredPositions.length === 0 ? (
+                  <p
+                    className="rounded-lg border border-dashed bg-background p-6 text-sm text-muted-foreground"
+                    role="status"
+                  >
+                    {noOpeningsMessage}
+                  </p>
+                ) : null}
+              </div>
+            ) : filteredPositions.length === 0 ? (
+              <p
+                className="rounded-lg border border-dashed bg-background p-6 text-sm text-muted-foreground"
+                role="status"
+              >
+                {noOpeningsMessage}
+              </p>
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {filteredPositions.map((position) => (
+                  <CareerCard key={position.id} position={position} onApply={applyFor} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div data-careers-resume className="mt-14 border-t border-border/70 pt-10 sm:mt-16">
+            {editable ? (
+              <div className="contents" data-home-entity-boundary="true">
+                <ContentEntity
+                  definition={definitionFor('home.careers.resume-intro')}
+                  value={content.resumeIntro}
+                >
+                  {resumeHeading}
+                </ContentEntity>
+              </div>
+            ) : (
+              resumeHeading
+            )}
+          </div>
+          <Card className="mt-8 border border-border/70 p-6 shadow-sm">
+            <CareerApplicationForm
+              initialDivision={applicationDivision}
+              initialPosition={applicationPosition}
             />
-          </div>
-        ) : filteredPositions.length === 0 ? (
-          <p className="ui-careers-empty" role="status">
-            No openings are currently listed for {pageDivision}. You can still submit your resume
-            for future opportunities.
-          </p>
-        ) : (
-          <div className="ui-careers-list">
-            {filteredPositions.map((position) => (
-              <CareerCard key={position.id} position={position} onApply={applyFor} />
-            ))}
-          </div>
-        )}
-
-        {editable ? (
-          <div className="ui-entity-slot" data-home-entity-boundary="true">
-            <EditableBoundary
-              active={editing.active}
-              definition={definitionFor('home.careers.resume-intro')}
-              value={editableValueSchema.parse(content.resumeIntro)}
-              ownership={ownershipFor(
-                'home.careers.resume-intro',
-                editing.pending,
-                editing.currentUserId,
-              )}
-              busy={editing.busy}
-              onSave={(next) => editing.save('home.careers.resume-intro', next)}
-              onReloadLatest={() => editing.reload('home.careers.resume-intro')}
-            >
-              {resumeHeading}
-            </EditableBoundary>
-          </div>
-        ) : (
-          resumeHeading
-        )}
-        <div className="ui-form-surface ui-form-surface--inquiry">
-          <CareerApplicationForm
-            initialDivision={applicationDivision}
-            initialPosition={applicationPosition}
-          />
+          </Card>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

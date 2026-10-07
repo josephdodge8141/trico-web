@@ -1,6 +1,12 @@
 import { useState, type FormEvent } from 'react';
 
 import { SelectField } from '../components/SelectField.js';
+import { Alert } from '../components/ui/alert.js';
+import { Button } from '../components/ui/button.js';
+import { Field, FieldError, FieldLabel } from '../components/ui/field.js';
+import { Input } from '../components/ui/input.js';
+import { Textarea } from '../components/ui/textarea.js';
+import { useInquirySubmission } from '../hooks/useInquirySubmission.js';
 
 type FormErrors = Readonly<Record<string, string>>;
 
@@ -24,217 +30,170 @@ function errorsFor(data: FormData, fields: readonly [string, string][]): FormErr
     : errors;
 }
 
-function FieldError({
-  errors,
+function TextField({
+  form,
   name,
+  label,
+  errors,
+  type = 'text',
+  maxLength,
+  placeholder,
 }: {
-  readonly errors: FormErrors;
+  readonly form: string;
   readonly name: string;
-}): React.JSX.Element | null {
+  readonly label: string;
+  readonly errors: FormErrors;
+  readonly type?: string;
+  readonly maxLength?: number;
+  readonly placeholder?: string;
+}): React.JSX.Element {
   const message = errors[name];
-  return message === undefined ? null : <p className="pm-form-error ui-form-error">{message}</p>;
-}
-
-export function PropertyManagementNewClientForm(): React.JSX.Element {
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [submitted, setSubmitted] = useState(false);
-  const clearError = (name: string): void => {
-    setErrors((current) => {
-      const next = { ...current };
-      delete next[name];
-      return next;
-    });
-  };
-  const submit = (event: FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const next = errorsFor(new FormData(form), [
-      ['name', 'Full name'],
-      ['email', 'Email'],
-      ['interest', 'Area of interest'],
-    ]);
-    setErrors(next);
-    if (Object.keys(next).length === 0) {
-      setSubmitted(true);
-      form.reset();
-    }
-  };
+  const id = `${form}-${name}`;
   return (
-    <section
-      className="pm-section ui-section pm-tint ui-tint pm-new-client ui-new-client"
-      id="new-client"
-    >
-      <div className="pm-container ui-container pm-narrow ui-narrow">
-        <header className="pm-section-heading ui-section-heading">
-          <span>New Clients</span>
-          <h2 className="type-section-title type-section-title-compact">New Client Inquiry</h2>
-          <p>
-            Looking for a management partner? Share your property details and our team will follow
-            up within one business day.
-          </p>
-        </header>
-        <div className="pm-form-card ui-form-card ui-form-surface ui-form-surface--inquiry">
-          {submitted ? (
-            <div className="pm-form-success ui-form-success" role="status">
-              <h3>Thanks for reaching out!</h3>
-              <p>Your inquiry is ready for our property management team.</p>
-              <button type="button" onClick={() => setSubmitted(false)}>
-                Submit another inquiry
-              </button>
-            </div>
-          ) : (
-            <form
-              className="ui-client-form ui-form-layout--inquiry"
-              aria-label="New client inquiry"
-              noValidate
-              onSubmit={submit}
-            >
-              <div className="pm-form-grid ui-form-grid">
-                <label>
-                  Full Name *<input name="name" maxLength={100} placeholder="Jane Smith" />
-                  <FieldError errors={errors} name="name" />
-                </label>
-                <label>
-                  Email *
-                  <input name="email" type="email" maxLength={255} placeholder="jane@example.com" />
-                  <FieldError errors={errors} name="email" />
-                </label>
-              </div>
-              <div className="pm-form-grid ui-form-grid">
-                <label>
-                  Phone
-                  <input name="phone" type="tel" maxLength={30} placeholder="(801) 555-1234" />
-                </label>
-                <SelectField
-                  id="property-management-interest"
-                  name="interest"
-                  label="I'm interested in *"
-                  placeholder="Select an option"
-                  required
-                  options={[
-                    'Single-family rental',
-                    'Multi-family / apartments',
-                    'Commercial property',
-                    'HOA / COA management',
-                    'Storage facility',
-                    'Other',
-                  ].map((option) => ({ value: option, label: option }))}
-                  onValueChange={() => clearError('interest')}
-                  error={errors.interest}
-                  errorClassName="pm-form-error ui-form-error"
-                />
-              </div>
-              <label>
-                Property Address (optional)
-                <input
-                  name="propertyAddress"
-                  maxLength={200}
-                  placeholder="123 Main St, Draper, UT"
-                />
-              </label>
-              <label>
-                How can we help?
-                <textarea
-                  name="message"
-                  rows={4}
-                  maxLength={1000}
-                  placeholder="Tell us a little about your property or goals..."
-                />
-              </label>
-              <button
-                className="pm-button ui-button pm-button-primary ui-button-primary ui-submit-action ui-submit-action--full"
-                type="submit"
-              >
-                Submit Inquiry
-              </button>
-              <p className="pm-form-note ui-form-note">
-                Your information stays on this page until you choose to submit it.
-              </p>
-            </form>
-          )}
-        </div>
-      </div>
-    </section>
+    <Field data-invalid={message === undefined ? undefined : 'true'}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
+        id={id}
+        name={name}
+        type={type}
+        maxLength={maxLength}
+        placeholder={placeholder}
+        aria-invalid={message === undefined ? undefined : true}
+        aria-describedby={message === undefined ? undefined : `${id}-error`}
+      />
+      {message === undefined ? null : <FieldError id={`${id}-error`}>{message}</FieldError>}
+    </Field>
   );
 }
 
 export function PropertyManagementAnalysisForm(): React.JSX.Element {
   const [errors, setErrors] = useState<FormErrors>({});
-  const [submitted, setSubmitted] = useState(false);
+  const submission = useInquirySubmission();
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const form = event.currentTarget;
-    const next = errorsFor(new FormData(form), [
+    const data = new FormData(form);
+    const next = errorsFor(data, [
       ['firstName', 'First name'],
       ['lastName', 'Last name'],
       ['email', 'Email'],
       ['phone', 'Phone'],
+      ['interest', 'Area of interest'],
     ]);
     setErrors(next);
     if (Object.keys(next).length === 0) {
-      setSubmitted(true);
-      form.reset();
+      void submission.send(
+        {
+          kind: 'property-analysis',
+          name: `${String(data.get('firstName') ?? '')} ${String(data.get('lastName') ?? '')}`.trim(),
+          email: String(data.get('email') ?? ''),
+          phone: String(data.get('phone') ?? ''),
+          interest: String(data.get('interest') ?? ''),
+          message: String(data.get('message') ?? ''),
+        },
+        form,
+      );
     }
   };
   return (
-    <div className="pm-form-card ui-form-card pm-analysis-form ui-analysis-form ui-form-surface ui-form-surface--standard">
-      <h3 className="type-form-title">Request Your Free Analysis</h3>
-      {submitted ? (
-        <div className="pm-form-success ui-form-success" role="status">
-          <h4>Thank you for your inquiry!</h4>
+    <div className="space-y-5">
+      <h3 className="font-heading text-xl font-semibold">Request Your Free Analysis</h3>
+      {submission.status === 'sent' ? (
+        <Alert ref={submission.feedbackRef} role="status" tabIndex={-1} className="space-y-3">
+          <strong className="block">Thank you for your inquiry!</strong>
           <p>We'll be in touch within 24 hours.</p>
-          <button type="button" onClick={() => setSubmitted(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              submission.reset();
+              window.requestAnimationFrame(() =>
+                document.getElementById('pm-analysis-firstName')?.focus(),
+              );
+            }}
+          >
             Send another request
-          </button>
-        </div>
+          </Button>
+        </Alert>
       ) : (
         <form
-          className="ui-client-form ui-form-layout--standard ui-form-stack-spaced"
+          className="space-y-5"
           aria-label="Free property analysis"
           noValidate
           onSubmit={submit}
         >
-          <div className="pm-form-grid ui-form-grid">
-            <label>
-              First Name *<input name="firstName" placeholder="John" />
-              <FieldError errors={errors} name="firstName" />
-            </label>
-            <label>
-              Last Name *<input name="lastName" placeholder="Doe" />
-              <FieldError errors={errors} name="lastName" />
-            </label>
-          </div>
-          <div className="pm-form-grid ui-form-grid">
-            <label>
-              Email *<input name="email" type="email" placeholder="john@example.com" />
-              <FieldError errors={errors} name="email" />
-            </label>
-            <label>
-              Phone *<input name="phone" type="tel" placeholder="(555) 123-4567" />
-              <FieldError errors={errors} name="phone" />
-            </label>
-          </div>
-          <label>
-            Property Type
-            <input
-              name="propertyType"
-              placeholder="e.g., Single-family, Multi-family, Commercial"
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              form="pm-analysis"
+              name="firstName"
+              label="First Name *"
+              errors={errors}
+              placeholder="John"
             />
-          </label>
-          <label>
-            How Can We Help?
-            <textarea
+            <TextField
+              form="pm-analysis"
+              name="lastName"
+              label="Last Name *"
+              errors={errors}
+              placeholder="Doe"
+            />
+            <TextField
+              form="pm-analysis"
+              name="email"
+              label="Email *"
+              errors={errors}
+              type="email"
+              placeholder="john@example.com"
+            />
+            <TextField
+              form="pm-analysis"
+              name="phone"
+              label="Phone *"
+              errors={errors}
+              type="tel"
+              placeholder="(555) 123-4567"
+            />
+          </div>
+          <SelectField
+            id="property-management-interest"
+            name="interest"
+            label="I'm interested in *"
+            placeholder="Select an option"
+            required
+            options={[
+              'Single-family rental',
+              'Multi-family / apartments',
+              'Commercial property',
+              'HOA / COA management',
+              'Storage facility',
+              'Other',
+            ].map((option) => ({ value: option, label: option }))}
+            error={errors.interest}
+            onValueChange={() =>
+              setErrors((current) => {
+                const next = { ...current };
+                delete next.interest;
+                return next;
+              })
+            }
+          />
+          <Field>
+            <FieldLabel htmlFor="pm-analysis-message">How Can We Help?</FieldLabel>
+            <Textarea
+              id="pm-analysis-message"
               name="message"
               rows={4}
               placeholder="Tell us about your property and what you're looking for..."
             />
-          </label>
-          <button
-            className="pm-button ui-button pm-button-primary ui-button-primary ui-submit-action ui-submit-action--full ui-submit-action--in-grid"
-            type="submit"
-          >
-            Get Free Analysis
-          </button>
+          </Field>
+          <Button className="w-full" type="submit" disabled={submission.status === 'sending'}>
+            {submission.status === 'sending' ? 'Sending…' : 'Get Free Analysis'}
+          </Button>
+          {submission.status === 'error' ? (
+            <Alert ref={submission.feedbackRef} role="alert" tabIndex={-1} variant="destructive">
+              We could not send your inquiry. Please try again.
+            </Alert>
+          ) : null}
         </form>
       )}
     </div>

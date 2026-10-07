@@ -1,73 +1,59 @@
-import { Mail, Phone, UserRound } from 'lucide-react';
-import { useState } from 'react';
+import { UserRound } from 'lucide-react';
+
+import { Badge } from './ui/badge.js';
+import { Card, CardContent, CardHeader } from './ui/card.js';
 
 export interface ProfileCardProps {
-  readonly description: string;
-  readonly email?: string;
-  readonly emailLabel?: string;
-  readonly imageAltText: string;
-  readonly imageSource?: string | undefined;
   readonly name: string;
-  readonly phone?: string;
   readonly role: string;
+  readonly imageSource?: string | undefined;
+  readonly imageAltText: string;
+  readonly children?: React.ReactNode;
 }
 
 export function ProfileCard({
-  description,
-  email,
-  emailLabel = 'Email',
-  imageAltText,
-  imageSource,
   name,
-  phone,
   role,
+  imageSource,
+  imageAltText,
+  children,
 }: ProfileCardProps): React.JSX.Element {
-  const [failedImageSource, setFailedImageSource] = useState<string>();
-  const hasPortrait = imageSource !== undefined && failedImageSource !== imageSource;
-
   return (
-    <article className="profile-card" data-profile-card="true">
-      {hasPortrait ? (
-        <div className="profile-card-media" data-profile-media-state="available">
+    <Card
+      className="h-full overflow-hidden border border-border/70 shadow-sm"
+      data-profile-card="true"
+    >
+      <div
+        className="bg-muted"
+        data-profile-media-state={imageSource ? 'available' : 'unavailable'}
+      >
+        {imageSource ? (
           <img
+            className="aspect-[4/5] w-full object-contain"
             src={imageSource}
             alt={imageAltText}
-            onError={() => setFailedImageSource(imageSource)}
+            loading="lazy"
+            decoding="async"
           />
-        </div>
-      ) : (
-        <div
-          className="profile-card-media profile-card-media-unavailable"
-          data-profile-media-state="unavailable"
-          role="img"
-          aria-label={`Portrait unavailable for ${name}`}
-        >
-          <UserRound aria-hidden="true" />
-          <span>Photo coming soon</span>
-        </div>
-      )}
-      <div className="profile-card-body">
-        <h3>{name}</h3>
-        <strong>{role}</strong>
-        <p>{description}</p>
-        {email !== undefined || phone !== undefined ? (
-          <div className="profile-card-contacts">
-            {phone === undefined ? null : (
-              <a
-                href={`tel:${phone.replace(/[^\d+]/g, '')}`}
-                aria-label={`Call ${name} at ${phone}`}
-              >
-                <Phone aria-hidden="true" /> {phone}
-              </a>
-            )}
-            {email === undefined ? null : (
-              <a href={`mailto:${email}`} aria-label={`Email ${name} at ${email}`}>
-                <Mail aria-hidden="true" /> {emailLabel}
-              </a>
-            )}
+        ) : (
+          <div
+            className="grid aspect-[4/5] place-items-center text-muted-foreground"
+            role="img"
+            aria-label={imageAltText}
+          >
+            <UserRound className="size-12" aria-hidden="true" />
           </div>
-        ) : null}
+        )}
       </div>
-    </article>
+      <CardHeader>
+        <h3 className="font-heading text-lg font-semibold">{name}</h3>
+        <Badge variant="secondary" className="w-fit">
+          {role}
+        </Badge>
+      </CardHeader>
+      {children === undefined ? null : (
+        <CardContent className="space-y-2 text-sm text-muted-foreground">{children}</CardContent>
+      )}
+    </Card>
   );
 }

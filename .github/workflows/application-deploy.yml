@@ -232,9 +232,15 @@ jobs:
           HOSTED_ZONE_NAME: ${{ vars.HOSTED_ZONE_NAME }}
           CERTIFICATE_ARN: ${{ vars.CLOUDFRONT_CERTIFICATE_ARN }}
           SES_IDENTITY_DOMAIN: ${{ vars.SES_IDENTITY_DOMAIN }}
+          INQUIRY_EMAIL_TO: ${{ vars.INQUIRY_EMAIL_TO }}
+          CAREER_EMAIL_TO: ${{ vars.CAREER_EMAIL_TO }}
           BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
           ALERT_TOPIC_ARN: ${{ vars.ALERT_TOPIC_ARN }}
         run: |
+          if test "$STAGE" = prod; then
+            test -n "$INQUIRY_EMAIL_TO" || { echo 'Missing approved production inquiry recipient' >&2; exit 1; }
+            test -n "$CAREER_EMAIL_TO" || { echo 'Missing approved production careers recipient' >&2; exit 1; }
+          fi
           context=(
             -c "application:${STAGE}:backendImageUri=${BACKEND_IMAGE_URI}"
             -c "application:${STAGE}:publicOrigin=${PUBLIC_ORIGIN}"
@@ -247,6 +253,8 @@ jobs:
             -c "application:${STAGE}:externalSyncEnabled=false"
           )
           if test -n "$BEDROCK_MODEL_ID"; then context+=(-c "application:${STAGE}:bedrockModelId=${BEDROCK_MODEL_ID}"); fi
+          if test -n "$INQUIRY_EMAIL_TO"; then context+=(-c "application:${STAGE}:inquiryEmailTo=${INQUIRY_EMAIL_TO}"); fi
+          if test -n "$CAREER_EMAIL_TO"; then context+=(-c "application:${STAGE}:careerEmailTo=${CAREER_EMAIL_TO}"); fi
           npx cdk deploy "TricoWeb-${STAGE}" --require-approval never --outputs-file cdk-outputs.json "${context[@]}"
       - name: Bootstrap application data
         if: steps.release.outputs.path == 'standard'
@@ -452,9 +460,13 @@ jobs:
           HOSTED_ZONE_NAME: ${{ vars.HOSTED_ZONE_NAME }}
           CERTIFICATE_ARN: ${{ vars.CLOUDFRONT_CERTIFICATE_ARN }}
           SES_IDENTITY_DOMAIN: ${{ vars.SES_IDENTITY_DOMAIN }}
+          INQUIRY_EMAIL_TO: ${{ vars.INQUIRY_EMAIL_TO }}
+          CAREER_EMAIL_TO: ${{ vars.CAREER_EMAIL_TO }}
           BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
           ALERT_TOPIC_ARN: ${{ vars.ALERT_TOPIC_ARN }}
         run: |
+          test -n "$INQUIRY_EMAIL_TO" || { echo 'Missing approved production inquiry recipient' >&2; exit 1; }
+          test -n "$CAREER_EMAIL_TO" || { echo 'Missing approved production careers recipient' >&2; exit 1; }
           context=(
             -c "application:prod:backendImageUri=${BACKEND_IMAGE_URI}"
             -c "application:prod:publicOrigin=${PUBLIC_ORIGIN}"
@@ -467,6 +479,8 @@ jobs:
             -c "application:prod:externalSyncEnabled=false"
           )
           if test -n "$BEDROCK_MODEL_ID"; then context+=(-c "application:prod:bedrockModelId=${BEDROCK_MODEL_ID}"); fi
+          if test -n "$INQUIRY_EMAIL_TO"; then context+=(-c "application:prod:inquiryEmailTo=${INQUIRY_EMAIL_TO}"); fi
+          if test -n "$CAREER_EMAIL_TO"; then context+=(-c "application:prod:careerEmailTo=${CAREER_EMAIL_TO}"); fi
           npx cdk deploy TricoWeb-prod --require-approval never --outputs-file cdk-outputs.json "${context[@]}"
       - name: Confirm main is still at the selected release SHA before frontend activation
         env:

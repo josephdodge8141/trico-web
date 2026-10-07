@@ -6,6 +6,7 @@ COPY backend ./backend
 COPY frontend/package.json ./frontend/package.json
 COPY infra/package.json ./infra/package.json
 COPY packages ./packages
+COPY vendor ./vendor
 RUN npm ci
 RUN npm run build:contracts && npm run build -w @app/backend
 
@@ -18,6 +19,7 @@ COPY frontend/package.json ./frontend/package.json
 COPY infra/package.json ./infra/package.json
 COPY packages/zod/package.json ./packages/zod/package.json
 COPY packages/cucumber/package.json ./packages/cucumber/package.json
+COPY vendor ./vendor
 RUN npm ci --omit=dev
 COPY --from=build /app/backend/dist ./backend/dist
 COPY --from=build /app/packages/zod/dist ./packages/zod/dist
