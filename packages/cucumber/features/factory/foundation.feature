@@ -10,6 +10,7 @@ Feature: Permanent preview foundation
     When the factory synthesizes the CDK application without AWS credentials
     Then the template contains the permanent network cluster image state logging and routing foundations
     And the foundation exposes immutable images and a bounded task execution role
+    And the foundation holds an AIStor license in a protected secret readable only by preview task execution
     And the template does not contain a running preview workload or preview DNS record
 
   @id:factory.foundation.config @backend-noop @frontend-noop @browser-noop-eligible

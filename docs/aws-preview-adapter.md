@@ -1,6 +1,6 @@
 # AWS preview adapter boundary
 
-The permanent CDK preview foundation owns a public-subnet VPC without NAT, ECS cluster, task security group, immutable frontend/backend ECR repositories, retained lifecycle table, retained logs, a generated reviewer credential secret, bounded execution/runtime roles and a reference to an existing Route 53 child zone. It intentionally owns no pull-request task definition, running task, service or DNS record.
+The permanent CDK preview foundation owns a public-subnet VPC without NAT, ECS cluster, task security group, immutable frontend/backend ECR repositories, retained lifecycle table, retained logs, a generated reviewer credential secret, a protected AIStor Free license secret, bounded execution/runtime roles and a reference to an existing Route 53 child zone. It intentionally owns no pull-request task definition, running task, service or DNS record.
 
 `infra/runtime/compose.ts` compiles already-normalized `docker compose config --format json` data into a bounded role-aware model. It rejects privileged/host capabilities, unknown fields, host mounts and published ports outside Caddy before provider mutation. The AWS provider replaces local build entries and local volumes with admitted immutable image digests and task-lifetime storage.
 

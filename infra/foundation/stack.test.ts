@@ -29,7 +29,7 @@ test('factory.foundation.synth creates only reusable permanent resources', () =>
   template.resourceCountIs('AWS::Logs::LogGroup', 1);
   template.resourceCountIs('AWS::EC2::SecurityGroup', 1);
   template.resourceCountIs('AWS::IAM::Role', 2);
-  template.resourceCountIs('AWS::SecretsManager::Secret', 1);
+  template.resourceCountIs('AWS::SecretsManager::Secret', 2);
   template.resourceCountIs('AWS::IAM::ManagedPolicy', 0);
   const imageRepositories = Object.values(template.findResources('AWS::ECR::Repository'));
   assert.equal(imageRepositories.length, 2);
@@ -59,6 +59,7 @@ test('factory.foundation.synth exposes task execution and bounded image capabili
       'PreviewZoneId',
       'PreviewZoneName',
       'PreviewEditorSecretArn',
+      'PreviewAistorLicenseSecretArn',
       'PublicSubnetIds',
       'StateTableName',
       'TaskExecutionRoleArn',
@@ -68,7 +69,11 @@ test('factory.foundation.synth exposes task execution and bounded image capabili
     ].sort(),
   );
   const serialized = JSON.stringify(template);
-  for (const requiredAction of ['ecr:BatchGetImage', 'logs:PutLogEvents']) {
+  for (const requiredAction of [
+    'ecr:BatchGetImage',
+    'logs:PutLogEvents',
+    'secretsmanager:GetSecretValue',
+  ]) {
     assert.match(serialized, new RegExp(requiredAction));
   }
   for (const forbiddenAction of [

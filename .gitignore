@@ -5,6 +5,7 @@ cdk.context.json
 .env
 .env.*
 !.env.example
+.secrets/
 *.tsbuildinfo
 artifacts/
 playwright-report/

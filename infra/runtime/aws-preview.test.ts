@@ -87,6 +87,7 @@ function providerFor(
   databaseSend: (command: unknown) => Promise<unknown>,
   ecsSend: (command: unknown) => Promise<unknown>,
   route53Send: (command: unknown) => Promise<unknown>,
+  previewConfig: AwsPreviewConfig = config,
 ): AwsPreviewEffectProvider {
   const clients = {
     database: { send: databaseSend },
@@ -94,7 +95,7 @@ function providerFor(
     ec2: { send: async () => ({}) },
     route53: { send: route53Send },
   } as unknown as ConstructorParameters<typeof AwsPreviewEffectProvider>[0];
-  return new AwsPreviewEffectProvider(clients, config);
+  return new AwsPreviewEffectProvider(clients, previewConfig);
 }
 
 test('factory.lifecycle.cleanup-terminal-receipt retains a terminal receipt after cleanup', async () => {
@@ -175,7 +176,7 @@ test('factory.lifecycle.cleanup-terminal-receipt retains a terminal receipt afte
   );
 });
 
-test('factory.lifecycle.cleaned-generation-replay rejects ensure for a terminal receipt', async () => {
+test('factory.lifecycle.current-admission and cleaned-generation-replay fail closed before launch', async () => {
   let taskDefinitionRegistrations = 0;
   let taskLaunches = 0;
   let dnsMutations = 0;
@@ -217,4 +218,55 @@ test('factory.lifecycle.cleaned-generation-replay rejects ensure for a terminal 
   assert.equal(taskDefinitionRegistrations, 0);
   assert.equal(taskLaunches, 0);
   assert.equal(dnsMutations, 0);
+
+  const missingLicense = providerFor(
+    async () => ({}),
+    async (command) => {
+      if (command instanceof RegisterTaskDefinitionCommand) taskDefinitionRegistrations += 1;
+      return {};
+    },
+    async () => ({}),
+    {
+      ...config,
+      backendImage: 'backend@sha256:abc',
+      frontendImage: 'frontend@sha256:def',
+      dynamodbImage: 'dynamodb@sha256:ghi',
+      aistorImage: 'quay.io/minio/aistor/minio@sha256:abc',
+      mailpitImage: 'mailpit@sha256:jkl',
+    },
+  );
+  await assert.rejects(missingLicense.ensurePreview(effect), /aistorLicenseSecretArn is required/);
+  assert.equal(taskDefinitionRegistrations, 0);
+
+  let registeredDefinition: RegisterTaskDefinitionCommand | undefined;
+  const licensedPreview = providerFor(
+    async () => ({}),
+    async (command) => {
+      if (command instanceof RegisterTaskDefinitionCommand) {
+        registeredDefinition = command;
+        throw new Error('captured before task launch');
+      }
+      return {};
+    },
+    async () => ({}),
+    {
+      ...config,
+      backendImage: 'backend@sha256:abc',
+      frontendImage: 'frontend@sha256:def',
+      dynamodbImage: 'dynamodb@sha256:ghi',
+      aistorImage: 'quay.io/minio/aistor/minio@sha256:abc',
+      mailpitImage: 'mailpit@sha256:jkl',
+      aistorLicenseSecretArn: 'aistor-license-secret',
+    },
+  );
+  await assert.rejects(licensedPreview.ensurePreview(effect), /captured before task launch/);
+  const aistor = registeredDefinition?.input.containerDefinitions?.find(
+    (container) => container.name === 'aistor',
+  );
+  assert.ok(aistor);
+  assert.deepEqual(aistor.secrets, [
+    { name: 'AISTOR_LICENSE', valueFrom: 'aistor-license-secret' },
+  ]);
+  assert.match(aistor.command?.[0] ?? '', /--license \/tmp\/minio\.license/);
+  assert.equal(JSON.stringify(registeredDefinition?.input).includes('eyJ'), false);
 });

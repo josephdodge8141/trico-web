@@ -45,13 +45,19 @@ services:
       retries: 30
 
   minio:
-    image: quay.io/minio/minio@sha256:d249d1fb6966de4d8ad26c04754b545205ff15a62e4fd19ebd0f26fa5baacbc0
-    command: server /data --console-address ':9001'
+    image: quay.io/minio/aistor/minio@sha256:107cf2014a9583c74c11e3cdbd6903d89c2244355886b89ce532f4ecae9c23f3
+    command: server /data --console-address ':9001' --license /minio.license
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-local-minio-user}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-local-minio-password}
     volumes:
       - minio-data:/data
+      - type: bind
+        source: ${AISTOR_LICENSE_FILE:-./.secrets/aistor.license}
+        target: /minio.license
+        read_only: true
+        bind:
+          create_host_path: false
     healthcheck:
       test: ['CMD', 'mc', 'ready', 'local']
       interval: 3s

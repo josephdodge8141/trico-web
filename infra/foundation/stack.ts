@@ -102,6 +102,15 @@ export class PreviewFoundationStack extends Stack {
       },
     });
     previewEditorSecret.grantRead(taskExecutionRole);
+    const previewAistorLicenseSecret = new Secret(this, 'PreviewAistorLicenseSecret', {
+      description: 'Protected AIStor Free license for disposable single-node preview tasks',
+      generateSecretString: {
+        excludePunctuation: true,
+        passwordLength: 64,
+      },
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+    previewAistorLicenseSecret.grantRead(taskExecutionRole);
     taskExecutionRole.addToPolicy(
       new PolicyStatement({
         actions: [
@@ -132,6 +141,7 @@ export class PreviewFoundationStack extends Stack {
       PreviewZoneId: previewZone.hostedZoneId,
       PreviewZoneName: previewZone.zoneName,
       PreviewEditorSecretArn: previewEditorSecret.secretArn,
+      PreviewAistorLicenseSecretArn: previewAistorLicenseSecret.secretArn,
       PublicSubnetIds: vpc.publicSubnets.map((subnet) => subnet.subnetId).join(','),
       StateTableName: stateTable.tableName,
       TaskExecutionRoleArn: taskExecutionRole.roleArn,
