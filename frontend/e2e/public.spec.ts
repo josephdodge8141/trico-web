@@ -131,6 +131,30 @@ test('keeps the Property Management analysis form validated without CMS mutation
       cmsMutations += 1;
   });
   await page.goto('/property-management');
+  await page.setViewportSize({ width: 1425, height: 1100 });
+  const contact = page.locator('#contact');
+  await expect
+    .poll(async () => {
+      const detailsBox = await contact.locator(':scope > div > div').first().boundingBox();
+      const analysisBox = await contact.locator('[data-slot="card"]').boundingBox();
+      expect(detailsBox).not.toBeNull();
+      expect(analysisBox).not.toBeNull();
+      if (!detailsBox || !analysisBox) return Number.POSITIVE_INFINITY;
+      return Math.abs(
+        detailsBox.y + detailsBox.height / 2 - (analysisBox.y + analysisBox.height / 2),
+      );
+    })
+    .toBeLessThanOrEqual(4);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileDetailsBox = await contact.locator(':scope > div > div').first().boundingBox();
+  const mobileAnalysisBox = await contact.locator('[data-slot="card"]').boundingBox();
+  expect(mobileDetailsBox).not.toBeNull();
+  expect(mobileAnalysisBox).not.toBeNull();
+  if (mobileDetailsBox && mobileAnalysisBox) {
+    expect(mobileAnalysisBox.y).toBeGreaterThanOrEqual(
+      mobileDetailsBox.y + mobileDetailsBox.height,
+    );
+  }
   await expect(page.locator('#new-client form')).toHaveCount(0);
   await page.getByRole('button', { name: 'Get Free Analysis', exact: true }).last().click();
   await expect(page.getByText('Enter first name.')).toBeVisible();

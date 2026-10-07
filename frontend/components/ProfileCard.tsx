@@ -1,6 +1,5 @@
 import { UserRound } from 'lucide-react';
 
-import { Badge } from './ui/badge.js';
 import { Card, CardContent, CardHeader } from './ui/card.js';
 
 export interface ProfileCardProps {
@@ -20,7 +19,7 @@ export function ProfileCard({
 }: ProfileCardProps): React.JSX.Element {
   return (
     <Card
-      className="h-full overflow-hidden border border-border/70 shadow-sm"
+      className="h-full overflow-hidden border border-border/70 shadow-sm [--card-spacing:0px]"
       data-profile-card="true"
     >
       <div
@@ -29,7 +28,7 @@ export function ProfileCard({
       >
         {imageSource ? (
           <img
-            className="aspect-[4/5] w-full object-contain"
+            className="block aspect-square w-full object-cover object-top"
             src={imageSource}
             alt={imageAltText}
             loading="lazy"
@@ -37,7 +36,7 @@ export function ProfileCard({
           />
         ) : (
           <div
-            className="grid aspect-[4/5] place-items-center text-muted-foreground"
+            className="grid aspect-square place-items-center text-muted-foreground"
             role="img"
             aria-label={imageAltText}
           >
@@ -45,14 +44,16 @@ export function ProfileCard({
           </div>
         )}
       </div>
-      <CardHeader>
-        <h3 className="font-heading text-lg font-semibold">{name}</h3>
-        <Badge variant="secondary" className="w-fit">
+      <CardHeader className="justify-items-center gap-1 px-4 py-4 text-center">
+        <h3 className="font-heading text-lg font-semibold text-center">{name}</h3>
+        <p className="text-center text-sm text-primary" data-profile-role="true">
           {role}
-        </Badge>
+        </p>
       </CardHeader>
       {children === undefined ? null : (
-        <CardContent className="space-y-2 text-sm text-muted-foreground">{children}</CardContent>
+        <CardContent className="space-y-2 px-4 pb-4 text-sm text-muted-foreground">
+          {children}
+        </CardContent>
       )}
     </Card>
   );

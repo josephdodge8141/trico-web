@@ -129,8 +129,8 @@ Feature: Published TriCo website
     Then all six pages expose one shared profile card contract and Home uses the division badge treatment
     And every frozen Real Estate agent portrait resolves from managed media
     And Real Estate team categories are directly browseable with concise profiles on mobile
-    And available portraits display without additional zoom while unavailable portraits use one neutral accessible fallback
-    And profile cards remain balanced at desktop and mobile widths and retain their geometry in edit mode
+    And available portraits fill square card frames without stretching while unavailable portraits use one neutral accessible fallback
+    And profile cards center names and plain roles with a compact Home leadership grid while retaining their geometry in edit mode
 
   @id:public.property-management-mounted-composition @backend-noop
   Scenario: Render the complete mounted Property Management composition
@@ -144,7 +144,7 @@ Feature: Published TriCo website
     And supplied Property Management portfolio images load while additional cards reveal on request without conflicting public metrics
     And Property Management portfolio categories are fully visible and directly browseable on mobile
     And the single Property Management analysis form delivers and restarts with focus without creating CMS entities
-    And the Property Management contact details use labeled icon rows and remain visible after anchor navigation
+    And the Property Management contact details use labeled icon rows and remain visible after anchor navigation while the analysis form centers beside them on desktop
     And Property Management has no dead public footer links
 
   @id:public.real-estate-listing-gallery @backend-noop
