@@ -871,7 +871,7 @@ function PropertyManagementBody(): React.JSX.Element {
                   </div>
                 </Entity>
               </div>
-              <Card className="h-fit border border-border/70 p-6 shadow-sm">
+              <Card className="h-fit border border-border/70 p-6 shadow-sm lg:self-center">
                 <PropertyManagementAnalysisForm />
               </Card>
             </Container>

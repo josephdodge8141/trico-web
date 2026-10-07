@@ -1359,7 +1359,7 @@ Then(
 );
 
 Then(
-  'available portraits display without additional zoom while unavailable portraits use one neutral accessible fallback',
+  'available portraits fill square card frames without stretching while unavailable portraits use one neutral accessible fallback',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     for (const sample of profileCardSamples) {
@@ -1374,8 +1374,14 @@ Then(
       await expect(unavailable).toHaveCount(sample.unavailable);
       for (const media of await available.all()) {
         const portrait = media.locator('img');
-        await expect(portrait).toHaveCSS('object-fit', 'contain');
-        await expect(portrait).toHaveCSS('aspect-ratio', '4 / 5');
+        await expect(portrait).toHaveCSS('object-fit', 'cover');
+        await expect(portrait).toHaveCSS('object-position', '50% 0%');
+        await expect(portrait).toHaveCSS('aspect-ratio', '1 / 1');
+        const frame = await media.boundingBox();
+        const image = await portrait.boundingBox();
+        assert.ok(frame && image);
+        assert.ok(Math.abs(frame.width - frame.height) <= 2);
+        assert.ok(Math.abs(image.width - frame.width) <= 2);
         await portrait.scrollIntoViewIfNeeded();
         await expect
           .poll(() =>
@@ -1388,13 +1394,16 @@ Then(
       for (const media of await unavailable.all()) {
         await expect(media.getByRole('img')).toHaveAttribute('aria-label', /.+/);
         await expect(media.locator('img')).toHaveCount(0);
+        const frame = await media.boundingBox();
+        assert.ok(frame);
+        assert.ok(Math.abs(frame.width - frame.height) <= 2);
       }
     }
     await loginEditor(page);
     await page.goto('/property-management');
     await page.getByRole('button', { name: 'Enter edit mode' }).click();
-    await expect(page.locator('#team [data-profile-card="true"]')).toHaveCount(4);
-    await expect(page.locator('#team [data-profile-media-state="unavailable"]')).toHaveCount(2);
+    await expect(page.locator('#team [data-profile-card="true"]')).toHaveCount(2);
+    await expect(page.locator('#team [data-profile-media-state="unavailable"]')).toHaveCount(0);
     await page.setViewportSize({ width: 1425, height: 900 });
     await page
       .getByRole('complementary', { name: 'Content editor' })
@@ -1465,14 +1474,30 @@ Then(
 );
 
 Then(
-  'profile cards remain balanced at desktop and mobile widths and retain their geometry in edit mode',
+  'profile cards center names and plain roles with a compact Home leadership grid while retaining their geometry in edit mode',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
+    await page.setViewportSize({ width: 1425, height: 900 });
+    await page.goto('/');
+    const homeGrid = page.locator('#leadership [data-slot=editable-collection-items]');
+    const homeGridBox = await homeGrid.boundingBox();
+    assert.ok(homeGridBox);
+    assert.ok(homeGridBox.width <= 1024);
+    assert.ok(Math.abs(homeGridBox.x + homeGridBox.width / 2 - 1425 / 2) <= 2);
+    const homeHeading = page.locator('#leadership').getByRole('heading', {
+      name: 'Leadership Team',
+    });
+    await expect(homeHeading).toHaveCSS('text-align', 'center');
     for (const sample of profileCardSamples) {
       await page.setViewportSize({ width: 1425, height: 900 });
       await page.goto(sample.route);
       const desktop = page.locator('[data-profile-card="true"]');
       await expect(desktop).toHaveCount(sample.count);
+      for (const card of await desktop.all()) {
+        await expect(card.getByRole('heading')).toHaveCSS('text-align', 'center');
+        await expect(card.locator('[data-profile-role]')).toHaveCSS('text-align', 'center');
+        await expect(card.locator('[data-slot=badge]')).toHaveCount(0);
+      }
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(sample.route);
       const mobile = page.locator('[data-profile-card="true"]');
@@ -4043,7 +4068,7 @@ Then(
   },
 );
 Then(
-  'the Property Management contact details use labeled icon rows and remain visible after anchor navigation',
+  'the Property Management contact details use labeled icon rows and remain visible after anchor navigation while the analysis form centers beside them on desktop',
   async function (this: FrontendWorld) {
     const page = this.currentPage();
     for (const viewport of [
@@ -4063,6 +4088,30 @@ Then(
       await expect(
         contact.getByRole('heading', { name: 'Get Your Free Property Analysis' }),
       ).toBeInViewport();
+      const details = contact.locator(':scope > div > div').first();
+      const analysisCard = contact.locator('[data-slot="card"]');
+      if (viewport.width >= 1024) {
+        await expect
+          .poll(async () => {
+            const detailsBox = await details.boundingBox();
+            const analysisBox = await analysisCard.boundingBox();
+            assert.ok(detailsBox);
+            assert.ok(analysisBox);
+            return Math.abs(
+              detailsBox.y + detailsBox.height / 2 - (analysisBox.y + analysisBox.height / 2),
+            );
+          })
+          .toBeLessThanOrEqual(4);
+      } else {
+        const detailsBox = await details.boundingBox();
+        const analysisBox = await analysisCard.boundingBox();
+        assert.ok(detailsBox);
+        assert.ok(analysisBox);
+        assert.ok(
+          analysisBox.y >= detailsBox.y + detailsBox.height,
+          'Property Management analysis form should follow contact details on mobile',
+        );
+      }
     }
   },
 );

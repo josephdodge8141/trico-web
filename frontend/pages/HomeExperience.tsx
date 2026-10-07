@@ -434,21 +434,26 @@ function HomeBody(): React.JSX.Element {
           <section id="leadership" className="bg-muted/40 py-20 sm:py-24">
             <Container width="wide">
               <Entity id="home.leadership.header" value={content.leadershipHeader}>
-                <SectionIntro
-                  eyebrow="The people"
-                  title={content.leadershipHeader.heading}
-                  copy={content.leadershipHeader.description}
-                />
+                <div className="mx-auto mb-12 max-w-3xl text-center">
+                  <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                    {content.leadershipHeader.heading}
+                  </h2>
+                  <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                    {content.leadershipHeader.description}
+                  </p>
+                </div>
               </Entity>
               <Collection
                 id="home.leadership.members"
                 value={content.leaders}
-                className="[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-5 sm:[&_[data-slot=editable-collection-items]]:grid-cols-2 lg:[&_[data-slot=editable-collection-items]]:grid-cols-4"
+                className="mx-auto max-w-5xl [&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-5 sm:[&_[data-slot=editable-collection-items]]:grid-cols-2 lg:[&_[data-slot=editable-collection-items]]:grid-cols-4"
                 renderItem={(value) => (
                   <PersonTile item={homeLeadershipMemberSchema.parse(value)} />
                 )}
               />
-              <p className="mt-8 text-sm text-muted-foreground">{content.leadershipHeader.note}</p>
+              <p className="mt-8 text-center text-sm text-muted-foreground">
+                {content.leadershipHeader.note}
+              </p>
             </Container>
           </section>
 
