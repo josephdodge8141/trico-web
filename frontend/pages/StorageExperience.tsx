@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, Building2, Clock, Mail, MapPin, Phone, Warehouse } from 'lucide-react';
 import {
   storageAboutSchema,
+  storageDirectorySchema,
+  storageDirectoryItemSchema,
   storageAnniversaryBannerSchema,
   storageContactDetailsSchema,
   storageContactHeaderSchema,
@@ -313,6 +315,69 @@ function StorageBody(): React.JSX.Element {
               )}
             </Container>
           </section>
+          {(['brands', 'facilities'] as const).map((group) => {
+            const id = `storage.${group}.items` as const;
+            const entries = value(id, storageDirectorySchema);
+            const visible = editing.active
+              ? entries
+              : entries.filter((item) => item.publicVisibility === 'approved');
+            return (
+              <section key={group} id={group} className="py-16">
+                <Container width="wide">
+                  <h2 className="mb-6 font-heading text-3xl font-semibold">
+                    {group === 'brands' ? 'Our brands' : 'Managed facilities'}
+                  </h2>
+                  <Collection
+                    id={id}
+                    value={visible}
+                    className="[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-5 md:[&_[data-slot=editable-collection-items]]:grid-cols-3"
+                    renderItem={(item) => {
+                      const entry = storageDirectoryItemSchema.parse(item);
+                      const Icon = contentIconComponents[entry.icon] ?? Warehouse;
+                      return (
+                        <Card className="h-full overflow-hidden">
+                          <CardHeader>
+                            {entry.image.key === 'media/seed/placeholder-neutral.svg' ? (
+                              <Icon className="size-8 text-primary" aria-hidden="true" />
+                            ) : (
+                              <img
+                                src={imageFor(entry.image.key, storageLogo)}
+                                alt={entry.imageAltText}
+                                className="aspect-video w-full object-contain"
+                                loading="lazy"
+                              />
+                            )}
+                            <h3 className="font-heading text-xl font-semibold">{entry.title}</h3>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <p>{entry.description}</p>
+                            <p>{entry.address}</p>
+                            <p>{entry.brand}</p>
+                            {entry.externalUrl ? (
+                              <Button
+                                variant="outline"
+                                render={
+                                  <a href={entry.externalUrl} target="_blank" rel="noreferrer" />
+                                }
+                              >
+                                Visit website
+                              </Button>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      );
+                    }}
+                  />
+                  {visible.length === 0 && !editing.active ? (
+                    <p className="text-muted-foreground">
+                      Contact us for information about our{' '}
+                      {group === 'brands' ? 'brands' : 'managed facilities'}.
+                    </p>
+                  ) : null}
+                </Container>
+              </section>
+            );
+          })}
           <section id="team" className="bg-muted/40 py-20 sm:py-24">
             <Container width="wide">
               <Entity id="storage.team.header" value={teamHeader}>

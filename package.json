@@ -15,6 +15,7 @@
     "packages/cucumber"
   ],
   "scripts": {
+    "catalog:budget": "node --import tsx tooling/gates/catalog-budget.ts",
     "build:contracts": "npm run build -w @app/schemas && npm run build -w @app/behaviors",
     "build": "npm run build:contracts && npm run build -w @app/backend && npm run build -w @app/frontend && npm run build -w @app/infra",
     "typecheck": "tsc -b && tsc --project tsconfig.tooling.json --noEmit",

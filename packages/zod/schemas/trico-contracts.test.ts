@@ -41,10 +41,10 @@ import {
 
 const expectedPageCounts = {
   home: 18,
-  'property-management': 35,
+  'property-management': 36,
   'real-estate': 31,
   construction: 65,
-  storage: 18,
+  storage: 20,
   development: 28,
 } as const;
 
@@ -66,10 +66,10 @@ function requireListSeed(id: EntityId): readonly EditableValue[] {
   return value;
 }
 
-test('the canonical registry contains exactly the reissued 195-entity inventory', () => {
+test('the canonical registry contains exactly the reissued 198-entity inventory', () => {
   validateRegistry();
-  assert.equal(entityDefinitions.length, 195);
-  assert.equal(new Set(entityDefinitions.map(({ id }) => id)).size, 195);
+  assert.equal(entityDefinitions.length, 198);
+  assert.equal(new Set(entityDefinitions.map(({ id }) => id)).size, 198);
   assert.equal(pageDefinitions.length, pageIdSchema.options.length);
 
   for (const page of pageDefinitions) {
@@ -96,7 +96,7 @@ test('the canonical registry contains exactly the reissued 195-entity inventory'
   );
 });
 
-test('five legacy careers entities are explicitly retired while 190 entities remain visible', () => {
+test('five legacy careers entities are explicitly retired while 193 entities remain visible', () => {
   assert.deepEqual([...retiredEntityIds].sort(), [
     'construction.careers.benefits',
     'construction.careers.header',
@@ -104,7 +104,7 @@ test('five legacy careers entities are explicitly retired while 190 entities rem
     'property-management.careers',
     'real-estate.careers',
   ]);
-  assert.equal(entityDefinitions.filter(({ id }) => !retiredEntityIds.has(id)).length, 190);
+  assert.equal(entityDefinitions.filter(({ id }) => !retiredEntityIds.has(id)).length, 193);
   for (const entityId of retiredEntityIds) {
     assert.equal(
       entityDefinitions.some(({ id }) => id === entityId),
@@ -114,9 +114,9 @@ test('five legacy careers entities are explicitly retired while 190 entities rem
   }
 });
 
-test('all 195 entities have strict novice editor contracts and primary visual slots', () => {
+test('all 198 entities have strict novice editor contracts and primary visual slots', () => {
   const status = semanticRegistryStatus(entityDefinitions, entityViewCatalog);
-  assert.equal(status.migratedEntityIds.length, 195);
+  assert.equal(status.migratedEntityIds.length, 198);
   assert.deepEqual(status.missingEditorEntityIds, []);
   assert.deepEqual(status.missingViewEntityIds, []);
   assert.doesNotThrow(() =>
@@ -199,7 +199,7 @@ test('semantic editor modules are explicit, browser-safe, and incrementally hone
   assert.doesNotThrow(() => validateEntityViewCatalog([hero], module.viewCatalog, 'complete'));
 
   const merged = mergeEntityModules(legacyEntityDefinitions, [module]);
-  assert.equal(merged.length, 195);
+  assert.equal(merged.length, 198);
   assert.equal(merged.find(({ id }) => id === 'home.hero')?.editor?.version, 2);
 
   const incrementallyMigratedDefinitions = legacyEntityDefinitions.map((definition) =>
@@ -207,8 +207,8 @@ test('semantic editor modules are explicit, browser-safe, and incrementally hone
   );
   const status = semanticRegistryStatus(incrementallyMigratedDefinitions, module.viewCatalog);
   assert.deepEqual(status.migratedEntityIds, ['home.hero']);
-  assert.equal(status.missingEditorEntityIds.length, 194);
-  assert.equal(status.missingViewEntityIds.length, 194);
+  assert.equal(status.missingEditorEntityIds.length, 197);
+  assert.equal(status.missingViewEntityIds.length, 197);
   assert.throws(
     () =>
       validateEntityViewCatalog(incrementallyMigratedDefinitions, module.viewCatalog, 'complete'),
@@ -288,7 +288,7 @@ test('deterministic migrated list item IDs are stable, positional, and UUID-shap
 });
 
 test('the extracted seed preserves source cardinality and approved cleanup', () => {
-  assert.equal(Object.keys(registrySeedData).length, 195);
+  assert.equal(Object.keys(registrySeedData).length, 198);
   assert.equal(requireListSeed('home.divisions.items').length, 5);
   assert.equal(requireListSeed('real-estate.listings.items').length, 10);
   assert.equal(requireListSeed('property-management.portfolio.managed.items').length, 7);

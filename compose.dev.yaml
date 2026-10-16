@@ -1,0 +1,9 @@
+services:
+  caddy:
+    ports: !override ['18091:8088']
+  backend:
+    environment:
+      PUBLIC_ORIGIN: http://app.localhost:18091
+  seed:
+    environment:
+      PUBLIC_ORIGIN: http://app.localhost:18091

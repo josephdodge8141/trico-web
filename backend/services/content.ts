@@ -393,8 +393,50 @@ export function createContentService(
     );
   };
 
+  const withLeaseProjection = async (
+    pageId: PageId,
+    content: PageContent,
+    userId?: string,
+  ): Promise<PageContent> => {
+    if (pageId !== 'real-estate') return content;
+    const canonical =
+      userId === undefined
+        ? await service.page('property-management')
+        : await service.preview('property-management', userId);
+    return {
+      ...content,
+      'property-management.leases.items': canonical['property-management.leases.items'] ?? [],
+    };
+  };
   const service: ContentService = {
-    page: async (pageId) => assemble(pageId, await loadEntities(pageId)),
+    page: async (pageId) => {
+      const content = assemble(pageId, await loadEntities(pageId));
+      for (const id of [
+        'property-management.leases.items',
+        'storage.brands.items',
+        'storage.facilities.items',
+      ]) {
+        const items = content[id];
+        if (Array.isArray(items))
+          content[id] = items.filter(
+            (item) =>
+              typeof item === 'object' &&
+              item !== null &&
+              !Array.isArray(item) &&
+              item['publicVisibility'] === 'approved',
+          );
+      }
+      if (pageId === 'construction')
+        for (const [id, items] of Object.entries(content)) {
+          if (id.includes('.projects.') && Array.isArray(items))
+            content[id] = items.map((item) =>
+              typeof item === 'object' && item !== null && !Array.isArray(item)
+                ? Object.fromEntries(Object.entries(item).filter(([key]) => key !== 'owner'))
+                : item,
+            );
+        }
+      return withLeaseProjection(pageId, content);
+    },
     preview: async (pageId, userId) => {
       const [entities, changes, preference] = await Promise.all([
         loadEntities(pageId),
@@ -412,7 +454,7 @@ export function createContentService(
           ? (preference.Item?.['disabledEntityIds'] as EntityId[])
           : [],
       );
-      return assemble(
+      const content = assemble(
         pageId,
         entities,
         new Map(
@@ -421,6 +463,7 @@ export function createContentService(
             .map((change) => [change.entityId, change.replacementValue]),
         ),
       );
+      return withLeaseProjection(pageId, content, userId);
     },
     pending: async (pageId) => {
       if (pageId === undefined) {
@@ -694,7 +737,14 @@ export function createContentService(
       const operation = publishOperationSchema.parse({
         id: operationId,
         publicationIds,
-        affectedPageIds: pageIds,
+        affectedPageIds: [
+          ...new Set([
+            ...pageIds,
+            ...(selected.some((change) => change.entityId === 'property-management.leases.items')
+              ? ['real-estate' as const]
+              : []),
+          ]),
+        ],
         requestedBy: userId,
         status: 'DEPLOYING',
         createdAt,
@@ -848,7 +898,10 @@ export function createContentService(
       const operation = publishOperationSchema.parse({
         id: operationId,
         publicationIds: [nextPublicationId],
-        affectedPageIds: [historical.pageId],
+        affectedPageIds:
+          historical.pageId === 'property-management'
+            ? ['property-management', 'real-estate']
+            : [historical.pageId],
         requestedBy: userId,
         status: 'DEPLOYING',
         createdAt,

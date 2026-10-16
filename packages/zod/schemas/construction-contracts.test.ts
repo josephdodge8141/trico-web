@@ -122,7 +122,7 @@ test('Construction business labels and every project detail have novice editor f
       'name',
       'description',
       'address',
-      'owner',
+      'gallery',
       'architect',
       'engineer',
       'squareFeet',

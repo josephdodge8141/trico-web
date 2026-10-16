@@ -49,7 +49,10 @@ export function planPropertyManagementContentMigration(
   if (request.mode === 'reset-disposable-local' && request.environment !== 'local') {
     throw new Error('Disposable content reset is only allowed in the local environment.');
   }
-  const ids = new Set(propertyManagementEntityDefinitions.map(({ id }) => id));
+  const definitions = propertyManagementEntityDefinitions.filter(
+    ({ id }) => id !== 'property-management.leases.items',
+  );
+  const ids = new Set(definitions.map(({ id }) => id));
   const unresolved = [
     ...new Set(
       request.pendingChanges
@@ -64,7 +67,7 @@ export function planPropertyManagementContentMigration(
   }
 
   const nextContent: Record<string, EditableValue> = { ...request.currentContent };
-  const entries = propertyManagementEntityDefinitions.map((definition) => {
+  const entries = definitions.map((definition) => {
     const seed =
       propertyManagementV2SeedData[definition.id as keyof typeof propertyManagementV2SeedData];
     const existing = request.currentContent[definition.id];

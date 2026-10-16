@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { realEstateListingSchema, realEstateEntityDefinitions } from './real-estate.js';
 
 import type { EditableValue } from './content.js';
 import {
@@ -59,10 +60,51 @@ const statItemSchema = z.strictObject({
   label: text(120),
   icon: iconSchema,
 });
+export const commercialLeaseSchema = realEstateListingSchema
+  .extend({
+    publicVisibility: z.enum(['hidden', 'approved']).default('hidden'),
+    mlsNumber: z.literal('').default(''),
+    category: z.literal('Commercial').default('Commercial'),
+    transaction: z.literal('lease').default('lease'),
+    image: propertyManagementManagedImageSchema,
+  })
+  .superRefine((lease, context) => {
+    if (lease.publicVisibility !== 'approved') return;
+    for (const [path, valid] of [
+      ['name', lease.name.trim() !== ''],
+      ['description', lease.description.trim() !== ''],
+      ['address', lease.address !== 'New listing'],
+      [
+        'contactUrl',
+        lease.contactUrl.startsWith('https://') ||
+          lease.contactUrl.startsWith('mailto:') ||
+          lease.contactUrl.startsWith('tel:'),
+      ],
+      ['image', lease.image.key !== 'media/seed/placeholder-neutral.svg'],
+      [
+        'price',
+        lease.price === 'Contact for pricing' ||
+          (typeof lease.amount === 'number' && lease.rateBasis !== 'sale'),
+      ],
+    ] as const) {
+      if (!valid)
+        context.addIssue({
+          code: 'custom',
+          path: [path],
+          message: `Complete ${path} before approving this lease.`,
+        });
+    }
+  });
+export const commercialLeasesSchema = z.array(commercialLeaseSchema);
+const listingDefinition = realEstateEntityDefinitions.find(
+  ({ id }) => id === 'real-estate.listings.items',
+);
+if (listingDefinition?.editor.kind !== 'list') throw new Error('Missing listing editor');
 const propertyItemSchema = z.strictObject({
   id: uuid,
   name: text(160),
   description: text(500),
+  address: optionalText(300).default(''),
   photo: propertyManagementManagedImageSchema,
   photoAltText: text(200),
 });
@@ -335,7 +377,8 @@ const statFields = [
 const propertyFields = [
   field(['id'], 'Item identity', 0, system()),
   field(['name'], 'Property name', 1, short(160)),
-  field(['description'], 'Address or description', 2, long(3, 500)),
+  field(['description'], 'Additional information', 2, long(3, 500)),
+  field(['address'], 'Address', 5, short(300), false),
   field(['photo'], 'Photo', 3, media(['photoAltText'], '4:3')),
   field(['photoAltText'], 'Photo description', 4, short(200)),
 ] as const;
@@ -350,7 +393,69 @@ function entity(
   });
 }
 
+const leaseEditor = listEditor(
+  'Commercial leases',
+  'Lease',
+  {
+    ...realEstateListingSchema.parse(listingDefinition.editor.blankItem),
+    category: 'Commercial',
+    transaction: 'lease',
+    publicVisibility: 'hidden',
+    price: 'Choose pricing',
+    rateBasis: 'monthly',
+  },
+  [
+    ...listingDefinition.editor.groups
+      .flatMap(({ fields }) => fields)
+      .filter(
+        ({ path }) =>
+          !['mlsNumber', 'category', 'transaction', 'actionLabel', 'externalUrl'].includes(
+            path[0] ?? '',
+          ),
+      )
+      .map((item) => ({
+        ...item,
+        validationMessages: {
+          ...(item.required
+            ? { required: `Complete ${item.label.toLowerCase()} before approving this lease.` }
+            : {}),
+          invalid: `Check ${item.label.toLowerCase()} before approving this lease.`,
+        },
+        control:
+          item.path[0] === 'status'
+            ? {
+                type: 'enum' as const,
+                display: 'radio' as const,
+                choices: [
+                  { value: 'active', label: 'Available' },
+                  { value: 'sold', label: 'Leased' },
+                ],
+              }
+            : item.control,
+      })),
+    field(['name'], 'Lease name', 30, short(160), false),
+    field(['description'], 'Description', 31, long(5, 2000), false),
+    field(['contactUrl'], 'Contact destination', 32, short(1000), false),
+    field(['publicVisibility'], 'Public visibility', 33, {
+      type: 'enum',
+      display: 'select',
+      choices: [
+        { value: 'hidden', label: 'Draft, hidden from public' },
+        { value: 'approved', label: 'Approved for public display' },
+      ],
+    }),
+  ],
+  ['name'],
+);
 export const propertyManagementEntityDefinitions = [
+  entity({
+    id: 'property-management.leases.items',
+    kind: 'list',
+    label: 'Commercial leases',
+    schema: commercialLeasesSchema,
+    listItemSchema: commercialLeaseSchema,
+    editor: leaseEditor,
+  }),
   entity({
     id: 'property-management.anniversary-banner',
     kind: 'object',
@@ -916,6 +1021,7 @@ const listEntry = (
 });
 
 export const propertyManagementEntityViewCatalog = [
+  listEntry('property-management.leases.items', 'Commercial lease cards', 'Lease'),
   objectEntry('property-management.anniversary-banner', 'Header anniversary banner'),
   objectEntry('property-management.header', 'Header'),
   objectEntry('property-management.hero', 'Hero'),

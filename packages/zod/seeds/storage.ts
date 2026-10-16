@@ -1,6 +1,8 @@
 import type { EditableValue } from '../schemas/content.js';
 
 export const storageV2SeedData = {
+  'storage.brands.items': [],
+  'storage.facilities.items': [],
   'storage.anniversary-banner': { message: '40+ Years of Excellence' },
   'storage.header': {
     logo: { kind: 'managed', key: 'media/seed/trico-storage-logo.png' },

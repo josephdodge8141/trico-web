@@ -42,6 +42,7 @@ function id(value: number): string {
 }
 
 export const propertyManagementV2SeedData = {
+  'property-management.leases.items': [],
   'property-management.anniversary-banner': { message: '40+ Years of Excellence' },
   'property-management.header': {
     logo: { kind: 'managed', key: 'media/seed/trico-property-management-logo.png' },

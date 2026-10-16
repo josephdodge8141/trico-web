@@ -31,6 +31,7 @@ import propertyLogo from '../assets/images/trico-property-management-logo.png';
 import townSquarePhoto from '../assets/images/town-square.jpg';
 import tricoLogo from '../assets/images/trico-logo.png';
 import { AnniversaryBanner } from '../components/AnniversaryBanner.js';
+import { PhotoGallery } from '../components/PhotoGallery.js';
 import { CareersSection } from '../components/CareersSection.js';
 import { PublicHeader } from '../components/PublicHeader.js';
 import { ContentCollection, ContentEntity } from '../components/ContentEntity.js';
@@ -144,6 +145,7 @@ function PropertyManagementBody(): React.JSX.Element {
     id: keyof typeof S.propertyManagementV2SeedData,
     parser: { parse(input: unknown): Output },
   ): Output => parsePropertyManagementValue(document, id, parser);
+  const leases = value('property-management.leases.items', S.commercialLeasesSchema);
   const banner = value(
     'property-management.anniversary-banner',
     S.propertyManagementAnniversaryBannerSchema,
@@ -358,7 +360,9 @@ function PropertyManagementBody(): React.JSX.Element {
         <CardHeader>
           <h3 className="font-heading text-lg font-semibold">{property.name}</h3>
         </CardHeader>
-        <CardContent className="text-muted-foreground">{property.description}</CardContent>
+        <CardContent className="text-muted-foreground">
+          {property.address || property.description}
+        </CardContent>
       </Card>
     );
   };
@@ -618,6 +622,68 @@ function PropertyManagementBody(): React.JSX.Element {
                   ))}
                 </Tabs>
               )}
+            </Container>
+          </section>
+          <section id="commercial-leases" className="py-16">
+            <Container width="wide">
+              <h2 className="mb-6 font-heading text-3xl font-semibold">
+                Commercial space for lease
+              </h2>
+              <Collection
+                id="property-management.leases.items"
+                value={
+                  editing.active
+                    ? leases
+                    : leases.filter((lease) => lease.publicVisibility === 'approved')
+                }
+                className="[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-5 md:[&_[data-slot=editable-collection-items]]:grid-cols-3"
+                renderItem={(item) => {
+                  const lease = S.commercialLeaseSchema.parse(item);
+                  return (
+                    <Card className="overflow-hidden">
+                      <PhotoGallery
+                        title={lease.name || lease.address}
+                        photos={[
+                          { src: imageFor(lease.image.key) ?? '', alt: lease.imageAltText },
+                          ...lease.gallery.map((photo) => ({
+                            src: imageFor(photo.image.key) ?? '',
+                            alt: photo.imageAltText,
+                          })),
+                        ]}
+                      />
+                      <CardHeader>
+                        <h3 className="font-heading text-xl font-semibold">
+                          {lease.name || lease.address}
+                        </h3>
+                        <p>
+                          {lease.address}, {lease.city}
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <p>{lease.description}</p>
+                        <p>
+                          {lease.status === 'active' ? 'Available' : 'Leased'} · {lease.detail}
+                        </p>
+                        <p>
+                          {typeof lease.amount === 'number'
+                            ? '$' +
+                              lease.amount.toLocaleString() +
+                              (lease.rateBasis === 'monthly' ? ' / month' : ' / sq ft / year')
+                            : lease.price}
+                        </p>
+                        {lease.contactUrl ? (
+                          <Button render={<a href={lease.contactUrl} />}>
+                            Ask about this space
+                          </Button>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  );
+                }}
+              />
+              {!leases.some((lease) => lease.publicVisibility === 'approved') && !editing.active ? (
+                <p>Contact us about available commercial space.</p>
+              ) : null}
             </Container>
           </section>
           <section id="tenant-portal" className="py-20 sm:py-24">
@@ -947,6 +1013,12 @@ function PropertyManagementBody(): React.JSX.Element {
                 </Entity>
               </div>
               <Card className="h-fit border border-border/70 p-6 shadow-sm lg:self-center">
+                <p className="mb-4 text-sm">
+                  Are you an agent?{' '}
+                  <a className="text-primary underline" href="?interest=referral#contact">
+                    Ask us about our referral program.
+                  </a>
+                </p>
                 <PropertyManagementAnalysisForm />
               </Card>
             </Container>

@@ -12,10 +12,10 @@ import {
   validateEntityViewCatalog,
 } from '../index.js';
 
-test('Property Management owns 35 strict semantic entity contracts and visual slots', () => {
-  assert.equal(propertyManagementEntityModule.entities.length, 35);
-  assert.equal(propertyManagementEntityModule.viewCatalog.length, 35);
-  assert.equal(new Set(propertyManagementEntityModule.entities.map(({ id }) => id)).size, 35);
+test('Property Management owns 36 strict semantic entity contracts and visual slots', () => {
+  assert.equal(propertyManagementEntityModule.entities.length, 36);
+  assert.equal(propertyManagementEntityModule.viewCatalog.length, 36);
+  assert.equal(new Set(propertyManagementEntityModule.entities.map(({ id }) => id)).size, 36);
 
   for (const definition of propertyManagementEntityModule.entities) {
     const seed =
@@ -43,13 +43,16 @@ test('Property Management owns 35 strict semantic entity contracts and visual sl
     entityDefinitions,
     propertyManagementEntityModule.viewCatalog,
   );
-  assert.equal(status.migratedEntityIds.length, 195);
+  assert.equal(status.migratedEntityIds.length, 198);
   assert.equal(status.missingEditorEntityIds.length, 0);
-  assert.equal(status.missingViewEntityIds.length, 160);
+  assert.equal(status.missingViewEntityIds.length, 162);
   assert.equal(migrationLedger.entityCount, 35);
   assert.deepEqual(
     [...migrationLedger.entities].sort(),
-    propertyManagementEntityModule.entities.map(({ id }) => id).sort(),
+    propertyManagementEntityModule.entities
+      .filter(({ id }) => id !== 'property-management.leases.items')
+      .map(({ id }) => id)
+      .sort(),
   );
   const serialized = JSON.stringify(propertyManagementV2SeedData);
   for (const wrapper of ['"content"', '"media"', '"externalUrls"']) {

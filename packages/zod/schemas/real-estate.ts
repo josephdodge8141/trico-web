@@ -77,6 +77,10 @@ export const realEstateListingGalleryImageSchema = z.strictObject({
 });
 export const realEstateListingSchema = z.strictObject({
   id,
+  name: optional(160).default(''),
+  description: optional(2000).default(''),
+  contactUrl: optionalExternalUrl.default(''),
+  publicVisibility: publicVisibilitySchema,
   address: text(200),
   city: text(120),
   price: text(80),
@@ -84,6 +88,16 @@ export const realEstateListingSchema = z.strictObject({
   detail: text(120),
   type: text(100),
   status: z.enum(['active', 'sold']),
+  category: z.enum(['Residential', 'Commercial', 'Land', 'Unclassified']).default('Unclassified'),
+  transaction: z.enum(['sale', 'lease']).default('sale'),
+  county: optional(100).default(''),
+  postalCode: optional(20).default(''),
+  amount: z.union([z.number().finite().nonnegative(), z.literal(''), z.null()]).default(null),
+  area: z.union([z.number().finite().nonnegative(), z.literal(''), z.null()]).default(null),
+  areaUnit: z.enum(['sqft', 'acres']).default('sqft'),
+  rateBasis: z.enum(['sale', 'monthly', 'annual-per-sqft']).default('sale'),
+  landUse: z.enum(['Unknown', 'Residential', 'Commercial']).default('Unknown'),
+  zoning: optional(100).default(''),
   image: realEstateListingImageSchema,
   imageAltText: text(200),
   gallery: z.array(realEstateListingGalleryImageSchema),
@@ -466,6 +480,52 @@ export const realEstateEntityDefinitions = [
       field(['mlsNumber'], 'MLS number', 4, short(40), false),
       field(['detail'], 'Property detail', 5, short(120)),
       field(['type'], 'Property type', 6, short(100)),
+      ...Object.entries({
+        category: ['Residential', 'Commercial', 'Land', 'Unclassified'],
+        transaction: ['sale', 'lease'],
+        areaUnit: ['sqft', 'acres'],
+        rateBasis: ['sale', 'monthly', 'annual-per-sqft'],
+        landUse: ['Unknown', 'Residential', 'Commercial'],
+      }).map(([name, choices], index) =>
+        field(
+          [name],
+          name.replace(/([A-Z])/g, ' $1').replace(/^./, (letter) => letter.toUpperCase()),
+          13 + index,
+          {
+            type: 'enum',
+            display: 'select',
+            choices: choices.map((value) => ({
+              value,
+              label:
+                value === 'annual-per-sqft'
+                  ? 'Annual rent / sq ft'
+                  : value === 'monthly'
+                    ? 'Monthly rent'
+                    : value === 'sqft'
+                      ? 'Square feet'
+                      : value.replace(/^./, (letter) => letter.toUpperCase()),
+            })),
+          },
+        ),
+      ),
+      ...['county', 'postalCode', 'zoning'].map((name, index) =>
+        field(
+          [name],
+          name.replace(/([A-Z])/g, ' $1').replace(/^./, (letter) => letter.toUpperCase()),
+          18 + index,
+          short(100),
+          false,
+        ),
+      ),
+      ...['amount', 'area'].map((name, index) =>
+        field(
+          [name],
+          name === 'amount' ? 'Numeric price or rate' : 'Numeric area',
+          21 + index,
+          { type: 'number', display: 'decimal', minimum: 0, step: 0.01 },
+          false,
+        ),
+      ),
       field(['status'], 'Status', 7, {
         type: 'enum',
         display: 'radio',
