@@ -5830,14 +5830,14 @@ Then(
     await expect(
       page.getByRole('dialog', { name: '1457 N Whisper Hollow Cir photos' }),
     ).toBeVisible();
-    await page.screenshot({ path: 'artifacts/catalog-gallery.jpg' });
+    await page.screenshot({ path: 'artifacts/catalog-gallery.jpg', animations: 'disabled' });
     await page.keyboard.press('Escape');
     await expect(photo).toBeFocused();
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page
       .locator('#listings')
       .evaluate((element) => element.scrollIntoView({ block: 'start' }));
-    await page.screenshot({ path: 'artifacts/catalog-desktop.jpg' });
+    await page.screenshot({ path: 'artifacts/catalog-desktop.jpg', animations: 'disabled' });
     await page.getByLabel('Search locations').fill('No matching location');
     await expect(page.getByText('No properties match your filters.')).toBeVisible();
     await page.goto('/real-estate');
