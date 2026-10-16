@@ -5,6 +5,7 @@ import * as S from '@app/schemas';
 
 import tricoLogo from '../assets/images/trico-logo.png';
 import placeholderImage from '../assets/images/placeholder-neutral.svg';
+import { PhotoGallery } from '../components/PhotoGallery.js';
 import { AnniversaryBanner } from '../components/AnniversaryBanner.js';
 import { PublicHeader } from '../components/PublicHeader.js';
 import { ContentCollection, ContentEntity } from '../components/ContentEntity.js';
@@ -37,12 +38,18 @@ function definitionFor(id: ConstructionEntityId): S.SemanticEntityDefinition {
   if (result === undefined) throw new Error(`Missing Construction editor definition: ${id}`);
   return result;
 }
-function CategoryBody({ status }: { readonly status: 'current' | 'completed' }): React.JSX.Element {
-  const { categoryId } = useParams();
+function CategoryBody({
+  status: requestedStatus,
+}: {
+  readonly status: 'current' | 'completed';
+}): React.JSX.Element {
+  const { categoryId, projectId } = useParams();
+  const [loading, setLoading] = useState(true);
   const editing = useEditMode();
   const [document, setDocument] = useState<S.PageContent>({});
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true);
     const loader = editing.active ? fetchPreviewPageDocument : fetchPublicPageDocument;
     void loader('construction', { signal: controller.signal })
       .then((next) => {
@@ -50,10 +57,42 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
       })
       .catch(() => {
         if (!controller.signal.aborted) setDocument({});
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
   }, [editing.active, editing.disabledEntityIds, editing.pending]);
-  const category = constructionCategories.find((item) => item === categoryId);
+  const selected =
+    projectId === undefined
+      ? undefined
+      : (['current', 'completed'] as const)
+          .flatMap((status) =>
+            constructionCategories.flatMap((category) => {
+              const id =
+                `construction.${status === 'current' ? 'current-projects' : 'completed-projects'}.projects.${category}` as keyof typeof S.constructionV2SeedData;
+              return parseConstructionValue(document, id, S.constructionProjectsSchema)
+                .filter(
+                  (project) =>
+                    editing.active ||
+                    (S.hasRealConstructionProjectDetails(project) &&
+                      S.isPubliclyVisible(project.publicVisibility, true)),
+                )
+                .map((project) => ({ project, status, category }));
+            }),
+          )
+          .find(({ project }) => project.id === projectId);
+  if (projectId && !selected)
+    return (
+      <main className="p-8">
+        <h1>{loading ? 'Loading project…' : 'Project not available'}</h1>
+        <Link className="text-primary underline" to="/construction">
+          Back to construction
+        </Link>
+      </main>
+    );
+  const status = selected?.status ?? requestedStatus;
+  const category = selected?.category ?? constructionCategories.find((item) => item === categoryId);
   if (category === undefined)
     return <Navigate to={`/construction/${status}/multi-family`} replace />;
   const group = status === 'current' ? 'current-projects' : 'completed-projects';
@@ -70,7 +109,8 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
     : projects.filter(
         (project) =>
           S.hasRealConstructionProjectDetails(project) &&
-          S.isPubliclyVisible(project.publicVisibility, true),
+          S.isPubliclyVisible(project.publicVisibility, true) &&
+          (!projectId || project.id === projectId),
       );
   const banner = parseConstructionValue(
     document,
@@ -146,7 +186,7 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
               <div className="mb-8 max-w-3xl space-y-4">
                 <Badge variant="secondary">{sectionHeader.eyebrow}</Badge>
                 <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
-                  {categoryValue.label}
+                  {projectId && !editing.active ? selected?.project.name : categoryValue.label}
                 </h1>
                 <p className="text-lg text-muted-foreground">{categoryValue.blurb}</p>
               </div>
@@ -177,12 +217,18 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
                   const project = S.constructionProjectsSchema.element.parse(item);
                   return (
                     <Card className="h-full overflow-hidden border border-border/70">
-                      <img
-                        className="aspect-video w-full object-cover"
-                        src={imageFor(project.photo.key, placeholderImage)}
-                        alt={project.photoAltText}
-                        loading="lazy"
-                        decoding="async"
+                      <PhotoGallery
+                        title={project.name}
+                        photos={[
+                          {
+                            src: imageFor(project.photo.key, placeholderImage),
+                            alt: project.photoAltText,
+                          },
+                          ...project.gallery.map((photo) => ({
+                            src: imageFor(photo.image.key, placeholderImage),
+                            alt: photo.imageAltText,
+                          })),
+                        ]}
                       />
                       <CardHeader>
                         <Badge variant="secondary" className="w-fit">
@@ -192,12 +238,21 @@ function CategoryBody({ status }: { readonly status: 'current' | 'completed' }):
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <p className="text-muted-foreground">{project.description}</p>
+                        {!projectId ? (
+                          <Button
+                            variant="outline"
+                            render={<Link to={'/construction/projects/' + project.id} />}
+                          >
+                            View project
+                          </Button>
+                        ) : editing.active ? (
+                          <p>Editing this category's complete project collection.</p>
+                        ) : null}
                         {project.address === '' ? null : (
                           <p className="text-sm">{project.address}</p>
                         )}
                         <dl className="grid grid-cols-2 gap-3 text-sm">
                           {[
-                            ['Owner', project.owner],
                             ['Architect', project.architect],
                             ['Engineer', project.engineer],
                             ['Size', project.squareFeet],

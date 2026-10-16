@@ -156,6 +156,11 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
           </div>
           <SelectField
             id="property-management-interest"
+            defaultValue={
+              new URLSearchParams(window.location.search).get('interest') === 'referral'
+                ? 'Agent referral program'
+                : ''
+            }
             name="interest"
             label="I'm interested in *"
             placeholder="Select an option"
@@ -165,7 +170,7 @@ export function PropertyManagementAnalysisForm(): React.JSX.Element {
               'Multi-family / apartments',
               'Commercial property',
               'HOA / COA management',
-              'Storage facility',
+              'Agent referral program',
               'Other',
             ].map((option) => ({ value: option, label: option }))}
             error={errors.interest}

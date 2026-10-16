@@ -2893,7 +2893,7 @@ Then('every division navigation exposes Careers', async function (this: Frontend
 Then(
   'retired legacy careers entities remain registered but are not rendered',
   async function (this: FrontendWorld) {
-    assert.equal(entityDefinitions.length, 195);
+    assert.equal(entityDefinitions.length, 198);
     assert.equal(retiredEntityIds.size, 5);
     for (const entityId of retiredEntityIds)
       assert.ok(entityDefinitions.some((definition) => definition.id === entityId));
@@ -4357,10 +4357,10 @@ Then(
   },
 );
 Then(
-  'all 18 Storage entities have an editable visual boundary',
+  'all 20 Storage entities have an editable visual boundary',
   async function (this: FrontendWorld) {
     await expect(this.currentPage().locator('[data-storage-entity-boundary="true"]')).toHaveCount(
-      18,
+      20,
     );
   },
 );
@@ -5771,7 +5771,7 @@ Then(
       { width: 390, height: 844 },
     ]) {
       await page.setViewportSize(viewport);
-      const photo = page.locator('#listings [data-slot="card"] > div > img').first();
+      const photo = page.locator('#listings [data-slot="card"] button img').first();
       await expect(photo).toBeVisible();
       const box = await photo.boundingBox();
       assert.ok(box);
@@ -5802,6 +5802,45 @@ Then(
     assert.match(await sourceFor('Lot 5–8, Cedar Hills'), /photo-1628624747186-a941c476b7ef/);
     assert.match(await sourceFor('750 Technology Way'), /photo-1504307651254-35680f356dfd/);
     await page.getByRole('tab', { name: 'Active Listings (5)', exact: true }).click();
+  },
+);
+
+Then(
+  'listing discovery combines location and category filters and opens keyboard accessible photos',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.goto('/real-estate');
+    for (const category of ['Residential', 'Commercial', 'Land']) {
+      await expect(
+        page.locator('#listings').getByRole('heading', { name: category, exact: true }),
+      ).toBeVisible();
+    }
+    await page.getByLabel('Search locations').fill('Lehi');
+    await page.getByLabel('Listing category').selectOption('Land');
+    await expect(page.getByRole('tab', { name: 'Active Listings (3)' })).toBeVisible();
+    await expect(page.locator('#listings [data-slot="card"]')).toHaveCount(3);
+    await page.reload();
+    await expect(page.getByLabel('Search locations')).toHaveValue('Lehi');
+    await expect(page.getByLabel('Listing category')).toHaveValue('Land');
+    const photo = page.getByRole('button', {
+      name: 'View photos for 1457 N Whisper Hollow Cir',
+      exact: true,
+    });
+    await photo.click();
+    await expect(
+      page.getByRole('dialog', { name: '1457 N Whisper Hollow Cir photos' }),
+    ).toBeVisible();
+    await page.screenshot({ path: 'artifacts/catalog-gallery.jpg' });
+    await page.keyboard.press('Escape');
+    await expect(photo).toBeFocused();
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page
+      .locator('#listings')
+      .evaluate((element) => element.scrollIntoView({ block: 'start' }));
+    await page.screenshot({ path: 'artifacts/catalog-desktop.jpg' });
+    await page.getByLabel('Search locations').fill('No matching location');
+    await expect(page.getByText('No properties match your filters.')).toBeVisible();
+    await page.goto('/real-estate');
   },
 );
 

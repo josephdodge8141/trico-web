@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { PhotoGallery } from '../components/PhotoGallery.js';
+import { SelectField } from '../components/SelectField.js';
+import { Input } from '../components/ui/input.js';
 import {
   ArrowRight,
   Building2,
@@ -154,10 +158,22 @@ function Collection({
     </div>
   );
 }
+function categoryFor(item: ReturnType<typeof S.realEstateListingSchema.parse>): string {
+  if (item.category !== 'Unclassified') return item.category;
+  if (item.type === 'Land') return 'Land';
+  if (item.type === 'Residential') return 'Residential';
+  return ['Commercial', 'Commercial Office', 'Industrial'].includes(item.type)
+    ? 'Commercial'
+    : 'Unclassified';
+}
 function ListingCollection({
   value,
   status,
+  category,
+  matches,
 }: {
+  readonly category: string;
+  readonly matches: (item: ReturnType<typeof S.realEstateListingSchema.parse>) => boolean;
   readonly value: ReturnType<typeof S.realEstateListingsItemsSchema.parse>;
   readonly status: 'active' | 'sold';
 }): React.JSX.Element {
@@ -165,8 +181,10 @@ function ListingCollection({
   const definition = definitionFor('real-estate.listings.items');
   if (definition.editor.kind !== 'list') throw new Error('Listing editor must be a list');
   const included = (item: S.EditableValue): boolean =>
-    S.realEstateListingSchema.parse(item).status === status;
-  const filtered = value.filter((item) => item.status === status);
+    S.realEstateListingSchema.parse(item).status === status &&
+    categoryFor(S.realEstateListingSchema.parse(item)) === category &&
+    matches(S.realEstateListingSchema.parse(item));
+  const filtered = value.filter(included);
   const effectiveDefinition = {
     ...definition,
     editor: {
@@ -174,6 +192,7 @@ function ListingCollection({
       blankItem: {
         ...(definition.editor.blankItem as Readonly<Record<string, S.EditableValue>>),
         status,
+        category,
       },
     },
   };
@@ -190,10 +209,14 @@ function ListingCollection({
       className="[&_[data-slot=editable-collection-items]]:grid [&_[data-slot=editable-collection-items]]:gap-6 md:[&_[data-slot=editable-collection-items]]:grid-cols-2 xl:[&_[data-slot=editable-collection-items]]:grid-cols-3"
     >
       {filtered.length === 0 ? (
-        <Card className="p-6">
-          <h3 className="font-heading font-semibold">No {status} listings yet</h3>
-          <p className="text-sm text-muted-foreground">Add the first listing when you are ready.</p>
-        </Card>
+        <div className="rounded-lg border border-dashed p-6">
+          <h4 className="font-heading font-semibold">
+            No {status} {category.toLowerCase()} listings
+          </h4>
+          <p className="text-sm text-muted-foreground">
+            Contact our team about upcoming properties.
+          </p>
+        </div>
       ) : null}
       <EditableCollection
         active={editing.active}
@@ -218,24 +241,43 @@ function ListingCard({ item }: { readonly item: S.EditableValue }): React.JSX.El
   return (
     <Card className="h-full overflow-hidden border border-border/70">
       <div className="relative">
-        <img
-          className="aspect-[4/3] w-full object-cover"
-          src={imageFor(listing.image)}
-          alt={listing.imageAltText}
-          loading="lazy"
-          decoding="async"
+        <PhotoGallery
+          title={listing.address}
+          photos={[
+            { src: imageFor(listing.image), alt: listing.imageAltText },
+            ...listing.gallery.map((photo) => ({
+              src: imageFor(photo.image),
+              alt: photo.imageAltText,
+            })),
+          ]}
         />
-        <Badge className="absolute left-3 top-3">
-          {listing.status === 'sold' ? 'Sold' : 'Active'}
+        <Badge className="pointer-events-none absolute left-3 top-3">
+          {listing.transaction === 'lease'
+            ? listing.status === 'sold'
+              ? 'Leased'
+              : 'Available'
+            : listing.status === 'sold'
+              ? 'Sold'
+              : 'Active'}
         </Badge>
-        <Badge variant="secondary" className="absolute right-3 top-3">
+        <Badge variant="secondary" className="pointer-events-none absolute right-3 top-3">
           {listing.type}
         </Badge>
       </div>
       <CardHeader className="space-y-2">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-heading text-lg font-semibold">{listing.address}</h3>
-          <strong className="text-primary">{listing.price}</strong>
+          <h3 className="font-heading text-lg font-semibold">{listing.name || listing.address}</h3>
+          <strong className="text-primary">
+            {typeof listing.amount === 'number'
+              ? '$' +
+                listing.amount.toLocaleString() +
+                (listing.transaction === 'lease'
+                  ? listing.rateBasis === 'monthly'
+                    ? ' / month'
+                    : ' / sq ft / year'
+                  : '')
+              : listing.price}
+          </strong>
         </div>
         <p className="flex items-center gap-1 text-sm text-muted-foreground">
           <MapPin className="size-4" aria-hidden="true" />
@@ -243,6 +285,10 @@ function ListingCard({ item }: { readonly item: S.EditableValue }): React.JSX.El
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
+        {listing.description ? <p>{listing.description}</p> : null}
+        {listing.contactUrl ? (
+          <Button render={<a href={listing.contactUrl} />}>Ask about this space</Button>
+        ) : null}
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
           {listing.mlsNumber ? <span>MLS# {listing.mlsNumber}</span> : null}
           <span className="flex items-center gap-1">
@@ -259,20 +305,6 @@ function ListingCard({ item }: { readonly item: S.EditableValue }): React.JSX.El
             {listing.actionLabel}
             <ExternalLink aria-hidden="true" />
           </Button>
-        ) : null}
-        {listing.gallery.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2" aria-label={listing.address + ' gallery'}>
-            {listing.gallery.map((photo) => (
-              <img
-                key={photo.id}
-                className="aspect-square w-full rounded-md object-cover"
-                src={imageFor(photo.image)}
-                alt={photo.imageAltText}
-                loading="lazy"
-                decoding="async"
-              />
-            ))}
-          </div>
         ) : null}
       </CardContent>
     </Card>
@@ -318,7 +350,61 @@ function RealEstateBody(): React.JSX.Element {
   const editing = useEditMode();
   const [document, setDocument] = useState<S.PageContent>({});
   const [fallback, setFallback] = useState(false);
-  const [listingTab, setListingTab] = useState<'active' | 'sold'>('active');
+  const [params, setParams] = useSearchParams();
+  const listingTab = params.get('status') === 'sold' ? 'sold' : 'active';
+  const setFilter = (key: string, value: string): void => {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setParams(next, { replace: key === 'location' });
+  };
+  const matches = (item: ReturnType<typeof S.realEstateListingSchema.parse>): boolean => {
+    if ((params.get('price-min') || params.get('price-max')) && !params.get('rateBasis'))
+      return false;
+    const location = [item.address, item.city, item.county, item.postalCode]
+      .join(' ')
+      .toLowerCase();
+    const amount =
+      typeof item.amount === 'number'
+        ? item.amount
+        : /^\$[\d,]+(?:\.\d+)?$/.test(item.price)
+          ? Number(item.price.replace(/[$,]/g, ''))
+          : null;
+    const area =
+      typeof item.area === 'number'
+        ? item.area
+        : /^\d+(?:\.\d+)? (?:Acres|sqft)$/.test(item.detail)
+          ? Number(item.detail.split(' ')[0])
+          : null;
+    const unit = / Acres$/.test(item.detail) && item.area === null ? 'acres' : item.areaUnit;
+    if (!location.includes((params.get('location') ?? '').toLowerCase())) return false;
+    for (const [key, actual] of [
+      ['category', categoryFor(item)],
+      ['transaction', item.transaction],
+      ['landUse', item.landUse],
+      ['zoning', item.zoning],
+      ['rateBasis', item.rateBasis],
+    ] as const) {
+      const selected = params.get(key);
+      if (selected && actual.toLowerCase() !== selected.toLowerCase()) return false;
+    }
+    for (const [key, actual] of [
+      ['price', amount],
+      ['area', area === null ? null : unit === 'acres' ? area * 43560 : area],
+    ] as const) {
+      for (const bound of ['min', 'max']) {
+        const raw = params.get(key + '-' + bound);
+        if (
+          raw &&
+          (actual === null ||
+            !Number.isFinite(Number(raw)) ||
+            (bound === 'min' ? actual < Number(raw) : actual > Number(raw)))
+        )
+          return false;
+      }
+    }
+    return true;
+  };
   const [teamTab, setTeamTab] = useState('agents');
   useEffect(() => {
     const controller = new AbortController();
@@ -345,6 +431,9 @@ function RealEstateBody(): React.JSX.Element {
   const listingsHeader = value('real-estate.listings.header', S.realEstateListingsHeaderSchema);
   const listingActions = value('real-estate.listings.actions', S.realEstateListingsActionsSchema);
   const listings = value('real-estate.listings.items', S.realEstateListingsItemsSchema);
+  const leases = S.commercialLeasesSchema
+    .parse(document['property-management.leases.items'] ?? [])
+    .filter((lease) => lease.publicVisibility === 'approved');
   const heroListing = listings.find((listing) => listing.status === 'active');
   const servicesHeader = value('real-estate.services.header', S.realEstateServicesHeaderSchema);
   const services = value('real-estate.services.items', S.realEstateServicesItemsSchema);
@@ -403,6 +492,39 @@ function RealEstateBody(): React.JSX.Element {
       members: agents,
     },
   ] as const;
+  const renderListings = (status: 'active' | 'sold'): React.JSX.Element[] =>
+    [
+      'Residential',
+      'Commercial',
+      'Land',
+      ...(listings.some((item) => categoryFor(item) === 'Unclassified') ? ['Unclassified'] : []),
+    ]
+      .filter((category) => !params.get('category') || params.get('category') === category)
+      .map((category) => (
+        <section key={category} className="mb-10 space-y-5">
+          <h3 className="font-heading text-2xl font-semibold">{category}</h3>
+          <ListingCollection
+            value={listings}
+            status={status}
+            category={category}
+            matches={matches}
+          />
+          {category === 'Commercial' ? (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {leases
+                .filter((lease) => lease.status === status && matches(lease))
+                .map((lease) => (
+                  <ListingCard key={lease.id} item={lease} />
+                ))}
+              {editing.active ? (
+                <a className="text-primary underline" href="/property-management#commercial-leases">
+                  Edit the shared lease collection in Property Management
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ));
   const renderTeamGroup = (group: (typeof teamGroups)[number]): React.JSX.Element => (
     <div className="mt-10" key={group.id}>
       <h3 className="mb-5 font-heading text-xl font-semibold">{group.title}</h3>
@@ -514,29 +636,107 @@ function RealEstateBody(): React.JSX.Element {
               <Entity id="real-estate.listings.header" value={listingsHeader}>
                 <Intro {...listingsHeader} />
               </Entity>
+              <p className="mt-6 text-sm text-muted-foreground">
+                Select a price basis before filtering prices or lease rates. Area filters use square
+                feet.
+              </p>
+              <div
+                className="my-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                role="group"
+                aria-label="Listing filters"
+              >
+                <label className="grid gap-2 text-sm">
+                  Search locations
+                  <Input
+                    value={params.get('location') ?? ''}
+                    onChange={(event) => setFilter('location', event.target.value)}
+                    placeholder="City, county, address, or postal code"
+                  />
+                </label>
+                {Object.entries({
+                  category: ['Listing category', 'Residential', 'Commercial', 'Land'],
+                  transaction: ['Transaction', 'sale', 'lease'],
+                  landUse: ['Land use', 'Residential', 'Commercial'],
+                  rateBasis: ['Price basis', 'sale', 'monthly', 'annual-per-sqft'],
+                }).map(([key, [label = '', ...options]]) => (
+                  <SelectField
+                    key={key}
+                    id={'filter-' + key}
+                    name={key}
+                    label={label}
+                    placeholder="All"
+                    value={params.get(key) ?? ''}
+                    options={options.map((value) => ({
+                      value,
+                      label:
+                        value === 'annual-per-sqft'
+                          ? 'Annual rent / sq ft'
+                          : value === 'monthly'
+                            ? 'Monthly rent'
+                            : value === 'sale'
+                              ? 'For sale'
+                              : value === 'lease'
+                                ? 'For lease'
+                                : value,
+                    }))}
+                    onValueChange={(value) => setFilter(key, value)}
+                  />
+                ))}
+                <label className="grid gap-2 text-sm">
+                  Commercial zoning
+                  <Input
+                    value={params.get('zoning') ?? ''}
+                    onChange={(event) => setFilter('zoning', event.target.value)}
+                  />
+                </label>
+                {['price-min', 'price-max', 'area-min', 'area-max'].map((key) => (
+                  <label key={key} className="grid gap-2 text-sm">
+                    {key
+                      .replace('-', ' ')
+                      .replace('area', 'Area (sq ft)')
+                      .replace('price', 'Price / rate')}
+                    <Input
+                      type="number"
+                      min="0"
+                      value={params.get(key) ?? ''}
+                      onChange={(event) => setFilter(key, event.target.value)}
+                    />
+                  </label>
+                ))}
+                <Button variant="outline" onClick={() => setParams({})}>
+                  Clear filters
+                </Button>
+              </div>
+              {[...listings, ...leases].some(
+                (item) => item.status === listingTab && matches(item),
+              ) ? null : (
+                <p role="status">No properties match your filters.</p>
+              )}
               <Tabs
                 value={listingTab}
                 onValueChange={(next) => {
-                  if (next === 'active' || next === 'sold') setListingTab(next);
+                  if (next === 'active' || next === 'sold') setFilter('status', next);
                 }}
               >
                 <TabsList aria-label="Property listing status" className="mb-6">
                   {(['active', 'sold'] as const).map((status) => (
                     <TabsTrigger value={status} key={status} className="min-h-9 px-3">
                       {status === 'active' ? listingActions.activeLabel : listingActions.soldLabel}{' '}
-                      ({listings.filter((listing) => listing.status === status).length})
+                      (
+                      {
+                        [...listings, ...leases].filter(
+                          (listing) => listing.status === status && matches(listing),
+                        ).length
+                      }
+                      )
                     </TabsTrigger>
                   ))}
                 </TabsList>
                 <TabsContent value="active">
-                  {listingTab === 'active' ? (
-                    <ListingCollection value={listings} status="active" />
-                  ) : null}
+                  {listingTab === 'active' ? renderListings('active') : null}
                 </TabsContent>
                 <TabsContent value="sold">
-                  {listingTab === 'sold' ? (
-                    <ListingCollection value={listings} status="sold" />
-                  ) : null}
+                  {listingTab === 'sold' ? renderListings('sold') : null}
                 </TabsContent>
               </Tabs>
               <Entity id="real-estate.listings.actions" value={listingActions}>

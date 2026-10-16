@@ -101,6 +101,10 @@ export function App(): React.JSX.Element {
           <Route path="/real-estate" element={<RealEstateExperience />} />
           <Route path="/construction" element={<ConstructionExperience />} />
           <Route
+            path="/construction/projects/:projectId"
+            element={<ConstructionCategoryExperience status="current" />}
+          />
+          <Route
             path="/construction/current/:categoryId"
             element={<ConstructionCategoryExperience status="current" />}
           />
