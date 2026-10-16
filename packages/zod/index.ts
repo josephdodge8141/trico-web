@@ -416,3 +416,6 @@ export {
   type EntityDefinition,
   type PageDefinition,
 } from './schemas/registry.js';
+
+export { storageDirectorySchema, storageDirectoryItemSchema } from './schemas/storage.js';
+export { commercialLeaseSchema, commercialLeasesSchema } from './schemas/property-management.js';

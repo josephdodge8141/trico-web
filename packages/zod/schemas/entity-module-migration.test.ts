@@ -20,8 +20,11 @@ test('the shared entity-module migration is deterministic and preserves valid se
   const second = planEntityModuleContentMigration(storageEntityModule, storageV2SeedData, request);
 
   assert.deepEqual(first, second);
-  assert.equal(first.entries.length, 18);
-  assert.equal(first.entries[0]?.action, 'preserve');
+  assert.equal(first.entries.length, 20);
+  assert.equal(
+    first.entries.find(({ entityId }) => entityId === 'storage.anniversary-banner')?.action,
+    'preserve',
+  );
   assert.equal(first.dryRun, true);
   for (const definition of storageEntityModule.entities) {
     assert.equal(definition.schema.safeParse(first.nextContent[definition.id]).success, true);

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { publicVisibilitySchema, publicVisibilityControl } from './public-visibility.js';
 
 import type { EditableValue } from './content.js';
 import {
@@ -66,6 +67,19 @@ export const storageServiceSchema = z.strictObject({
   description: text(2_500),
 });
 export const storageServicesItemsSchema = z.array(storageServiceSchema);
+export const storageDirectoryItemSchema = z.strictObject({
+  id,
+  title: text(160),
+  description: optionalText(1500),
+  address: optionalText(300),
+  brand: optionalText(160),
+  icon,
+  image,
+  imageAltText: text(200),
+  externalUrl: z.union([z.literal(''), z.url().startsWith('https://').max(1000)]),
+  publicVisibility: publicVisibilitySchema,
+});
+export const storageDirectorySchema = z.array(storageDirectoryItemSchema);
 export const storageTeamHeaderSchema = heading;
 export const storageTeamMemberSchema = z.strictObject({
   id,
@@ -225,6 +239,56 @@ const sectionFields = [
 ];
 
 export const storageEntityDefinitions = [
+  ...(['brands', 'facilities'] as const).map((group) =>
+    entity({
+      id: `storage.${group}.items`,
+      pageId: 'storage',
+      kind: 'list',
+      label: group === 'brands' ? 'Our brands' : 'Managed facilities',
+      schema: storageDirectorySchema,
+      listItemSchema: storageDirectoryItemSchema,
+      editor: listEditor(
+        group === 'brands' ? 'Our brands' : 'Managed facilities',
+        'Directory entry',
+        ['title'],
+        {
+          id: blank(20),
+          title: 'New entry',
+          description: '',
+          address: '',
+          brand: '',
+          icon: 'Warehouse',
+          image: { kind: 'managed', key: 'media/seed/placeholder-neutral.svg' },
+          imageAltText: 'Facility or brand',
+          externalUrl: '',
+          publicVisibility: 'hidden',
+        },
+        [
+          field(['id'], 'Item identity', 0, system()),
+          ...['title', 'description', 'address', 'brand'].map((name, index) =>
+            field(
+              [name],
+              name[0]?.toUpperCase() + name.slice(1),
+              index + 1,
+              short(name === 'description' ? 1500 : name === 'address' ? 300 : 160),
+              name === 'title',
+            ),
+          ),
+          field(['icon'], 'Icon', 5, iconPicker()),
+          field(['image'], 'Photo or logo', 6, media('imageAltText')),
+          field(['imageAltText'], 'Photo description', 7, short(200)),
+          field(
+            ['externalUrl'],
+            'Website',
+            8,
+            { type: 'link-builder', allowedDestinations: ['external-site'] },
+            false,
+          ),
+          field(['publicVisibility'], 'Public visibility', 9, publicVisibilityControl()),
+        ],
+      ),
+    }),
+  ),
   entity({
     id: 'storage.anniversary-banner',
     pageId: 'storage',
@@ -541,6 +605,8 @@ const entry = (entityId: string, component: string, list = false): EntityViewCat
     : { kind: 'not-applicable' },
 });
 export const storageEntityViewCatalog = [
+  entry('storage.brands.items', 'Storage brands', true),
+  entry('storage.facilities.items', 'Storage facilities', true),
   entry('storage.anniversary-banner', 'StorageHeader banner'),
   entry('storage.header', 'StorageHeader'),
   entry('storage.hero', 'StorageHero'),

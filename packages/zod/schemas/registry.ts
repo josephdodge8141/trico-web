@@ -1697,6 +1697,24 @@ const definitions = [
     publicPath: ['development', 'footer', 'legal'],
     schema: editableObjectSchema,
   },
+  {
+    id: 'property-management.leases.items',
+    pageId: 'property-management',
+    kind: 'list',
+    label: 'Commercial leases',
+    publicPath: ['property-management', 'leases', 'items'],
+    schema: editableListSchema,
+    listItemSchema: editableListItemSchema,
+  },
+  ...(['storage.brands.items', 'storage.facilities.items'] as const).map((id) => ({
+    id,
+    pageId: 'storage' as const,
+    kind: 'list' as const,
+    label: id.includes('brands') ? 'Our brands' : 'Managed facilities',
+    publicPath: id.split('.'),
+    schema: editableListSchema,
+    listItemSchema: editableListItemSchema,
+  })),
 ] as const satisfies readonly EntityDefinition[];
 
 export const legacyEntityDefinitions: readonly EntityDefinition[] = definitions;

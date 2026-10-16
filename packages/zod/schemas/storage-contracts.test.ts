@@ -9,10 +9,10 @@ import {
   validateEntityViewCatalog,
 } from '../index.js';
 
-test('Storage owns 18 strict semantic entities with novice editor and visual contracts', () => {
-  assert.equal(storageEntityModule.entities.length, 18);
-  assert.equal(storageEntityModule.viewCatalog.length, 18);
-  assert.equal(new Set(storageEntityModule.entities.map(({ id }) => id)).size, 18);
+test('Storage owns 20 strict semantic entities with novice editor and visual contracts', () => {
+  assert.equal(storageEntityModule.entities.length, 20);
+  assert.equal(storageEntityModule.viewCatalog.length, 20);
+  assert.equal(new Set(storageEntityModule.entities.map(({ id }) => id)).size, 20);
   for (const definition of storageEntityModule.entities) {
     const seed = storageV2SeedData[definition.id as keyof typeof storageV2SeedData];
     assert.equal(definition.schema.safeParse(seed).success, true);
@@ -29,9 +29,9 @@ test('Storage owns 18 strict semantic entities with novice editor and visual con
     ),
   );
   const status = semanticRegistryStatus(entityDefinitions, storageEntityModule.viewCatalog);
-  assert.equal(status.migratedEntityIds.length, 195);
+  assert.equal(status.migratedEntityIds.length, 198);
   assert.equal(status.missingEditorEntityIds.length, 0);
-  assert.equal(status.missingViewEntityIds.length, 177);
+  assert.equal(status.missingViewEntityIds.length, 178);
 });
 
 test('Storage semantic seeds preserve B2B positioning and all mounted service cards', () => {

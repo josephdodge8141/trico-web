@@ -167,6 +167,12 @@ test('Real Estate listing actions retain the directory and contact calls to acti
     ],
   );
   assert.equal(actions.contactActionLabel, 'Looking for something specific? Contact us');
+  const facts = realEstateListingSchema.parse(
+    realEstateV2SeedData['real-estate.listings.items'][0],
+  );
+  assert.equal(facts.amount, null);
+  assert.equal(facts.transaction, 'sale');
+  assert.equal(realEstateListingSchema.safeParse({ ...facts, amount: -1 }).success, false);
   const definition = realEstateEntityDefinitions.find(
     ({ id }) => id === 'real-estate.listings.actions',
   );

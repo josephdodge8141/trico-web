@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { realEstateListingGalleryImageSchema, realEstateEntityDefinitions } from './real-estate.js';
 
 import type { EditableValue } from './content.js';
 import {
@@ -108,13 +109,14 @@ export const constructionProjectSchema = z.strictObject({
   name: text(200),
   description: text(2_000),
   address: optionalText(300),
-  owner: optionalText(200),
+  owner: optionalText(200).default(''),
   architect: optionalText(200),
   engineer: optionalText(200),
   squareFeet: optionalText(80),
   dateLabel: optionalText(100),
   photo: managedImage,
   photoAltText: text(200),
+  gallery: z.array(realEstateListingGalleryImageSchema).default([]),
   publicVisibility: publicVisibilitySchema,
 });
 type ConstructionProjectDraft = z.infer<typeof constructionProjectSchema>;
@@ -968,14 +970,18 @@ const categoryDefinitions = constructionProjectStatuses.flatMap((status) =>
           field(['id'], 'Item identity', 0, system()),
           field(['name'], 'Project name', 1, short(200)),
           field(['description'], 'Description', 2, long(6, 2_000)),
-          field(['address'], 'Address', 3, long(3, 300), false),
-          field(['owner'], 'Owner', 4, short(200), false),
+          field(['address'], 'Location', 3, long(3, 300), false),
+          ...realEstateEntityDefinitions
+            .filter(({ id }) => id === 'real-estate.listings.items')
+            .flatMap(({ editor }) => editor.groups.flatMap(({ fields }) => fields))
+            .filter(({ path }) => path[0] === 'gallery')
+            .map((field) => ({ ...field, order: 12 })),
           field(['architect'], 'Architect', 5, short(200), false),
           field(['engineer'], 'Engineer', 6, short(200), false),
           field(['squareFeet'], 'Size', 7, short(80), false),
           field(
             ['dateLabel'],
-            status === 'current' ? 'Started' : 'Completed',
+            status === 'current' ? 'Year or In progress' : 'Year completed',
             8,
             short(100),
             false,
