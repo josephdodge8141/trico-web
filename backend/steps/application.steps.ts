@@ -6,6 +6,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { After, Before, Given, Then, When, setWorldConstructor, World } from '@cucumber/cucumber';
 import {
   aggregateEntityModules,
+  contentManifestSchema,
   defineEntityModule,
   constructionEntityModule,
   constructionV2SeedData,
@@ -1317,7 +1318,21 @@ Given(
   async function (this: BackendWorld) {
     await seedManifest(this);
     this.change = await createRevision(this, HERO, 1);
-    this.otherChange = await createRevision(this, 'storage.hero' as EntityId, 1, OTHER_EDITOR);
+    const definition = requireEntityDefinition('property-management.leases.items');
+    assert.equal(definition.editor?.kind, 'list');
+    if (definition.editor?.kind !== 'list') throw new Error('Missing lease editor');
+    this.otherChange = await this.content.createChange(definition.id, OTHER_EDITOR, [
+      {
+        ...(definition.editor.blankItem as Record<string, EditableValue>),
+        name: 'Lease publication fixture',
+        description: 'Verified commercial space.',
+        address: '100 Test Street',
+        image: { kind: 'managed', key: 'media/seed/town-square.jpg' },
+        publicVisibility: 'approved',
+        price: 'Contact for pricing',
+        contactUrl: 'mailto:leasing@example.test',
+      },
+    ]);
     await createRevision(this, 'development.hero' as EntityId, 1, EDITOR);
   },
 );
@@ -1346,6 +1361,16 @@ When('an authenticated editor publishes the selection', async function (this: Ba
   }
   assert.equal((await this.content.pending()).length, 1);
   assert.equal(this.objects.writes.at(-1), 'content/manifest.json');
+  const manifest = contentManifestSchema.parse(
+    JSON.parse(this.objects.objects.get('content/manifest.json') ?? '{}'),
+  );
+  for (const pageId of ['property-management', 'real-estate'] as const) {
+    const page = JSON.parse(
+      this.objects.objects.get(manifest.pages[pageId]?.url.slice(1) ?? '') ?? '{}',
+    ) as Record<string, unknown>;
+    assert.deepEqual(page['property-management.leases.items'], this.otherChange?.replacementValue);
+  }
+
   assert.equal((await this.content.deploymentState()).blocked, false);
   mark(
     this,
@@ -1544,18 +1569,18 @@ When('the editable entity registry is validated', function (this: BackendWorld) 
   this.registryValidated = true;
 });
 
-Then('it contains exactly 195 globally unique entity IDs', function (this: BackendWorld) {
+Then('it contains exactly 198 globally unique entity IDs', function (this: BackendWorld) {
   assert.equal(this.registryValidated, true);
-  assert.equal(entityRegistry.size, 195);
-  assert.equal(new Set([...entityRegistry.keys()]).size, 195);
+  assert.equal(entityRegistry.size, 198);
+  assert.equal(new Set([...entityRegistry.keys()]).size, 198);
 });
 
-Then('its page counts are 18, 35, 31, 65, 18, and 28', function () {
+Then('its page counts are 18, 36, 31, 65, 20, and 28', function () {
   assert.deepEqual(
     pageIdSchema.options.map(
       (pageId) => [...entityRegistry.values()].filter((entry) => entry.pageId === pageId).length,
     ),
-    [18, 35, 31, 65, 18, 28],
+    [18, 36, 31, 65, 20, 28],
   );
 });
 

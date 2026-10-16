@@ -7,8 +7,8 @@ Feature: In-page content editing and preview
     browser-noop: Compile-time registry structure is not meaningfully observable through browser interaction.
     Given the six canonical page definitions
     When the editable entity registry is validated
-    Then it contains exactly 195 globally unique entity IDs
-    And its page counts are 18, 35, 31, 65, 18, and 28
+    Then it contains exactly 198 globally unique entity IDs
+    And its page counts are 18, 36, 31, 65, 20, and 28
     And every ID namespace, page ID, public path, kind, schema, label, and seed agree
     And none of the nine hard-coded form configurations is editable
 

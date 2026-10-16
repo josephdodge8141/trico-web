@@ -15,3 +15,5 @@ Compose is the dependency source. CDK owns permanent infrastructure only; ordina
 Read each area's paired `CLAUDE.md` / `AGENTS.md` before edits and the corresponding `.claude/skills` concept skill when present. Copies in `.agents/skills` are generated mirrors. The root coordinator owns manifest/lockfile and shared configuration changes during initial construction.
 
 Commands are declared in root package.json. During construction an unfinished command is not a pass. Run the relevant checks, report actual results and leave known gaps explicit. The factory is complete only after clean local onboarding and the separate generated reference proves its required live lifecycle.
+
+Commercial leases are canonical in Property Management. Their publication and rollback must refresh the Real Estate projection.

@@ -140,7 +140,7 @@ Feature: Published TriCo website
     Then the Property Management page presents ready sections in order with a navigable process progress view
     And the Property Management hero presents an accessible primary and secondary action hierarchy
     And the Property Management hero uses relevant managed imagery with a neutral fallback
-    And all 34 Property Management entities have an editable visual boundary
+    And all 35 Property Management entities have an editable visual boundary
     And supplied Property Management portfolio images load while additional cards reveal on request without conflicting public metrics
     And Property Management portfolio categories fit their tab bar and remain directly browseable on mobile
     And the single Property Management analysis form delivers and restarts with focus without creating CMS entities
@@ -156,6 +156,7 @@ Feature: Published TriCo website
     And Real Estate listing photos preserve their frozen source identities
     And listing tabs show active and sold counts in a keyboard-connected segmented control
     And each available external listing action remains accessible but visually subordinate
+    And listing discovery combines location and category filters and opens keyboard accessible photos
     And listing directory actions and the contact call to action complete the gallery
     And the single Real Estate contact form delivers only after a successful request
 
@@ -177,7 +178,7 @@ Feature: Published TriCo website
     Given the current content manifest is available
     When I open "/storage"
     Then Storage presents facility management for owners rather than consumer unit shopping
-    And all 18 Storage entities have an editable visual boundary
+    And all 20 Storage entities have an editable visual boundary
     And the Storage hero, services, team, Our Why, reviews, contact, and footer render in order
     And Storage services and long bios expand on demand on mobile
     And the Storage contact form focuses delivery feedback and preserves values on failure without creating a CMS entity
@@ -196,7 +197,7 @@ Feature: Published TriCo website
 
     Examples: Dedicated divisions
       | case_id     | route          | division    | entity_count |
-      | real-estate | /real-estate   | Real Estate | 30           |
+      | real-estate | /real-estate   | Real Estate | 32           |
       | construction | /construction | Construction | 37           |
       | development | /development   | Development | 28           |
 

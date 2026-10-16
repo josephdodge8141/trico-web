@@ -93,6 +93,11 @@ export function createExternalSourceService(
       return (response.Items ?? []).map(asSource);
     },
     create: async (input) => {
+      if (input.entityId === 'property-management.leases.items')
+        throw new ServiceError(
+          'SOURCE_NOT_ALLOWED',
+          'Commercial leases use uploaded photos and manual details.',
+        );
       const now = new Date().toISOString();
       const source = externalSourceSchema.parse({
         ...input,
