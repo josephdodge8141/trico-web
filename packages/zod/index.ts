@@ -419,3 +419,4 @@ export {
 
 export { storageDirectorySchema, storageDirectoryItemSchema } from './schemas/storage.js';
 export { commercialLeaseSchema, commercialLeasesSchema } from './schemas/property-management.js';
+export * from './schemas/editor-assistant.js';

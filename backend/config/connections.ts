@@ -10,6 +10,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import nodemailer from 'nodemailer';
+import { createEditorAiConnection, type EditorAiConnection } from './editor-ai.js';
 
 import { loadEnvironment, type Environment } from './environment.js';
 
@@ -47,6 +48,7 @@ export interface ResumeObjectConnection {
 }
 
 export interface Connections extends ConnectionLifecycle {
+  readonly editorAi: EditorAiConnection;
   readonly health: HealthConnection;
   readonly dynamo: DynamoDBDocumentClient;
   readonly s3: S3Client;
@@ -170,6 +172,7 @@ export function createConnections(environment: Environment = loadEnvironment()):
   };
 
   return {
+    editorAi: createEditorAiConnection(),
     health: {
       getHealth: (): unknown => ({ status: 'ok' }),
     },
