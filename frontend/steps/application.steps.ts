@@ -7356,3 +7356,26 @@ Then(
     assert.equal(forged.status(), 403);
   },
 );
+
+Then(
+  'the page assistant proposes and saves a private revision without publishing',
+  async function (this: FrontendWorld) {
+    const page = this.currentPage();
+    await page.getByRole('button', { name: 'Page assistant', exact: true }).first().click();
+    const assistant = page.getByRole('dialog', { name: 'Page assistant' });
+    await expect(assistant).toBeVisible();
+    await assistant.getByLabel('Page section').selectOption('home.hero');
+    await assistant
+      .getByLabel('Message')
+      .fill('Change the main heading to Local assistant verification. Preserve every other field.');
+    await assistant.getByRole('button', { name: 'Ask assistant', exact: true }).click();
+    await assistant.getByRole('button', { name: 'Apply draft', exact: true }).click();
+    await expect(assistant.getByRole('status')).toContainText('saved');
+    await assistant.getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Local assistant verification',
+    );
+    const publicPage = await page.request.get('/api/v1/pages/home');
+    assert.ok(!JSON.stringify(await publicPage.json()).includes('Local assistant verification'));
+  },
+);

@@ -1,4 +1,6 @@
 import express, { type Express } from 'express';
+import { createEditorAssistantService } from './services/editor-assistant.js';
+import { createEditorAssistantRoute } from './routes/v1/editor-assistant.js';
 import helmet from 'helmet';
 
 import type { Connections } from './config/connections.js';
@@ -77,6 +79,24 @@ export function createApp(dependencies: AppDependencies): Express {
       environment,
     ),
   );
+  if (
+    (environment.appEnvironment === 'local' || environment.appEnvironment === 'test') &&
+    /^(localhost|127\.0\.0\.1|.*\.localhost)$/.test(new URL(environment.publicOrigin).hostname)
+  ) {
+    app.use(
+      '/api/v1',
+      createEditorAssistantRoute(
+        createEditorAssistantService(
+          dependencies.connections.dynamo,
+          environment.dynamoTable,
+          contentService,
+          mediaService,
+          dependencies.connections.editorAi,
+        ),
+        environment.publicOrigin,
+      ),
+    );
+  }
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);
   return app;

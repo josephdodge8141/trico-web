@@ -652,10 +652,111 @@ When('I save a schema-valid complete replacement', async function (this: Backend
     pageEntities(await this.content.preview('home', OTHER_EDITOR))[HERO],
     this.change.replacementValue,
   );
+  const connections = createConnections();
+  const server = createApp({
+    connections: {
+      ...connections,
+      dynamo: this.dynamo.asClient(),
+      s3: this.objects.asClient(),
+      mail: this.mail,
+    },
+  }).listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  assert.ok(address && typeof address === 'object');
+  this.baseUrl = `http://127.0.0.1:${String(address.port)}`;
+  this.close = async () => {
+    server.close();
+    await once(server, 'close');
+    await connections.close();
+  };
+  const call = (
+    path: string,
+    body: unknown,
+    headers: Record<string, string> = {},
+    method = 'POST',
+  ) =>
+    fetch(`${this.baseUrl}/api/v1/${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json', ...headers },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  const response = await call('editor/connections', undefined);
+  assert.equal(response.status, 201);
+  const connection = (await response.json()) as { id: string; secret: string };
+  const bearer = {
+    Origin: 'http://app.localhost:8088',
+    Authorization: `Bearer ${connection.id}.${connection.secret}`,
+  };
+  const read = { action: 'read', entityId: HERO };
+  assert.equal((await call('editor/tools', read, bearer)).status, 403);
+  await registerVerified(this);
+  const session = await this.auth.login(this.email, PASSWORD);
+  const browser = {
+    Origin: 'http://app.localhost:8088',
+    Cookie: `trico_session=${session.token}`,
+    'X-CSRF-Token': session.csrfToken,
+  };
+  assert.equal((await call(`editor/connections/${connection.id}`, {})).status, 403);
+  assert.equal(
+    (await call(`editor/connections/${connection.id}`, {}, { ...browser, 'X-CSRF-Token': 'wrong' }))
+      .status,
+    403,
+  );
+  assert.equal((await call(`editor/connections/${connection.id}`, {}, browser)).status, 204);
+  assert.equal((await call('editor/tools', read, bearer)).status, 200);
+  assert.equal((await call('editor/tools', { action: 'publish' }, bearer)).status, 400);
+  assert.equal((await call('publish', { selections: [] }, bearer)).status, 401);
+  assert.equal(
+    (
+      await call(
+        'editor/tools',
+        {
+          action: 'save',
+          entityId: HERO,
+          replacementValue: changed(this.beforeValue),
+          expectedRevision: 1,
+        },
+        bearer,
+      )
+    ).status,
+    409,
+  );
+  const draft = {
+    action: 'save',
+    entityId: 'home.contact',
+    replacementValue: changed(seedValue('home.contact')),
+    expectedRevision: null as number | null,
+  };
+  assert.equal((await call('editor/tools', draft, bearer)).status, 200);
+  assert.equal(
+    (
+      await call(
+        'editor/tools',
+        { ...draft, replacementValue: changed(draft.replacementValue), expectedRevision: 1 },
+        bearer,
+      )
+    ).status,
+    200,
+  );
+  assert.equal((await call('editor/tools', { ...draft, expectedRevision: 1 }, bearer)).status, 409);
+  const stored = this.dynamo.items.get(`EDITOR#${connection.id}|CONNECTION`);
+  assert.ok(stored);
+  const expiry = stored['expiresAt'];
+  stored['expiresAt'] = 0;
+  assert.equal((await call('editor/tools', read, bearer)).status, 403);
+  stored['expiresAt'] = expiry;
+  assert.equal(
+    (await call(`editor/connections/${connection.id}`, {}, browser, 'DELETE')).status,
+    204,
+  );
+  assert.equal((await call('editor/tools', read, bearer)).status, 403);
   mark(
     this,
     'the published entity is unchanged',
     "the change is enabled in every editor's preview by default",
+    'local MCP draft access requires browser approval and cannot publish',
+    'revoked expired and stale assistant operations cannot overwrite editor work',
   );
 });
 
@@ -872,6 +973,8 @@ Then('the published collection remains unchanged', async function (this: Backend
 factThen([
   'the published entity is unchanged',
   "the change is enabled in every editor's preview by default",
+  'local MCP draft access requires browser approval and cannot publish',
+  'revoked expired and stale assistant operations cannot overwrite editor work',
   'exactly one pending change is created',
   'the other request receives a conflict',
   'its published entity is unchanged',

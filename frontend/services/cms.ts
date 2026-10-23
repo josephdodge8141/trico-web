@@ -1,4 +1,9 @@
 import {
+  editorProposalSchema,
+  editorResultSchema,
+  type EditorChat,
+  type EditorCommand,
+  errorResponseSchema,
   csrfResponseSchema,
   deploymentStateResponseSchema,
   externalSourceSchema,
@@ -61,12 +66,9 @@ const request = async (
     signal: options.signal ?? null,
   });
   if (!response.ok) {
-    const problem = (await response.json().catch(() => undefined)) as
-      { readonly message?: unknown } | undefined;
+    const problem = errorResponseSchema.safeParse(await response.json().catch(() => undefined));
     throw new CmsRequestError(
-      typeof problem?.message === 'string'
-        ? problem.message
-        : `CMS request failed (${response.status})`,
+      problem.success ? problem.data.error.message : `CMS request failed (${response.status})`,
       response.status,
     );
   }
@@ -284,3 +286,20 @@ export const updateExternalSource = async (
       options,
     ),
   );
+
+export const requestEditorProposal = async (input: EditorChat, options: CmsRequestOptions) =>
+  editorProposalSchema.parse(await request('/api/v1/editor/chat', 'POST', input, options));
+export const executeEditorCommand = async (input: EditorCommand, options: CmsRequestOptions) =>
+  editorResultSchema.parse(await request('/api/v1/editor/tools', 'POST', input, options));
+export const approveEditorConnection = async (
+  id: string,
+  revoke: boolean,
+  options: CmsRequestOptions,
+): Promise<void> => {
+  await request(
+    `/api/v1/editor/connections/${encodeURIComponent(id)}`,
+    revoke ? 'DELETE' : 'POST',
+    {},
+    options,
+  );
+};
