@@ -18,7 +18,7 @@ export function createEditorAiConnection(): EditorAiConnection {
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(60000),
         body: JSON.stringify({
-          model: process.env.EDITOR_AI_MODEL ?? 'haiku5.5',
+          model: process.env.EDITOR_AI_MODEL ?? 'openai-gpt-oss-120b-1-0',
           max_tokens: 4096,
           messages: [
             {
