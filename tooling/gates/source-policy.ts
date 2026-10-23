@@ -33,6 +33,7 @@ const ROOT_SOURCE_FILES = {
   backend: [
     'app.test.ts',
     'app.ts',
+    'mcp.ts',
     'index.test.ts',
     'index.ts',
     'lambda.ts',

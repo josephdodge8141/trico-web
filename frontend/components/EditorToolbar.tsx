@@ -1,10 +1,13 @@
 import { useEffect, useId, useState } from 'react';
 import { History, Menu, Pencil, Send, X } from 'lucide-react';
 
-import { entityDefinitions } from '@app/schemas';
+import { entityDefinitions, type EditorChat, type EditorProposal } from '@app/schemas';
 
 import { useEditMode } from '../context/editMode.js';
 import {
+  approveEditorConnection,
+  executeEditorCommand,
+  requestEditorProposal,
   fetchCsrfToken,
   fetchDeploymentState,
   fetchPublications,
@@ -23,9 +26,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog.js';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet.js';
+import { NativeSelect, NativeSelectOption } from './ui/native-select.js';
+import { Textarea } from './ui/textarea.js';
+import { Label } from './ui/label.js';
 import { Separator } from './ui/separator.js';
 
-type ToolbarPanel = 'none' | 'review' | 'history';
+type ToolbarPanel = 'none' | 'review' | 'history' | 'assistant';
 
 function labelForEntity(entityId: string): string {
   return entityDefinitions.find(({ id }) => id === entityId)?.label ?? 'Page section';
@@ -45,6 +52,11 @@ export function EditorToolbar(): React.JSX.Element | null {
     void fetchDeploymentState()
       .then((state) => setFailedOperationId(state.failedOperation?.id))
       .catch(() => setFailedOperationId(undefined));
+  }, [editing.active]);
+
+  useEffect(() => {
+    if (editing.active && new URLSearchParams(window.location.search).has('editorConnection'))
+      setPanel('assistant');
   }, [editing.active]);
 
   const openHistory = (): void => {
@@ -123,6 +135,9 @@ export function EditorToolbar(): React.JSX.Element | null {
             <Menu aria-hidden="true" /> Editor actions
           </Button>
           <div className="hidden items-center gap-2 md:flex">
+            <Button variant="outline" onClick={() => setPanel('assistant')}>
+              Page assistant
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -162,6 +177,15 @@ export function EditorToolbar(): React.JSX.Element | null {
           id={actionsId}
           className={mobileActionsOpen ? 'mt-3 grid gap-2 border-t pt-3 md:hidden' : 'hidden'}
         >
+          <Button
+            variant="outline"
+            onClick={() => {
+              setMobileActionsOpen(false);
+              setPanel('assistant');
+            }}
+          >
+            Page assistant
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -208,8 +232,9 @@ export function EditorToolbar(): React.JSX.Element | null {
           </Button>
         </div>
       </aside>
+      {panel === 'assistant' ? <PageAssistant onClose={() => setPanel('none')} /> : null}
       <Dialog
-        open={panel !== 'none'}
+        open={panel === 'review' || panel === 'history'}
         onOpenChange={(open) => {
           if (!open) setPanel('none');
         }}
@@ -306,5 +331,195 @@ export function EditorToolbar(): React.JSX.Element | null {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function PageAssistant({ onClose }: { readonly onClose: () => void }): React.JSX.Element {
+  const editing = useEditMode();
+  const sections = entityDefinitions.filter((definition) => definition.pageId === editing.pageId);
+  const [entityId, setEntityId] = useState(
+    sections.find((section) => section.id.endsWith('.hero'))?.id ?? sections[0]?.id ?? 'home.hero',
+  );
+  const [messages, setMessages] = useState<EditorChat['messages']>([]);
+  const [message, setMessage] = useState('');
+  const [proposal, setProposal] = useState<EditorProposal>();
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState(
+    'Proposals stay private. Review and apply a draft before publishing from the website.',
+  );
+  const connection = new URLSearchParams(window.location.search).get('editorConnection');
+  const run = async (operation: () => Promise<void>): Promise<void> => {
+    setBusy(true);
+    try {
+      await operation();
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : 'The request failed. Your draft was retained.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Sheet
+      open
+      onOpenChange={(open) => {
+        if (!open && !busy) onClose();
+      }}
+    >
+      <SheetContent className="overflow-y-auto p-5 data-[side=right]:w-full data-[side=right]:sm:max-w-md [&_button]:min-h-11 [&_select]:min-h-11">
+        <SheetHeader>
+          <SheetTitle>Page assistant</SheetTitle>
+          <SheetDescription>
+            Edit this page with a private draft. This assistant cannot publish or deploy.
+          </SheetDescription>
+        </SheetHeader>
+        {connection ? (
+          <div className="grid gap-2 rounded-lg border p-3">
+            <p>
+              Local MCP request: {connection.slice(0, 8)}. Confirm this matches the request printed
+              by your local process. Access lasts 15 minutes and is limited to drafts and media.
+            </p>
+            <Button
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  await approveEditorConnection(connection, false, {
+                    csrfToken: await fetchCsrfToken(),
+                  });
+                  setStatus('Local MCP connection approved.');
+                })
+              }
+            >
+              Approve local MCP
+            </Button>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  await approveEditorConnection(connection, true, {
+                    csrfToken: await fetchCsrfToken(),
+                  });
+                  setStatus('Local MCP connection revoked.');
+                })
+              }
+            >
+              Revoke local MCP
+            </Button>
+          </div>
+        ) : null}
+        <Label htmlFor="assistant-section">Page section</Label>
+        <NativeSelect
+          id="assistant-section"
+          value={entityId}
+          disabled={busy}
+          onChange={(event) => {
+            setEntityId(event.target.value);
+            setMessages([]);
+            setProposal(undefined);
+          }}
+        >
+          {sections.map((section) => (
+            <NativeSelectOption key={section.id} value={section.id}>
+              {section.label}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+        <div role="log" aria-label="Assistant conversation" className="grid gap-3">
+          {messages.map((entry, index) => (
+            <p key={index} className="whitespace-pre-wrap rounded-lg bg-muted p-3">
+              <strong>{entry.role === 'user' ? 'You' : 'Assistant'}: </strong>
+              {entry.content}
+            </p>
+          ))}
+          {proposal?.questions.map((question) => (
+            <p key={question} className="text-destructive">
+              {question}
+            </p>
+          ))}
+        </div>
+        <form
+          className="grid gap-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const conversation = [...messages, { role: 'user' as const, content: message }].slice(
+              -11,
+            );
+            void run(async () => {
+              const result = await requestEditorProposal(
+                {
+                  entityId,
+                  messages: conversation,
+                  ...(proposal?.replacementValue == null
+                    ? {}
+                    : { draftValue: proposal.replacementValue }),
+                },
+                { csrfToken: await fetchCsrfToken() },
+              );
+              setMessages([...conversation, { role: 'assistant', content: result.answer }]);
+              setProposal(result);
+              setMessage('');
+              setStatus('Review the proposal, then apply it as a private draft.');
+            });
+          }}
+        >
+          <Label htmlFor="assistant-message">Message</Label>
+          <Textarea
+            id="assistant-message"
+            value={message}
+            maxLength={6000}
+            disabled={busy}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder="What would you like to change?"
+            required
+          />
+          <Button disabled={busy || !message.trim()} type="submit">
+            {busy ? 'Working…' : 'Ask assistant'}
+          </Button>
+        </form>
+        <Button
+          disabled={busy || proposal?.replacementValue == null || !!proposal.questions.length}
+          onClick={() =>
+            void run(async () => {
+              if (!proposal?.replacementValue) return;
+              await executeEditorCommand(
+                {
+                  action: 'save',
+                  entityId,
+                  pageId: editing.pageId,
+                  replacementValue: proposal.replacementValue,
+                  expectedRevision: proposal.expectedRevision,
+                },
+                { csrfToken: await fetchCsrfToken() },
+              );
+              await editing.enter();
+              setProposal(undefined);
+              setStatus(
+                'Your private draft was saved. Close the assistant to review it on the page.',
+              );
+            })
+          }
+        >
+          Apply draft
+        </Button>
+        <Button
+          variant="outline"
+          disabled={busy}
+          onClick={() =>
+            editing.requestMedia((asset) =>
+              setMessage(
+                (current) => `${current} Use managed photo ${asset.publicUrl} (${asset.altText}).`,
+              ),
+            )
+          }
+        >
+          Choose or upload photo
+        </Button>
+        <p role="status" aria-live="polite">
+          {status}
+        </p>
+      </SheetContent>
+    </Sheet>
   );
 }

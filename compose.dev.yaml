@@ -2,6 +2,9 @@ services:
   caddy:
     ports: !override ['18091:8088']
   backend:
+    env_file:
+      - path: .secrets/editor.env
+        required: false
     environment:
       PUBLIC_ORIGIN: http://app.localhost:18091
   seed:
