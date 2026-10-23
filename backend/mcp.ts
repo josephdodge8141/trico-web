@@ -38,8 +38,7 @@ const api = async (
   return response.json();
 };
 let connection: ReturnType<typeof editorConnectionSchema.parse> | undefined;
-let initialized = false;
-let ready = false;
+let state: 'new' | 'initialized' | 'ready' = 'new';
 for await (const line of createInterface({ input: process.stdin, crlfDelay: Infinity })) {
   let id: string | number | null = null;
   let code = -32700;
@@ -50,7 +49,7 @@ for await (const line of createInterface({ input: process.stdin, crlfDelay: Infi
     const message = editorRpcSchema.parse(json);
     id = message.id ?? null;
     if (message.method === 'notifications/initialized') {
-      ready = initialized;
+      state = state === 'new' ? 'new' : 'ready';
       continue;
     }
     if (message.id === undefined) continue;
@@ -66,17 +65,15 @@ for await (const line of createInterface({ input: process.stdin, crlfDelay: Infi
       process.stderr.write(
         `TriCo MCP request ${connection.id.slice(0, 8)}: sign in, open ${origin.origin}/?editorConnection=${connection.id}, enter edit mode, and approve local MCP.\n`,
       );
-      initialized = true;
+      state = 'initialized';
       result = {
         protocolVersion: '2025-11-25',
         capabilities: { tools: {} },
         serverInfo: { name: 'trico-local-editor', version: '1.0.0' },
-        instructions:
-          'Draft and media operations only. Inspect section contracts and current revisions before saving. Publication requires website review.',
       };
     } else {
       code = -32002;
-      if (!ready) throw new Error('Initialize this MCP connection first.');
+      if (state !== 'ready') throw new Error('Initialize this MCP connection first.');
       if (message.method === 'ping') result = {};
       else if (message.method === 'tools/list')
         result = {

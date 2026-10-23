@@ -9,7 +9,6 @@ export interface EditorAiConnection {
 export function createEditorAiConnection(): EditorAiConnection {
   const base = process.env.EDITOR_AI_URL;
   const key = process.env.EDITOR_AI_KEY;
-  const model = process.env.EDITOR_AI_MODEL ?? 'haiku5.5';
   return {
     propose: async (context, messages) => {
       if (!base || !key)
@@ -19,7 +18,7 @@ export function createEditorAiConnection(): EditorAiConnection {
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(60000),
         body: JSON.stringify({
-          model,
+          model: process.env.EDITOR_AI_MODEL ?? 'haiku5.5',
           max_tokens: 4096,
           messages: [
             {
