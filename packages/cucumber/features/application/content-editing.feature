@@ -72,6 +72,8 @@ Feature: In-page content editing and preview
     Then revision 1 is owned by me
     And the published entity is unchanged
     And the change is enabled in every editor's preview by default
+    And local MCP draft access requires browser approval and cannot publish
+    And revoked expired and stale assistant operations cannot overwrite editor work
 
   @id:content.concurrent-create @frontend-noop @browser-noop-eligible
   Scenario: Allow only one owner to create the first pending change
@@ -185,6 +187,7 @@ Feature: In-page content editing and preview
     Then the saved preview remains unchanged
     When I change a field and save
     Then the validated value appears in my private preview
+    And the page assistant proposes and saves a private revision without publishing
 
   @id:content.property-management-object-launchers @backend-noop
   Scenario: Open Property Management object editors from fixed and hero sections

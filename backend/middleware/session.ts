@@ -8,6 +8,7 @@ import { HttpError } from './errors.js';
 declare module 'express-serve-static-core' {
   interface Request {
     auth?: AuthenticatedRequestState;
+    editorUserId?: string;
   }
 }
 
@@ -90,3 +91,37 @@ export const requireCsrf: RequestHandler = (request, _response, next): void => {
   }
   next();
 };
+
+export const rejectBrowserConnection: RequestHandler = (request, _response, next) => {
+  if (request.headers.origin || request.headers['sec-fetch-site'])
+    next(
+      new HttpError(403, 'ORIGIN_REJECTED', 'Start the connection from your local MCP process.'),
+    );
+  else next();
+};
+
+export function createEditorAccess(
+  service: import('../services/editor-assistant.js').EditorAssistantService,
+  origin: string,
+): RequestHandler {
+  return async (request, _response, next) => {
+    try {
+      if (request.headers.origin !== origin)
+        throw new HttpError(403, 'ORIGIN_REJECTED', 'Request origin was rejected');
+      const token = request.headers.authorization?.replace(/^Bearer /, '');
+      if (token) request.editorUserId = await service.authorize(token);
+      else if (request.auth && request.headers['x-csrf-token'] === request.auth.csrfToken)
+        request.editorUserId = request.auth.userId;
+      else throw new HttpError(401, 'AUTH_REQUIRED', 'An approved editor connection is required');
+      next();
+    } catch {
+      next(
+        new HttpError(
+          403,
+          'EDITOR_CONNECTION_INVALID',
+          'Your editor connection is unavailable. Sign in or reconnect.',
+        ),
+      );
+    }
+  };
+}
