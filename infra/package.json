@@ -22,8 +22,8 @@
     "@smithy/signature-v4": "5.7.3",
     "aws-cdk-lib": "file:../vendor/aws-cdk-lib-2.272.0-brace-patched.tgz",
     "constructs": "10.8.1",
-    "puppeteer-core": "25.10.0",
-    "zod": "4.5.4"
+    "puppeteer-core": "25.17.0",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@app/behaviors": "0.1.0"
