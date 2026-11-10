@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { runInNewContext } from 'node:vm';
 
 import { App } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 
 import { exampleApplicationConfig } from './application/config.js';
 import { ApplicationStack } from './application/stack.js';
+import { freshRoutingCode } from './application/fresh-routing.js';
 
 function applicationTemplate(stage: 'dev' | 'prod' = 'dev'): Template {
   const app = new App();
@@ -14,7 +16,7 @@ function applicationTemplate(stage: 'dev' | 'prod' = 'dev'): Template {
   );
 }
 
-test('application stack creates isolated durable content infrastructure', () => {
+test('application stack creates isolated durable content infrastructure', async () => {
   const template = applicationTemplate();
   template.resourceCountIs('AWS::DynamoDB::Table', 1);
   template.hasResourceProperties('AWS::DynamoDB::Table', {
@@ -55,6 +57,104 @@ test('application stack creates isolated durable content infrastructure', () => 
   });
   template.resourceCountIs('AWS::CloudFront::Distribution', 1);
   template.resourceCountIs('AWS::Route53::RecordSet', 1);
+  const release = 'a'.repeat(40);
+  const previous = 'b'.repeat(40);
+  const records = new Map([
+    ['active', release],
+    [release + ':/', '1'],
+    [release + ':/construction', '1'],
+    [previous + ':/', '1'],
+  ]);
+  const handler = runInNewContext(
+    freshRoutingCode('fixture').replace("import cf from 'cloudfront';", '') + '\nhandler;',
+    {
+      cf: {
+        kvs: () => ({
+          get: async (key: string) => {
+            const value = records.get(key);
+            if (value === undefined) throw new Error('Missing key');
+            return value;
+          },
+          exists: async (key: string) => records.has(key),
+        }),
+      },
+    },
+  ) as (event: {
+    request: { uri: string; method: string };
+  }) => Promise<{ uri?: string; statusCode?: number }>;
+  const request = (uri: string, method = 'GET') => handler({ request: { uri, method } });
+  assert.equal((await request('/construction/')).uri, `/fresh-releases/${release}/index.html`);
+  assert.equal((await request('/missing-project')).statusCode, 404);
+  assert.equal((await request('/construction', 'POST')).statusCode, 405);
+  assert.equal(
+    (await request(`/fresh-releases/${previous}/assets/missing.js`)).uri,
+    `/fresh-releases/${previous}/assets/missing.js`,
+  );
+  assert.equal(
+    (await request('/missing.svg')).uri,
+    '/missing.svg',
+    'Origin error status must not be rewritten',
+  );
+  assert.equal(
+    (await request('/deployment.json')).uri,
+    `/fresh-releases/${release}/deployment.json`,
+  );
+  records.set('active', previous);
+  assert.equal(
+    (await request('/')).uri,
+    `/fresh-releases/${previous}/index.html`,
+    'Rollback restores the prior registry',
+  );
+  assert.equal(
+    (await request('/construction')).statusCode,
+    404,
+    'Do not reuse routes from another release',
+  );
+  records.set('active', 'c'.repeat(40));
+  assert.equal((await request('/')).statusCode, 503, 'An incomplete registry fails closed');
+  records.set('active', 'invalid');
+  assert.equal((await request('/')).statusCode, 503);
+  records.delete('active');
+  assert.equal((await request('/')).statusCode, 503);
+
+  const freshApp = new App();
+  const freshTemplate = Template.fromStack(
+    new ApplicationStack(freshApp, 'FreshDev', {
+      config: {
+        ...exampleApplicationConfig('dev'),
+        freshDevRouting: { releaseSha: 'a'.repeat(40), documentPaths: ['/', '/construction'] },
+      },
+    }),
+  );
+  freshTemplate.resourceCountIs('AWS::CloudFront::KeyValueStore', 1);
+  freshTemplate.resourceCountIs('AWS::CloudFront::Function', 1);
+  const freshDistribution = Object.values(
+    freshTemplate.findResources('AWS::CloudFront::Distribution'),
+  )[0];
+  assert.ok(freshDistribution);
+  assert.equal(freshDistribution.Properties.DistributionConfig.CustomErrorResponses, undefined);
+  assert.equal(
+    freshDistribution.Properties.DistributionConfig.DefaultCacheBehavior.FunctionAssociations
+      .length,
+    1,
+  );
+  assert.equal(
+    freshDistribution.Properties.DistributionConfig.CacheBehaviors.find(
+      (behavior: { PathPattern: string }) => behavior.PathPattern === 'api/*',
+    ).FunctionAssociations,
+    undefined,
+  );
+  assert.throws(
+    () =>
+      new ApplicationStack(new App(), 'RejectedProdRouting', {
+        config: {
+          ...exampleApplicationConfig('prod'),
+          freshDevRouting: { releaseSha: 'a'.repeat(40), documentPaths: ['/'] },
+        },
+      }),
+    /dev/i,
+  );
+
   template.hasResourceProperties('AWS::CloudFront::Distribution', {
     DistributionConfig: {
       Aliases: ['dev.example.com'],

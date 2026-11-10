@@ -102,6 +102,13 @@ for (const stage of ['dev', 'prod'] as const) {
         }),
     alertTopicArn:
       app.node.tryGetContext(`application:${stage}:alertTopicArn`) ?? example.alertTopicArn,
+    ...(app.node.tryGetContext(`application:${stage}:freshDevRouting`) === undefined
+      ? {}
+      : {
+          freshDevRouting: app.node.tryGetContext(
+            `application:${stage}:freshDevRouting`,
+          ) as unknown,
+        }),
     externalSyncEnabled:
       app.node.tryGetContext(`application:${stage}:externalSyncEnabled`) ??
       example.externalSyncEnabled,

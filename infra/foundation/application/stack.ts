@@ -3,6 +3,12 @@ import {
   AllowedMethods,
   CachePolicy,
   Distribution,
+  Function as CloudFrontFunction,
+  FunctionCode,
+  FunctionEventType,
+  FunctionRuntime,
+  ImportSource,
+  KeyValueStore,
   OriginRequestPolicy,
   ResponseHeadersPolicy,
   ViewerProtocolPolicy,
@@ -32,6 +38,7 @@ import { Topic } from 'aws-cdk-lib/aws-sns';
 import type { Construct } from 'constructs';
 
 import { type ApplicationConfig, parseApplicationConfig } from './config.js';
+import { freshRoutingCode } from './fresh-routing.js';
 
 export interface ApplicationStackProps extends StackProps {
   readonly config: ApplicationConfig;
@@ -226,6 +233,33 @@ export class ApplicationStack extends Stack {
       sourceArn: syncRule.attrArn,
     });
 
+    const routing = config.freshDevRouting;
+    const routeStore = routing
+      ? new KeyValueStore(this, 'FreshDocumentRegistry', {
+          keyValueStoreName: `${prefix}-fresh-documents`,
+          source: ImportSource.fromInline(
+            JSON.stringify({
+              data: [
+                { key: 'active', value: routing.releaseSha },
+                ...routing.documentPaths.map((uri) => ({
+                  key: `${routing.releaseSha}:${uri.replace(/\/$/, '') || '/'}`,
+                  value: '1',
+                })),
+              ],
+            }),
+          ),
+        })
+      : undefined;
+    const documentRouter = routeStore
+      ? new CloudFrontFunction(this, 'FreshDocumentRouter', {
+          functionName: `${prefix}-fresh-documents`,
+          runtime: FunctionRuntime.JS_2_0,
+          keyValueStore: routeStore,
+          code: FunctionCode.fromInline(freshRoutingCode(routeStore.keyValueStoreId)),
+        })
+      : undefined;
+    if (routeStore)
+      new CfnOutput(this, 'FreshDocumentRegistryArn', { value: routeStore.keyValueStoreArn });
     const certificate = Certificate.fromCertificateArn(this, 'Certificate', config.certificateArn);
     const distribution = new Distribution(this, 'Distribution', {
       certificate,
@@ -233,9 +267,27 @@ export class ApplicationStack extends Stack {
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(contentBucket as IBucket),
         responseHeadersPolicy: ResponseHeadersPolicy.SECURITY_HEADERS,
+        ...(documentRouter
+          ? {
+              functionAssociations: [
+                { eventType: FunctionEventType.VIEWER_REQUEST, function: documentRouter },
+              ],
+            }
+          : {}),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
       additionalBehaviors: {
+        ...(routing
+          ? {
+              api: {
+                allowedMethods: AllowedMethods.ALLOW_ALL,
+                cachePolicy: CachePolicy.CACHING_DISABLED,
+                origin: new HttpOrigin(Fn.select(2, Fn.split('/', api.attrApiEndpoint))),
+                originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+                viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+              },
+            }
+          : {}),
         'api/*': {
           allowedMethods: AllowedMethods.ALLOW_ALL,
           cachePolicy: CachePolicy.CACHING_DISABLED,
@@ -246,10 +298,14 @@ export class ApplicationStack extends Stack {
       },
       comment: `${prefix} public content and API`,
       enableLogging: false,
-      errorResponses: [
-        { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html' },
-        { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' },
-      ],
+      ...(routing
+        ? {}
+        : {
+            errorResponses: [
+              { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html' },
+              { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' },
+            ],
+          }),
     });
     const hostedZone = HostedZone.fromHostedZoneAttributes(this, 'ApplicationZone', {
       hostedZoneId: config.hostedZoneId,

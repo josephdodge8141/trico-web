@@ -113,6 +113,7 @@ Feature: Immutable application delivery
     backend-noop: Delivery IAM and artifact storage are factory infrastructure outside the generated backend.
     frontend-noop: Delivery IAM and artifact storage have no generated frontend interaction.
     browser-noop: A delivery-foundation template has no public page interaction.
+    A fresh-owned dev document registry rewrites only exact known page routes, leaves API/asset errors intact, and retains prior immutable route sets for rollback. Production behavior is unchanged until separately authorized.
     Given generic GitHub repository and notification configuration
     When the factory synthesizes the delivery foundation without AWS credentials
     Then it creates environment-scoped OIDC roles and protected release stores

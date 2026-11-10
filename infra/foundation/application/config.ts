@@ -25,9 +25,36 @@ export const applicationConfigSchema = z
     bedrockModelId: z.string().min(1).max(256).optional(),
     alertTopicArn: z.string().startsWith('arn:').min(20),
     externalSyncEnabled: contextBoolean,
+    freshDevRouting: z
+      .object({
+        releaseSha: z.string().regex(/^[a-f0-9]{40}$/),
+        documentPaths: z
+          .array(
+            z
+              .string()
+              .regex(/^\/(?:[a-z0-9-]+\/?)*$/)
+              .max(300),
+          )
+          .min(1)
+          .max(200)
+          .refine(
+            (paths) =>
+              paths.includes('/') &&
+              new Set(paths.map((value) => value.replace(/\/$/, '') || '/')).size === paths.length,
+            'Include root and unique document paths',
+          ),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((config, context) => {
+    if (config.freshDevRouting && config.stage !== 'dev')
+      context.addIssue({
+        code: 'custom',
+        path: ['freshDevRouting'],
+        message: 'Fresh routing is dev-only.',
+      });
     if (config.externalSyncEnabled && config.bedrockModelId === undefined) {
       context.addIssue({
         code: 'custom',
