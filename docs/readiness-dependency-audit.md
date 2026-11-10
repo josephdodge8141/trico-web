@@ -24,3 +24,9 @@ Residual moderate findings are the minimatch amplification advisory inherited th
 The exact final fresh candidate still requires its own dependency/image scan. Reaudit before privileged delivery because advisory information can change.
 
 Primary patch context: [body-parser advisory](https://github.com/expressjs/body-parser/security/advisories/GHSA-27r3-jxmh-p828), [Vite middleware advisory](https://github.com/vitejs/vite/security/advisories/GHSA-9jrq-w75r-8gcw). Zod/BiDi affected/fixed versions and final counts are from the captured npm audit and installed dependency tree.
+
+## Alpine image build repair
+
+The GitHub code gate passed, but the unprivileged image build exposed an obsolete exact zlib pin. Reproduced the same failure locally against the pinned official Caddy image: its Alpine repository now resolves zlib 1.4-r0, which conflicts with exactly 1.3.2-r1. Both runtime Dockerfiles now retain the security floor `zlib>=1.3.2-r1`, allowing a newer compatible package in each base's own repository. The pinned Caddy base digest and exact-image scan gates remain in place.
+
+The package installation succeeds in temporary, automatically removed containers for both the pinned Caddy base and Node 24 Alpine. Existing canonical accounting and factory tests pass, with no new cases. GitHub's complete image build must still pass for the new commit before merging; the earlier code-gate pass alone is insufficient. No app stack or production image was deployed.
