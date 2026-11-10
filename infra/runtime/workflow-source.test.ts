@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 
 const workflowPath = new URL('../../.github/workflows/application-deploy.yml', import.meta.url);
 const pullRequestWorkflowPath = new URL(
@@ -149,13 +150,38 @@ test('factory.delivery.automatic-main-delivery promotes only the verified exact 
   );
 });
 
-test('factory.delivery.automatic-main-disabled skips both environment deployment jobs', async () => {
+test('factory.delivery.automatic-main-disabled skips disabled delivery and rejects foreign dev ownership', async () => {
   const workflow = await readFile(workflowPath, 'utf8');
   assert.match(workflow, /if:.*vars\.APPLICATION_DEPLOY_ENABLED == 'true'/);
   assert.match(
     workflow,
     /if:.*github\.event_name == 'workflow_dispatch'.*APPLICATION_DEPLOY_ENABLED/s,
   );
+  const guardStart = workflow.indexOf('      - name: Enforce development deployment ownership');
+  const guardEnd = workflow.indexOf('      - uses:', guardStart);
+  assert.ok(
+    guardStart > 0 && guardEnd > guardStart,
+    'Ownership guard must precede checkout and credentials',
+  );
+  assert.ok(guardStart < workflow.indexOf('uses: aws-actions/configure-aws-credentials@'));
+  const guard = workflow.slice(guardStart, guardEnd);
+  assert.match(guard, /DEV_APPLICATION_OWNER: \$\{\{ vars\.DEV_APPLICATION_OWNER \}\}/);
+  assert.match(guard, /TARGET_STAGE: \$\{\{ steps\.release\.outputs\.stage \}\}/);
+  const script = guard.split('        run: |\n')[1];
+  assert.ok(script, 'Ownership decision must execute before privileged actions');
+  for (const [stage, owner, succeeds] of [
+    ['dev', '', false],
+    ['dev', 'fresh', false],
+    ['dev', 'legacy', true],
+    ['prod', '', true],
+    ['prod', 'fresh', true],
+  ] as const) {
+    const result: SpawnSyncReturns<Buffer> = spawnSync('sh', ['-eu'], {
+      input: script,
+      env: { ...process.env, TARGET_STAGE: stage, DEV_APPLICATION_OWNER: owner },
+    });
+    assert.equal(result.status === 0, succeeds, `${stage}/${owner || 'unset'} ownership`);
+  }
 });
 
 test('factory.delivery.automatic-main-stale rejects a superseded main SHA before environment mutation', async () => {
