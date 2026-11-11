@@ -7,6 +7,8 @@ import {
   FunctionCode,
   FunctionEventType,
   FunctionRuntime,
+  HeadersFrameOption,
+  HeadersReferrerPolicy,
   ImportSource,
   KeyValueStore,
   OriginRequestPolicy,
@@ -331,20 +333,45 @@ export class ApplicationStack extends Stack {
     const apiOrigin = new HttpOrigin(Fn.select(2, Fn.split('/', api.attrApiEndpoint)), {
       ...(originProof ? { customHeaders: { 'X-Trico-Origin-Proof': originProof } } : {}),
     });
-    const apiAssociation = apiViewer
-      ? {
-          functionAssociations: [
-            { eventType: FunctionEventType.VIEWER_REQUEST, function: apiViewer },
-          ],
-        }
-      : {};
+    const responseHeaders = routing
+      ? new ResponseHeadersPolicy(this, 'FreshReviewHeaders', {
+          customHeadersBehavior: {
+            customHeaders: [
+              { header: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive', override: true },
+            ],
+          },
+          securityHeadersBehavior: {
+            contentTypeOptions: { override: true },
+            frameOptions: { frameOption: HeadersFrameOption.SAMEORIGIN, override: false },
+            referrerPolicy: {
+              referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+              override: false,
+            },
+            strictTransportSecurity: {
+              accessControlMaxAge: Duration.days(365),
+              override: false,
+            },
+            xssProtection: { protection: true, modeBlock: true, override: false },
+          },
+        })
+      : ResponseHeadersPolicy.SECURITY_HEADERS;
+    const apiAssociation = {
+      ...(apiViewer
+        ? {
+            functionAssociations: [
+              { eventType: FunctionEventType.VIEWER_REQUEST, function: apiViewer },
+            ],
+          }
+        : {}),
+      ...(routing ? { responseHeadersPolicy: responseHeaders } : {}),
+    };
     const certificate = Certificate.fromCertificateArn(this, 'Certificate', config.certificateArn);
     const distribution = new Distribution(this, 'Distribution', {
       certificate,
       domainNames: [config.customDomain],
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(contentBucket as IBucket),
-        responseHeadersPolicy: ResponseHeadersPolicy.SECURITY_HEADERS,
+        responseHeadersPolicy: responseHeaders,
         ...(documentRouter
           ? {
               functionAssociations: [
