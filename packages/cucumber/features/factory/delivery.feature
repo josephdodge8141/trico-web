@@ -13,8 +13,9 @@ Feature: Immutable application delivery
     And production deploys the same immutable artifacts without building or publishing them again
 
   @id:factory.delivery.automatic-main-disabled @backend-noop @frontend-noop @browser-noop-eligible
-  Scenario: Do not automatically deliver main when automatic delivery is disabled
-    backend-noop: Automatic deployment enablement is repository workflow configuration.
+  Scenario: Reject disabled automatic delivery and development owned by the fresh site
+    backend-noop: Deployment enablement and explicit dev ownership are repository workflow configuration.
+    A legacy dev deployment, including manual dispatch, requires DEV_APPLICATION_OWNER=legacy before credentials; fresh or unset ownership fails closed. Production dispatch keeps its existing controls.
     frontend-noop: The disabled deployment path does not change the generated frontend.
     browser-noop: No public deployment occurs when the repository disables automatic delivery.
     Given automatic application delivery is disabled for main
@@ -112,6 +113,9 @@ Feature: Immutable application delivery
     backend-noop: Delivery IAM and artifact storage are factory infrastructure outside the generated backend.
     frontend-noop: Delivery IAM and artifact storage have no generated frontend interaction.
     browser-noop: A delivery-foundation template has no public page interaction.
+    A fresh-owned dev document registry rewrites only exact known page routes, leaves API/asset errors intact, and retains prior immutable route sets for rollback. Production behavior is unchanged until separately authorized.
+    A release may select a dedicated Home document for native poster loading. Its document selection rolls back with its route registry; historical releases retain their generic index. Invalid document metadata fails closed, and explicit HTML paths do not bypass the new release's public route policy.
+    An explicitly opted-in fresh dev runtime uses conditional capture state, the existing private one-day bucket, edge-only API access and a trusted viewer IP for persistent rate limits. It has no provider-send permissions or sync. This runtime requires the fresh document registry and cannot be selected for production.
     Given generic GitHub repository and notification configuration
     When the factory synthesizes the delivery foundation without AWS credentials
     Then it creates environment-scoped OIDC roles and protected release stores

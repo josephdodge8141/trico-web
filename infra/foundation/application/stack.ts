@@ -3,7 +3,14 @@ import {
   AllowedMethods,
   CachePolicy,
   Distribution,
+  Function as CloudFrontFunction,
+  FunctionCode,
+  FunctionEventType,
+  FunctionRuntime,
+  ImportSource,
+  KeyValueStore,
   OriginRequestPolicy,
+  OriginRequestHeaderBehavior,
   ResponseHeadersPolicy,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
@@ -29,9 +36,11 @@ import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from 'aws-cdk-lib/aws-s3';
 import type { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import type { Construct } from 'constructs';
 
 import { type ApplicationConfig, parseApplicationConfig } from './config.js';
+import { freshRoutingCode, freshApiViewerCode } from './fresh-routing.js';
 
 export interface ApplicationStackProps extends StackProps {
   readonly config: ApplicationConfig;
@@ -42,6 +51,7 @@ export class ApplicationStack extends Stack {
     super(scope, id, props);
     const config = parseApplicationConfig(props.config);
     const prefix = `${config.applicationName}-${config.stage}`;
+    const freshRuntime = config.freshDevRuntime === true;
     const durableRemoval = config.stage === 'prod' ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY;
     const alertTopic = Topic.fromTopicArn(this, 'AlertTopic', config.alertTopicArn);
 
@@ -112,17 +122,48 @@ export class ApplicationStack extends Stack {
         }),
       );
     }
-    table.grantReadWriteData(functionRole);
-    contentBucket.grantReadWrite(functionRole);
-    resumeBucket.grantReadWrite(functionRole);
-    functionRole.addToPolicy(
-      new PolicyStatement({
-        actions: ['ses:SendEmail', 'ses:SendRawEmail'],
-        resources: [
-          `arn:${this.partition}:ses:${this.region}:${this.account}:identity/${config.sesIdentityDomain}`,
-        ],
-      }),
-    );
+    const freshState = freshRuntime
+      ? new Table(this, 'FreshIntakeState', {
+          billingMode: BillingMode.PAY_PER_REQUEST,
+          partitionKey: { name: 'id', type: AttributeType.STRING },
+          timeToLiveAttribute: 'ttl',
+          pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+          deletionProtection: true,
+          removalPolicy: RemovalPolicy.RETAIN,
+        })
+      : undefined;
+    const originProof = freshRuntime
+      ? new Secret(this, 'FreshApiOriginProof', {
+          generateSecretString: { passwordLength: 48, excludePunctuation: true },
+        }).secretValue.unsafeUnwrap()
+      : undefined;
+    if (freshState) {
+      functionRole.addToPolicy(
+        new PolicyStatement({
+          actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem'],
+          resources: [freshState.tableArn],
+        }),
+      );
+      functionRole.addToPolicy(
+        new PolicyStatement({
+          actions: ['s3:GetObject', 's3:PutObject'],
+          resources: [resumeBucket.arnForObjects('fresh-trico/*')],
+        }),
+      );
+      new CfnOutput(this, 'FreshIntakeStateTable', { value: freshState.tableName });
+    } else {
+      table.grantReadWriteData(functionRole);
+      contentBucket.grantReadWrite(functionRole);
+      resumeBucket.grantReadWrite(functionRole);
+      functionRole.addToPolicy(
+        new PolicyStatement({
+          actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+          resources: [
+            `arn:${this.partition}:ses:${this.region}:${this.account}:identity/${config.sesIdentityDomain}`,
+          ],
+        }),
+      );
+    }
     if (config.externalSyncEnabled && config.bedrockModelId !== undefined) {
       functionRole.addToPolicy(
         new PolicyStatement({
@@ -160,13 +201,22 @@ export class ApplicationStack extends Stack {
           RESUME_BUCKET: resumeBucket.bucketName,
           S3_FORCE_PATH_STYLE: 'false',
           SESSION_COOKIE_NAME: `trico_${config.stage}_session`,
+          ...(freshState && originProof
+            ? {
+                INTAKE_STATE_TABLE: freshState.tableName,
+                INTAKE_DELIVERY_MODE: 'capture',
+                INTAKE_REQUIRE_EDGE: 'true',
+                INTAKE_ORIGIN_SECRET: originProof,
+                AWS_LWA_READINESS_CHECK_PATH: '/_candidate_ready',
+              }
+            : {}),
         },
       },
       functionName: prefix,
-      memorySize: 1024,
+      memorySize: freshRuntime ? 1769 : 1024,
       packageType: 'Image',
       role: functionRole.roleArn,
-      timeout: 900,
+      timeout: freshRuntime ? 25 : 900,
     });
 
     const backendLogs = new LogGroup(this, 'BackendLogs', {
@@ -188,9 +238,15 @@ export class ApplicationStack extends Stack {
     });
     new CfnRoute(this, 'DefaultRoute', {
       apiId: api.ref,
-      routeKey: '$default',
+      routeKey: freshRuntime ? 'ANY /api/{proxy+}' : '$default',
       target: `integrations/${integration.ref}`,
     });
+    if (freshRuntime)
+      new CfnRoute(this, 'FreshApiRootRoute', {
+        apiId: api.ref,
+        routeKey: 'ANY /api',
+        target: `integrations/${integration.ref}`,
+      });
     new CfnStage(this, 'DefaultStage', {
       apiId: api.ref,
       autoDeploy: true,
@@ -226,6 +282,62 @@ export class ApplicationStack extends Stack {
       sourceArn: syncRule.attrArn,
     });
 
+    const routing = config.freshDevRouting;
+    const routeStore = routing
+      ? new KeyValueStore(this, 'FreshDocumentRegistry', {
+          keyValueStoreName: `${prefix}-fresh-documents`,
+          source: ImportSource.fromInline(
+            JSON.stringify({
+              data: [
+                { key: 'active', value: routing.releaseSha },
+                ...(routing.homeDocument
+                  ? [{ key: `${routing.releaseSha}:home`, value: routing.homeDocument }]
+                  : []),
+                ...routing.documentPaths.map((uri) => ({
+                  key: `${routing.releaseSha}:${uri.replace(/\/$/, '') || '/'}`,
+                  value: '1',
+                })),
+              ],
+            }),
+          ),
+        })
+      : undefined;
+    const documentRouter = routeStore
+      ? new CloudFrontFunction(this, 'FreshDocumentRouter', {
+          functionName: `${prefix}-fresh-documents`,
+          runtime: FunctionRuntime.JS_2_0,
+          keyValueStore: routeStore,
+          code: FunctionCode.fromInline(freshRoutingCode(routeStore.keyValueStoreId)),
+        })
+      : undefined;
+    if (routeStore)
+      new CfnOutput(this, 'FreshDocumentRegistryArn', { value: routeStore.keyValueStoreArn });
+    const apiViewer = freshRuntime
+      ? new CloudFrontFunction(this, 'FreshApiViewer', {
+          functionName: `${prefix}-fresh-api-viewer`,
+          runtime: FunctionRuntime.JS_2_0,
+          code: FunctionCode.fromInline(freshApiViewerCode()),
+        })
+      : undefined;
+    const apiHeaders = freshRuntime
+      ? new OriginRequestPolicy(this, 'FreshApiHeaders', {
+          headerBehavior: OriginRequestHeaderBehavior.allowList(
+            'Content-Type',
+            'Origin',
+            'X-Trico-Viewer-Ip',
+          ),
+        })
+      : OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER;
+    const apiOrigin = new HttpOrigin(Fn.select(2, Fn.split('/', api.attrApiEndpoint)), {
+      ...(originProof ? { customHeaders: { 'X-Trico-Origin-Proof': originProof } } : {}),
+    });
+    const apiAssociation = apiViewer
+      ? {
+          functionAssociations: [
+            { eventType: FunctionEventType.VIEWER_REQUEST, function: apiViewer },
+          ],
+        }
+      : {};
     const certificate = Certificate.fromCertificateArn(this, 'Certificate', config.certificateArn);
     const distribution = new Distribution(this, 'Distribution', {
       certificate,
@@ -233,23 +345,47 @@ export class ApplicationStack extends Stack {
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(contentBucket as IBucket),
         responseHeadersPolicy: ResponseHeadersPolicy.SECURITY_HEADERS,
+        ...(documentRouter
+          ? {
+              functionAssociations: [
+                { eventType: FunctionEventType.VIEWER_REQUEST, function: documentRouter },
+              ],
+            }
+          : {}),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
       additionalBehaviors: {
+        ...(routing
+          ? {
+              api: {
+                allowedMethods: AllowedMethods.ALLOW_ALL,
+                cachePolicy: CachePolicy.CACHING_DISABLED,
+                origin: apiOrigin,
+                originRequestPolicy: apiHeaders,
+                ...apiAssociation,
+                viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+              },
+            }
+          : {}),
         'api/*': {
           allowedMethods: AllowedMethods.ALLOW_ALL,
           cachePolicy: CachePolicy.CACHING_DISABLED,
-          origin: new HttpOrigin(Fn.select(2, Fn.split('/', api.attrApiEndpoint))),
-          originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          origin: apiOrigin,
+          originRequestPolicy: apiHeaders,
+          ...apiAssociation,
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
       },
       comment: `${prefix} public content and API`,
       enableLogging: false,
-      errorResponses: [
-        { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html' },
-        { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' },
-      ],
+      ...(routing
+        ? {}
+        : {
+            errorResponses: [
+              { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html' },
+              { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' },
+            ],
+          }),
     });
     const hostedZone = HostedZone.fromHostedZoneAttributes(this, 'ApplicationZone', {
       hostedZoneId: config.hostedZoneId,

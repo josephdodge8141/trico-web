@@ -86,6 +86,15 @@ jobs:
           echo "control_sha=$CONTROL_SHA" >> "$GITHUB_OUTPUT"
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
           echo "path=$path" >> "$GITHUB_OUTPUT"
+      - name: Enforce development deployment ownership
+        env:
+          TARGET_STAGE: ${{ steps.release.outputs.stage }}
+          DEV_APPLICATION_OWNER: ${{ vars.DEV_APPLICATION_OWNER }}
+        run: |
+          if test "$TARGET_STAGE" = dev && test "$DEV_APPLICATION_OWNER" != legacy; then
+            echo 'Legacy development deployment requires explicit DEV_APPLICATION_OWNER=legacy. Fresh or unset ownership blocks this workflow before AWS credentials.' >&2
+            exit 1
+          fi
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0

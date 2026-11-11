@@ -16,6 +16,6 @@
     "@app/schemas": "0.1.0",
     "@cucumber/gherkin": "42.0.1",
     "@cucumber/messages": "34.2.1",
-    "zod": "4.5.4"
+    "zod": "4.6.6"
   }
 }

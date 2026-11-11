@@ -102,6 +102,20 @@ for (const stage of ['dev', 'prod'] as const) {
         }),
     alertTopicArn:
       app.node.tryGetContext(`application:${stage}:alertTopicArn`) ?? example.alertTopicArn,
+    ...(app.node.tryGetContext(`application:${stage}:freshDevRouting`) === undefined
+      ? {}
+      : {
+          freshDevRouting: app.node.tryGetContext(
+            `application:${stage}:freshDevRouting`,
+          ) as unknown,
+        }),
+    ...(app.node.tryGetContext(`application:${stage}:freshDevRuntime`) === undefined
+      ? {}
+      : {
+          freshDevRuntime: app.node.tryGetContext(
+            `application:${stage}:freshDevRuntime`,
+          ) as unknown,
+        }),
     externalSyncEnabled:
       app.node.tryGetContext(`application:${stage}:externalSyncEnabled`) ??
       example.externalSyncEnabled,

@@ -1,0 +1,43 @@
+# Fresh development document routing
+
+This is an opt-in addition to the existing application stack. It does not create a second owner of the dev distribution and does not alter production routing.
+
+## Ownership and bootstrap
+
+Set the `application:dev:freshDevRouting` CDK context to an object with `releaseSha` and `documentPaths`. Keep actual environment values in ignored context/configuration. The bootstrap SHA must be the currently active immutable fresh release, with its index and deployment marker already present under `fresh-releases/<sha>/`. Confirm every bootstrap document path against that release before association.
+
+For a release that includes the native Home poster document, set optional `homeDocument` to exactly `home.html` and verify that immutable artifact too. This adds `<sha>:home=home.html` to its bootstrap data. The fresh publisher must register the same per-release metadata before activation; its absence deliberately selects the historical generic index. Do not turn this into a global Home setting, which would break rollback to older artifacts.
+
+The original application stack owns one KeyValueStore and viewer-request function. The import is bootstrap data, not the mutable active release. Preserve this original bootstrap configuration during later infrastructure updates. Changing the import can require replacing the store and must not be used as routine release activation.
+
+The fresh repository's release role will update only this store's data. A release registers all exact document paths under `<sha>:<path>` before changing `active`. Earlier route sets and immutable assets remain available for rollback. The root entry must exist before any release is active. Invalid, absent or incomplete active data produces 503, never a guessed release.
+
+## Behavior
+
+- Exact registered page routes rewrite to `fresh-releases/<active>/index.html`.
+- A release with valid `<sha>:home` metadata serves `home.html` at `/`; its explicit `/index.html` returns 404. Invalid Home metadata fails closed with 503. Other documents keep the generic index. Historical releases without this metadata retain their original index behavior.
+- Unknown document paths return 404. Unsupported document methods return 405.
+- `/deployment.json` identifies the active immutable release.
+- Immutable release assets and ordinary file paths retain their original origin behavior and statuses.
+- Both `/api` and `/api/*` bypass document rewriting.
+- Only the opted-in dev distribution removes the inherited global 403/404-to-200 rewrite.
+
+## Validation and activation gap
+
+The existing application-stack test now executes the actual generated function with an outbound KeyValueStore substitute. It verifies known/unknown paths, method rejection, missing assets, release marker, rollback and malformed/incomplete registry failure. Existing synthesis verifies the API bypass, single ownership and rejection of this option for production.
+
+The Home extension first reproduced the old index selection as a failing assertion. The existing case also verifies the synthesized bootstrap asset, Home selection, explicit HTML rejection, invalid metadata and historical rollback. No scenarios, examples or test cases were added. This is not hosted dev activation evidence.
+
+`npm run check:ci` passes with the existing test/scenario counts and 204 canonical cases. The initial missing-option acceptance failure was observed before implementation. This branch has not activated the edge change: fresh release registry preparation/permissions, bootstrap validation, CloudFront test-function evidence and hosted status/rollback checks remain required before deployment.
+
+References: [CloudFront KeyValueStore](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/kvs-with-functions.html), [event/response structure](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/functions-event-structure.html).
+
+## Fresh capture runtime
+
+The separate `application:dev:freshDevRuntime=true` opt-in requires the document registry and disabled external synchronization. The existing original-owned dev Lambda, gateway, distribution and one-day private capture bucket keep their resource identities. This option adds an original-owned conditional-state table with an `id` key, rate-record TTL, point-in-time recovery, deletion protection and retained removal policy. The legacy content table remains separate. It does not create another submission service or change the candidate's archive storage.
+
+The Lambda receives capture-only configuration, its state table, a managed origin proof and fresh adapter readiness path. It uses 1769 MB and a 25-second timeout, matching the exact-limit PDF runtime requirement. Its permissions are limited to logs, state get/put/update and the private `fresh-trico/*` capture prefix. It has no mail, model or queue-send permission. Both API behaviors forward only content type, origin and an edge-overwritten viewer IP; the gateway registers only API paths. The origin proof is inserted at CloudFront and never exposed through an output. Do not print full deployed environments or distribution configurations.
+
+The existing case verifies actual generated viewer-header sanitization, matching origin/runtime secret references, both API function associations, explicit API gateway routes, disabled provider permissions and invalid runtime/sync configuration. The generic production template remains byte-for-byte structurally equal to its pre-change synthesis. Full `npm run check:ci` passes with 204 canonical cases and the existing test counts.
+
+Activation remains separate. The initial infrastructure migration must pin a tested fresh-compatible image and restore the preceding runtime/role/routes if it fails. A later code-only rollback must not substitute an image from the previous incompatible runtime generation. The fresh publisher, scoped role, ownership guard and hosted rollback/status evidence still need integration before dev deployment.

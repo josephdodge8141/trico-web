@@ -23,6 +23,7 @@ Feature: Trusted source boundary
 
   @id:factory.trusted-preview.image-scan-gate @backend-noop @frontend-noop @browser-noop-eligible
   Scenario Outline: Gate preview admission on both exact candidate image scans
+    Runtime builds retain a verified zlib security minimum while accepting newer compatible Alpine packages; exact image digest scans still gate admission.
     backend-noop: Candidate image scanning is trusted preview infrastructure behavior.
     frontend-noop: Candidate image scanning has no generated frontend interaction.
     browser-noop: A candidate preview is not launched when either image scan is rejected.
