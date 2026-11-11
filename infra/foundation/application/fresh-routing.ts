@@ -16,13 +16,26 @@ async function handler(event) {
   if (request.uri !== '/index.html' && /\\.[a-z0-9]+$/i.test(request.uri) && request.uri !== '/deployment.json') return request;
   try {
     const active = await store.get('active');
-    if (!/^[a-f0-9]{40}$/.test(active) || !await store.exists(active + ':/')) return reply(503, 'Please try again shortly');
+    if (!/^[a-f0-9]{40}$/.test(active) || !await store.exists(active + ':/') || await store.get(active + ':/') !== '1') return reply(503, 'Please try again shortly');
     if (request.uri === '/deployment.json') {
       request.uri = '/fresh-releases/' + active + '/deployment.json';
       return request;
     }
     const uri = request.uri === '/index.html' ? '/' : (request.uri.replace(/\\/$/, '') || '/');
     if (!await store.exists(active + ':' + uri)) return reply(404, 'Page not found');
+    const registration = await store.get(active + ':' + uri);
+    if (registration.indexOf('r:') === 0) {
+      const destination = registration.slice(2);
+      if (!/^\\/(?:[a-z0-9-]+\\/?)*(?:\\?[a-zA-Z0-9_%.=&+-]*)?(?:#[a-zA-Z0-9_-]+)?$/.test(destination))
+        return reply(503, 'Please try again shortly');
+      const target = destination.split(/[?#]/)[0].replace(/\\/$/, '') || '/';
+      if (!await store.exists(active + ':' + target) || await store.get(active + ':' + target) !== '1')
+        return reply(503, 'Please try again shortly');
+      const moved = reply(308, 'This page has moved');
+      moved.headers.location = { value: destination };
+      return moved;
+    }
+    if (registration !== '1') return reply(503, 'Please try again shortly');
     let document = 'index.html';
     if (uri === '/' && await store.exists(active + ':home')) {
       if (await store.get(active + ':home') !== 'home.html') return reply(503, 'Please try again shortly');

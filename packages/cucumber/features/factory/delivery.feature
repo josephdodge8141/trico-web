@@ -113,7 +113,7 @@ Feature: Immutable application delivery
     backend-noop: Delivery IAM and artifact storage are factory infrastructure outside the generated backend.
     frontend-noop: Delivery IAM and artifact storage have no generated frontend interaction.
     browser-noop: A delivery-foundation template has no public page interaction.
-    A fresh-owned dev document registry rewrites only exact known page routes, leaves API/asset errors intact, and retains prior immutable route sets for rollback. Production behavior is unchanged until separately authorized.
+    A versioned fresh-owned dev document registry rewrites exact known pages and returns validated release-bound legacy redirects. Dev documents/assets/API responses add noindex while preserving managed security headers. API/asset errors remain intact, rollback retains each release’s own route/redirect metadata, and invalid redirect targets fail closed. Production behavior is unchanged.
     A release may select a dedicated Home document for native poster loading. Its document selection rolls back with its route registry; historical releases retain their generic index. Invalid document metadata fails closed, and explicit HTML paths do not bypass the new release's public route policy.
     An explicitly opted-in fresh dev runtime uses conditional capture state, the existing private one-day bucket, edge-only API access and a trusted viewer IP for persistent rate limits. It has no provider-send permissions or sync. This runtime requires the fresh document registry and cannot be selected for production.
     Given generic GitHub repository and notification configuration

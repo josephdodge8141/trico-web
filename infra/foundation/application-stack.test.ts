@@ -66,6 +66,7 @@ test('application stack creates isolated durable content infrastructure', async 
     ['active', release],
     [release + ':/', '1'],
     [release + ':/construction', '1'],
+    [release + ':/project-1', 'r:/construction'],
     [release + ':home', 'home.html'],
     [previous + ':/', '1'],
   ]);
@@ -85,7 +86,7 @@ test('application stack creates isolated durable content infrastructure', async 
     },
   ) as (event: {
     request: { uri: string; method: string };
-  }) => Promise<{ uri?: string; statusCode?: number }>;
+  }) => Promise<{ uri?: string; statusCode?: number; headers?: { location?: { value: string } } }>;
   const request = (uri: string, method = 'GET') => handler({ request: { uri, method } });
   assert.equal((await request('/')).uri, `/fresh-releases/${release}/home.html`);
   assert.equal((await request('/index.html')).statusCode, 404);
@@ -95,30 +96,27 @@ test('application stack creates isolated durable content infrastructure', async 
   assert.equal((await request('/construction/')).uri, `/fresh-releases/${release}/index.html`);
   assert.equal((await request('/missing-project')).statusCode, 404);
   assert.equal((await request('/construction', 'POST')).statusCode, 405);
-  assert.equal(
-    (await request(`/fresh-releases/${previous}/assets/missing.js`)).uri,
-    `/fresh-releases/${previous}/assets/missing.js`,
-  );
-  assert.equal(
-    (await request('/missing.svg')).uri,
-    '/missing.svg',
-    'Origin error status must not be rewritten',
-  );
-  assert.equal(
-    (await request('/deployment.json')).uri,
-    `/fresh-releases/${release}/deployment.json`,
-  );
+  const moved = await request('/project-1/');
+  assert.deepEqual([moved.statusCode, moved.headers?.location?.value], [308, '/construction']);
+  for (const [uri, expected] of [
+    [
+      `/fresh-releases/${previous}/assets/missing.js`,
+      `/fresh-releases/${previous}/assets/missing.js`,
+    ],
+    ['/missing.svg', '/missing.svg'],
+    ['/deployment.json', `/fresh-releases/${release}/deployment.json`],
+  ] as const)
+    assert.equal((await request(uri)).uri, expected, 'Preserve asset/document routing');
+  records.set(release + ':/project-1', 'r:https://unrelated.example');
+  assert.equal((await request('/project-1')).statusCode, 503);
   records.set('active', previous);
   assert.equal(
     (await request('/')).uri,
     `/fresh-releases/${previous}/index.html`,
     'Rollback restores the prior registry',
   );
-  assert.equal(
-    (await request('/construction')).statusCode,
-    404,
-    'Do not reuse routes from another release',
-  );
+  for (const uri of ['/construction', '/project-1'])
+    assert.equal((await request(uri)).statusCode, 404, 'Do not reuse routes from another release');
   records.set('active', 'c'.repeat(40));
   assert.equal((await request('/')).statusCode, 503, 'An incomplete registry fails closed');
   records.set('active', 'invalid');
