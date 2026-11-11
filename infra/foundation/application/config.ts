@@ -25,6 +25,7 @@ export const applicationConfigSchema = z
     bedrockModelId: z.string().min(1).max(256).optional(),
     alertTopicArn: z.string().startsWith('arn:').min(20),
     externalSyncEnabled: contextBoolean,
+    freshDevRuntime: z.literal(true).optional(),
     freshDevRouting: z
       .object({
         releaseSha: z.string().regex(/^[a-f0-9]{40}$/),
@@ -50,6 +51,12 @@ export const applicationConfigSchema = z
   })
   .strict()
   .superRefine((config, context) => {
+    if (config.freshDevRuntime && (!config.freshDevRouting || config.externalSyncEnabled))
+      context.addIssue({
+        code: 'custom',
+        path: ['freshDevRuntime'],
+        message: 'Fresh runtime requires freshDevRouting and disabled external sync.',
+      });
     if (config.freshDevRouting && config.stage !== 'dev')
       context.addIssue({
         code: 'custom',

@@ -8,6 +8,7 @@ function reply(status, message) {
     'x-robots-tag': { value: 'noindex, nofollow' }
   }, body: '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>TriCo</title><main><h1>' + message + '</h1><a href="/">Return to TriCo</a></main></html>' };
 }
+
 async function handler(event) {
   const request = event.request;
   if (request.method !== 'GET' && request.method !== 'HEAD') return reply(405, 'Method not allowed');
@@ -33,5 +34,21 @@ async function handler(event) {
   } catch (error) {
     return reply(503, 'Please try again shortly');
   }
+}`;
+}
+
+export function freshApiViewerCode(): string {
+  return `function handler(event) {
+  const request = event.request;
+  delete request.headers['x-trico-origin-proof'];
+  delete request.headers['cloudfront-viewer-address'];
+  delete request.headers['x-trico-viewer-ip'];
+  if (!event.viewer || !event.viewer.ip) return {
+    statusCode: 403,
+    headers: { 'content-type': { value: 'application/json' }, 'cache-control': { value: 'no-store' } },
+    body: '{"ok":false,"error":"Viewer identity unavailable."}'
+  };
+  request.headers['x-trico-viewer-ip'] = { value: event.viewer.ip };
+  return request;
 }`;
 }

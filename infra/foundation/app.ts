@@ -109,6 +109,13 @@ for (const stage of ['dev', 'prod'] as const) {
             `application:${stage}:freshDevRouting`,
           ) as unknown,
         }),
+    ...(app.node.tryGetContext(`application:${stage}:freshDevRuntime`) === undefined
+      ? {}
+      : {
+          freshDevRuntime: app.node.tryGetContext(
+            `application:${stage}:freshDevRuntime`,
+          ) as unknown,
+        }),
     externalSyncEnabled:
       app.node.tryGetContext(`application:${stage}:externalSyncEnabled`) ??
       example.externalSyncEnabled,

@@ -10,7 +10,7 @@ import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 
 import { exampleApplicationConfig } from './application/config.js';
 import { ApplicationStack } from './application/stack.js';
-import { freshRoutingCode } from './application/fresh-routing.js';
+import { freshRoutingCode, freshApiViewerCode } from './application/fresh-routing.js';
 
 function applicationTemplate(stage: 'dev' | 'prod' = 'dev'): Template {
   const app = new App();
@@ -249,6 +249,109 @@ test('application stack exposes API and scheduled Lambda entrypoints', () => {
       }),
     },
   });
+  const freshTemplate = Template.fromStack(
+    new ApplicationStack(new App(), 'FreshRuntime', {
+      config: {
+        ...exampleApplicationConfig('dev'),
+        freshDevRouting: { releaseSha: 'a'.repeat(40), documentPaths: ['/'] },
+        freshDevRuntime: true,
+      },
+    }),
+  );
+  freshTemplate.resourceCountIs('AWS::DynamoDB::Table', 2);
+  freshTemplate.resourceCountIs('AWS::SecretsManager::Secret', 1);
+  freshTemplate.hasResourceProperties('AWS::DynamoDB::Table', {
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    TimeToLiveSpecification: { AttributeName: 'ttl', Enabled: true },
+    DeletionProtectionEnabled: true,
+  });
+  freshTemplate.hasResourceProperties('AWS::Lambda::Function', {
+    MemorySize: 1769,
+    Timeout: 25,
+    Environment: {
+      Variables: Match.objectLike({
+        INTAKE_DELIVERY_MODE: 'capture',
+        INTAKE_STATE_TABLE: Match.anyValue(),
+        INTAKE_REQUIRE_EDGE: 'true',
+        INTAKE_ORIGIN_SECRET: Match.anyValue(),
+        AWS_LWA_READINESS_CHECK_PATH: '/_candidate_ready',
+      }),
+    },
+  });
+  freshTemplate.hasResourceProperties('AWS::ApiGatewayV2::Route', { RouteKey: 'ANY /api' });
+  freshTemplate.hasResourceProperties('AWS::ApiGatewayV2::Route', {
+    RouteKey: 'ANY /api/{proxy+}',
+  });
+  const freshPolicies = JSON.stringify(freshTemplate.findResources('AWS::IAM::Policy'));
+  assert.doesNotMatch(freshPolicies, /ses:|bedrock:|bedrock-mantle:|sqs:/);
+  freshTemplate.hasResourceProperties('AWS::CloudFront::OriginRequestPolicy', {
+    OriginRequestPolicyConfig: {
+      HeadersConfig: {
+        HeaderBehavior: 'whitelist',
+        Headers: ['Content-Type', 'Origin', 'X-Trico-Viewer-Ip'],
+      },
+    },
+  });
+  const distribution = Object.values(
+    freshTemplate.findResources('AWS::CloudFront::Distribution'),
+  )[0];
+  const fn = Object.values(freshTemplate.findResources('AWS::Lambda::Function'))[0];
+  assert.ok(distribution && fn);
+  const config = distribution.Properties.DistributionConfig;
+  for (const path of ['api', 'api/*']) {
+    const behavior = config.CacheBehaviors.find(
+      (entry: { PathPattern: string }) => entry.PathPattern === path,
+    );
+    assert.equal(behavior.FunctionAssociations.length, 1);
+    assert.match(JSON.stringify(behavior.FunctionAssociations), /FreshApiViewer/);
+    assert.equal(behavior.CachePolicyId, '4135ea2d-6df8-44a3-9df3-4b5a84be39ad');
+  }
+  const headers = config.Origins.flatMap(
+    (entry: { OriginCustomHeaders?: { HeaderName: string; HeaderValue: unknown }[] }) =>
+      entry.OriginCustomHeaders || [],
+  );
+  const proof = headers.find(
+    (entry: { HeaderName: string }) => entry.HeaderName === 'X-Trico-Origin-Proof',
+  );
+  assert.deepEqual(proof?.HeaderValue, fn.Properties.Environment.Variables.INTAKE_ORIGIN_SECRET);
+  const forward = runInNewContext(freshApiViewerCode() + '\nhandler;') as (event: unknown) => {
+    headers: Record<string, { value: string }>;
+    statusCode?: number;
+  };
+  const forwarded = forward({
+    viewer: { ip: '2001:db8::15' },
+    request: {
+      headers: {
+        'x-trico-viewer-ip': { value: '192.0.2.1' },
+        'cloudfront-viewer-address': { value: '192.0.2.1:443' },
+        'x-trico-origin-proof': { value: 'forged' },
+      },
+    },
+  });
+  assert.equal(forwarded.headers['x-trico-viewer-ip']?.value, '2001:db8::15');
+  assert.equal(forwarded.headers['cloudfront-viewer-address'], undefined);
+  assert.equal(forwarded.headers['x-trico-origin-proof'], undefined);
+  assert.equal(forward({ request: { headers: {} } }).statusCode, 403);
+  assert.throws(
+    () =>
+      new ApplicationStack(new App(), 'MissingFreshRegistry', {
+        config: { ...exampleApplicationConfig('dev'), freshDevRuntime: true },
+      }),
+    /freshDevRouting/,
+  );
+  assert.throws(
+    () =>
+      new ApplicationStack(new App(), 'RejectedFreshSync', {
+        config: {
+          ...exampleApplicationConfig('dev'),
+          freshDevRuntime: true,
+          externalSyncEnabled: true,
+          bedrockModelId: 'fixture-model',
+          freshDevRouting: { releaseSha: 'a'.repeat(40), documentPaths: ['/'] },
+        },
+      }),
+    /disabled external sync/,
+  );
 });
 
 test('production retains data while development can be intentionally destroyed', () => {
