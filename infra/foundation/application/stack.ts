@@ -304,7 +304,7 @@ export class ApplicationStack extends Stack {
       : undefined;
     const documentRouter = routeStore
       ? new CloudFrontFunction(this, 'FreshDocumentRouter', {
-          functionName: `${prefix}-fresh-documents`,
+          functionName: `${prefix}-fresh-documents-v2`,
           runtime: FunctionRuntime.JS_2_0,
           keyValueStore: routeStore,
           code: FunctionCode.fromInline(freshRoutingCode(routeStore.keyValueStoreId)),
