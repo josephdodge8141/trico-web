@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { runInNewContext } from 'node:vm';
 
 import { App } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
+import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 
 import { exampleApplicationConfig } from './application/config.js';
 import { ApplicationStack } from './application/stack.js';
@@ -63,6 +66,7 @@ test('application stack creates isolated durable content infrastructure', async 
     ['active', release],
     [release + ':/', '1'],
     [release + ':/construction', '1'],
+    [release + ':home', 'home.html'],
     [previous + ':/', '1'],
   ]);
   const handler = runInNewContext(
@@ -83,6 +87,11 @@ test('application stack creates isolated durable content infrastructure', async 
     request: { uri: string; method: string };
   }) => Promise<{ uri?: string; statusCode?: number }>;
   const request = (uri: string, method = 'GET') => handler({ request: { uri, method } });
+  assert.equal((await request('/')).uri, `/fresh-releases/${release}/home.html`);
+  assert.equal((await request('/index.html')).statusCode, 404);
+  records.set(release + ':home', '../private.html');
+  assert.equal((await request('/')).statusCode, 503, 'Invalid Home metadata fails closed');
+  records.set(release + ':home', 'home.html');
   assert.equal((await request('/construction/')).uri, `/fresh-releases/${release}/index.html`);
   assert.equal((await request('/missing-project')).statusCode, 404);
   assert.equal((await request('/construction', 'POST')).statusCode, 405);
@@ -122,11 +131,33 @@ test('application stack creates isolated durable content infrastructure', async 
     new ApplicationStack(freshApp, 'FreshDev', {
       config: {
         ...exampleApplicationConfig('dev'),
-        freshDevRouting: { releaseSha: 'a'.repeat(40), documentPaths: ['/', '/construction'] },
+        freshDevRouting: {
+          releaseSha: 'a'.repeat(40),
+          documentPaths: ['/', '/construction'],
+          homeDocument: 'home.html',
+        },
       },
     }),
   );
   freshTemplate.resourceCountIs('AWS::CloudFront::KeyValueStore', 1);
+  const registryAsset = freshApp.node
+    .findChild('FreshDev')
+    .node.findChild('FreshDocumentRegistry')
+    .node.findChild('ImportSource');
+  assert.ok(registryAsset instanceof Asset);
+  assert.deepEqual(
+    JSON.parse(
+      readFileSync(path.join(freshApp.synth().directory, registryAsset.assetPath), 'utf8'),
+    ),
+    {
+      data: [
+        { key: 'active', value: release },
+        { key: release + ':home', value: 'home.html' },
+        { key: release + ':/', value: '1' },
+        { key: release + ':/construction', value: '1' },
+      ],
+    },
+  );
   freshTemplate.resourceCountIs('AWS::CloudFront::Function', 1);
   const freshDistribution = Object.values(
     freshTemplate.findResources('AWS::CloudFront::Distribution'),

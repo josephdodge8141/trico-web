@@ -28,6 +28,7 @@ export const applicationConfigSchema = z
     freshDevRouting: z
       .object({
         releaseSha: z.string().regex(/^[a-f0-9]{40}$/),
+        homeDocument: z.literal('home.html').optional(),
         documentPaths: z
           .array(
             z

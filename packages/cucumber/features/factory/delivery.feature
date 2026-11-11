@@ -114,6 +114,7 @@ Feature: Immutable application delivery
     frontend-noop: Delivery IAM and artifact storage have no generated frontend interaction.
     browser-noop: A delivery-foundation template has no public page interaction.
     A fresh-owned dev document registry rewrites only exact known page routes, leaves API/asset errors intact, and retains prior immutable route sets for rollback. Production behavior is unchanged until separately authorized.
+    A release may select a dedicated Home document for native poster loading. Its document selection rolls back with its route registry; historical releases retain their generic index. Invalid document metadata fails closed, and explicit HTML paths do not bypass the new release's public route policy.
     Given generic GitHub repository and notification configuration
     When the factory synthesizes the delivery foundation without AWS credentials
     Then it creates environment-scoped OIDC roles and protected release stores

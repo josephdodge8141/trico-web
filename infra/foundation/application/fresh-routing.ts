@@ -22,7 +22,13 @@ async function handler(event) {
     }
     const uri = request.uri === '/index.html' ? '/' : (request.uri.replace(/\\/$/, '') || '/');
     if (!await store.exists(active + ':' + uri)) return reply(404, 'Page not found');
-    request.uri = '/fresh-releases/' + active + '/index.html';
+    let document = 'index.html';
+    if (uri === '/' && await store.exists(active + ':home')) {
+      if (await store.get(active + ':home') !== 'home.html') return reply(503, 'Please try again shortly');
+      if (request.uri === '/index.html') return reply(404, 'Page not found');
+      document = 'home.html';
+    }
+    request.uri = '/fresh-releases/' + active + '/' + document;
     return request;
   } catch (error) {
     return reply(503, 'Please try again shortly');

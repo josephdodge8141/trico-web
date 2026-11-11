@@ -241,6 +241,9 @@ export class ApplicationStack extends Stack {
             JSON.stringify({
               data: [
                 { key: 'active', value: routing.releaseSha },
+                ...(routing.homeDocument
+                  ? [{ key: `${routing.releaseSha}:home`, value: routing.homeDocument }]
+                  : []),
                 ...routing.documentPaths.map((uri) => ({
                   key: `${routing.releaseSha}:${uri.replace(/\/$/, '') || '/'}`,
                   value: '1',
